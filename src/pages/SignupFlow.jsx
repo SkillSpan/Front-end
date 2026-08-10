@@ -9,6 +9,7 @@ import OptionCard from '../components/auth/OptionCard'
 import { CheckIcon, InfoIcon } from '../components/auth/icons'
 import graduationCapIcon from '../assets/icons/icon-graduation-cap.png'
 import certificateIcon from '../assets/icons/icon-certificate.png'
+import { registerIndividual } from '../services/authApi'
 
 const TOTAL_STEPS = 3
 
@@ -20,12 +21,14 @@ export default function SignupFlow() {
   const [academicStatus, setAcademicStatus] = useState('student')
   const [agreements, setAgreements] = useState({ terms: true, privacy: false })
   
-  // 1. إضافة حالة حفظ الأخطاء
+  // حالات الأخطاء والـ Loading الخاصة بالـ API والـ Client Validation
   const [errors, setErrors] = useState({})
+  const [serverError, setServerError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const bothAgreed = agreements.terms && agreements.privacy
 
-  // 2. دالة التحقق الخاصة بالخطوة الأولى
+  // دالة التحقق الخاصة بالخطوة الأولى
   const validateStep1 = () => {
     const newErrors = {}
 
@@ -55,8 +58,35 @@ export default function SignupFlow() {
     return Object.keys(newErrors).length === 0
   }
 
+  // دالة الإرسال النهائية للـ API عند إنهاء الخطوة الثالثة
+  const handleFinalSubmit = async () => {
+    setIsLoading(true)
+    setServerError('')
+
+    try {
+      // إرسال البيانات للـ Backend
+      await registerIndividual({
+        name: account.fullName,
+        email: account.email,
+        password: account.password,
+      })
+      
+      // الانتقال لصفحة تأكيد البريد وتمرير الإيميل معها
+      navigate('/verify-email', { state: { email: account.email } })
+    } catch (err) {
+      if (typeof err === 'string') {
+        setServerError(err)
+      } else if (Array.isArray(err)) {
+        setServerError(err.join(' - '))
+      } else {
+        setServerError('Failed to create account. Please try again.')
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const goNext = () => {
-    // إيقاف التقدم إذا كانت بيانات الخطوة الأولى بها خطأ
     if (step === 1) {
       if (!validateStep1()) return
     }
@@ -64,7 +94,8 @@ export default function SignupFlow() {
     if (step < TOTAL_STEPS) {
       setStep(step + 1)
     } else {
-      console.log('Sign up submitted', { account, academicStatus, agreements })
+      // تنفيذ الإرسال النهائي في الخطوة الأخيرة
+      handleFinalSubmit()
     }
   }
 
@@ -72,7 +103,6 @@ export default function SignupFlow() {
     if (step > 1) setStep(step - 1)
   }
 
-  // دالة لتحديث قيم الحقول ومسح الخطأ بمجرد كتابة المستخدم
   const handleInputChange = (field, value) => {
     setAccount({ ...account, [field]: value })
     if (errors[field]) {
@@ -83,6 +113,13 @@ export default function SignupFlow() {
   return (
     <AuthLayout>
       <ProgressSteps step={step} total={TOTAL_STEPS} />
+
+      {/* عرض خطأ السيرفر في أعلى أي خطوة إذا حدث */}
+      {serverError && (
+        <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
+          {serverError}
+        </div>
+      )}
 
       {step === 1 && (
         <>
@@ -217,7 +254,12 @@ export default function SignupFlow() {
               </div>
             )}
           </div>
-          <StepNavButtons onBack={goBack} onNext={goNext} nextDisabled={!bothAgreed} />
+          <StepNavButtons 
+            onBack={goBack} 
+            onNext={goNext} 
+            nextDisabled={!bothAgreed || isLoading} 
+            nextText={isLoading ? 'Creating Account...' : 'Complete Registration'}
+          />
         </>
       )}
     </AuthLayout>

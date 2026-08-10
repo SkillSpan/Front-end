@@ -1,111 +1,128 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import AuthLayout from '../components/auth/AuthLayout'
-import { GoogleIcon } from '../components/auth/icons'
-import brandMark from '../assets/icons/icon-career-growth.png'
+import { useNavigate } from 'react-router-dom'
+import { loginUser } from '../services/authApi'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [errors, setErrors] = useState({})
+  const navigate = useNavigate()
+  
+  // 1. الحالات الخاصة بالبيانات والأخطاء
+  const [formData, setFormData] = useState({ email: '', password: '' })
+  const [clientErrors, setClientErrors] = useState({})
+  const [serverError, setServerError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const validate = () => {
-    const newErrors = {}
-
-    // Validation للبريد الإلكتروني
-    if (!email.trim()) {
-      newErrors.email = 'Email address is required'
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Please enter a valid email address'
+  // 2. دالة الفحص والتحقق (Validation)
+  const validateForm = () => {
+    const errors = {}
+    if (!formData.email) {
+      errors.email = 'البريد الإلكتروني مطلوب'
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      errors.email = 'صيغة البريد الإلكتروني غير صحيحة'
     }
 
-    // Validation لكلمة المرور
-    if (!password) {
-      newErrors.password = 'Password is required'
+    if (!formData.password) {
+      errors.password = 'كلمة المرور مطلوبة'
+    } else if (formData.password.length < 6) {
+      errors.password = 'كلمة المرور يجب أن لا تقل عن 6 خانات'
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    setClientErrors(errors)
+    return Object.keys(errors).length === 0
   }
 
-  const handleSubmit = (e) => {
+  // تحديث القيم ومسح أخطاء الحقل المحددة أثناء الكتابة
+  const handleInputChange = (field, value) => {
+    setFormData({ ...formData, [field]: value })
+    if (clientErrors[field]) {
+      setClientErrors({ ...clientErrors, [field]: '' })
+    }
+  }
+
+  // 3. دالة معالجة الإرسال
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (validate()) {
-      console.log('Log in submitted', { email, password })
-      // wire this up to your auth API
+    setServerError('')
+
+    if (!validateForm()) return
+
+    setLoading(true)
+    try {
+      const data = await loginUser(formData)
+      if (data.token) {
+        localStorage.setItem('token', data.token)
+      }
+      navigate('/dashboard')
+    } catch (err) {
+      if (typeof err === 'string') {
+        setServerError(err)
+      } else if (Array.isArray(err)) {
+        setServerError(err.join(' - '))
+      } else {
+        setServerError('فشل تسجيل الدخول، يرجى التأكد من بياناتك.')
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <AuthLayout contentClassName="items-center">
-      <form onSubmit={handleSubmit} className="mx-auto flex max-w-md flex-col items-center text-center">
-        <img src={brandMark} alt="SkillSpan" className="h-24 w-24 object-contain" />
-        <h1 className="mt-4 text-3xl font-semibold text-navy-950">Log in to your account</h1>
+    <div className="min-h-screen bg-navy-950 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-navy-900 border border-navy-800 p-8 rounded-2xl shadow-xl">
+        
+        {/* العناوين والتنسيقات */}
+        <h2 className="text-2xl font-bold text-white mb-2 text-center">تسجيل الدخول</h2>
+        <p className="text-gray-400 text-sm mb-6 text-center">أهلاً بك مجدداً في منصة SkillSpan</p>
 
-        <button
-          type="button"
-          className="mt-9 flex w-full items-center justify-center gap-3 rounded-2xl bg-navy-800 py-4 text-lg font-semibold text-white hover:opacity-90"
-        >
-          <GoogleIcon className="h-6 w-6" />
-          Google
-        </button>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          
+          {/* 1. عرض أخطاء السيرفر */}
+          {serverError && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl">
+              {serverError}
+            </div>
+          )}
 
-        <div className="mt-8 w-full text-left">
-          <label htmlFor="login-email" className="text-sm font-semibold text-navy-950">
-            Email Address
-          </label>
-          <input
-            id="login-email"
-            type="email"
-            autoComplete="email"
-            placeholder="Email Address"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value)
-              if (errors.email) setErrors({ ...errors, email: '' })
-            }}
-            className={`mt-2 w-full rounded-2xl border-2 bg-ice px-5 py-4 text-navy-800/70 placeholder:text-navy-800/50 focus:outline-none focus:ring-2 focus:ring-cyan ${
-              errors.email ? 'border-red-500' : 'border-sky'
-            }`}
-          />
-          {errors.email && <p className="mt-1 text-xs font-semibold text-red-500">{errors.email}</p>}
-        </div>
+          {/* 2. حقل البريد الإلكتروني */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">البريد الإلكتروني</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              className="w-full p-3 bg-navy-950 border border-navy-700 rounded-xl text-white focus:outline-none focus:border-blue-500 transition"
+              placeholder="name@example.com"
+            />
+            {clientErrors.email && (
+              <span className="text-red-400 text-xs mt-1 block">{clientErrors.email}</span>
+            )}
+          </div>
 
-        <div className="mt-5 w-full text-left">
-          <label htmlFor="login-password" className="text-sm font-semibold text-navy-950">
-            Enter your password
-          </label>
-          <input
-            id="login-password"
-            type="password"
-            autoComplete="current-password"
-            placeholder="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value)
-              if (errors.password) setErrors({ ...errors, password: '' })
-            }}
-            className={`mt-2 w-full rounded-2xl border-2 bg-ice px-5 py-4 text-navy-800/70 placeholder:text-navy-800/50 focus:outline-none focus:ring-2 focus:ring-cyan ${
-              errors.password ? 'border-red-500' : 'border-sky'
-            }`}
-          />
-          {errors.password && <p className="mt-1 text-xs font-semibold text-red-500">{errors.password}</p>}
-        </div>
+          {/* 3. حقل كلمة المرور */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">كلمة المرور</label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => handleInputChange('password', e.target.value)}
+              className="w-full p-3 bg-navy-950 border border-navy-700 rounded-xl text-white focus:outline-none focus:border-blue-500 transition"
+              placeholder="••••••••"
+            />
+            {clientErrors.password && (
+              <span className="text-red-400 text-xs mt-1 block">{clientErrors.password}</span>
+            )}
+          </div>
 
-        <button
-          type="submit"
-          className="mt-9 w-full rounded-2xl bg-navy-950 py-4 text-lg font-semibold text-white hover:opacity-90"
-        >
-          Log in
-        </button>
+          {/* 4. زر التسجيل */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-xl transition duration-200 shadow-lg shadow-blue-600/20 mt-2"
+          >
+            {loading ? 'جاري التحقق...' : 'تسجيل الدخول'}
+          </button>
+        </form>
 
-        <p className="mt-6 text-gray-500">
-          Don&apos;t have an account?{' '}
-          <Link to="/signup" className="font-bold text-sky">
-            Sign up
-          </Link>
-        </p>
-      </form>
-    </AuthLayout>
+      </div>
+    </div>
   )
 }
