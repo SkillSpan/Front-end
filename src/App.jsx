@@ -1,121 +1,355 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
 import './App.css'
+import RegisterStep1 from './RegisterStep1'
+import RegisterStep2 from './RegisterStep2'
+import RegisterStep3 from './RegisterStep3'
+import EmailVerification from './EmailVerification'
+import OtpVerification from './OtpVerification'
+import Login from './Login'
+import ForgotPassword from './ForgotPassword'
+import VerifyCode from './VerifyCode'
+import ResetSuccess from './ResetSuccess'
+import CompanyStep1 from './CompanyStep1'
+import CompanyStep2 from './CompanyStep2'
+import CompanyStep3 from './CompanyStep3'
+import CompanyStep4 from './CompanyStep4'
+import CompanyStep5 from './CompanyStep5' // استيراد الخطوة الخامسة والأخيرة للشركات
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [currentPage, setCurrentPage] = useState('landing')
+  const [activeTab, setActiveTab] = useState('Home')
+  const [registerData, setRegisterData] = useState({})
+  const [companyData, setCompanyData] = useState({}) // لتخزين بيانات الشركات
+  const [resetEmail, setResetEmail] = useState('')
 
+  const navItems = ['Home', 'Features', 'How it Works', 'About Us', 'Contact']
+
+  const handleOpenRegister = () => setCurrentPage('registerStep1')
+  const handleOpenCompanyRegister = () => setCurrentPage('companyStep1')
+  const handleNavigateToLogin = () => setCurrentPage('login')
+  const handleNavigateToForgotPassword = () => setCurrentPage('forgotPassword')
+
+  const handleStep1Success = (step1Data) => {
+    setRegisterData((prev) => ({ ...prev, ...step1Data }))
+    setCurrentPage('registerStep2')
+  }
+
+  const handleStep2Success = (step2Data) => {
+    setRegisterData((prev) => ({ ...prev, ...step2Data }))
+    setCurrentPage('registerStep3')
+  }
+
+  const handleStep3Success = (step3Data) => {
+    const finalData = { ...registerData, ...step3Data }
+    setRegisterData(finalData)
+    setCurrentPage('emailVerification')
+  }
+
+  const handleContinueToSetup = () => setCurrentPage('otpVerification')
+
+  const handleVerifySuccess = (otpCode) => {
+    console.log('OTP Verified Successfully:', otpCode)
+    setCurrentPage('login')
+  }
+
+  const handleContinueToVerify = (email) => {
+    setResetEmail(email)
+    setCurrentPage('verifyCode')
+  }
+
+  // مسار تسجيل الشركات
+  if (currentPage === 'companyStep1') {
+    return (
+      <CompanyStep1 
+        onNextSuccess={(step1Data) => {
+          setCompanyData((prev) => ({ ...prev, ...step1Data }))
+          setCurrentPage('companyStep2')
+        }}
+        onNavigateToLogin={handleNavigateToLogin}
+        onBack={() => setCurrentPage('landing')}
+      />
+    )
+  }
+
+  if (currentPage === 'companyStep2') {
+    return (
+      <CompanyStep2 
+        onNextSuccess={(step2Data) => {
+          setCompanyData((prev) => ({ ...prev, ...step2Data }))
+          setCurrentPage('companyStep3')
+        }}
+        onBack={() => setCurrentPage('companyStep1')}
+        onNavigateToLogin={handleNavigateToLogin}
+      />
+    )
+  }
+
+  if (currentPage === 'companyStep3') {
+    return (
+      <CompanyStep3 
+        onNextSuccess={(step3Data) => {
+          setCompanyData((prev) => ({ ...prev, ...step3Data }))
+          setCurrentPage('companyStep4')
+        }}
+        onBack={() => setCurrentPage('companyStep2')}
+        onNavigateToLogin={handleNavigateToLogin}
+      />
+    )
+  }
+
+  if (currentPage === 'companyStep4') {
+    return (
+      <CompanyStep4 
+        onNextSuccess={(step4Data) => {
+          setCompanyData((prev) => ({ ...prev, ...step4Data }))
+          setCurrentPage('companyStep5') // الانتقال للخطوة الخامسة والأخيرة
+        }}
+        onBack={() => setCurrentPage('companyStep3')}
+        onNavigateToLogin={handleNavigateToLogin}
+      />
+    )
+  }
+
+  if (currentPage === 'companyStep5') {
+    return (
+      <CompanyStep5 
+        onNavigateToLanding={() => {
+          console.log('Final Complete Company Data Submitted:', companyData)
+          setCurrentPage('landing') // العودة للصفحة الرئيسية عند الانتهاء
+        }}
+        onNavigateToLogin={handleNavigateToLogin}
+      />
+    )
+  }
+
+  // مسار تسجيل الطلاب والمستخدمين
+  if (currentPage === 'registerStep1') {
+    return (
+      <RegisterStep1 
+        onNextSuccess={handleStep1Success}
+        onNavigateToLogin={handleNavigateToLogin}
+      />
+    )
+  }
+
+  if (currentPage === 'registerStep2') {
+    return (
+      <RegisterStep2 
+        onNextSuccess={handleStep2Success}
+        onBack={() => setCurrentPage('registerStep1')}
+      />
+    )
+  }
+
+  if (currentPage === 'registerStep3') {
+    return (
+      <RegisterStep3 
+        onNextSuccess={handleStep3Success}
+        onBack={() => setCurrentPage('registerStep2')}
+      />
+    )
+  }
+
+  if (currentPage === 'emailVerification') {
+    return (
+      <EmailVerification 
+        userEmail={registerData.email}
+        onContinueToSetup={handleContinueToSetup}
+        onResendEmail={() => console.log('Resending verification email to:', registerData.email)}
+      />
+    )
+  }
+
+  if (currentPage === 'otpVerification') {
+    return (
+      <OtpVerification 
+        onVerifySuccess={handleVerifySuccess}
+        onBack={() => setCurrentPage('emailVerification')}
+      />
+    )
+  }
+
+  if (currentPage === 'login') {
+    return (
+      <Login 
+        onSwitchToRegister={handleOpenRegister}
+        onBack={() => setCurrentPage('landing')}
+        onForgotPassword={handleNavigateToForgotPassword}
+      />
+    )
+  }
+
+  if (currentPage === 'forgotPassword') {
+    return (
+      <ForgotPassword 
+        onBackToLogin={handleNavigateToLogin}
+        onContinueToVerify={handleContinueToVerify}
+      />
+    )
+  }
+
+  if (currentPage === 'verifyCode') {
+    return (
+      <VerifyCode 
+        email={resetEmail}
+        onBack={() => setCurrentPage('forgotPassword')}
+        onSuccess={(code) => {
+          console.log('Verified reset code:', code)
+          setCurrentPage('resetSuccess')
+        }}
+      />
+    )
+  }
+
+  if (currentPage === 'resetSuccess') {
+    return (
+      <ResetSuccess 
+        onGoToLogin={handleNavigateToLogin}
+      />
+    )
+  }
+
+  // الصفحة الرئيسية (Landing Page)
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="landing-container">
+      {/* Navbar */}
+      <nav className="navbar fade-in-down">
+        <div className="logo-text">
+          <img 
+            src="/image/1.png" 
+            alt="SkillSpan Logo" 
+            className="logo-img" 
+          />
+          <span className="brand">
+            <span className="white">Skill</span><span className="blue">Span</span>
+          </span>
         </div>
-        <div>
-          <h1>Get started</h1>
+
+        <ul className="nav-links">
+          {navItems.slice(0, 3).map((item) => (
+            <li 
+              key={item} 
+              className={activeTab === item ? 'active' : ''}
+              onClick={() => setActiveTab(item)}
+            >
+              {item}
+            </li>
+          ))}
+
+          {/* Solutions Dropdown */}
+          <li className="dropdown" style={{ position: 'relative', cursor: 'pointer' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Solutions <span className="arrow">▾</span>
+            </span>
+            <ul className="dropdown-menu" style={{
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#0f172a',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '12px',
+              padding: '8px 0',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
+              listStyle: 'none',
+              minWidth: '220px',
+              zIndex: 1000
+            }}>
+              <li 
+                onClick={handleOpenRegister} 
+                style={{
+                  padding: '10px 16px',
+                  color: '#e2e8f0',
+                  fontSize: '14px',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.15)'}
+                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+              >
+                Students & Graduates
+              </li>
+              <li 
+                onClick={handleOpenCompanyRegister} 
+                style={{
+                  padding: '10px 16px',
+                  color: '#e2e8f0',
+                  fontSize: '14px',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.15)'}
+                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+              >
+                Companies
+              </li>
+              <li 
+                onClick={() => {
+                  console.log('Educational Institutions clicked')
+                }} 
+                style={{
+                  padding: '10px 16px',
+                  color: '#e2e8f0',
+                  fontSize: '14px',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.15)'}
+                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+              >
+                Educational Institutions
+              </li>
+            </ul>
+          </li>
+
+          {navItems.slice(3).map((item) => (
+            <li 
+              key={item} 
+              className={activeTab === item ? 'active' : ''}
+              onClick={() => setActiveTab(item)}
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
+
+        <div className="nav-buttons">
+          <button className="btn log-in" onClick={handleNavigateToLogin}>log in</button>
+          <button className="btn get-started" onClick={handleOpenRegister}>
+            Get Started →
+          </button>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="hero">
+        <div className="hero-text fade-in-left">
+          <div className="highlight">EMPOWERING FUTURES</div>
+          <h1>
+            Bridge Your Skills<br />
+            to <span className="blue-text">Real Careers</span>
+          </h1>
           <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+            SkillSpan helps students and graduates unlock their
+            potential, build real-world projects, and get discovered
+            by companies looking for top talent
           </p>
+          <div className="hero-buttons">
+            <button className="btn primary-gradient" onClick={handleOpenRegister}>
+              Start Your Journey →
+            </button>
+            <button className="btn outline-glow">
+              Explore Platform <span className="play-icon">▶</span>
+            </button>
+          </div>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
+        {/* Illustration */}
+        <div className="hero-illustration fade-in-right">
+          <img src="/image/12.jpg" alt="SkillSpan Illustration" className="floating-img" />
         </div>
       </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </div>
   )
 }
 

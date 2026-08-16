@@ -1,0 +1,271 @@
+.otp-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px;
+}
+
+.otp-heading {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0c1838;
+  margin: 6px 0 20px 0;
+}
+
+.otp-form-content {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 6 OTP Boxes Row */
+.otp-inputs-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.otp-box {
+  width: 50px;
+  height: 56px;
+  background-color: #fce8a6;
+  border: 1px solid #f59e0b;
+  border-radius: 12px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0c1838;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.otp-box:focus {
+  background-color: #ffffff;
+  border-color: #d97706;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Timer display */
+.timer-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #475569;
+  margin-bottom: 24px;
+}
+
+.timer-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #f59e0b;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.timer-highlight {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+/* Verify Button */
+.btn-verify-code {
+  width: 100%;
+  padding: 16px;
+  background-color: #0c1838;
+  color: #ffffff;
+  border: none;
+  border-radius: 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-bottom: 20px;
+}
+
+.btn-verify-code:hover {
+  background-color: #162c5b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(12, 24, 56, 0.35);
+}
+
+/* Footer Links */
+.otp-footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: #334155;
+}
+
+.resend-action {
+  color: #1e3a8a;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.edit-email-btn {
+  background: none;
+  border: none;
+  color: #1e3a8a;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 0.88rem;
+}
+
+.edit-email-btn:hover {
+  color: #0c1838;
+}
+/* صندوق إعادة الإرسال */
+.resend-info-box {
+  background-color: #fef3c7; /* لون أصفر فاتح */
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.resend-icon-text {
+  display: flex;
+  gap: 15px;
+}
+
+.repeat-svg {
+  width: 24px;
+  height: 24px;
+  color: #d97706;
+}
+
+.resend-title {
+  font-weight: bold;
+  margin: 0;
+  font-size: 14px;
+}
+
+.resend-desc {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.resend-countdown {
+  margin: 5px 0 0 0;
+  font-size: 13px;
+  color: #d97706;
+}
+/* تصميم رسالة الخطأ الأنيقة تحت الزر */
+.elegant-error-msg {
+  color: #ef4444;
+  font-size: 0.88rem;
+  text-align: center;
+  margin-top: -10px;
+  margin-bottom: 15px;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* إطار ولون خفيف لمربعات الإدخال عند حدوث خطأ */
+.otp-box-error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* --- توسيط تام لشاشة النجاح عمودياً وأفقياً --- */
+.form-right.verified-container {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 40px !important;
+  height: 100% !important;
+  min-height: 450px !important; /* ضمان وجود مساحة كافية للتوسيط */
+  margin: auto !important;
+  box-sizing: border-box !important;
+}
+
+.form-right.verified-container .success-icon-box {
+  width: 75px !important;
+  height: 75px !important;
+  background-color: #0c1838 !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto 20px auto !important;
+  box-shadow: 0 10px 25px rgba(12, 24, 56, 0.15) !important;
+  flex-shrink: 0 !important;
+}
+
+.form-right.verified-container .success-svg-icon {
+  width: 35px !important;
+  height: 35px !important;
+  color: #22c55e !important;
+}
+
+.form-right.verified-container .verified-heading {
+  font-size: 1.7rem !important;
+  font-weight: 700 !important;
+  color: #0c1838 !important;
+  margin-bottom: 10px !important;
+}
+
+.form-right.verified-container .verified-desc {
+  font-size: 0.95rem !important;
+  color: #64748b !important;
+  line-height: 1.5 !important;
+  margin-bottom: 30px !important;
+}
+
+.form-right.verified-container .btn-continue {
+  width: 100% !important;
+  max-width: 380px !important;
+  padding: 14px 20px !important;
+  background-color: #0c1838 !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 28px !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.25s ease !important;
+  margin-bottom: 15px !important;
+}
+
+.form-right.verified-container .btn-continue:hover {
+  background-color: #162c5b !important;
+  transform: translateY(-2px);
+}
+
+.form-right.verified-container .verified-footer-link {
+  margin-top: 5px !important;
+  text-align: center !important;
+}
+
+.form-right.verified-container .landing-link-btn {
+  background: none !important;
+  border: none !important;
+  color: #0c1838 !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  font-size: 0.9rem !important;
+  text-decoration: underline !important;
+  padding: 0 !important;
+}
+
+.form-right.verified-container .landing-link-btn:hover {
+  color: #1e3a8a !important;
+}
