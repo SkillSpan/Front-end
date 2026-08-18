@@ -1,0 +1,311 @@
+.register-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #03081e;
+  box-sizing: border-box;
+}
+
+/* إضافة حواف إضاءة وظلال لعزل البطاقة عن الخلفية الداكنة */
+.register-card {
+  width: 100%;
+  max-width: 980px;
+  background: #ffffff;
+  border-radius: 24px;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 50px rgba(43, 127, 255, 0.15), 0 25px 60px rgba(0, 0, 0, 0.6);
+  transition: transform 0.3s ease;
+}
+
+.sidebar-left {
+  width: 38%;
+  background-color: #050c2b;
+  color: #ffffff;
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-brand {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.sidebar-content h2 {
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 12px;
+  color: #ffffff;
+}
+
+.sidebar-desc {
+  color: #9ca3af;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin-bottom: 30px;
+}
+
+.features-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.features-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.features-list .icon {
+  background: rgba(255, 255, 255, 0.08);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.form-right {
+  width: 62%;
+  padding: 45px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.step-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.step-title, .step-percent {
+  color: #f59e0b;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background-color: #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #f59e0b;
+  border-radius: 10px;
+}
+
+.form-heading {
+  margin-bottom: 20px;
+}
+
+.sub-tag {
+  color: #1d72b8;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.form-heading h1 {
+  font-size: 1.75rem;
+  color: #111827;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.form-heading p {
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+
+.input-group {
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 13px 16px;
+  background-color: #f0f5ff;
+  border: 1.5px solid #d0e0fc;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  color: #1f2937;
+  font-weight: 500;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.25s ease;
+}
+
+.input-group input:focus {
+  background-color: #ffffff;
+  border-color: #2b7fff;
+  box-shadow: 0 0 0 4px rgba(43, 127, 255, 0.15);
+}
+
+.toggle-show-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #1d72b8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.password-helper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.generate-btn {
+  background: none;
+  border: none;
+  color: #2b7fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.generate-btn:hover {
+  color: #1d72b8;
+  text-decoration: underline;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.btn-next {
+  width: 100%;
+  padding: 14px;
+  background-color: #03081e;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-next:hover {
+  background-color: #1d72b8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(29, 114, 184, 0.35);
+}
+
+.login-prompt {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.88rem;
+  color: #6b7280;
+}
+
+.login-link {
+  color: #03081e;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Responsiveness للتوافق مع الجوال والشاشات الصغيرة */
+@media (max-width: 850px) {
+  .register-card {
+    flex-direction: column;
+    max-width: 500px;
+  }
+
+  .sidebar-left {
+    width: 100%;
+    padding: 30px 24px;
+    box-sizing: border-box;
+  }
+
+  .form-right {
+    width: 100%;
+    padding: 30px 24px;
+    box-sizing: border-box;
+  }
+}
+/* ضبط القائمة والمسافات الفاصلة */
+.features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* مسافة أوسع بين كل عنصر والآخر */
+}
+
+.features-list li {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* مسافة فاصلة بين الأيقونة والنص */
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  line-height: 1.4;
+}
+
+/* إطار الأيقونة الداكن - تم تكبيره إلى 50px */
+.features-list .icon {
+  background: rgba(255, 255, 255, 0.08);
+  width: 50px;
+  height: 50px;
+  min-width: 50px; /* يمنع انكماش المربع أو انشغاله بالنص */
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* منع التداخل نهائياً */
+  overflow: hidden;
+}
+
+/* حجم الصورة الداخلي - تم تكبيره إلى 30px */
+.features-list .icon img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  display: block;
+}

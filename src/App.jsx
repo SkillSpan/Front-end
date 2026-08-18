@@ -1,0 +1,425 @@
+import { useEffect, useState } from 'react'
+import './App.css'
+import RegisterStep1 from './RegisterStep1'
+import RegisterStep2 from './RegisterStep2'
+import RegisterStep3 from './RegisterStep3'
+import EmailVerification from './EmailVerification'
+import OtpVerification from './OtpVerification'
+import Login from './Login'
+import ForgotPassword from './ForgotPassword'
+import VerifyCode from './VerifyCode'
+import ResetSuccess from './ResetSuccess'
+import CompanyStep1 from './CompanyStep1'
+import CompanyStep2 from './CompanyStep2'
+import CompanyStep3 from './CompanyStep3'
+import CompanyStep4 from './CompanyStep4'
+import CompanyStep5 from './CompanyStep5' // استيراد الخطوة الخامسة والأخيرة للشركات
+import CompanyLogin from './CompanyLogin'
+import CompanyForgotPassword from './CompanyForgotPassword'
+import { clearSession, getStoredUser, isAuthenticated } from './api'
+
+function App() {
+  const [currentPage, setCurrentPage] = useState('landing')
+  const [activeTab, setActiveTab] = useState('Home')
+  const [registerData, setRegisterData] = useState({})
+  const [companyData, setCompanyData] = useState({}) // لتخزين بيانات الشركات
+  const [resetEmail, setResetEmail] = useState('')
+  const [authUser, setAuthUser] = useState(null) // logged-in organization user (from cookie session)
+
+  const navItems = ['Home', 'Features', 'How it Works', 'About Us', 'Contact']
+
+  // Restore session from the secure cookie on load (see api.js / utils/cookies.js)
+  useEffect(() => {
+    if (isAuthenticated()) {
+      setAuthUser(getStoredUser())
+    }
+  }, [])
+
+  const handleOpenRegister = () => setCurrentPage('registerStep1')
+  const handleOpenCompanyRegister = () => setCurrentPage('companyStep1')
+  const handleNavigateToLogin = () => setCurrentPage('login')
+  const handleNavigateToCompanyLogin = () => setCurrentPage('companyLogin')
+  const handleNavigateToForgotPassword = () => setCurrentPage('forgotPassword')
+  const handleNavigateToCompanyForgotPassword = () => setCurrentPage('companyForgotPassword')
+
+  const handleCompanyLoginSuccess = ({ user }) => {
+    setAuthUser(user)
+    setCurrentPage('landing')
+  }
+
+  const handleLogout = () => {
+    clearSession()
+    setAuthUser(null)
+    setCurrentPage('landing')
+  }
+
+  const handleStep1Success = (step1Data) => {
+    setRegisterData((prev) => ({ ...prev, ...step1Data }))
+    setCurrentPage('registerStep2')
+  }
+
+  const handleStep2Success = (step2Data) => {
+    setRegisterData((prev) => ({ ...prev, ...step2Data }))
+    setCurrentPage('registerStep3')
+  }
+
+  const handleStep3Success = (step3Data) => {
+    const finalData = { ...registerData, ...step3Data }
+    setRegisterData(finalData)
+    setCurrentPage('emailVerification')
+  }
+
+  const handleContinueToSetup = () => setCurrentPage('otpVerification')
+
+  const handleVerifySuccess = (otpCode) => {
+    console.log('OTP Verified Successfully:', otpCode)
+    setCurrentPage('login')
+  }
+
+  const handleContinueToVerify = (email) => {
+    setResetEmail(email)
+    setCurrentPage('verifyCode')
+  }
+
+  // مسار تسجيل الشركات
+  if (currentPage === 'companyStep1') {
+    return (
+      <CompanyStep1 
+        onNextSuccess={(step1Data) => {
+          setCompanyData((prev) => ({ ...prev, ...step1Data }))
+          setCurrentPage('companyStep2')
+        }}
+        onNavigateToLogin={handleNavigateToCompanyLogin}
+        onBack={() => setCurrentPage('landing')}
+      />
+    )
+  }
+
+  if (currentPage === 'companyStep2') {
+    return (
+      <CompanyStep2 
+        onNextSuccess={(step2Data) => {
+          setCompanyData((prev) => ({ ...prev, ...step2Data }))
+          setCurrentPage('companyStep3')
+        }}
+        onBack={() => setCurrentPage('companyStep1')}
+        onNavigateToLogin={handleNavigateToCompanyLogin}
+      />
+    )
+  }
+
+  if (currentPage === 'companyStep3') {
+    return (
+      <CompanyStep3 
+        onNextSuccess={(step3Data) => {
+          setCompanyData((prev) => ({ ...prev, ...step3Data }))
+          setCurrentPage('companyStep4')
+        }}
+        onBack={() => setCurrentPage('companyStep2')}
+        onNavigateToLogin={handleNavigateToCompanyLogin}
+      />
+    )
+  }
+
+  if (currentPage === 'companyStep4') {
+    return (
+      <CompanyStep4 
+        onNextSuccess={(step4Data) => {
+          setCompanyData((prev) => ({ ...prev, ...step4Data }))
+          setCurrentPage('companyStep5') // الانتقال للخطوة الخامسة والأخيرة
+        }}
+        onBack={() => setCurrentPage('companyStep3')}
+        onNavigateToLogin={handleNavigateToCompanyLogin}
+      />
+    )
+  }
+
+  if (currentPage === 'companyStep5') {
+    return (
+      <CompanyStep5 
+        onNavigateToLanding={() => {
+          console.log('Final Complete Company Data Submitted:', companyData)
+          setCurrentPage('landing') // العودة للصفحة الرئيسية عند الانتهاء
+        }}
+        onNavigateToLogin={handleNavigateToCompanyLogin}
+      />
+    )
+  }
+
+  if (currentPage === 'companyLogin') {
+    return (
+      <CompanyLogin
+        onBack={() => setCurrentPage('landing')}
+        onSwitchToRegister={handleOpenCompanyRegister}
+        onSwitchToStudentLogin={handleNavigateToLogin}
+        onForgotPassword={handleNavigateToCompanyForgotPassword}
+        onLoginSuccess={handleCompanyLoginSuccess}
+      />
+    )
+  }
+
+  if (currentPage === 'companyForgotPassword') {
+    return (
+      <CompanyForgotPassword
+        onBackToLogin={handleNavigateToCompanyLogin}
+      />
+    )
+  }
+
+  // مسار تسجيل الطلاب والمستخدمين
+  if (currentPage === 'registerStep1') {
+    return (
+      <RegisterStep1 
+        onNextSuccess={handleStep1Success}
+        onNavigateToLogin={handleNavigateToLogin}
+      />
+    )
+  }
+
+  if (currentPage === 'registerStep2') {
+    return (
+      <RegisterStep2 
+        onNextSuccess={handleStep2Success}
+        onBack={() => setCurrentPage('registerStep1')}
+      />
+    )
+  }
+
+  if (currentPage === 'registerStep3') {
+    return (
+      <RegisterStep3 
+        onNextSuccess={handleStep3Success}
+        onBack={() => setCurrentPage('registerStep2')}
+      />
+    )
+  }
+
+  if (currentPage === 'emailVerification') {
+    return (
+      <EmailVerification 
+        userEmail={registerData.email}
+        onContinueToSetup={handleContinueToSetup}
+        onResendEmail={() => console.log('Resending verification email to:', registerData.email)}
+      />
+    )
+  }
+
+  if (currentPage === 'otpVerification') {
+    return (
+      <OtpVerification 
+        onVerifySuccess={handleVerifySuccess}
+        onBack={() => setCurrentPage('emailVerification')}
+      />
+    )
+  }
+
+  if (currentPage === 'login') {
+    return (
+      <Login 
+        onSwitchToRegister={handleOpenRegister}
+        onBack={() => setCurrentPage('landing')}
+        onForgotPassword={handleNavigateToForgotPassword}
+      />
+    )
+  }
+
+  if (currentPage === 'forgotPassword') {
+    return (
+      <ForgotPassword 
+        onBackToLogin={handleNavigateToLogin}
+        onContinueToVerify={handleContinueToVerify}
+      />
+    )
+  }
+
+  if (currentPage === 'verifyCode') {
+    return (
+      <VerifyCode 
+        email={resetEmail}
+        onBack={() => setCurrentPage('forgotPassword')}
+        onSuccess={(code) => {
+          console.log('Verified reset code:', code)
+          setCurrentPage('resetSuccess')
+        }}
+      />
+    )
+  }
+
+  if (currentPage === 'resetSuccess') {
+    return (
+      <ResetSuccess 
+        onGoToLogin={handleNavigateToLogin}
+      />
+    )
+  }
+
+  // الصفحة الرئيسية (Landing Page)
+  return (
+    <div className="landing-container">
+      {/* Navbar */}
+      <nav className="navbar fade-in-down">
+        <div className="logo-text">
+          <img 
+            src="/image/1.png" 
+            alt="SkillSpan Logo" 
+            className="logo-img" 
+          />
+          <span className="brand">
+            <span className="white">Skill</span><span className="blue">Span</span>
+          </span>
+        </div>
+
+        <ul className="nav-links">
+          {navItems.slice(0, 3).map((item) => (
+            <li 
+              key={item} 
+              className={activeTab === item ? 'active' : ''}
+              onClick={() => setActiveTab(item)}
+            >
+              {item}
+            </li>
+          ))}
+
+          {/* Solutions Dropdown */}
+          <li className="dropdown" style={{ position: 'relative', cursor: 'pointer' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              Solutions <span className="arrow">▾</span>
+            </span>
+            <ul className="dropdown-menu" style={{
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#0f172a',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '12px',
+              padding: '8px 0',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
+              listStyle: 'none',
+              minWidth: '220px',
+              zIndex: 1000
+            }}>
+              <li 
+                onClick={handleOpenRegister} 
+                style={{
+                  padding: '10px 16px',
+                  color: '#e2e8f0',
+                  fontSize: '14px',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.15)'}
+                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+              >
+                Students & Graduates
+              </li>
+              <li 
+                onClick={handleOpenCompanyRegister} 
+                style={{
+                  padding: '10px 16px',
+                  color: '#e2e8f0',
+                  fontSize: '14px',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.15)'}
+                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+              >
+                Companies
+              </li>
+              <li 
+                onClick={handleNavigateToCompanyLogin} 
+                style={{
+                  padding: '10px 16px',
+                  color: '#93c5fd',
+                  fontSize: '13px',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.15)'}
+                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+              >
+                ↳ Company log in
+              </li>
+              <li 
+                onClick={() => {
+                  console.log('Educational Institutions clicked')
+                }} 
+                style={{
+                  padding: '10px 16px',
+                  color: '#e2e8f0',
+                  fontSize: '14px',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.15)'}
+                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+              >
+                Educational Institutions
+              </li>
+            </ul>
+          </li>
+
+          {navItems.slice(3).map((item) => (
+            <li 
+              key={item} 
+              className={activeTab === item ? 'active' : ''}
+              onClick={() => setActiveTab(item)}
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
+
+        <div className="nav-buttons">
+          {authUser ? (
+            <>
+              <span style={{ color: '#e2e8f0', fontSize: '14px', marginRight: '4px' }}>
+                Hi, {authUser.name || authUser.email}
+              </span>
+              <button className="btn log-in" onClick={handleLogout}>log out</button>
+            </>
+          ) : (
+            <>
+              <button className="btn log-in" onClick={handleNavigateToLogin}>log in</button>
+              <button className="btn get-started" onClick={handleOpenRegister}>
+                Get Started →
+              </button>
+            </>
+          )}
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="hero">
+        <div className="hero-text fade-in-left">
+          <div className="highlight">EMPOWERING FUTURES</div>
+          <h1>
+            Bridge Your Skills<br />
+            to <span className="blue-text">Real Careers</span>
+          </h1>
+          <p>
+            SkillSpan helps students and graduates unlock their
+            potential, build real-world projects, and get discovered
+            by companies looking for top talent
+          </p>
+          <div className="hero-buttons">
+            <button className="btn primary-gradient" onClick={handleOpenRegister}>
+              Start Your Journey →
+            </button>
+            <button className="btn outline-glow">
+              Explore Platform <span className="play-icon">▶</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Illustration */}
+        <div className="hero-illustration fade-in-right">
+          <img src="/image/12.jpg" alt="SkillSpan Illustration" className="floating-img" />
+        </div>
+      </section>
+    </div>
+  )
+}
+
+export default App

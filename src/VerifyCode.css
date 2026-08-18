@@ -1,0 +1,141 @@
+/* VerifyCode.css */
+.verify-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #03081e;
+  box-sizing: border-box;
+}
+
+.verify-card {
+  width: 100%;
+  max-width: 980px;
+  background: #ffffff;
+  border-radius: 24px;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 50px rgba(43, 127, 255, 0.15), 0 25px 60px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+/* القسم الأيمن لتأكيد الكود */
+.form-right-verify {
+  flex: 1;
+  padding: 40px 50px 50px 50px;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  position: relative;
+}
+
+/* شريط إعادة الإرسال العلوي */
+.verify-top-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.resend-text {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.verify-content-box {
+  max-width: 420px;
+  margin: 0 auto;
+  width: 100%;
+  text-align: center;
+}
+
+/* أيقونة الرسالة العلوية */
+.verify-mail-icon-box {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.verify-mail-img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  display: block;
+}
+
+.verify-heading {
+  font-size: 1.6rem;
+  color: #0c1838;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.verify-subtitle {
+  color: #475569;
+  font-size: 0.88rem;
+  margin-bottom: 30px;
+  line-height: 1.5;
+}
+
+.verify-subtitle strong {
+  color: #0c1838;
+}
+
+/* مربعات إدخال كود الـ OTP (الـ 6 مربعات الصفراء) */
+.otp-inputs-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.otp-input-box {
+  width: 52px;
+  height: 56px;
+  background-color: #fbd38d; /* اللون الأصفر المناسب مثل الصورة */
+  border: 1px solid #f6ad55;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.otp-input-box:focus {
+  border-color: #d69e2e;
+  box-shadow: 0 0 0 3px rgba(246, 173, 85, 0.3);
+  background-color: #ffedd5;
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+  display: block;
+}
+
+/* زر Verify code */
+.btn-verify-code {
+  width: 100%;
+  padding: 14px;
+  background-color: #0c1838;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-verify-code:hover {
+  background-color: #162c5b;
+}
+
+.btn-verify-code:active {
+  transform: scale(0.98);
+}
