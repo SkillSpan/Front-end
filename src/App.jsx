@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom'
 import './App.css'
 import RegisterStep1 from './RegisterStep1'
 import RegisterStep2 from './RegisterStep2'
@@ -20,15 +21,77 @@ import './responsive.css'
 import { clearSession, getStoredUser, isAuthenticated } from './api'
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('landing')
+    const location = useLocation()
+  const navigate = useNavigate()
+
+
   const [activeTab, setActiveTab] = useState('Home')
   const [registerData, setRegisterData] = useState({})
   const [companyData, setCompanyData] = useState({}) // لتخزين بيانات الشركات
   const [resetEmail, setResetEmail] = useState('')
   const [authUser, setAuthUser] = useState(null) // logged-in organization user (from cookie session)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+const getInitialPage = () => {
+  const pages = {
+    '/': 'landing',
+    '/login': 'login',
+    '/register': 'registerStep1',
+    '/register/step-2': 'registerStep2',
+    '/register/step-3': 'registerStep3',
+    '/verify-email': 'emailVerification',
+    '/verify-otp': 'otpVerification',
+    '/forgot-password': 'forgotPassword',
+    '/verify-code': 'verifyCode',
+    '/reset-success': 'resetSuccess',
+    '/company/register': 'companyStep1',
+    '/company/register/step-2': 'companyStep2',
+    '/company/register/step-3': 'companyStep3',
+    '/company/register/step-4': 'companyStep4',
+    '/company/register/step-5': 'companyStep5',
+    '/company/login': 'companyLogin',
+    '/company/forgot-password': 'companyForgotPassword',
+  }
 
+  return pages[window.location.pathname] || 'landing'
+}
+
+const [currentPage, setCurrentPageState] = useState(getInitialPage)
   const navItems = ['Home', 'Features', 'How it Works', 'About Us', 'Contact']
+const pagePaths = {
+  landing: '/',
+  login: '/login',
+  registerStep1: '/register',
+  registerStep2: '/register/step-2',
+  registerStep3: '/register/step-3',
+  emailVerification: '/verify-email',
+  otpVerification: '/verify-otp',
+  forgotPassword: '/forgot-password',
+  verifyCode: '/verify-code',
+  resetSuccess: '/reset-success',
+  companyStep1: '/company/register',
+  companyStep2: '/company/register/step-2',
+  companyStep3: '/company/register/step-3',
+  companyStep4: '/company/register/step-4',
+  companyStep5: '/company/register/step-5',
+  companyLogin: '/company/login',
+  companyForgotPassword: '/company/forgot-password',
+}
+
+const pathPages = Object.fromEntries(
+  Object.entries(pagePaths).map(([page, path]) => [path, page])
+)
+
+const setCurrentPage = (page) => {
+  setCurrentPageState(page)
+  navigate(pagePaths[page] || '/')
+}
+
+
+useEffect(() => {
+  const page = pathPages[location.pathname] || 'landing'
+  setCurrentPageState(page)
+}, [location.pathname])
+
 
   // Restore session from the secure cookie on load (see api.js / utils/cookies.js)
   useEffect(() => {
@@ -437,5 +500,11 @@ function App() {
     </div>
   )
 }
-
-export default App
+function AppWithRouter() {
+  return (
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  )
+}
+export default AppWithRouter
