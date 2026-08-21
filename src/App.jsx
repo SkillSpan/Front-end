@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import RegisterStep1 from './RegisterStep1'
 import RegisterStep2 from './RegisterStep2'
@@ -14,6 +14,10 @@ import CompanyStep2 from './CompanyStep2'
 import CompanyStep3 from './CompanyStep3'
 import CompanyStep4 from './CompanyStep4'
 import CompanyStep5 from './CompanyStep5' // استيراد الخطوة الخامسة والأخيرة للشركات
+import CompanyLogin from './CompanyLogin'
+import CompanyForgotPassword from './CompanyForgotPassword'
+import './responsive.css'
+import { clearSession, getStoredUser, isAuthenticated } from './api'
 
 function App() {
   const [currentPage, setCurrentPage] = useState('landing')
@@ -21,13 +25,35 @@ function App() {
   const [registerData, setRegisterData] = useState({})
   const [companyData, setCompanyData] = useState({}) // لتخزين بيانات الشركات
   const [resetEmail, setResetEmail] = useState('')
+  const [authUser, setAuthUser] = useState(null) // logged-in organization user (from cookie session)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navItems = ['Home', 'Features', 'How it Works', 'About Us', 'Contact']
+
+  // Restore session from the secure cookie on load (see api.js / utils/cookies.js)
+  useEffect(() => {
+    if (isAuthenticated()) {
+      setAuthUser(getStoredUser())
+    }
+  }, [])
 
   const handleOpenRegister = () => setCurrentPage('registerStep1')
   const handleOpenCompanyRegister = () => setCurrentPage('companyStep1')
   const handleNavigateToLogin = () => setCurrentPage('login')
+  const handleNavigateToCompanyLogin = () => setCurrentPage('companyLogin')
   const handleNavigateToForgotPassword = () => setCurrentPage('forgotPassword')
+  const handleNavigateToCompanyForgotPassword = () => setCurrentPage('companyForgotPassword')
+
+  const handleCompanyLoginSuccess = ({ user }) => {
+    setAuthUser(user)
+    setCurrentPage('landing')
+  }
+
+  const handleLogout = () => {
+    clearSession()
+    setAuthUser(null)
+    setCurrentPage('landing')
+  }
 
   const handleStep1Success = (step1Data) => {
     setRegisterData((prev) => ({ ...prev, ...step1Data }))
@@ -65,7 +91,7 @@ function App() {
           setCompanyData((prev) => ({ ...prev, ...step1Data }))
           setCurrentPage('companyStep2')
         }}
-        onNavigateToLogin={handleNavigateToLogin}
+        onNavigateToLogin={handleNavigateToCompanyLogin}
         onBack={() => setCurrentPage('landing')}
       />
     )
@@ -79,7 +105,7 @@ function App() {
           setCurrentPage('companyStep3')
         }}
         onBack={() => setCurrentPage('companyStep1')}
-        onNavigateToLogin={handleNavigateToLogin}
+        onNavigateToLogin={handleNavigateToCompanyLogin}
       />
     )
   }
@@ -92,7 +118,7 @@ function App() {
           setCurrentPage('companyStep4')
         }}
         onBack={() => setCurrentPage('companyStep2')}
-        onNavigateToLogin={handleNavigateToLogin}
+        onNavigateToLogin={handleNavigateToCompanyLogin}
       />
     )
   }
@@ -105,7 +131,7 @@ function App() {
           setCurrentPage('companyStep5') // الانتقال للخطوة الخامسة والأخيرة
         }}
         onBack={() => setCurrentPage('companyStep3')}
-        onNavigateToLogin={handleNavigateToLogin}
+        onNavigateToLogin={handleNavigateToCompanyLogin}
       />
     )
   }
@@ -117,7 +143,27 @@ function App() {
           console.log('Final Complete Company Data Submitted:', companyData)
           setCurrentPage('landing') // العودة للصفحة الرئيسية عند الانتهاء
         }}
-        onNavigateToLogin={handleNavigateToLogin}
+        onNavigateToLogin={handleNavigateToCompanyLogin}
+      />
+    )
+  }
+
+  if (currentPage === 'companyLogin') {
+    return (
+      <CompanyLogin
+        onBack={() => setCurrentPage('landing')}
+        onSwitchToRegister={handleOpenCompanyRegister}
+        onSwitchToStudentLogin={handleNavigateToLogin}
+        onForgotPassword={handleNavigateToCompanyForgotPassword}
+        onLoginSuccess={handleCompanyLoginSuccess}
+      />
+    )
+  }
+
+  if (currentPage === 'companyForgotPassword') {
+    return (
+      <CompanyForgotPassword
+        onBackToLogin={handleNavigateToCompanyLogin}
       />
     )
   }
@@ -214,23 +260,37 @@ function App() {
     <div className="landing-container">
       {/* Navbar */}
       <nav className="navbar fade-in-down">
-        <div className="logo-text">
-          <img 
-            src="/image/1.png" 
-            alt="SkillSpan Logo" 
-            className="logo-img" 
-          />
-          <span className="brand">
-            <span className="white">Skill</span><span className="blue">Span</span>
-          </span>
+        <div className="navbar-top-row">
+          <div className="logo-text">
+            <img 
+              src="/image/1.png" 
+              alt="SkillSpan Logo" 
+              className="logo-img" 
+            />
+            <span className="brand">
+              <span className="white">Skill</span><span className="blue">Span</span>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className={`nav-burger ${mobileMenuOpen ? 'open' : ''}`}
+            aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((open) => !open)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
         </div>
 
-        <ul className="nav-links">
+        <ul className={`nav-links ${mobileMenuOpen ? 'nav-links-open' : ''}`}>
           {navItems.slice(0, 3).map((item) => (
             <li 
               key={item} 
               className={activeTab === item ? 'active' : ''}
-              onClick={() => setActiveTab(item)}
+              onClick={() => { setActiveTab(item); setMobileMenuOpen(false) }}
             >
               {item}
             </li>
@@ -284,6 +344,20 @@ function App() {
                 Companies
               </li>
               <li 
+                onClick={handleNavigateToCompanyLogin} 
+                style={{
+                  padding: '10px 16px',
+                  color: '#93c5fd',
+                  fontSize: '13px',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.15)'}
+                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+              >
+                ↳ Company log in
+              </li>
+              <li 
                 onClick={() => {
                   console.log('Educational Institutions clicked')
                 }} 
@@ -306,18 +380,29 @@ function App() {
             <li 
               key={item} 
               className={activeTab === item ? 'active' : ''}
-              onClick={() => setActiveTab(item)}
+              onClick={() => { setActiveTab(item); setMobileMenuOpen(false) }}
             >
               {item}
             </li>
           ))}
         </ul>
 
-        <div className="nav-buttons">
-          <button className="btn log-in" onClick={handleNavigateToLogin}>log in</button>
-          <button className="btn get-started" onClick={handleOpenRegister}>
-            Get Started →
-          </button>
+        <div className={`nav-buttons ${mobileMenuOpen ? 'nav-buttons-open' : ''}`}>
+          {authUser ? (
+            <>
+              <span style={{ color: '#e2e8f0', fontSize: '14px', marginRight: '4px' }}>
+                Hi, {authUser.name || authUser.email}
+              </span>
+              <button className="btn log-in" onClick={() => { handleLogout(); setMobileMenuOpen(false) }}>log out</button>
+            </>
+          ) : (
+            <>
+              <button className="btn log-in" onClick={() => { handleNavigateToLogin(); setMobileMenuOpen(false) }}>log in</button>
+              <button className="btn get-started" onClick={() => { handleOpenRegister(); setMobileMenuOpen(false) }}>
+                Get Started →
+              </button>
+            </>
+          )}
         </div>
       </nav>
 

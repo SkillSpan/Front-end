@@ -333,6 +333,172 @@ html, body, #root {
   100% { transform: translateY(0px); }
 }*/
 
+/* Hamburger button (hidden on desktop) */
+.nav-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 0;
+  z-index: 200;
+}
+
+.nav-burger span {
+  width: 20px;
+  height: 2px;
+  background: #ffffff;
+  margin: 0 auto;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.nav-burger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-burger.open span:nth-child(2) { opacity: 0; }
+.nav-burger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Responsive layout ---------------------------------------------------- */
+@media (max-width: 960px) {
+  .landing-container {
+    padding: 20px 5% 50px;
+  }
+
+  .navbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding-bottom: 20px;
+    gap: 4px;
+  }
+
+  .navbar-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-burger {
+    display: flex;
+  }
+
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-top: 16px;
+    background: #0a0e27;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .nav-links.nav-links-open {
+    display: flex;
+  }
+
+  .nav-links li {
+    width: 100%;
+    padding: 10px 8px;
+    border-radius: 8px;
+  }
+
+  .nav-links li:hover {
+    background: rgba(59, 130, 246, 0.12);
+  }
+
+  .nav-links li.active::after {
+    display: none;
+  }
+
+  .dropdown-menu {
+    position: static !important;
+    transform: none !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    margin-top: 8px !important;
+    display: block !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+  }
+
+  .dropdown:hover .dropdown-menu {
+    animation: none;
+  }
+
+  .nav-buttons {
+    display: none;
+  }
+
+  .nav-buttons.nav-buttons-open {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 10px;
+    background: #0a0e27;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 10px;
+  }
+
+  .hero-text {
+    max-width: 100%;
+  }
+
+  .hero-text h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero-illustration {
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 520px) {
+  .brand {
+    font-size: 1.5rem;
+  }
+
+  .logo-img {
+    height: 46px;
+  }
+
+  .hero-text h1 {
+    font-size: 2rem;
+  }
+
+  .highlight {
+    font-size: 0.68rem;
+    padding: 6px 14px;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .btn.primary-gradient,
+  .btn.outline-glow {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
 .fade-in-down {
   animation: fadeInDown 0.8s ease-out forwards;
 }
