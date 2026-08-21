@@ -1,0 +1,159 @@
+/* responsive.css
+ * ---------------------------------------------------------------------------
+ * Several screens in this project (Login, ForgotPassword, VerifyCode,
+ * ResetSuccess, RegisterStep1-3, EmailVerification, OtpVerification,
+ * CompanyStep1-5) share the same class names (".sidebar-left",
+ * ".form-right", ".features-list", ".otp-box", etc.) across different CSS
+ * files. Because those files are all bundled together, a plain
+ * ".sidebar-left { width: 42%; }" rule in one file can silently override a
+ * "@media (...) { .sidebar-left { width: 100%; } }" rule written in another
+ * file, purely based on import order.
+ *
+ * To make every screen reliably responsive regardless of that import order,
+ * the rules below scope each override to its own card/wrapper class (e.g.
+ * ".login-card .sidebar-left"), which gives them higher CSS specificity than
+ * the plain ".sidebar-left" rules, so they always win once the breakpoint is
+ * active — no matter which file loads last.
+ * ---------------------------------------------------------------------------
+ */
+
+/* ===== Split "sidebar + form" auth cards =================================
+ * Covers: Login, ForgotPassword, VerifyCode/ResetSuccess, RegisterStep1-3,
+ * EmailVerification, OtpVerification (all built on the shared
+ * card/sidebar-left/form-right skeleton).
+ */
+@media (max-width: 900px) {
+  .login-card,
+  .register-card,
+  .forgot-card,
+  .verify-card {
+    flex-direction: column;
+    max-width: 480px;
+  }
+
+  .login-card .sidebar-left,
+  .register-card .sidebar-left,
+  .forgot-card .sidebar-left,
+  .verify-card .sidebar-left {
+    width: 100%;
+    padding: 28px 24px;
+    box-sizing: border-box;
+  }
+
+  .login-card .form-right,
+  .register-card .form-right,
+  .forgot-card .form-right,
+  .verify-card .form-right-verify {
+    width: 100%;
+    padding: 28px 24px 36px;
+    box-sizing: border-box;
+  }
+
+  .verify-content-box,
+  .forgot-content-box {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card,
+  .register-card,
+  .forgot-card,
+  .verify-card {
+    border-radius: 16px;
+  }
+
+  .login-card .sidebar-left,
+  .register-card .sidebar-left,
+  .forgot-card .sidebar-left,
+  .verify-card .sidebar-left {
+    padding: 22px 18px;
+  }
+
+  .login-card .form-right,
+  .register-card .form-right,
+  .forgot-card .form-right,
+  .verify-card .form-right-verify {
+    padding: 22px 18px 30px;
+  }
+
+  .sidebar-content h2,
+  .login-heading,
+  .forgot-heading,
+  .verify-heading,
+  .form-heading h1,
+  .otp-heading,
+  .verification-title {
+    font-size: 1.35rem !important;
+  }
+
+  .otp-input-box,
+  .otp-box {
+    width: 40px !important;
+    height: 48px !important;
+    font-size: 1.1rem !important;
+  }
+
+  .otp-inputs-container,
+  .otp-inputs-row {
+    gap: 6px !important;
+  }
+}
+
+/* ===== Company registration wizard (Step 1-5) ============================ */
+@media (max-width: 900px) {
+  .company-step1-card,
+  .company-step3-card {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .company-step1-sidebar,
+  .company-step3-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 26px 22px;
+    box-sizing: border-box;
+  }
+
+  .company-step1-form-sec,
+  .company-step3-form-sec {
+    max-height: none;
+    padding: 26px 22px;
+    box-sizing: border-box;
+  }
+
+  .company-step1-steps,
+  .company-step3-steps {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+  }
+}
+
+@media (max-width: 560px) {
+  .company-step1-header,
+  .company-step3-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .c-actions {
+    flex-direction: column;
+  }
+
+  .c-actions .c-btn-back,
+  .c-actions .c-btn-next {
+    width: 100%;
+  }
+}
+
+/* ===== Generic small-screen safety net ==================================== */
+@media (max-width: 420px) {
+  .cl-card,
+  .cfp-card {
+    border-radius: 16px;
+  }
+}
