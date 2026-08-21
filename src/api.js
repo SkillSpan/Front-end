@@ -157,3 +157,18 @@ export const resetPassword = ({ otp, password, password_confirmation }) =>
     method: "POST",
     body: { otp, password, password_confirmation },
   });
+
+
+  export const loginWithGoogle = (
+  credential,
+  termsAccepted = false,
+  privacyAccepted = false
+) =>
+  request("/api/auth/login/google", {
+    method: "POST",
+    body: {
+      credential,
+      terms_accepted: termsAccepted,
+      privacy_accepted: privacyAccepted,
+    },
+  });
