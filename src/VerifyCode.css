@@ -1,141 +1,587 @@
-/* VerifyCode.css */
+/* ==========================================
+   Verification Page
+========================================== */
+
 .verify-wrapper {
   min-height: 100vh;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+
   padding: 20px;
-  background-color: #03081e;
+
+  background: #03081e;
   box-sizing: border-box;
 }
 
 .verify-card {
   width: 100%;
-  max-width: 980px;
-  background: #ffffff;
-  border-radius: 24px;
+  max-width: 1050px;
+
+  min-height: 680px;
+
   display: flex;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 50px rgba(43, 127, 255, 0.15), 0 25px 60px rgba(0, 0, 0, 0.6);
-  position: relative;
+
+  background: #ffffff;
+
+  border-radius: 24px;
 }
 
-/* القسم الأيمن لتأكيد الكود */
-.form-right-verify {
-  flex: 1;
-  padding: 40px 50px 50px 50px;
+/* Sidebar */
+.sidebar-left {
+  width: 34%;
+  padding: 42px 38px;
+
+  box-sizing: border-box;
+
+  background: #0b173b;
+  color: #ffffff;
+}
+
+.sidebar-brand {
+  font-size: 1.55rem;
+  font-weight: 700;
+  margin-bottom: 36px;
+}
+
+.sidebar-brand .white {
+  color: #ffffff;
+}
+
+.sidebar-brand .blue {
+  color: #2d8cff;
+}
+
+.sidebar-content h2 {
+  margin: 0 0 16px;
+
+  font-size: 1.9rem;
+  line-height: 1.25;
+}
+
+.sidebar-content p {
+  margin-bottom: 40px;
+
+  color: #9fb0d2;
+
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.features-list {
   display: flex;
   flex-direction: column;
-  background: #ffffff;
-  position: relative;
+  gap: 24px;
+
+  padding: 0;
+  margin: 0;
+
+  list-style: none;
 }
 
-/* شريط إعادة الإرسال العلوي */
-.verify-top-bar {
+.features-list li {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
+  align-items: center;
+  gap: 14px;
+
+  font-weight: 700;
 }
 
-.resend-text {
-  color: #64748b;
-  font-size: 0.85rem;
-  font-weight: 600;
+.features-list .icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 13px;
+
+  background: #1c2a50;
+}
+
+.features-list .icon img {
+  width: 30px;
+  height: 30px;
+
+  object-fit: contain;
+}
+
+/* Right side */
+.form-right-verify {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 45px 55px;
+
+  box-sizing: border-box;
 }
 
 .verify-content-box {
-  max-width: 420px;
-  margin: 0 auto;
   width: 100%;
+  max-width: 610px;
+
   text-align: center;
 }
 
-/* أيقونة الرسالة العلوية */
 .verify-mail-icon-box {
+  width: 76px;
+  height: 76px;
+
+  margin: 0 auto 18px;
+
   display: flex;
+  align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+
+  background: #0b173b;
+  border-radius: 18px;
 }
 
 .verify-mail-img {
-  width: 60px;
-  height: 60px;
+  width: 44px;
+  height: 44px;
+
   object-fit: contain;
+}
+
+.verify-section-label {
   display: block;
+
+  margin-bottom: 8px;
+
+  color: #0077c8;
+
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .verify-heading {
-  font-size: 1.6rem;
-  color: #0c1838;
-  margin-bottom: 10px;
+  margin: 0 0 10px;
+
+  color: #07143d;
+
+  font-size: 2rem;
   font-weight: 700;
 }
 
 .verify-subtitle {
-  color: #475569;
-  font-size: 0.88rem;
-  margin-bottom: 30px;
+  margin: 0 auto 30px;
+
+  max-width: 540px;
+
+  color: #64748b;
+
+  font-size: 1rem;
   line-height: 1.5;
 }
 
 .verify-subtitle strong {
-  color: #0c1838;
+  color: #07143d;
 }
 
-/* مربعات إدخال كود الـ OTP (الـ 6 مربعات الصفراء) */
+/* Error */
+.verify-error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  margin: 0 auto 16px;
+
+  padding: 10px 14px;
+
+  color: #b91c1c;
+  background: #fff1f2;
+
+  border: 1px solid #fecdd3;
+  border-radius: 9px;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* OTP */
 .otp-inputs-container {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 25px;
+  justify-content: center;
+  gap: 16px;
+
+  margin-bottom: 26px;
 }
 
 .otp-input-box {
-  width: 52px;
-  height: 56px;
-  background-color: #fbd38d; /* اللون الأصفر المناسب مثل الصورة */
-  border: 1px solid #f6ad55;
-  border-radius: 12px;
+  width: 64px;
+  height: 64px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #f5b54a;
+  border-radius: 14px;
+
+  background: #ffd887;
+
+  color: #07143d;
+
   text-align: center;
-  font-size: 1.4rem;
-  font-weight: bold;
-  color: #1e293b;
+
+  font-size: 1.5rem;
+  font-weight: 700;
+
   outline: none;
-  transition: all 0.2s ease;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .otp-input-box:focus {
-  border-color: #d69e2e;
-  box-shadow: 0 0 0 3px rgba(246, 173, 85, 0.3);
-  background-color: #ffedd5;
+  background: #fff2d7;
+
+  border-color: #f59e0b;
+
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
 }
 
-.error-text {
-  color: #ef4444;
-  font-size: 0.85rem;
-  margin-bottom: 15px;
-  display: block;
+.otp-input-box.input-error {
+  border-color: #ef4444;
 }
 
-/* زر Verify code */
+/* Timer */
+.timer-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  margin-bottom: 26px;
+
+  color: #334a7d;
+
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.timer-dot {
+  width: 14px;
+  height: 14px;
+
+  border-radius: 50%;
+
+  background: #ffc14d;
+}
+
+.timer-highlight {
+  color: #f59e0b;
+}
+
+/* Verify button */
 .btn-verify-code {
   width: 100%;
-  padding: 14px;
-  background-color: #0c1838;
-  color: white;
+
+  padding: 16px;
+
   border: none;
-  border-radius: 12px;
-  font-weight: 700;
+  border-radius: 14px;
+
+  background: #020820;
+  color: #ffffff;
+
   font-size: 1rem;
+  font-weight: 700;
+
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
+
+  transition:
+    transform 0.15s ease,
+    background 0.2s ease;
 }
 
-.btn-verify-code:hover {
-  background-color: #162c5b;
+.btn-verify-code:hover:not(:disabled) {
+  background: #0b173b;
 }
 
-.btn-verify-code:active {
-  transform: scale(0.98);
+.btn-verify-code:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Resend */
+.verify-resend-section {
+  margin-top: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+
+  color: #64748b;
+
+  font-size: 14px;
+}
+
+.verify-resend-btn {
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  color: #2563eb;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.verify-resend-btn:disabled {
+  cursor: default;
+}
+
+.resend-countdown-inline {
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+/* Resend box */
+.resend-info-box {
+  margin-top: 22px;
+
+  padding: 18px 20px;
+
+  background: #ffe0a4;
+
+  border-radius: 15px;
+
+  text-align: left;
+}
+
+.resend-icon-text {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.repeat-svg {
+  width: 34px;
+  height: 34px;
+
+  min-width: 34px;
+
+  color: #0b4aa2;
+}
+
+.resend-text-content p {
+  margin: 0;
+}
+
+.resend-title {
+  color: #244078;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.resend-desc {
+  margin-top: 4px !important;
+
+  color: #53657f;
+
+  font-size: 13px;
+}
+
+.resend-countdown {
+  margin-top: 6px !important;
+
+  color: #244078;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.resend-active-btn {
+  margin-top: 8px;
+
+  padding: 0;
+
+  border: none;
+  background: transparent;
+
+  color: #0b4aa2;
+
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.resend-success-message {
+  margin-top: 10px;
+
+  color: #15803d;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Back */
+.reset-back-btn {
+  margin-top: 18px;
+
+  border: none;
+  background: transparent;
+
+  color: #0b173b;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.reset-back-btn:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================
+   Responsive
+========================================== */
+
+@media (max-width: 900px) {
+  .verify-card {
+    max-width: 760px;
+  }
+
+  .sidebar-left {
+    width: 36%;
+    padding: 30px 24px;
+  }
+
+  .sidebar-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .features-list li {
+    font-size: 0.85rem;
+  }
+
+  .form-right-verify {
+    padding: 35px 28px;
+  }
+
+  .otp-inputs-container {
+    gap: 10px;
+  }
+
+  .otp-input-box {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (max-width: 700px) {
+  .verify-wrapper {
+    padding: 12px;
+  }
+
+  .verify-card {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .sidebar-left {
+    width: 100%;
+    padding: 24px;
+  }
+
+  .sidebar-content p {
+    margin-bottom: 24px;
+  }
+
+  .features-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .features-list .icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  .features-list .icon img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .form-right-verify {
+    padding: 32px 20px 36px;
+  }
+
+  .verify-heading {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .features-list {
+    grid-template-columns: 1fr;
+  }
+
+  .otp-inputs-container {
+    gap: 7px;
+  }
+
+  .otp-input-box {
+    width: 44px;
+    height: 52px;
+
+    border-radius: 11px;
+
+    font-size: 1.2rem;
+  }
+
+  .verify-subtitle {
+    font-size: 0.88rem;
+  }
+
+  .resend-info-box {
+    padding: 15px;
+  }
+  /* ==========================================
+   Password Reset Verification
+========================================== */
+
+.reset-verify-subtitle {
+  max-width: 500px;
+  margin: 0 auto 28px;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.reset-verify-subtitle strong {
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.verify-heading {
+  color: #0b173b;
+}
+
+.btn-verify-code {
+  text-transform: none;
+}
+
+@media (max-width: 480px) {
+  .reset-verify-subtitle {
+    font-size: 13px;
+  }
+}
 }

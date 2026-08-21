@@ -143,20 +143,36 @@ export const resendForgotPassword = (email) =>
 // Dedicated password-recovery OTP validation. This must remain separate from
 // account/email verification because the two flows may have different
 // expiration and consumption rules.
+// التحقق من كود استعادة كلمة المرور فقط
+// لا يغير كلمة المرور ولا يستهلك الـOTP
 export const verifyForgotPasswordOtp = (email, otp) =>
-  request("/api/auth/forgot-password/verify", {
-    method: "POST",
-    body: { email, otp },
-  });
+  request('/api/auth/forgot-password/verify', {
+    method: 'POST',
+    body: {
+      email,
+      otp,
+    },
+  })
 
 // The final reset step only needs the OTP (already confirmed in the
 // previous /forgot-password/verify step) and the new password — no email,
 // since Backend now matches the OTP directly against the stored tokens.
-export const resetPassword = ({ otp, password, password_confirmation }) =>
-  request("/api/auth/reset-password", {
-    method: "POST",
-    body: { otp, password, password_confirmation },
-  });
+// إعادة تعيين كلمة المرور بعد إدخال كود الاستعادة
+export const resetPassword = ({
+  email,
+  otp,
+  password,
+  password_confirmation,
+}) =>
+  request('/api/auth/reset-password', {
+    method: 'POST',
+    body: {
+      email,
+      otp,
+      password,
+      password_confirmation,
+    },
+  })
 
 
   export const loginWithGoogle = (

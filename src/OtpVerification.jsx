@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './OtpVerification.css';
+import { verifyOtp, resendOtp } from './api';
 
-const OtpVerification = ({ onVerifySuccess, onBack, onContinueToLogin }) => {
+const OtpVerification = ({ userEmail,onVerifySuccess,onBack,onContinueToLogin, }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(582); // 09:42 in seconds
   const [resendTimer, setResendTimer] = useState(60); // 60s for resend
@@ -51,10 +52,29 @@ const OtpVerification = ({ onVerifySuccess, onBack, onContinueToLogin }) => {
   };
 
   // Handle Resend Click
-  const handleResendClick = () => {
+  const handleResendClick = async () => {
+  if (!userEmail) {
+    setError('Email address is missing. Please go back and try again.');
+    return;
+  }
+
+  try {
+    setError('');
+
+    await resendOtp(userEmail);
+
     setIsResendState(true);
     setResendTimer(60);
-  };
+    setTimeLeft(582);
+    setOtp(['', '', '', '', '', '']);
+
+    inputRefs.current[0]?.focus();
+  } catch (error) {
+    setError(
+      error.message || 'Unable to resend the verification code.'
+    );
+  }
+};
 
   // Handle Verify Submit
   const handleVerify = (e) => {

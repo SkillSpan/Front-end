@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './RegisterStep3.css';
 
-const RegisterStep3 = ({ onNextSuccess, onBack }) => {
+const RegisterStep3 = ({ onNextSuccess, onBack,serverError,}) => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [error, setError] = useState(false);
@@ -79,7 +79,12 @@ const RegisterStep3 = ({ onNextSuccess, onBack }) => {
             <span className="sub-tag">TERMS & PRIVACY</span>
             <h1>One last step</h1>
           </div>
-
+          {serverError && (
+            <div className="error-banner">
+              <span className="error-icon">ⓘ</span>
+              <span>{serverError}</span>
+            </div>
+          )}
           <div className="agreements-container">
             {/* Terms of Use Box */}
             <div 

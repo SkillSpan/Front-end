@@ -9,6 +9,7 @@ import OtpVerification from './OtpVerification'
 import Login from './Login'
 import ForgotPassword from './ForgotPassword'
 import VerifyCode from './VerifyCode'
+import ResetPassword from './ResetPassword'
 import ResetSuccess from './ResetSuccess'
 import CompanyStep1 from './CompanyStep1'
 import CompanyStep2 from './CompanyStep2'
@@ -18,7 +19,13 @@ import CompanyStep5 from './CompanyStep5' // استيراد الخطوة الخ�
 import CompanyLogin from './CompanyLogin'
 import CompanyForgotPassword from './CompanyForgotPassword'
 import './responsive.css'
-import { clearSession, getStoredUser, isAuthenticated } from './api'
+import {
+  clearSession,
+  getStoredUser,
+  isAuthenticated,
+  registerUser,
+  resendOtp,
+} from './api'
 
 function App() {
     const location = useLocation()
@@ -27,8 +34,10 @@ function App() {
 
   const [activeTab, setActiveTab] = useState('Home')
   const [registerData, setRegisterData] = useState({})
+  const [registrationError, setRegistrationError] = useState('')
   const [companyData, setCompanyData] = useState({}) // لتخزين بيانات الشركات
   const [resetEmail, setResetEmail] = useState('')
+  const [resetOtp, setResetOtp] = useState('')
   const [authUser, setAuthUser] = useState(null) // logged-in organization user (from cookie session)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 const getInitialPage = () => {
@@ -42,6 +51,7 @@ const getInitialPage = () => {
     '/verify-otp': 'otpVerification',
     '/forgot-password': 'forgotPassword',
     '/verify-code': 'verifyCode',
+    '/reset-password': 'resetPassword',
     '/reset-success': 'resetSuccess',
     '/company/register': 'companyStep1',
     '/company/register/step-2': 'companyStep2',
@@ -67,6 +77,7 @@ const pagePaths = {
   otpVerification: '/verify-otp',
   forgotPassword: '/forgot-password',
   verifyCode: '/verify-code',
+  resetPassword: '/reset-password',
   resetSuccess: '/reset-success',
   companyStep1: '/company/register',
   companyStep2: '/company/register/step-2',
@@ -112,6 +123,11 @@ useEffect(() => {
     setCurrentPage('landing')
   }
 
+  const handleStudentLoginSuccess = ({ user }) => {
+    setAuthUser(user)
+    setCurrentPage('landing')
+  }
+
   const handleLogout = () => {
     clearSession()
     setAuthUser(null)
@@ -119,20 +135,51 @@ useEffect(() => {
   }
 
   const handleStep1Success = (step1Data) => {
-    setRegisterData((prev) => ({ ...prev, ...step1Data }))
-    setCurrentPage('registerStep2')
-  }
+  setRegistrationError('')
+  setRegisterData((prev) => ({ ...prev, ...step1Data }))
+  setCurrentPage('registerStep2')
+}
 
   const handleStep2Success = (step2Data) => {
-    setRegisterData((prev) => ({ ...prev, ...step2Data }))
-    setCurrentPage('registerStep3')
+  setRegistrationError('')
+  setRegisterData((prev) => ({ ...prev, ...step2Data }))
+  setCurrentPage('registerStep3')
+}
+
+  const handleStep3Success = async (step3Data) => {
+  const finalData = {
+    ...registerData,
+    ...step3Data,
   }
 
-  const handleStep3Success = (step3Data) => {
-    const finalData = { ...registerData, ...step3Data }
-    setRegisterData(finalData)
+  setRegisterData(finalData)
+  setRegistrationError('')
+
+  try {
+    const payload = {
+      name: finalData.fullName.trim(),
+      email: finalData.email.trim(),
+      password: finalData.password,
+      password_confirmation: finalData.confirmPassword,
+      terms_accepted: finalData.agreeTerms,
+      privacy_accepted: finalData.agreePrivacy,
+      academic_status: finalData.academicStatus,
+    }
+
+    await registerUser(payload)
+
     setCurrentPage('emailVerification')
+  } catch (error) {
+    console.error('Registration failed:', error)
+
+    setRegistrationError(
+      error.message || 'Registration failed. Please try again.'
+    )
+
+    setCurrentPage('registerStep3')
   }
+}
+
 
   const handleContinueToSetup = () => setCurrentPage('otpVerification')
 
@@ -254,6 +301,7 @@ useEffect(() => {
     return (
       <RegisterStep3 
         onNextSuccess={handleStep3Success}
+        serverError={registrationError}
         onBack={() => setCurrentPage('registerStep2')}
       />
     )
@@ -264,19 +312,28 @@ useEffect(() => {
       <EmailVerification 
         userEmail={registerData.email}
         onContinueToSetup={handleContinueToSetup}
-        onResendEmail={() => console.log('Resending verification email to:', registerData.email)}
-      />
-    )
-  }
+        onResendEmail={async () => {
+        try {
+          await resendOtp(registerData.email)
+          alert('A new verification code has been sent to your email.')
+        } catch (error) {
+          alert(error.message || 'Unable to resend the verification code.')
+        }
+       }}
+     />
+  )
+}
 
   if (currentPage === 'otpVerification') {
-    return (
-      <OtpVerification 
-        onVerifySuccess={handleVerifySuccess}
-        onBack={() => setCurrentPage('emailVerification')}
-      />
-    )
-  }
+  return (
+    <OtpVerification 
+      userEmail={registerData.email}
+      onVerifySuccess={handleVerifySuccess}
+      onBack={() => setCurrentPage('emailVerification')}
+      onContinueToLogin={handleNavigateToLogin}
+    />
+  )
+}
 
   if (currentPage === 'login') {
     return (
@@ -284,6 +341,7 @@ useEffect(() => {
         onSwitchToRegister={handleOpenRegister}
         onBack={() => setCurrentPage('landing')}
         onForgotPassword={handleNavigateToForgotPassword}
+        onLoginSuccess={handleStudentLoginSuccess}
       />
     )
   }
@@ -298,17 +356,30 @@ useEffect(() => {
   }
 
   if (currentPage === 'verifyCode') {
-    return (
-      <VerifyCode 
-        email={resetEmail}
-        onBack={() => setCurrentPage('forgotPassword')}
-        onSuccess={(code) => {
-          console.log('Verified reset code:', code)
-          setCurrentPage('resetSuccess')
-        }}
-      />
-    )
-  }
+  return (
+    <VerifyCode
+      email={resetEmail}
+      onBack={() => setCurrentPage('forgotPassword')}
+      onSuccess={(code) => {
+        // حفظ رمز الاستعادة مؤقتًا للمرحلة التالية
+        setResetOtp(code)
+
+        // الانتقال إلى صفحة تغيير كلمة المرور
+        setCurrentPage('resetPassword')
+      }}
+    />
+  )
+}
+  if (currentPage === 'resetPassword') {
+  return (
+    <ResetPassword
+      email={resetEmail}
+      otp={resetOtp}
+      onBackToVerify={() => setCurrentPage('verifyCode')}
+      onSuccess={() => setCurrentPage('resetSuccess')}
+    />
+  )
+}
 
   if (currentPage === 'resetSuccess') {
     return (

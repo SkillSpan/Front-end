@@ -1,192 +1,352 @@
-import React, { useState } from 'react';
-import './Login.css';
-import { loginWithGoogle, saveSession } from './api';
+import React, { useState } from 'react'
+import './Login.css'
+import {
+  loginUser,
+  loginWithGoogle,
+  saveSession,
+} from './api'
 
-const Login = ({ onSwitchToRegister, onBack, onForgotPassword }) => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [errors, setErrors] = useState({});
-const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+const Login = ({
+  onSwitchToRegister,
+  onBack,
+  onForgotPassword,
+  onLoginSuccess,
+}) =>  {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  })
 
-const handleGoogleLogin = () => {
-  if (!window.google?.accounts?.id) {
-    setErrors({
-      general: 'Google Login is not ready yet. Please try again.',
-    });
-    return;
+  const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
+
+  // ==========================================
+  // تسجيل الدخول باستخدام Google
+  // ==========================================
+  const handleGoogleLogin = () => {
+    if (!window.google?.accounts?.id) {
+      setErrors({
+        general: 'Google Login is not ready yet. Please try again.',
+      })
+      return
+    }
+
+    setIsGoogleSubmitting(true)
+    setErrors({})
+
+    window.google.accounts.id.initialize({
+      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+
+      callback: async (response) => {
+        try {
+          const result = await loginWithGoogle(
+            response.credential,
+            false,
+            false
+          )
+
+          const { user, organizations, token } =
+            result.data || {}
+
+          // حفظ جلسة المستخدم بعد نجاح Google Login
+          saveSession({
+            token,
+            user,
+            organizations,
+          })
+
+          setErrors({})
+          alert('Google Login Successful!')
+        } catch (error) {
+          setErrors({
+            general:
+              error.message ||
+              'Unable to login with Google. Please try again.',
+          })
+        } finally {
+          setIsGoogleSubmitting(false)
+        }
+      },
+    })
+
+    window.google.accounts.id.prompt((notification) => {
+      if (
+        notification.isNotDisplayed() ||
+        notification.isSkippedMoment()
+      ) {
+        setIsGoogleSubmitting(false)
+      }
+    })
   }
 
-  setIsGoogleSubmitting(true);
-  setErrors({});
-
-  window.google.accounts.id.initialize({
-    client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-    callback: async (response) => {
-      try {
-        const result = await loginWithGoogle(
-          response.credential,
-          false,
-          false
-        );
-
-        const { user, organizations, token } = result.data || {};
-
-        saveSession({
-          token,
-          user,
-          organizations,
-        });
-
-        setErrors({});
-        alert('Google Login Successful!');
-      } catch (err) {
-        setErrors({
-          general:
-            err.message || 'Unable to login with Google. Please try again.',
-        });
-      } finally {
-        setIsGoogleSubmitting(false);
-      }
-    },
-  });
-
-  window.google.accounts.id.prompt((notification) => {
-    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-      setIsGoogleSubmitting(false);
-    }
-  });
-};
+  // ==========================================
+  // تحديث قيم حقول تسجيل الدخول
+  // ==========================================
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    // إزالة رسالة الخطأ فور بدء الكتابة
-    setErrors({ ...errors, [e.target.name]: '', general: '' });
-  };
-  
+    const { name, value } = e.target
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    let newErrors = {};
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+
+    // إزالة الخطأ أثناء بدء الكتابة
+    setErrors((prev) => ({
+      ...prev,
+      [name]: '',
+      general: '',
+    }))
+  }
+
+  // ==========================================
+  // تسجيل الدخول العادي
+  // ==========================================
+  const handleLogin = async (e) => {
+    e.preventDefault()
+
+    const newErrors = {}
 
     // التحقق من البريد الإلكتروني
     if (!formData.email.trim()) {
-      newErrors.email = 'Email address is required';
+      newErrors.email = 'Email address is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = 'Please enter a valid email address'
     }
 
     // التحقق من كلمة المرور
     if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = 'Password is required'
     }
 
+    // إيقاف الطلب إذا كانت البيانات غير صحيحة
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
+      setErrors(newErrors)
+      return
     }
 
-    // محاكاة التحقق من بيانات الدخول (مثال تجريبي)
-    if (formData.password !== '123456' && formData.password !== 'password') {
-      setErrors({ general: 'Invalid email or password. Please try again.' });
-      return;
-    }
+    try {
+      setIsSubmitting(true)
+      setErrors({})
 
-    console.log("Login data:", formData);
-    alert('Login Successful!');
-  };
+      // إرسال بيانات الدخول للـBackend
+      const result = await loginUser(
+        formData.email.trim(),
+        formData.password
+      )
+
+      const { user, token, organizations } =
+        result.data || {}
+
+      // حفظ بيانات الجلسة
+      saveSession({
+        token,
+        user,
+        organizations,
+      })
+
+      if (typeof onLoginSuccess === 'function') {
+         onLoginSuccess({ user, organizations })
+      }
+
+    } catch (error) {
+      // عرض رسالة الخطأ القادمة من الـBackend
+      setErrors({
+        general:
+          error.message ||
+          'Invalid email or password. Please try again.',
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <div className="login-wrapper">
       <div className="login-card">
-        {/* الشريط الجانبي الموحد */}
+
+        {/* الشريط الجانبي */}
         <div className="sidebar-left">
-           <div className="sidebar-brand">
-             <span className="white">Skill</span><span className="blue">Span</span>
-           </div>
-           <div className="sidebar-content">
-             <h2>Start Your Career Journey</h2>
-             <p>From education to your first opportunity in clear, verified steps</p>
-             <ul className="features-list">
-                <li>
-                  <span className="icon"><img src="/image/2.png" alt="Readiness" /></span>
-                  <span>Assess your real readiness</span>
-                </li>
-                <li>
-                  <span className="icon"><img src="/image/3.png" alt="Roadmap" /></span>
-                  <span>A roadmap built for you</span>
-                </li>
-                <li>
-                  <span className="icon"><img src="/image/4.png" alt="Projects" /></span>
-                  <span>Real projects from companies</span>
-                </li>
-                <li>
-                  <span className="icon"><img src="/image/5.png" alt="Record" /></span>
-                  <span>A verified professional record</span>
-                </li>
-              </ul>
-           </div>
+          <div className="sidebar-brand">
+            <span className="white">Skill</span>
+            <span className="blue">Span</span>
+          </div>
+
+          <div className="sidebar-content">
+            <h2>Start Your Career Journey</h2>
+
+            <p>
+              From education to your first opportunity
+              in clear, verified steps
+            </p>
+
+            <ul className="features-list">
+              <li>
+                <span className="icon">
+                  <img
+                    src="/image/2.png"
+                    alt="Readiness"
+                  />
+                </span>
+                <span>Assess your real readiness</span>
+              </li>
+
+              <li>
+                <span className="icon">
+                  <img
+                    src="/image/3.png"
+                    alt="Roadmap"
+                  />
+                </span>
+                <span>A roadmap built for you</span>
+              </li>
+
+              <li>
+                <span className="icon">
+                  <img
+                    src="/image/4.png"
+                    alt="Projects"
+                  />
+                </span>
+                <span>Real projects from companies</span>
+              </li>
+
+              <li>
+                <span className="icon">
+                  <img
+                    src="/image/5.png"
+                    alt="Record"
+                  />
+                </span>
+                <span>A verified professional record</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
+        {/* نموذج تسجيل الدخول */}
         <div className="form-right">
+
           {onBack && (
-            <button className="back-to-home-btn" onClick={onBack}>← Back to Home</button>
+            <button
+              type="button"
+              className="back-to-home-btn"
+              onClick={onBack}
+            >
+              ← Back to Home
+            </button>
           )}
-          
-          <h1 className="login-heading">Log in to your account</h1>
+
+          <h1 className="login-heading">
+            Log in to your account
+          </h1>
+
           <p className="new-here-text">
-            New here? <span onClick={onSwitchToRegister} className="link-action">Create a new account</span>
+            New here?{' '}
+            <span
+              onClick={onSwitchToRegister}
+              className="link-action"
+            >
+              Create a new account
+            </span>
           </p>
 
+          {/* Google Login */}
           <button
             className="btn-google"
             type="button"
             onClick={handleGoogleLogin}
-            disabled={isGoogleSubmitting}
+            disabled={isGoogleSubmitting || isSubmitting}
           >
             <span>G</span>
-            {isGoogleSubmitting ? 'Connecting...' : 'Google'}
+            {isGoogleSubmitting
+              ? 'Connecting...'
+              : 'Google'}
           </button>
-          {errors.general && <div className="error-alert">{errors.general}</div>}
+
+          {/* الخطأ العام */}
+          {errors.general && (
+            <div className="error-alert">
+              {errors.general}
+            </div>
+          )}
 
           <form onSubmit={handleLogin} noValidate>
+
+            {/* البريد الإلكتروني */}
             <div className="input-group">
               <label>Email Address</label>
-              <input 
-                name="email" 
+
+              <input
+                name="email"
                 type="email"
-                className={`login-input ${errors.email ? 'input-error' : ''}`}
-                placeholder="Email Address" 
+                className={`login-input ${
+                  errors.email ? 'input-error' : ''
+                }`}
+                placeholder="Email Address"
                 value={formData.email}
-                onChange={handleChange} 
+                onChange={handleChange}
+                autoComplete="email"
               />
-              {errors.email && <span className="error-text">{errors.email}</span>}
+
+              {errors.email && (
+                <span className="error-text">
+                  {errors.email}
+                </span>
+              )}
             </div>
 
+            {/* كلمة المرور */}
             <div className="input-group">
               <label>Enter your password</label>
-              <input 
-                name="password" 
-                type="password" 
-                className={`login-input ${errors.password ? 'input-error' : ''}`}
-                placeholder="password" 
+
+              <input
+                name="password"
+                type="password"
+                className={`login-input ${
+                  errors.password ? 'input-error' : ''
+                }`}
+                placeholder="Password"
                 value={formData.password}
-                onChange={handleChange} 
+                onChange={handleChange}
+                autoComplete="current-password"
               />
-              {errors.password && <span className="error-text">{errors.password}</span>}
+
+              {errors.password && (
+                <span className="error-text">
+                  {errors.password}
+                </span>
+              )}
             </div>
 
+            {/* نسيت كلمة المرور */}
             <div className="forgot-container">
-              <span className="link-action" onClick={onForgotPassword}>
+              <span
+                className="link-action"
+                onClick={onForgotPassword}
+              >
                 Forgot password? Reset password
               </span>
             </div>
 
-            <button type="submit" className="btn-login">Log in</button>
+            {/* زر تسجيل الدخول */}
+            <button
+              type="submit"
+              className="btn-login"
+              disabled={
+                isSubmitting || isGoogleSubmitting
+              }
+            >
+              {isSubmitting
+                ? 'Logging in...'
+                : 'Log in'}
+            </button>
+
           </form>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login
