@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './ForgotPassword.css';
 import { forgotPassword } from './api';
 
@@ -10,7 +10,7 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     if (!email.trim()) {
       setError('Email address is required');
       return;
@@ -23,17 +23,20 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
     setIsSubmitting(true);
     try {
       await forgotPassword(email.trim());
+      setIsSubmitting(false);
+      // Only show the "check your email" confirmation after a real
+      // success response from Laravel.
       setIsSubmitted(true);
     } catch (err) {
-      setError(err.message || 'Unable to send the reset code. Please try again.');
-    } finally {
       setIsSubmitting(false);
+      setError(err.message || 'Unable to send the reset code. Please try again.');
     }
   };
 
   return (
     <div className="forgot-wrapper">
       <div className="forgot-card">
+        {/* الشريط الجانبي المطابق تماماً */}
         <div className="sidebar-left">
            <div className="sidebar-brand">
              <span className="white">Skill</span><span className="blue">Span</span>
@@ -64,10 +67,12 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
            </div>
         </div>
 
+        {/* القسم الأيمن لإدخال الإيميل مع الصورة الخلفية */}
         <div className="form-right-forgot">
           <div className="forgot-content-box">
 
             {isSubmitted ? (
+              /* واجهة تأكيد الإرسال مع صورتك المخصصة 7.png */
               <div className="email-sent-container">
                 <div className="email-icon-wrapper">
                   <img src="/image/7.png" alt="Check email" className="custom-mail-img" />
@@ -75,8 +80,8 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
                 
                 <h1 className="forgot-heading">Check your email</h1>
                 <p className="forgot-subtitle">
-                  A 6-digit reset code has been sent to your email address <strong>{email}</strong>. 
-                  Please check your inbox (and spam folder) and enter the code on the next screen. The code will expire in 10 minutes.
+                  We've sent a 6-digit reset code to <strong>{email}</strong>. 
+                  Please check your inbox (and spam folder) to continue.
                 </p>
 
                 <button 
@@ -88,10 +93,11 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
                 </button>
               </div>
             ) : (
+              /* واجهة إدخال البريد الإلكتروني العادية */
               <>
                 <h1 className="forgot-heading">Reset Your Password</h1>
                 <p className="forgot-subtitle">
-                  Please enter the email address associated with your account, and we will send you a password reset link.
+                  Please enter the email address associated with your account, and we will send you a password reset code.
                 </p>
 
                 <form onSubmit={handleSubmit} noValidate>
@@ -110,7 +116,7 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
                   </div>
 
                   <button type="submit" className="btn-send-link" disabled={isSubmitting}>
-                    {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+                    {isSubmitting ? 'Sending...' : 'Send Reset Code'}
                   </button>
                 </form>
 

@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './RegisterStep1.css';
 
-const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin }) => {
+const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData }) => {
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+    fullName: initialData?.fullName || '',
+    email: initialData?.email || '',
+    password: initialData?.password || '',
+    confirmPassword: initialData?.confirmPassword || '',
   });
 
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // دالة لتوليد كلمة مرور قوية
@@ -36,6 +35,12 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin }) => {
     if (errors[name]) setErrors({ ...errors, [name]: '' });
   };
 
+  // Client-side validation only. This step never talks to the backend by
+  // itself - the actual POST /api/auth/register call happens once at the
+  // end of the wizard (RegisterStep3), after terms/privacy are accepted,
+  // using the full accumulated payload. That's the only point at which we
+  // find out whether the email is already registered etc. (via Laravel's
+  // 422 response), so we deliberately don't try to guess that here.
   const validateClientSide = () => {
     const newErrors = {};
     if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required.';
@@ -57,28 +62,14 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin }) => {
     return newErrors;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const clientErrors = validateClientSide();
     if (Object.keys(clientErrors).length > 0) {
       setErrors(clientErrors);
       return;
     }
-
-    setIsSubmitting(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      if (formData.email === 'test@example.com') {
-        setErrors({ serverGeneral: 'This email is already registered.' });
-        setIsSubmitting(false);
-        return;
-      }
-      setIsSubmitting(false);
-      if (onNextSuccess) onNextSuccess(formData);
-    } catch (error) {
-      setIsSubmitting(false);
-      setErrors({ serverGeneral: 'Server error. Please try again later.' });
-    }
+    if (onNextSuccess) onNextSuccess(formData);
   };
 
   return (
@@ -137,10 +128,6 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin }) => {
             <h1>Let's Start With the basics</h1>
             <p>This helps us set up your account correctly</p>
           </div>
-
-          {errors.serverGeneral && (
-            <div className="server-error-banner">{errors.serverGeneral}</div>
-          )}
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="input-group">
@@ -212,8 +199,8 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin }) => {
               )}
             </div>
 
-            <button type="submit" className="btn-next" disabled={isSubmitting}>
-              {isSubmitting ? 'Processing...' : 'Next →'}
+            <button type="submit" className="btn-next">
+              Next →
             </button>
           </form>
 
