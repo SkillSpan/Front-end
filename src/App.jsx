@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom'
 import './App.css'
 import RegisterStep1 from './RegisterStep1'
 import RegisterStep2 from './RegisterStep2'
@@ -8,41 +9,106 @@ import OtpVerification from './OtpVerification'
 import Login from './Login'
 import ForgotPassword from './ForgotPassword'
 import VerifyCode from './VerifyCode'
+import ResetPassword from './ResetPassword'
 import ResetSuccess from './ResetSuccess'
 import CompanyStep1 from './CompanyStep1'
 import CompanyStep2 from './CompanyStep2'
 import CompanyStep3 from './CompanyStep3'
 import CompanyStep4 from './CompanyStep4'
-import CompanyStep5 from './CompanyStep5' // استيراد الخطوة الخامسة والأخيرة للشركات
+import CompanyStep5 from './CompanyStep5'
 import CompanyLogin from './CompanyLogin'
 import CompanyForgotPassword from './CompanyForgotPassword'
 import './responsive.css'
-import { clearSession, getStoredUser, isAuthenticated } from './api'
+import {
+  clearSession,
+  getStoredUser,
+  isAuthenticated,
+  registerUser,
+  registerOrganization,
+  resendOtp,
+  loginOrganization,
+  loginUser,
+  saveSession,
+} from './api'
 
+// ─── URL map ──────────────────────────────────────────────────────────────────
+const pagePaths = {
+  landing: '/',
+  login: '/login',
+  registerStep1: '/register',
+  registerStep2: '/register/step-2',
+  registerStep3: '/register/step-3',
+  emailVerification: '/verify-email',
+  otpVerification: '/verify-otp',
+  forgotPassword: '/forgot-password',
+  verifyCode: '/verify-code',
+  resetPassword: '/reset-password',
+  resetSuccess: '/reset-success',
+  companyStep1: '/company/register',
+  companyStep2: '/company/register/step-2',
+  companyStep3: '/company/register/step-3',
+  companyStep4: '/company/register/step-4',
+  companyStep5: '/company/register/step-5',
+  companyLogin: '/company/login',
+  companyForgotPassword: '/company/forgot-password',
+}
+
+const pathPages = Object.fromEntries(
+  Object.entries(pagePaths).map(([page, path]) => [path, page])
+)
+
+const getInitialPage = () =>
+  pathPages[window.location.pathname] || 'landing'
+
+// ─── Main App (needs router context) ─────────────────────────────────────────
 function App() {
-  const [currentPage, setCurrentPage] = useState('landing')
+  const location = useLocation()
+  const navigate  = useNavigate()
+
+  const [currentPage, setCurrentPageState] = useState(getInitialPage)
   const [activeTab, setActiveTab] = useState('Home')
   const [registerData, setRegisterData] = useState({})
-  const [companyData, setCompanyData] = useState({}) // لتخزين بيانات الشركات
+  const [isSubmittingRegister, setIsSubmittingRegister] = useState(false)
+  const [registerSubmitError, setRegisterSubmitError] = useState('')
+  const [companyData, setCompanyData] = useState({})
+  const [isSubmittingCompany, setIsSubmittingCompany] = useState(false)
+  const [companySubmitError, setCompanySubmitError] = useState('')
   const [resetEmail, setResetEmail] = useState('')
-  const [authUser, setAuthUser] = useState(null) // logged-in organization user (from cookie session)
+  const [resetOtp, setResetOtp] = useState('')
+  const [authUser, setAuthUser] = useState(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navItems = ['Home', 'Features', 'How it Works', 'About Us', 'Contact']
 
-  // Restore session from the secure cookie on load (see api.js / utils/cookies.js)
+  // Keep state in sync when user presses Back/Forward
   useEffect(() => {
-    if (isAuthenticated()) {
-      setAuthUser(getStoredUser())
-    }
+    const page = pathPages[location.pathname] || 'landing'
+    setCurrentPageState(page)
+  }, [location.pathname])
+
+  // Restore session from cookie on load
+  useEffect(() => {
+    if (isAuthenticated()) setAuthUser(getStoredUser())
   }, [])
 
-  const handleOpenRegister = () => setCurrentPage('registerStep1')
-  const handleOpenCompanyRegister = () => setCurrentPage('companyStep1')
-  const handleNavigateToLogin = () => setCurrentPage('login')
-  const handleNavigateToCompanyLogin = () => setCurrentPage('companyLogin')
-  const handleNavigateToForgotPassword = () => setCurrentPage('forgotPassword')
+  // Wrapper: update state + push URL
+  const setCurrentPage = (page) => {
+    setCurrentPageState(page)
+    navigate(pagePaths[page] || '/')
+  }
+
+  // ─── Navigation helpers ──────────────────────────────────────────────────
+  const handleOpenRegister              = () => setCurrentPage('registerStep1')
+  const handleOpenCompanyRegister       = () => setCurrentPage('companyStep1')
+  const handleNavigateToLogin           = () => setCurrentPage('login')
+  const handleNavigateToCompanyLogin    = () => setCurrentPage('companyLogin')
+  const handleNavigateToForgotPassword  = () => setCurrentPage('forgotPassword')
   const handleNavigateToCompanyForgotPassword = () => setCurrentPage('companyForgotPassword')
+
+  const handleLoginSuccess = ({ user }) => {
+    setAuthUser(user)
+    setCurrentPage('landing')
+  }
 
   const handleCompanyLoginSuccess = ({ user }) => {
     setAuthUser(user)
@@ -55,6 +121,7 @@ function App() {
     setCurrentPage('landing')
   }
 
+  // ─── Student registration flow ───────────────────────────────────────────
   const handleStep1Success = (step1Data) => {
     setRegisterData((prev) => ({ ...prev, ...step1Data }))
     setCurrentPage('registerStep2')
@@ -65,10 +132,27 @@ function App() {
     setCurrentPage('registerStep3')
   }
 
-  const handleStep3Success = (step3Data) => {
+  const handleStep3Success = async (step3Data) => {
     const finalData = { ...registerData, ...step3Data }
     setRegisterData(finalData)
-    setCurrentPage('emailVerification')
+    setRegisterSubmitError('')
+    setIsSubmittingRegister(true)
+    try {
+      await registerUser({
+        name: finalData.fullName,
+        email: finalData.email,
+        password: finalData.password,
+        password_confirmation: finalData.confirmPassword,
+        academic_status: finalData.academicStatus,
+        terms_accepted: finalData.agreeTerms ? '1' : '0',
+        privacy_accepted: finalData.agreePrivacy ? '1' : '0',
+      })
+      setCurrentPage('emailVerification')
+    } catch (err) {
+      setRegisterSubmitError(err.message || 'Unable to create account. Please try again.')
+    } finally {
+      setIsSubmittingRegister(false)
+    }
   }
 
   const handleContinueToSetup = () => setCurrentPage('otpVerification')
@@ -83,10 +167,10 @@ function App() {
     setCurrentPage('verifyCode')
   }
 
-  // مسار تسجيل الشركات
+  // ─── Company registration flow ───────────────────────────────────────────
   if (currentPage === 'companyStep1') {
     return (
-      <CompanyStep1 
+      <CompanyStep1
         onNextSuccess={(step1Data) => {
           setCompanyData((prev) => ({ ...prev, ...step1Data }))
           setCurrentPage('companyStep2')
@@ -99,7 +183,7 @@ function App() {
 
   if (currentPage === 'companyStep2') {
     return (
-      <CompanyStep2 
+      <CompanyStep2
         onNextSuccess={(step2Data) => {
           setCompanyData((prev) => ({ ...prev, ...step2Data }))
           setCurrentPage('companyStep3')
@@ -112,7 +196,7 @@ function App() {
 
   if (currentPage === 'companyStep3') {
     return (
-      <CompanyStep3 
+      <CompanyStep3
         onNextSuccess={(step3Data) => {
           setCompanyData((prev) => ({ ...prev, ...step3Data }))
           setCurrentPage('companyStep4')
@@ -125,24 +209,51 @@ function App() {
 
   if (currentPage === 'companyStep4') {
     return (
-      <CompanyStep4 
-        onNextSuccess={(step4Data) => {
-          setCompanyData((prev) => ({ ...prev, ...step4Data }))
-          setCurrentPage('companyStep5') // الانتقال للخطوة الخامسة والأخيرة
+      <CompanyStep4
+        onNextSuccess={async (step4Data) => {
+          const finalData = { ...companyData, ...step4Data }
+          setCompanyData(finalData)
+          setCompanySubmitError('')
+          setIsSubmittingCompany(true)
+          try {
+            await registerOrganization({
+              name: finalData.name,
+              email: finalData.email,
+              phone: finalData.phone,
+              password: finalData.password,
+              password_confirmation: finalData.confirmPassword,
+              organization_name: finalData.companyName,
+              organization_type: 'company',
+              organization_contact_email: finalData.email,
+              organization_contact_phone: finalData.phone,
+              organization_website: finalData.website || undefined,
+              organization_description: finalData.companyDescription,
+              organization_industry: finalData.industry,
+              organization_company_size: finalData.companySize,
+              organization_country: finalData.country,
+              organization_city: finalData.city,
+              organization_address: finalData.address,
+              organization_postal_code: finalData.postalCode,
+              proofFile: finalData.proofFile,
+            })
+            setCurrentPage('companyStep5')
+          } catch (err) {
+            setCompanySubmitError(err.message || 'Unable to submit registration. Please try again.')
+          } finally {
+            setIsSubmittingCompany(false)
+          }
         }}
         onBack={() => setCurrentPage('companyStep3')}
-        onNavigateToLogin={handleNavigateToCompanyLogin}
+        isSubmitting={isSubmittingCompany}
+        submitError={companySubmitError}
       />
     )
   }
 
   if (currentPage === 'companyStep5') {
     return (
-      <CompanyStep5 
-        onNavigateToLanding={() => {
-          console.log('Final Complete Company Data Submitted:', companyData)
-          setCurrentPage('landing') // العودة للصفحة الرئيسية عند الانتهاء
-        }}
+      <CompanyStep5
+        email={companyData.email}
         onNavigateToLogin={handleNavigateToCompanyLogin}
       />
     )
@@ -168,10 +279,10 @@ function App() {
     )
   }
 
-  // مسار تسجيل الطلاب والمستخدمين
+  // ─── Student registration flow ────────────────────────────────────────────
   if (currentPage === 'registerStep1') {
     return (
-      <RegisterStep1 
+      <RegisterStep1
         onNextSuccess={handleStep1Success}
         onNavigateToLogin={handleNavigateToLogin}
       />
@@ -180,7 +291,7 @@ function App() {
 
   if (currentPage === 'registerStep2') {
     return (
-      <RegisterStep2 
+      <RegisterStep2
         onNextSuccess={handleStep2Success}
         onBack={() => setCurrentPage('registerStep1')}
       />
@@ -189,45 +300,50 @@ function App() {
 
   if (currentPage === 'registerStep3') {
     return (
-      <RegisterStep3 
+      <RegisterStep3
         onNextSuccess={handleStep3Success}
         onBack={() => setCurrentPage('registerStep2')}
+        isSubmitting={isSubmittingRegister}
+        submitError={registerSubmitError}
       />
     )
   }
 
   if (currentPage === 'emailVerification') {
     return (
-      <EmailVerification 
+      <EmailVerification
         userEmail={registerData.email}
         onContinueToSetup={handleContinueToSetup}
-        onResendEmail={() => console.log('Resending verification email to:', registerData.email)}
+        onResendEmail={() => resendOtp(registerData.email)}
       />
     )
   }
 
   if (currentPage === 'otpVerification') {
     return (
-      <OtpVerification 
+      <OtpVerification
+        email={registerData.email}
         onVerifySuccess={handleVerifySuccess}
         onBack={() => setCurrentPage('emailVerification')}
       />
     )
   }
 
+  // ─── Student login & forgot-password ─────────────────────────────────────
   if (currentPage === 'login') {
     return (
-      <Login 
+      <Login
         onSwitchToRegister={handleOpenRegister}
         onBack={() => setCurrentPage('landing')}
         onForgotPassword={handleNavigateToForgotPassword}
+        onLoginSuccess={handleLoginSuccess}
       />
     )
   }
 
   if (currentPage === 'forgotPassword') {
     return (
-      <ForgotPassword 
+      <ForgotPassword
         onBackToLogin={handleNavigateToLogin}
         onContinueToVerify={handleContinueToVerify}
       />
@@ -236,36 +352,47 @@ function App() {
 
   if (currentPage === 'verifyCode') {
     return (
-      <VerifyCode 
+      <VerifyCode
         email={resetEmail}
         onBack={() => setCurrentPage('forgotPassword')}
         onSuccess={(code) => {
-          console.log('Verified reset code:', code)
-          setCurrentPage('resetSuccess')
+          setResetOtp(code)
+          setCurrentPage('resetPassword')
         }}
+      />
+    )
+  }
+
+  if (currentPage === 'resetPassword') {
+    return (
+      <ResetPassword
+        email={resetEmail}
+        otp={resetOtp}
+        onBackToVerify={() => setCurrentPage('verifyCode')}
+        onSuccess={() => setCurrentPage('resetSuccess')}
       />
     )
   }
 
   if (currentPage === 'resetSuccess') {
     return (
-      <ResetSuccess 
+      <ResetSuccess
         onGoToLogin={handleNavigateToLogin}
       />
     )
   }
 
-  // الصفحة الرئيسية (Landing Page)
+  // ─── Landing page ─────────────────────────────────────────────────────────
   return (
     <div className="landing-container">
       {/* Navbar */}
       <nav className="navbar fade-in-down">
         <div className="navbar-top-row">
           <div className="logo-text">
-            <img 
-              src="/image/1.png" 
-              alt="SkillSpan Logo" 
-              className="logo-img" 
+            <img
+              src="/image/1.png"
+              alt="SkillSpan Logo"
+              className="logo-img"
             />
             <span className="brand">
               <span className="white">Skill</span><span className="blue">Span</span>
@@ -287,8 +414,8 @@ function App() {
 
         <ul className={`nav-links ${mobileMenuOpen ? 'nav-links-open' : ''}`}>
           {navItems.slice(0, 3).map((item) => (
-            <li 
-              key={item} 
+            <li
+              key={item}
               className={activeTab === item ? 'active' : ''}
               onClick={() => { setActiveTab(item); setMobileMenuOpen(false) }}
             >
@@ -296,80 +423,33 @@ function App() {
             </li>
           ))}
 
-          {/* Solutions Dropdown */}
-          <li className="dropdown" style={{ position: 'relative', cursor: 'pointer' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {/* Solutions Dropdown — fixed: CSS hover handles everything */}
+          <li className="dropdown">
+            <span className="dropdown-trigger">
               Solutions <span className="arrow">▾</span>
             </span>
-            <ul className="dropdown-menu" style={{
-              position: 'absolute',
-              top: '100%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              background: '#0f172a',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '12px',
-              padding: '8px 0',
-              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
-              listStyle: 'none',
-              minWidth: '220px',
-              zIndex: 1000
-            }}>
-              <li 
-                onClick={handleOpenRegister} 
-                style={{
-                  padding: '10px 16px',
-                  color: '#e2e8f0',
-                  fontSize: '14px',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap'
-                }}
-                onMouseEnter={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.15)'}
-                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+            <ul className="dropdown-menu">
+              <li
+                className="dropdown-item"
+                onClick={() => { handleOpenRegister(); setMobileMenuOpen(false) }}
               >
-                Students & Graduates
+                Students &amp; Graduates
               </li>
-              <li 
-                onClick={handleOpenCompanyRegister} 
-                style={{
-                  padding: '10px 16px',
-                  color: '#e2e8f0',
-                  fontSize: '14px',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap'
-                }}
-                onMouseEnter={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.15)'}
-                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+              <li
+                className="dropdown-item"
+                onClick={() => { handleOpenCompanyRegister(); setMobileMenuOpen(false) }}
               >
                 Companies
               </li>
-              <li 
-                onClick={handleNavigateToCompanyLogin} 
-                style={{
-                  padding: '10px 16px',
-                  color: '#93c5fd',
-                  fontSize: '13px',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap'
-                }}
-                onMouseEnter={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.15)'}
-                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+              <li
+                className="dropdown-item dropdown-item--sub"
+                onClick={() => { handleNavigateToCompanyLogin(); setMobileMenuOpen(false) }}
               >
                 ↳ Company log in
               </li>
-              <li 
-                onClick={() => {
-                  console.log('Educational Institutions clicked')
-                }} 
-                style={{
-                  padding: '10px 16px',
-                  color: '#e2e8f0',
-                  fontSize: '14px',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap'
-                }}
-                onMouseEnter={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.15)'}
-                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+              <li
+                className="dropdown-item"
+                onClick={() => { console.log('Educational Institutions clicked'); setMobileMenuOpen(false) }}
               >
                 Educational Institutions
               </li>
@@ -377,8 +457,8 @@ function App() {
           </li>
 
           {navItems.slice(3).map((item) => (
-            <li 
-              key={item} 
+            <li
+              key={item}
               className={activeTab === item ? 'active' : ''}
               onClick={() => { setActiveTab(item); setMobileMenuOpen(false) }}
             >
@@ -438,4 +518,13 @@ function App() {
   )
 }
 
-export default App
+// ─── Wrap with BrowserRouter ──────────────────────────────────────────────────
+function AppWithRouter() {
+  return (
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  )
+}
+
+export default AppWithRouter

@@ -1,45 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import './EmailVerification.css';
 
 const EmailVerification = ({ onContinueToSetup, onResendEmail, userEmail }) => {
   const [timer, setTimer] = useState(60);
-  const [canResend, setCanResend] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
 
-  // Countdown Timer Implementation
+  const canResend = timer === 0;
+
   useEffect(() => {
-    let interval = null;
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    } else {
-      setCanResend(true);
-      clearInterval(interval);
-    }
+    if (timer <= 0) return;
+    const interval = setInterval(() => {
+      setTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
     return () => clearInterval(interval);
   }, [timer]);
 
-  // Handle Resend Email Action
   const handleResend = () => {
     if (!canResend) return;
-
-    // Reset Timer
     setTimer(60);
-    setCanResend(false);
-
-    // Call Parent or API Prop
     if (typeof onResendEmail === 'function') {
       onResendEmail();
     }
-
-    // Success Message Handling
     setMessage({
-      text: 'A new verification link has been sent to your email!',
+      text: 'A new verification code has been sent to your email!',
       type: 'success',
     });
-
-    // Clear Message after 4 Seconds
     setTimeout(() => {
       setMessage({ text: '', type: '' });
     }, 4000);
@@ -48,7 +33,6 @@ const EmailVerification = ({ onContinueToSetup, onResendEmail, userEmail }) => {
   return (
     <div className="register-wrapper">
       <div className="register-card">
-        {/* Left Dark Sidebar */}
         <div className="sidebar-left">
           <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">
@@ -90,7 +74,6 @@ const EmailVerification = ({ onContinueToSetup, onResendEmail, userEmail }) => {
           </div>
         </div>
 
-        {/* Right Content Area */}
         <div className="form-right verification-container">
           <div className="email-icon-box">
             <svg
@@ -109,23 +92,20 @@ const EmailVerification = ({ onContinueToSetup, onResendEmail, userEmail }) => {
 
           <h1 className="verification-title">Check your email</h1>
           <p className="verification-desc">
-            We sent a verification link to your email address
-            {userEmail ? <strong> {userEmail}</strong> : ''}. Click it to activate your account.
+            We sent a 6-digit verification code to your email address
+            {userEmail ? <strong> {userEmail}</strong> : ''}. Enter it on the next screen to activate your account.
           </p>
 
-          {/* Toast / Notification Banner */}
           {message.text && (
             <div className={`status-banner ${message.type}`}>
               <span>{message.text}</span>
             </div>
           )}
 
-          {/* Continue Button */}
           <button className="btn-continue-setup" onClick={onContinueToSetup}>
             Continue to Setup
           </button>
 
-          {/* Resend Action with Timer */}
           <div className="resend-wrapper">
             {canResend ? (
               <p className="resend-text">

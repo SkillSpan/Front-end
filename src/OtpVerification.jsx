@@ -1,16 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { verifyOtp, resendOtp } from './api';
 import './OtpVerification.css';
 
-const OtpVerification = ({ onVerifySuccess, onBack, onContinueToLogin }) => {
+const OtpVerification = ({ email: propEmail, onVerifySuccess, onBack, onContinueToLogin }) => {
+  const [emailInput, setEmailInput] = useState(propEmail || '');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [timeLeft, setTimeLeft] = useState(582); // 09:42 in seconds
-  const [resendTimer, setResendTimer] = useState(60); // 60s for resend
+  const [timeLeft, setTimeLeft] = useState(600);
+  const [resendTimer, setResendTimer] = useState(60);
   const [isResendState, setIsResendState] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [error, setError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const inputRefs = useRef([]);
 
-  // Countdown timer
   useEffect(() => {
     let timer = null;
     if (timeLeft > 0 || (isResendState && resendTimer > 0)) {
@@ -22,14 +25,12 @@ const OtpVerification = ({ onVerifySuccess, onBack, onContinueToLogin }) => {
     return () => clearInterval(timer);
   }, [timeLeft, resendTimer, isResendState]);
 
-  // Format time to MM:SS
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Handle Input Change
   const handleChange = (value, index) => {
     if (isNaN(value)) return;
 
@@ -43,23 +44,42 @@ const OtpVerification = ({ onVerifySuccess, onBack, onContinueToLogin }) => {
     }
   };
 
-  // Handle Backspace
   const handleKeyDown = (e, index) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       inputRefs.current[index - 1].focus();
     }
   };
 
-  // Handle Resend Click
-  const handleResendClick = () => {
-    setIsResendState(true);
-    setResendTimer(60);
+  const handleResendClick = async () => {
+    if (!emailInput || !emailInput.includes('@')) {
+      setError('Please enter a valid email address first.');
+      return;
+    }
+    
+    setIsResending(true);
+    setError('');
+    try {
+      await resendOtp(emailInput);
+      setIsResendState(true);
+      setResendTimer(60);
+      setTimeLeft(582); 
+      setOtp(['', '', '', '', '', '']); 
+      inputRefs.current[0]?.focus();
+    } catch (err) {
+      setError(err.message || 'Failed to resend the code. Please try again.');
+    } finally {
+      setIsResending(false);
+    }
   };
 
-  // Handle Verify Submit
-  const handleVerify = (e) => {
+  const handleVerify = async (e) => {
     e.preventDefault();
     const enteredCode = otp.join('');
+
+    if (!emailInput || !emailInput.includes('@')) {
+      setError('Please enter a valid email address.');
+      return;
+    }
 
     if (enteredCode.length < 6) {
       setError('Please enter the complete 6-digit verification code.');
@@ -67,21 +87,22 @@ const OtpVerification = ({ onVerifySuccess, onBack, onContinueToLogin }) => {
     }
 
     setError('');
-    setIsVerified(true); // إظهار شاشة النجاح فوراً داخل المكون
+    setIsVerifying(true);
 
-    // تأجيل الـ Callback قليلاً لضمان ظهور شاشة النجاح وعدم تقاطعها مع توجيه الأب الفوري
-    if (typeof onVerifySuccess === 'function') {
-      // إذا أردتِ إرسال الكود للخارج دون تغيير الصفحة الفوري، اتركيها هكذا
-      // أو استدعيها بحذر إذا كانت لا تعيد توجيه الصفحة فوراً
+    try {
+      await verifyOtp(emailInput, enteredCode);
+      setIsVerified(true); 
+    } catch (err) {
+      setError(err.message || 'The verification code is invalid or has expired.');
+    } finally {
+      setIsVerifying(false);
     }
   };
 
-  // شاشة النجاح (Email Verified)
   if (isVerified) {
     return (
       <div className="register-wrapper">
         <div className="register-card">
-          {/* Left Sidebar */}
           <div className="sidebar-left">
             <div className="sidebar-brand">SkillSpan</div>
             <div className="sidebar-content">
@@ -111,7 +132,6 @@ const OtpVerification = ({ onVerifySuccess, onBack, onContinueToLogin }) => {
             </div>
           </div>
 
-          {/* Right Success Container */}
           <div className="form-right verified-container">
             <div className="success-icon-box">
               <svg className="success-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -150,11 +170,9 @@ const OtpVerification = ({ onVerifySuccess, onBack, onContinueToLogin }) => {
     );
   }
 
-  // شاشة إدخال رمز التحقق العادية
   return (
     <div className="register-wrapper">
       <div className="register-card">
-        {/* Left Sidebar */}
         <div className="sidebar-left">
           <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">
@@ -184,7 +202,6 @@ const OtpVerification = ({ onVerifySuccess, onBack, onContinueToLogin }) => {
           </div>
         </div>
 
-        {/* Right OTP Container */}
         <div className="form-right otp-container">
           <div className="email-icon-box">
             <svg className="email-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
@@ -200,7 +217,29 @@ const OtpVerification = ({ onVerifySuccess, onBack, onContinueToLogin }) => {
           </h1>
 
           <form onSubmit={handleVerify} className="otp-form-content">
-            {/* 6 OTP Input Boxes */}
+            
+            <div style={{ marginBottom: '16px', width: '100%', textAlign: 'left' }}>
+              <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: '#333', fontWeight: '600' }}>
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="Enter your email address"
+                style={{
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: '6px',
+                  border: '1px solid #d1d5db',
+                  fontSize: '14px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  backgroundColor: '#f9fafb'
+                }}
+              />
+            </div>
+
             <div className="otp-inputs-row">
               {otp.map((digit, index) => (
                 <input
@@ -216,27 +255,27 @@ const OtpVerification = ({ onVerifySuccess, onBack, onContinueToLogin }) => {
               ))}
             </div>
 
-            {/* Timer info */}
             <div className="timer-info">
               <span className="timer-dot"></span>
               <span>Code expires in <strong className="timer-highlight">{formatTime(timeLeft)}</strong></span>
             </div>
 
-            {/* Verify Button */}
-            <button type="submit" className="btn-verify-code">
-              Verify code
+            <button type="submit" className="btn-verify-code" disabled={isVerifying}>
+              {isVerifying ? 'Verifying...' : 'Verify code'}
             </button>
 
-            {/* Error Message */}
             {error && <div className="elegant-error-msg">{error}</div>}
 
-            {/* Resend States */}
             {!isResendState ? (
               <div className="otp-footer-links">
                 <p>
                   Didn't get the code?{' '}
-                  <span className="resend-action" onClick={handleResendClick} style={{ cursor: 'pointer', color: '#0056b3', fontWeight: 'bold' }}>
-                    Resend in 60s
+                  <span
+                    className="resend-action"
+                    onClick={isResending ? undefined : handleResendClick}
+                    style={{ cursor: isResending ? 'default' : 'pointer', color: '#0056b3', fontWeight: 'bold', opacity: isResending ? 0.6 : 1 }}
+                  >
+                    {isResending ? 'Sending...' : 'Resend code'}
                   </span>
                 </p>
               </div>
@@ -257,10 +296,9 @@ const OtpVerification = ({ onVerifySuccess, onBack, onContinueToLogin }) => {
               </div>
             )}
 
-            {/* Edit email link */}
-            <div className="otp-footer-links" style={{ marginTop: '15px' }}>
+            <div className="otp-footer-links" style={{ marginTop: '12px' }}>
               <button type="button" className="edit-email-btn" onClick={onBack}>
-                Edit email address
+                Back
               </button>
             </div>
           </form>
