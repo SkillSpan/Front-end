@@ -255,11 +255,9 @@ const CompanyForgotPassword = ({ onBackToLogin }) => {
     setErrors({});
     setIsSubmitting(true);
     try {
-      // IMPORTANT: Laravel remains the source of truth for the reset OTP.
-      // The success screen is shown only after /reset-password accepts both
-      // the OTP and the new password. No email here — the OTP alone is
-      // enough for Backend to find the matching reset token.
+      // IMPORTANT: Laravel ResetPasswordRequest requires the `email` field.
       await resetPassword({
+        email: email.trim(),
         otp: code,
         password,
         password_confirmation: confirmPassword,
