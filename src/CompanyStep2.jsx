@@ -21,10 +21,24 @@ const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const isValidUrl = (str) => {
+    if (!str) return true; // empty is allowed (optional field)
+    try {
+      const url = new URL(str);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   const handleNext = (e) => {
     e.preventDefault();
     if (!formData.companyName || !formData.country || !formData.city || !formData.address) {
       setError('Please fill in all required fields.');
+      return;
+    }
+    if (formData.website && !isValidUrl(formData.website)) {
+      setError('Website must be a valid URL (e.g. https://example.com).');
       return;
     }
     setError('');

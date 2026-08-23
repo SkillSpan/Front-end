@@ -23,10 +23,11 @@ The final password change remains:
 
 `POST /api/auth/reset-password`
 
-The current frontend sends:
+with:
 
 ```json
 {
+  "email": "user@example.com",
   "otp": "123456",
   "password": "NewPassword123!",
   "password_confirmation": "NewPassword123!"

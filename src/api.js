@@ -7,7 +7,7 @@ import { setCookie, getCookie, removeCookie } from "./utils/cookies";
 export const API_BASE_URL = "https://back-end-zdip.onrender.com";
 
 const TOKEN_COOKIE = "skillspan_token";
-const USER_COOKIE = "skillspan_user";
+const USER_COOKIE  = "skillspan_user";
 const SESSION_DAYS = 7;
 
 // ---------------------------------------------------------------------------
@@ -32,11 +32,7 @@ export function getToken() {
 export function getStoredUser() {
   const raw = getCookie(USER_COOKIE);
   if (!raw) return null;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
+  try { return JSON.parse(raw); } catch { return null; }
 }
 
 export function isAuthenticated() {
@@ -49,7 +45,7 @@ export function clearSession() {
 }
 
 // ---------------------------------------------------------------------------
-// Low level request helper
+// Low-level request helper
 // ---------------------------------------------------------------------------
 
 async function request(
@@ -68,28 +64,23 @@ async function request(
     response = await fetch(`${API_BASE_URL}${path}`, {
       method,
       headers,
-      credentials: "omit", // ← تم التعديل هنا
+      credentials: "omit",
       body: isFormData
         ? body
         : body !== undefined
           ? JSON.stringify(body)
           : undefined,
     });
-  } catch (networkError) {
+  } catch {
     throw {
       status: 0,
-      message:
-        "Unable to reach the server. Please check your internet connection and try again.",
+      message: "Unable to reach the server. Please check your internet connection and try again.",
       errors: {},
     };
   }
 
   let data = {};
-  try {
-    data = await response.json();
-  } catch {
-    // Some responses (e.g. 204) may have no body.
-  }
+  try { data = await response.json(); } catch { /* 204 No Content */ }
 
   if (!response.ok) {
     throw {
@@ -109,12 +100,47 @@ async function request(
 export const registerUser = (payload) =>
   request("/api/auth/register", { method: "POST", body: payload });
 
-export const registerOrganization = (formData) =>
-  request("/api/auth/register/organization", {
+// Builds FormData internally — proofFile must be a File object.
+export const registerOrganization = (params) => {
+  const fd = new FormData();
+  fd.append("name",                     params.name);
+  fd.append("email",                    params.email);
+  if (params.phone) fd.append("phone",  params.phone);
+  fd.append("password",                 params.password);
+  fd.append("password_confirmation",    params.password_confirmation);
+  fd.append("terms_accepted",           "1");
+  fd.append("privacy_accepted",         "1");
+
+  fd.append("organization_name",        params.organization_name);
+  fd.append("organization_type",        params.organization_type);
+  fd.append("organization_contact_email", params.organization_contact_email);
+  if (params.organization_contact_phone)
+    fd.append("organization_contact_phone", params.organization_contact_phone);
+  if (params.organization_website)
+    fd.append("organization_website",   params.organization_website);
+  if (params.organization_description)
+    fd.append("organization_description", params.organization_description);
+  if (params.organization_industry)
+    fd.append("organization_industry",  params.organization_industry);
+  if (params.organization_company_size)
+    fd.append("organization_company_size", params.organization_company_size);
+  if (params.organization_country)
+    fd.append("organization_country",   params.organization_country);
+  if (params.organization_city)
+    fd.append("organization_city",      params.organization_city);
+  if (params.organization_address)
+    fd.append("organization_address",   params.organization_address);
+  if (params.organization_postal_code)
+    fd.append("organization_postal_code", params.organization_postal_code);
+
+  fd.append("proof_file", params.proofFile);
+
+  return request("/api/auth/register/organization", {
     method: "POST",
-    body: formData,
+    body: fd,
     isFormData: true,
   });
+};
 
 export const verifyOtp = (email, otp) =>
   request("/api/auth/verify", { method: "POST", body: { email, otp } });
@@ -140,20 +166,27 @@ export const resendForgotPassword = (email) =>
     body: { email },
   });
 
-// Dedicated password-recovery OTP validation. This must remain separate from
-// account/email verification because the two flows may have different
-// expiration and consumption rules.
+// Alias used by VerifyCode.jsx
+export const resendForgotPasswordOtp = resendForgotPassword;
+
 export const verifyForgotPasswordOtp = (email, otp) =>
   request("/api/auth/forgot-password/verify", {
     method: "POST",
     body: { email, otp },
   });
 
-// The final reset step only needs the OTP (already confirmed in the
-// previous /forgot-password/verify step) and the new password — no email,
-// since Backend now matches the OTP directly against the stored tokens.
-export const resetPassword = ({ otp, password, password_confirmation }) =>
+export const resetPassword = ({ email, otp, password, password_confirmation }) =>
   request("/api/auth/reset-password", {
     method: "POST",
-    body: { otp, password, password_confirmation },
+    body: { email, otp, password, password_confirmation },
+  });
+
+export const loginWithGoogle = (credential, termsAccepted = false, privacyAccepted = false) =>
+  request("/api/auth/login/google", {
+    method: "POST",
+    body: {
+      credential,
+      terms_accepted: termsAccepted,
+      privacy_accepted: privacyAccepted,
+    },
   });

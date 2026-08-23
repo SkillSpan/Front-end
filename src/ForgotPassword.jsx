@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import './ForgotPassword.css';
+import { forgotPassword } from './api';
 
 const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
       setError('Email address is required');
       return;
@@ -18,14 +20,20 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
     }
 
     setError('');
-    setIsSubmitted(true);
-    console.log('Password reset link sent to:', email);
+    setIsSubmitting(true);
+    try {
+      await forgotPassword(email.trim());
+      setIsSubmitted(true);
+    } catch (err) {
+      setError(err.message || 'Unable to send the reset code. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="forgot-wrapper">
       <div className="forgot-card">
-        {/* الشريط الجانبي المطابق تماماً */}
         <div className="sidebar-left">
            <div className="sidebar-brand">
              <span className="white">Skill</span><span className="blue">Span</span>
@@ -56,12 +64,10 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
            </div>
         </div>
 
-        {/* القسم الأيمن لإدخال الإيميل مع الصورة الخلفية */}
         <div className="form-right-forgot">
           <div className="forgot-content-box">
 
             {isSubmitted ? (
-              /* واجهة تأكيد الإرسال مع صورتك المخصصة 7.png */
               <div className="email-sent-container">
                 <div className="email-icon-wrapper">
                   <img src="/image/7.png" alt="Check email" className="custom-mail-img" />
@@ -69,8 +75,8 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
                 
                 <h1 className="forgot-heading">Check your email</h1>
                 <p className="forgot-subtitle">
-                  A reset link has been sent to your email address <strong>{email}</strong>. 
-                  Please check your inbox (and spam folder) to reset your password. The link will expire in 15 minutes.
+                  A 6-digit reset code has been sent to your email address <strong>{email}</strong>. 
+                  Please check your inbox (and spam folder) and enter the code on the next screen. The code will expire in 10 minutes.
                 </p>
 
                 <button 
@@ -82,7 +88,6 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
                 </button>
               </div>
             ) : (
-              /* واجهة إدخال البريد الإلكتروني العادية */
               <>
                 <h1 className="forgot-heading">Reset Your Password</h1>
                 <p className="forgot-subtitle">
@@ -104,7 +109,9 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
                     {error && <span className="error-text">{error}</span>}
                   </div>
 
-                  <button type="submit" className="btn-send-link">Send Reset Link</button>
+                  <button type="submit" className="btn-send-link" disabled={isSubmitting}>
+                    {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+                  </button>
                 </form>
 
                 <div className="back-link-container">
