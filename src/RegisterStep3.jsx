@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './RegisterStep3.css';
 
-const RegisterStep3 = ({ onNextSuccess, onBack }) => {
+const RegisterStep3 = ({ onNextSuccess, onBack, isSubmitting, submitError }) => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [error, setError] = useState(false);
@@ -19,6 +19,8 @@ const RegisterStep3 = ({ onNextSuccess, onBack }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (isSubmitting) return;
+
     if (!agreeTerms || !agreePrivacy) {
       setError(true);
       return;
@@ -32,7 +34,6 @@ const RegisterStep3 = ({ onNextSuccess, onBack }) => {
   return (
     <div className="register-wrapper">
       <div className="register-card">
-        {/* Sidebar */}
         <div className="sidebar-left">
           <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">
@@ -62,7 +63,6 @@ const RegisterStep3 = ({ onNextSuccess, onBack }) => {
           </div>
         </div>
 
-        {/* Form Container */}
         <div className="form-right">
           <div className="step-header">
             <span className="step-title">STEP 3 OF 3</span>
@@ -81,8 +81,7 @@ const RegisterStep3 = ({ onNextSuccess, onBack }) => {
           </div>
 
           <div className="agreements-container">
-            {/* Terms of Use Box */}
-            <div 
+            <div
               className={`checkbox-card ${agreeTerms ? 'checked' : ''}`}
               onClick={handleToggleTerms}
             >
@@ -94,8 +93,7 @@ const RegisterStep3 = ({ onNextSuccess, onBack }) => {
               </span>
             </div>
 
-            {/* Privacy Policy Box */}
-            <div 
+            <div
               className={`checkbox-card ${agreePrivacy ? 'checked' : ''}`}
               onClick={handleTogglePrivacy}
             >
@@ -107,22 +105,27 @@ const RegisterStep3 = ({ onNextSuccess, onBack }) => {
               </span>
             </div>
 
-            {/* Error Banner */}
             {error && (
               <div className="error-banner">
                 <span className="error-icon">ⓘ</span>
                 <span>Both agreements are required to continue</span>
               </div>
             )}
+
+            {submitError && (
+              <div className="error-banner">
+                <span className="error-icon">ⓘ</span>
+                <span>{submitError}</span>
+              </div>
+            )}
           </div>
 
-          {/* Action Buttons */}
           <div className="action-buttons">
-            <button type="button" className="btn-back" onClick={onBack}>
+            <button type="button" className="btn-back" onClick={onBack} disabled={isSubmitting}>
               Back
             </button>
-            <button type="button" className="btn-next-step" onClick={handleSubmit}>
-              Next →
+            <button type="button" className="btn-next-step" onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? 'Creating account...' : 'Next →'}
             </button>
           </div>
         </div>
