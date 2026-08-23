@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './RegisterStep2.css';
 
-const RegisterStep2 = ({ onNextSuccess, onBack }) => {
+const RegisterStep2 = ({ onNextSuccess, onBack, introText }) => {
   // تم ضبط القيمة الافتراضية إلى null لتجنب تحديد خيار الطالب تلقائياً
   const [academicStatus, setAcademicStatus] = useState(null); 
   const [error, setError] = useState('');
@@ -78,6 +78,20 @@ const RegisterStep2 = ({ onNextSuccess, onBack }) => {
             <h1>Where are you right now?</h1>
             <p>This helps us tailor your experience</p>
           </div>
+
+          {introText && (
+            <div style={{
+              color: '#93c5fd',
+              fontSize: '0.85rem',
+              background: 'rgba(59, 130, 246, 0.08)',
+              border: '1px solid rgba(59, 130, 246, 0.2)',
+              borderRadius: '8px',
+              padding: '8px 12px',
+              marginBottom: '14px'
+            }}>
+              {introText}
+            </div>
+          )}
 
           {error && <div className="server-error-banner">{error}</div>}
 

@@ -359,27 +359,3 @@ html, body, #root {
   from { opacity: 0; transform: translateX(40px); }
   to { opacity: 1; transform: translateX(0); }
 }
-/* ── Dropdown fix: CSS-only hover instead of onMouseEnter/Leave ── */
-.dropdown-trigger {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.dropdown-item {
-  padding: 10px 16px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.dropdown-item:hover {
-  background-color: #f3f4f6;
-  color: #111827;
-}
-
-.dropdown-item--sub {
-  color: #1d72b8;
-  font-size: 13px;
-}

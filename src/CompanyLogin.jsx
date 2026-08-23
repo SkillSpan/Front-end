@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './CompanyLogin.css';
 import { loginOrganization, saveSession } from './api';
 
@@ -121,12 +121,6 @@ const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onFo
             <p className="cl-subtext">
               New here? <span className="cl-link" onClick={onSwitchToRegister}>Create a new account</span>
             </p>
-
-            <div className="cl-google-wrap">
-              <button type="button" className="cl-google-btn" onClick={() => alert('Google login is not connected yet.')}>
-                <span className="cl-google-g">G</span> Google
-              </button>
-            </div>
 
             {errors.general && <div className="cl-error-alert">{errors.general}</div>}
 

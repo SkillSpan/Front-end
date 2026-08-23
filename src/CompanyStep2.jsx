@@ -1,18 +1,22 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './CompanyRegister.css'; // نفس ملف التنسيق الخاص بالشركات
+import { ORGANIZATION_TYPES } from './config';
 
-const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin }) => {
+const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin, initialData }) => {
   const [formData, setFormData] = useState({
-    companyName: '',
-    companyType: 'Technology',
-    industry: 'Software & IT Services',
-    companySize: '11 - 50 employees',
-    website: '',
-    companyDescription: '',
-    country: '',
-    city: '',
-    address: '',
-    postalCode: ''
+    companyName: initialData?.companyName || '',
+    // organization_type is a strict backend enum: company | university |
+    // training_partner. This is intentionally separate from `industry`
+    // below - the two must never be mixed together in the payload.
+    organizationType: initialData?.organizationType || ORGANIZATION_TYPES[0].value,
+    industry: initialData?.industry || 'Software & IT Services',
+    companySize: initialData?.companySize || '11 - 50 employees',
+    website: initialData?.website || '',
+    companyDescription: initialData?.companyDescription || '',
+    country: initialData?.country || '',
+    city: initialData?.city || '',
+    address: initialData?.address || '',
+    postalCode: initialData?.postalCode || ''
   });
 
   const [error, setError] = useState('');
@@ -21,24 +25,10 @@ const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const isValidUrl = (str) => {
-    if (!str) return true; // empty is allowed (optional field)
-    try {
-      const url = new URL(str);
-      return url.protocol === 'http:' || url.protocol === 'https:';
-    } catch {
-      return false;
-    }
-  };
-
   const handleNext = (e) => {
     e.preventDefault();
     if (!formData.companyName || !formData.country || !formData.city || !formData.address) {
       setError('Please fill in all required fields.');
-      return;
-    }
-    if (formData.website && !isValidUrl(formData.website)) {
-      setError('Website must be a valid URL (e.g. https://example.com).');
       return;
     }
     setError('');
@@ -119,12 +109,11 @@ const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin }) => {
               </div>
 
               <div className="c-input-group">
-                <label>Company Type</label>
-                <select name="companyType" value={formData.companyType} onChange={handleChange} style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}>
-                  <option value="Technology">Technology</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Healthcare">Healthcare</option>
-                  <option value="Education">Education</option>
+                <label>Organization Type</label>
+                <select name="organizationType" value={formData.organizationType} onChange={handleChange} style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}>
+                  {ORGANIZATION_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
                 </select>
               </div>
             </div>

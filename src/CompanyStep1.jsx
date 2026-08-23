@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import './CompanyRegister.css';
+import { useState } from 'react';
+import './CompanyRegister.css'; // ملف تنسيق خاص ومستقل للشركات
 
-const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack }) => {
+const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack, initialData }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: ''
+    administratorName: initialData?.administratorName || '',
+    email: initialData?.email || '',
+    phone: initialData?.phone || '',
+    password: initialData?.password || '',
+    confirmPassword: initialData?.confirmPassword || ''
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -21,16 +21,19 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack }) => {
   const handleNext = (e) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
+    // 1. التحقق من الحقول الفارغة
+    if (!formData.administratorName || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
       setError('Please fill in all fields.');
       return;
     }
 
+    // 2. شروط كلمة المرور (8 خانات على الأقل)
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters long.');
       return;
     }
 
+    // 3. التحقق من تطابق كلمة المرور
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -43,6 +46,8 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack }) => {
   return (
     <div className="company-step1-container">
       <div className="company-step1-card">
+        
+        {/* Sidebar */}
         <div className="company-step1-sidebar">
           <div className="company-step1-brand">
             <span className="c-white">Skill</span><span className="c-blue">Span</span>
@@ -86,6 +91,7 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack }) => {
           </div>
         </div>
 
+        {/* Form Section */}
         <div className="company-step1-form-sec">
           <div className="company-step1-header">
             <h2>Welcome to Registration</h2>
@@ -96,12 +102,12 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack }) => {
 
           <form onSubmit={handleNext} className="company-step1-form" lang="en">
             <div className="c-input-group">
-              <label>Full Name</label>
-              <input
-                type="text"
-                name="name"
-                placeholder="e.g., Alex Smith"
-                value={formData.name}
+              <label>Administrator Name</label>
+              <input 
+                type="text" 
+                name="administratorName" 
+                placeholder="e.g., Alex Smith" 
+                value={formData.administratorName}
                 onChange={handleChange}
                 required
               />
@@ -109,10 +115,10 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack }) => {
 
             <div className="c-input-group">
               <label>Email Address</label>
-              <input
-                type="email"
-                name="email"
-                placeholder="e.g., alex.smith@example.com"
+              <input 
+                type="email" 
+                name="email" 
+                placeholder="e.g., alex.smith@example.com" 
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -121,10 +127,10 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack }) => {
 
             <div className="c-input-group">
               <label>Phone Number</label>
-              <input
-                type="text"
-                name="phone"
-                placeholder="e.g., +1-555-0199"
+              <input 
+                type="text" 
+                name="phone" 
+                placeholder="e.g., +1-555-0199" 
                 value={formData.phone}
                 onChange={handleChange}
                 required
@@ -134,10 +140,10 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack }) => {
             <div className="c-input-group">
               <label>Password</label>
               <div className="c-pass-wrap">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="********"
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  name="password" 
+                  placeholder="********" 
                   value={formData.password}
                   onChange={handleChange}
                   required
@@ -151,10 +157,10 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack }) => {
             <div className="c-input-group">
               <label>Confirm Password</label>
               <div className="c-pass-wrap">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  placeholder="********"
+                <input 
+                  type={showConfirmPassword ? "text" : "password"} 
+                  name="confirmPassword" 
+                  placeholder="********" 
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
@@ -171,7 +177,11 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack }) => {
             </div>
 
             <div className="c-actions">
-              <button type="button" className="c-btn-back" onClick={onBack}>
+              <button 
+                type="button" 
+                className="c-btn-back" 
+                onClick={onBack}
+              >
                 ← Back
               </button>
               <button type="submit" className="c-btn-next">

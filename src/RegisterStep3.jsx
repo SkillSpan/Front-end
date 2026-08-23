@@ -1,39 +1,77 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './RegisterStep3.css';
+import { registerUser, loginWithGoogle } from './api';
+import { buildRegisterPayload } from './utils/payloadMapping';
 
-const RegisterStep3 = ({ onNextSuccess, onBack, isSubmitting, submitError }) => {
+const RegisterStep3 = ({ onNextSuccess, onBack, registerData, googleCredential }) => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleToggleTerms = () => {
     setAgreeTerms((prev) => !prev);
-    if (error) setError(false);
+    if (error) setError('');
   };
 
   const handleTogglePrivacy = () => {
     setAgreePrivacy((prev) => !prev);
-    if (error) setError(false);
+    if (error) setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isSubmitting) return;
-
     if (!agreeTerms || !agreePrivacy) {
-      setError(true);
+      setError('Both agreements are required to continue');
       return;
     }
 
-    if (typeof onNextSuccess === 'function') {
-      onNextSuccess({ agreeTerms, agreePrivacy });
+    setIsSubmitting(true);
+    setError('');
+    try {
+      let res;
+      if (googleCredential) {
+        // Finalizing a Google sign-up (Login.jsx redirected here because
+        // no account existed yet for this Google identity). This single
+        // call both creates the account and logs the user in - Google
+        // already verified the email, so there's no separate OTP step
+        // after this (see RegisterWizard.handleStep3Success).
+        res = await loginWithGoogle(googleCredential, agreeTerms, agreePrivacy, {
+          academic_status: registerData.academicStatus,
+        });
+      } else {
+        // This is the single point where the whole wizard's data is
+        // actually sent to the backend. We only move on to OTP
+        // verification after a real success response from Laravel - never
+        // on a timeout or a locally simulated success.
+        const payload = buildRegisterPayload({
+          ...registerData,
+          agreeTerms,
+          agreePrivacy,
+        });
+        res = await registerUser(payload);
+      }
+      setIsSubmitting(false);
+      if (typeof onNextSuccess === 'function') {
+        onNextSuccess({ agreeTerms, agreePrivacy, response: res });
+      }
+    } catch (err) {
+      setIsSubmitting(false);
+      if (err.errors && Object.keys(err.errors).length > 0) {
+        const firstField = Object.keys(err.errors)[0];
+        const messages = err.errors[firstField];
+        setError(Array.isArray(messages) ? messages[0] : messages);
+      } else {
+        setError(err.message || 'Something went wrong while creating your account.');
+      }
     }
   };
 
   return (
     <div className="register-wrapper">
       <div className="register-card">
+        {/* Sidebar */}
         <div className="sidebar-left">
           <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">
@@ -63,6 +101,7 @@ const RegisterStep3 = ({ onNextSuccess, onBack, isSubmitting, submitError }) => 
           </div>
         </div>
 
+        {/* Form Container */}
         <div className="form-right">
           <div className="step-header">
             <span className="step-title">STEP 3 OF 3</span>
@@ -81,7 +120,8 @@ const RegisterStep3 = ({ onNextSuccess, onBack, isSubmitting, submitError }) => 
           </div>
 
           <div className="agreements-container">
-            <div
+            {/* Terms of Use Box */}
+            <div 
               className={`checkbox-card ${agreeTerms ? 'checked' : ''}`}
               onClick={handleToggleTerms}
             >
@@ -93,7 +133,8 @@ const RegisterStep3 = ({ onNextSuccess, onBack, isSubmitting, submitError }) => 
               </span>
             </div>
 
-            <div
+            {/* Privacy Policy Box */}
+            <div 
               className={`checkbox-card ${agreePrivacy ? 'checked' : ''}`}
               onClick={handleTogglePrivacy}
             >
@@ -105,23 +146,18 @@ const RegisterStep3 = ({ onNextSuccess, onBack, isSubmitting, submitError }) => 
               </span>
             </div>
 
+            {/* Error Banner */}
             {error && (
               <div className="error-banner">
                 <span className="error-icon">ⓘ</span>
-                <span>Both agreements are required to continue</span>
-              </div>
-            )}
-
-            {submitError && (
-              <div className="error-banner">
-                <span className="error-icon">ⓘ</span>
-                <span>{submitError}</span>
+                <span>{error}</span>
               </div>
             )}
           </div>
 
+          {/* Action Buttons */}
           <div className="action-buttons">
-            <button type="button" className="btn-back" onClick={onBack} disabled={isSubmitting}>
+            <button type="button" className="btn-back" onClick={onBack}>
               Back
             </button>
             <button type="button" className="btn-next-step" onClick={handleSubmit} disabled={isSubmitting}>
