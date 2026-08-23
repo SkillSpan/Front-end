@@ -1,65 +1,140 @@
-import React from 'react';
-import './EmailVerified.css';
+import { useState, useEffect } from 'react';
+import './EmailVerification.css';
 
-const EmailVerified = ({ onContinue, onBackToLanding }) => {
+const EmailVerification = ({ onContinueToSetup, onResendEmail, userEmail }) => {
+  const [timer, setTimer] = useState(60);
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [isResending, setIsResending] = useState(false);
+
+  const canResend = timer === 0 && !isResending;
+
+  useEffect(() => {
+    if (timer <= 0) return;
+    const interval = setInterval(() => {
+      setTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const handleResend = async () => {
+    if (!canResend) return;
+
+    setIsResending(true);
+    setMessage({ text: '', type: '' });
+
+    try {
+      if (typeof onResendEmail === 'function') {
+        await onResendEmail();
+      }
+      setTimer(60);
+      setMessage({
+        text: 'A new verification code has been sent to your email!',
+        type: 'success',
+      });
+    } catch (err) {
+      setMessage({
+        text: err?.message || 'Could not resend the code. Please try again.',
+        type: 'error',
+      });
+    } finally {
+      setIsResending(false);
+      setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 4000);
+    }
+  };
+
   return (
     <div className="register-wrapper">
       <div className="register-card">
-        {/* Left Sidebar (ثابت كما هو في كل الصفحات) */}
         <div className="sidebar-left">
           <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">
-            <h2>Start Your<br />Career Journey</h2>
+            <h2>
+              Start Your
+              <br />
+              Career Journey
+            </h2>
             <p className="sidebar-desc">
               From education to your first opportunity in clear, verified steps
             </p>
 
             <ul className="features-list">
               <li>
-                <span className="icon"><img src="/image/2.png" alt="Readiness" /></span>
+                <span className="icon">
+                  <img src="/image/2.png" alt="Readiness" />
+                </span>
                 <span>Assess your real readiness</span>
               </li>
               <li>
-                <span className="icon"><img src="/image/3.png" alt="Roadmap" /></span>
+                <span className="icon">
+                  <img src="/image/3.png" alt="Roadmap" />
+                </span>
                 <span>A roadmap built for you</span>
               </li>
               <li>
-                <span className="icon"><img src="/image/4.png" alt="Projects" /></span>
+                <span className="icon">
+                  <img src="/image/4.png" alt="Projects" />
+                </span>
                 <span>Real projects from companies</span>
               </li>
               <li>
-                <span className="icon"><img src="/image/5.png" alt="Record" /></span>
+                <span className="icon">
+                  <img src="/image/5.png" alt="Record" />
+                </span>
                 <span>A verified professional record</span>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Right Success Container */}
-        <div className="form-right verified-container">
-          {/* Success Check Icon */}
-          <div className="success-icon-box">
-            <svg className="success-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        <div className="form-right verification-container">
+          <div className="email-icon-box">
+            <svg
+              className="email-svg-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#f59e0b"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
             </svg>
           </div>
 
-          <h1 className="verified-heading">Email verified!</h1>
-          <p className="verified-desc">
-            Your email has been successfully verified.<br />
-            You can now access your account.
+          <h1 className="verification-title">Check your email</h1>
+          <p className="verification-desc">
+            We sent a 6-digit verification code to your email address
+            {userEmail ? <strong> {userEmail}</strong> : ''}. Enter it on the next screen to activate your account.
           </p>
 
-          {/* Continue Button */}
-          <button type="button" className="btn-continue" onClick={onContinue}>
-            Continue to login
+          {message.text && (
+            <div className={`status-banner ${message.type}`}>
+              <span>{message.text}</span>
+            </div>
+          )}
+
+          <button className="btn-continue-setup" onClick={onContinueToSetup}>
+            Continue to Setup
           </button>
 
-          {/* Back to landing page */}
-          <div className="verified-footer-link">
-            <button type="button" className="landing-link-btn" onClick={onBackToLanding}>
-              Back to landing page
-            </button>
+          <div className="resend-wrapper">
+            {isResending ? (
+              <p className="resend-text disabled">Resending...</p>
+            ) : canResend ? (
+              <p className="resend-text">
+                Didn't receive it?{' '}
+                <button type="button" className="btn-resend-link" onClick={handleResend}>
+                  Resend email
+                </button>
+              </p>
+            ) : (
+              <p className="resend-text disabled">
+                Didn't receive it? Resend email in <span className="timer-count">{timer}s</span>
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -67,4 +142,4 @@ const EmailVerified = ({ onContinue, onBackToLanding }) => {
   );
 };
 
-export default EmailVerified;
+export default EmailVerification;
