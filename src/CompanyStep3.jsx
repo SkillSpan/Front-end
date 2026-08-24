@@ -1,32 +1,58 @@
-import { useState } from 'react';
+import React, { useState } from 'react'
 import './CompanyRegister.css'
 
 function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData }) {
-  // نحتفظ بالـFile object الفعلي (مو الاسم فقط) لأنه هذا هو اللي لازم
-  // يُرسل ضمن FormData لاحقاً في CompanyStep4. اسم الملف يُستخرج من
-  // الـFile object نفسه وقت العرض بدل تخزينه بشكل منفصل.
   const [uploadedFile, setUploadedFile] = useState(initialData?.proofFile || null)
-  const [optionalFile, setOptionalFile] = useState(initialData?.additionalFile || null)
+  const [optionalFile, setOptionalFile] = useState(initialData?.additionalFile || initialData?.additionalDoc || null)
+  const [fileError, setFileError] = useState('')
+
+  const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
+  const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+
+  const validateFile = (file) => {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return 'Only PDF, PNG, JPG, and JPEG files are allowed.'
+    }
+    if (file.size > MAX_SIZE) {
+      return 'File size must be 5MB or less.'
+    }
+    return ''
+  }
 
   const handleFileChange = (e) => {
+    setFileError('')
     if (e.target.files[0]) {
+      const err = validateFile(e.target.files[0])
+      if (err) {
+        setFileError(err)
+        setUploadedFile(null)
+        e.target.value = ''
+        return
+      }
       setUploadedFile(e.target.files[0])
     }
   }
 
   const handleOptionalFileChange = (e) => {
+    setFileError('')
     if (e.target.files[0]) {
+      const err = validateFile(e.target.files[0])
+      if (err) {
+        setFileError(err)
+        setOptionalFile(null)
+        e.target.value = ''
+        return
+      }
       setOptionalFile(e.target.files[0])
     }
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // التحقق من وجود الملف الإلزامي قبل الإرسال والانتقال للخطوة التالية
     if (uploadedFile && onNextSuccess) {
-      onNextSuccess({ 
+      onNextSuccess({
         proofFile: uploadedFile,
-        additionalFile: optionalFile 
+        additionalFile: optionalFile
       })
     }
   }
@@ -34,8 +60,6 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
   return (
     <div className="company-step3-container">
       <div className="company-step3-card">
-        
-        {/* الشريط الجانبي (Sidebar) */}
         <div className="company-step3-sidebar">
           <div>
             <div className="company-step3-brand">
@@ -76,7 +100,6 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
           </div>
         </div>
 
-        {/* القسم الرئيسي (Form Section) */}
         <div className="company-step3-form-sec">
           <div className="company-step3-header">
             <h2>Start Your Corporate Journey</h2>
@@ -89,12 +112,11 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
               <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0 0 10px 0' }}>
                 Please upload the required documents to verify your company.
               </p>
-              
+
               <label style={{ color: '#cbd5e1', marginTop: '10px' }}>
                 Business Registration Document <span style={{ color: '#ef4444' }}>(Required)</span>
               </label>
 
-              {/* منطقة رفع الملف الأول */}
               <div style={{
                 border: uploadedFile ? '1px solid #3b82f6' : '1px dashed rgba(59, 130, 246, 0.5)',
                 background: 'rgba(15, 23, 42, 0.6)',
@@ -105,8 +127,9 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
                 cursor: 'pointer',
                 marginTop: '5px'
               }}>
-                <input 
-                  type="file" 
+                <input
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
                   onChange={handleFileChange}
                   style={{
                     position: 'absolute',
@@ -124,11 +147,10 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
                     <div style={{ color: '#ffffff', fontWeight: '600', fontSize: '0.9rem' }}>
                       Upload Company Registration or Trade License
                     </div>
-                    <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>PDF, PNG, JPG (Max 10MB)</div>
+                    <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>PDF, PNG, JPG (Max 5MB)</div>
                   </div>
                 </div>
 
-                {/* سيظهر هذا الصندوق فقط بعد أن يختار المستخدم ملفاً */}
                 {uploadedFile && (
                   <div style={{
                     marginTop: '15px',
@@ -147,12 +169,11 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
               </div>
             </div>
 
-            {/* البند الاختياري Additional Document */}
             <div className="c-input-group" style={{ marginTop: '10px' }}>
               <label style={{ color: '#cbd5e1' }}>
                 Additional Document <span style={{ color: '#94a3b8' }}>(Optional)</span>
               </label>
-              
+
               <div style={{
                 border: optionalFile ? '1px solid #3b82f6' : '1px dashed rgba(255, 255, 255, 0.15)',
                 background: 'rgba(15, 23, 42, 0.4)',
@@ -162,8 +183,9 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
                 position: 'relative',
                 cursor: 'pointer'
               }}>
-                <input 
-                  type="file" 
+                <input
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
                   onChange={handleOptionalFileChange}
                   style={{
                     position: 'absolute',
@@ -181,11 +203,10 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
                     <div style={{ color: '#ffffff', fontWeight: '600', fontSize: '0.9rem' }}>
                       Upload Company Registration or Trade License
                     </div>
-                    <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>PDF, PNG, JPG (Max 10MB)</div>
+                    <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>PDF, PNG, JPG (Max 5MB)</div>
                   </div>
                 </div>
 
-                {/* صندوق عرض الملف الاختياري عند اختياره */}
                 {optionalFile && (
                   <div style={{
                     marginTop: '15px',
@@ -204,18 +225,22 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
               </div>
             </div>
 
+            {fileError && (
+              <div style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '10px', padding: '8px 12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                ⓘ {fileError}
+              </div>
+            )}
+
             <div className="c-actions">
               <button type="button" className="c-btn-back" onClick={onBack}>
                 ← Back
               </button>
-              
-              {/* زر Next أصبح مرتبطاً بوجود الملف الإلزامي uploadedFile */}
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="c-btn-next"
                 disabled={!uploadedFile}
-                style={{ 
-                  opacity: uploadedFile ? 1 : 0.5, 
+                style={{
+                  opacity: uploadedFile ? 1 : 0.5,
                   cursor: uploadedFile ? 'pointer' : 'not-allowed',
                   backgroundColor: uploadedFile ? '#3b82f6' : '#475569'
                 }}
@@ -229,7 +254,6 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
             </div>
           </form>
         </div>
-
       </div>
     </div>
   )

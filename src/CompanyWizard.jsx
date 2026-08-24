@@ -85,7 +85,7 @@ function CompanyWizard() {
         path="submitted"
         element={
           <CompanyStep5
-            organizationEmail={companyData.email}
+            email={companyData.email}
             onNavigateToLanding={() => navigate('/')}
             onNavigateToLogin={() => navigate('/company/login')}
           />

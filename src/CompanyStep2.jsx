@@ -1,13 +1,10 @@
-import { useState } from 'react';
-import './CompanyRegister.css'; // نفس ملف التنسيق الخاص بالشركات
 import { ORGANIZATION_TYPES } from './config';
+import React, { useState } from 'react';
+import './CompanyRegister.css'; // نفس ملف التنسيق الخاص بالشركات
 
 const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin, initialData }) => {
   const [formData, setFormData] = useState({
     companyName: initialData?.companyName || '',
-    // organization_type is a strict backend enum: company | university |
-    // training_partner. This is intentionally separate from `industry`
-    // below - the two must never be mixed together in the payload.
     organizationType: initialData?.organizationType || ORGANIZATION_TYPES[0].value,
     industry: initialData?.industry || 'Software & IT Services',
     companySize: initialData?.companySize || '11 - 50 employees',
@@ -25,10 +22,24 @@ const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin, initialData })
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const isValidUrl = (str) => {
+    if (!str) return true; // empty is allowed (optional field)
+    try {
+      const url = new URL(str);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   const handleNext = (e) => {
     e.preventDefault();
     if (!formData.companyName || !formData.country || !formData.city || !formData.address) {
       setError('Please fill in all required fields.');
+      return;
+    }
+    if (formData.website && !isValidUrl(formData.website)) {
+      setError('Website must be a valid URL (e.g. https://example.com).');
       return;
     }
     setError('');
@@ -109,10 +120,10 @@ const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin, initialData })
               </div>
 
               <div className="c-input-group">
-                <label>Organization Type</label>
+                <label>Company Type</label>
                 <select name="organizationType" value={formData.organizationType} onChange={handleChange} style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}>
-                  {ORGANIZATION_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
+                  {ORGANIZATION_TYPES.map((type) => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
                   ))}
                 </select>
               </div>
