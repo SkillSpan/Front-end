@@ -99,19 +99,19 @@ async function request(path, { method = 'GET', body, isFormData = false, withAut
 // ---------------------------------------------------------------------------
 
 export const registerUser = (payload) =>
-  request('/api/auth/register', { method: 'POST', body: payload });
+  request('/api/v1/auth/register', { method: 'POST', body: payload });
 
 export const registerOrganization = (formData) =>
-  request('/api/auth/register/organization', { method: 'POST', body: formData, isFormData: true });
+  request('/api/v1/auth/register/organization', { method: 'POST', body: formData, isFormData: true });
 
 export const verifyOtp = (email, otp) =>
-  request('/api/auth/verify', { method: 'POST', body: { email, otp } });
+  request('/api/v1/auth/verify', { method: 'POST', body: { email, otp } });
 
 export const resendOtp = (email) =>
-  request('/api/auth/resend-otp', { method: 'POST', body: { email } });
+  request('/api/v1/auth/resend-otp', { method: 'POST', body: { email } });
 
 export const loginUser = (email, password) =>
-  request('/api/auth/login', { method: 'POST', body: { email, password } });
+  request('/api/v1/auth/login', { method: 'POST', body: { email, password } });
 
 // Google Sign-In (individual/student accounts only). `credential` is the
 // Google ID token obtained from Google Identity Services on the frontend
@@ -134,7 +134,7 @@ export const loginUser = (email, password) =>
 // we use here. Flag this to the backend team to confirm in writing if
 // requests start failing with 404.
 export const loginWithGoogle = (credential, termsAccepted = false, privacyAccepted = false, extra = {}) =>
-  request('/api/auth/login/google', {
+  request('/api/v1/auth/login/google', {
     method: 'POST',
     body: {
       credential,
@@ -145,16 +145,16 @@ export const loginWithGoogle = (credential, termsAccepted = false, privacyAccept
   });
 
 export const loginOrganization = (email, password) =>
-  request('/api/auth/login/organization', { method: 'POST', body: { email, password } });
+  request('/api/v1/auth/login/organization', { method: 'POST', body: { email, password } });
 
 export const forgotPassword = (email) =>
-  request('/api/auth/forgot-password', { method: 'POST', body: { email } });
+  request('/api/v1/auth/forgot-password', { method: 'POST', body: { email } });
 
 export const resendForgotPassword = (email) =>
-  request('/api/auth/forgot-password/resend', { method: 'POST', body: { email } });
+  request('/api/v1/auth/forgot-password/resend', { method: 'POST', body: { email } });
 
 export const resetPassword = ({ email, otp, password, password_confirmation }) =>
-  request('/api/auth/reset-password', {
+  request('/api/v1/auth/reset-password', {
     method: 'POST',
     body: { email, otp, password, password_confirmation },
   });
@@ -163,7 +163,7 @@ export const resetPassword = ({ email, otp, password, password_confirmation }) =
 export const resendForgotPasswordOtp = resendForgotPassword;
 
 export const verifyForgotPasswordOtp = (email, otp) =>
-  request('/api/auth/forgot-password/verify', {
+  request('/api/v1/auth/forgot-password/verify', {
     method: 'POST',
     body: { email, otp },
   });
