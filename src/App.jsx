@@ -7,19 +7,21 @@ import CompanyForgotPassword from './CompanyForgotPassword'
 import RegisterWizard from './RegisterWizard'
 import ForgotPasswordWizard from './ForgotPasswordWizard'
 import CompanyWizard from './CompanyWizard'
-import { AuthProvider, useAuth } from './AuthContext'
+import SessionExpired from './SessionExpired'
+import { AuthProvider } from './AuthContext';
+import { useAuth } from './useAuth';
 
 function LoginPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
   return (
     <Login
-      onSwitchToRegister={() => navigate('/register')}
+      onSwitchToRegister={() => navigate('/register/account')}
       onBack={() => navigate('/')}
       onForgotPassword={() => navigate('/forgot-password')}
       onLoginSuccess={({ user }) => {
         login(user)
-        navigate('/')
+          navigate('/', { replace: true })
       }}
       onNewGoogleUser={(credential) =>
         navigate('/register/status', { state: { googleCredential: credential } })
@@ -34,7 +36,7 @@ function CompanyLoginPage() {
   return (
     <CompanyLogin
       onBack={() => navigate('/')}
-      onSwitchToRegister={() => navigate('/company/register')}
+      onSwitchToRegister={() => navigate('/company/register/account')}
       onSwitchToStudentLogin={() => navigate('/login')}
       onForgotPassword={() => navigate('/company/forgot-password')}
       onLoginSuccess={({ user }) => {
@@ -50,6 +52,16 @@ function CompanyForgotPasswordPage() {
   return <CompanyForgotPassword onBackToLogin={() => navigate('/company/login')} />
 }
 
+function SessionExpiredPage() {
+  const navigate = useNavigate()
+  return (
+    <SessionExpired
+      onGoToLogin={() => navigate('/login', { replace: true })}
+      onGoHome={() => navigate('/', { replace: true })}
+    />
+  )
+}
+
 function App() {
   return (
     <AuthProvider>
@@ -61,6 +73,7 @@ function App() {
         <Route path="/company/login" element={<CompanyLoginPage />} />
         <Route path="/company/register/*" element={<CompanyWizard />} />
         <Route path="/company/forgot-password" element={<CompanyForgotPasswordPage />} />
+        <Route path="/session-expired" element={<SessionExpiredPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
