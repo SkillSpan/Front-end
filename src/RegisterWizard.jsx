@@ -6,7 +6,7 @@ import RegisterStep3 from './RegisterStep3';
 import OtpVerification from './OtpVerification';
 import { decodeJwtPayloadUnsafe } from './utils/jwt';
 import { saveSession } from './api';
-import { useAuth } from './AuthContext';
+import { useAuth } from './useAuth';
 
 // Each step has its own real URL (/register/account, /register/status,
 // /register/terms, /register/verify) so browser back/forward and refresh
