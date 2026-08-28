@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './ForgotPassword.css';
 import { forgotPassword } from './api';
 
@@ -7,6 +7,23 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
   const [error, setError] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resendAvailableAt, setResendAvailableAt] = useState(null);
+  const [resendSecondsLeft, setResendSecondsLeft] = useState(0);
+
+  useEffect(() => {
+    if (!resendAvailableAt) return undefined;
+    const target = new Date(resendAvailableAt).getTime();
+    const tick = () => {
+      setResendSecondsLeft((prev) => {
+        const diff = Math.ceil((target - Date.now()) / 1000);
+        const next = diff > 0 ? diff : 0;
+        return prev === next ? prev : next;
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [resendAvailableAt]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,15 +39,35 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
     setError('');
     setIsSubmitting(true);
     try {
-      await forgotPassword(email.trim());
-      setIsSubmitted(true);
-    } catch (err) {
+    const response = await forgotPassword(email.trim());
+    setResendAvailableAt(
+      response?.data?.resend_available_at || null
+    );
+
+    setIsSubmitted(true);
+} catch (err) {
       setError(err.message || 'Unable to send the reset code. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
+const getResendSecondsLeft = () => resendSecondsLeft;
 
+const handleResend = async () => {
+  if (isSubmitting || resendSecondsLeft > 0) return;
+  setIsSubmitting(true);
+  setError('');
+  try {
+    const response = await forgotPassword(email.trim());
+    setResendAvailableAt(
+      response?.data?.resend_available_at || null
+    );
+  } catch (err) {
+    setError(err.message || 'Unable to resend the reset code. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   return (
     <div className="forgot-wrapper">
       <div className="forgot-card">
@@ -75,17 +112,34 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
                 
                 <h1 className="forgot-heading">Check your email</h1>
                 <p className="forgot-subtitle">
-                  A 6-digit reset code has been sent to your email address <strong>{email}</strong>. 
-                  Please check your inbox (and spam folder) and enter the code on the next screen. The code will expire in 10 minutes.
+                  A 6-digit reset code has been sent to your email address{' '}
+                  <strong>{email}</strong>. Please check your inbox (and spam folder)
+                  and enter the code on the next screen. The code is valid for 10 minutes.
                 </p>
 
-                <button 
+                <button
                   type="button"
-                  className="btn-send-link" 
+                  className="btn-send-link"
                   onClick={() => onContinueToVerify && onContinueToVerify(email)}
                 >
                   Continue to Verify
                 </button>
+
+                <div className="back-link-container" style={{ marginTop: '12px' }}>
+                  Didn't get an email?{' '}
+                  <span
+                    className="link-action"
+                    onClick={getResendSecondsLeft() > 0 || isSubmitting ? undefined : handleResend}
+                    style={{
+                      cursor: getResendSecondsLeft() > 0 || isSubmitting ? 'default' : 'pointer',
+                      opacity: getResendSecondsLeft() > 0 || isSubmitting ? 0.5 : 1,
+                    }}
+                  >
+                    {getResendSecondsLeft() > 0
+                      ? `Resend in ${getResendSecondsLeft()}s`
+                      : 'Resend code'}
+                  </span>
+                </div>
               </div>
             ) : (
               <>

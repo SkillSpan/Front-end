@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './CompanyRegister.css';
 
 const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack, initialData }) => {

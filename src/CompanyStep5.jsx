@@ -1,4 +1,3 @@
-import React from 'react'
 import './CompanyRegister.css'
 
 function CompanyStep5({ onNavigateToLogin, email }) {

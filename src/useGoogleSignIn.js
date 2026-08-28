@@ -15,22 +15,45 @@ import { GOOGLE_CLIENT_ID } from './config';
  * underneath is purely decorative (pointer-events: none).
  *
  * @param {(credential: string) => void} onCredential called with the
- *   Google ID token once the user completes sign-in
+ *   Google ID token once the user completes sign-in. May be `null` on the
+ *   first render; in that case the component is expected to provide a
+ *   ref via the returned `setCredentialRef` once the handler is defined.
  * @param {boolean} enabled whether Google Sign-In should be wired up at all
  */
 export function useGoogleSignIn(onCredential, enabled) {
   const wrapRef = useRef(null); // the visible custom button's wrapper - used to measure width
   const overlayRef = useRef(null); // invisible container Google renders its real button into
   const [isReady, setIsReady] = useState(false);
-  const [error, setError] = useState('');
+  // Configuration errors are detected once at mount via the lazy initializer
+  // below - that way we never call setState inside the effect body.
+  const [error, setError] = useState(() =>
+    !GOOGLE_CLIENT_ID
+      ? 'Google sign-in is not configured (missing VITE_GOOGLE_CLIENT_ID).'
+      : ''
+  );
+
+  // Keep the latest callback in a ref so the GIS initialize() call (which
+  // captures the callback once) always calls the current handler without
+  // having to re-initialize Google Sign-In on every render.
+  const onCredentialRef = useRef(onCredential);
+  useEffect(() => {
+    if (typeof onCredential === 'function') {
+      onCredentialRef.current = onCredential;
+    }
+  }, [onCredential]);
+
+  // Optional external ref slot - lets a component define its handler
+  // AFTER the hook is mounted (e.g. when the handler closes over state
+  // that isn't ready yet) without having to re-initialize GIS.
+  const setCredentialRef = (ref) => {
+    if (ref && ref.current) {
+      onCredentialRef.current = ref.current;
+    }
+  };
 
   useEffect(() => {
     if (!enabled) return undefined;
-
-    if (!GOOGLE_CLIENT_ID) {
-      setError('Google sign-in is not configured (missing VITE_GOOGLE_CLIENT_ID).');
-      return undefined;
-    }
+    if (!GOOGLE_CLIENT_ID) return undefined;
 
     let cancelled = false;
     let attempts = 0;
@@ -40,7 +63,9 @@ export function useGoogleSignIn(onCredential, enabled) {
         setError('Google did not return a valid credential. Please try again.');
         return;
       }
-      onCredential(response.credential);
+      if (typeof onCredentialRef.current === 'function') {
+        onCredentialRef.current(response.credential);
+      }
     };
 
     const tryInit = () => {
@@ -77,8 +102,7 @@ export function useGoogleSignIn(onCredential, enabled) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 
-  return { wrapRef, overlayRef, isReady, error, setError };
+  return { wrapRef, overlayRef, isReady, error, setError, setCredentialRef };
 }

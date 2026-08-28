@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './Login.css';
 import { loginUser, loginWithGoogle, saveSession } from './api';
 import { GOOGLE_LOGIN_ENABLED } from './config';
@@ -24,33 +24,50 @@ const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, o
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Google Sign-In state
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
-  const handleGoogleCredential = async (credential) => {
-    setGoogleError('');
-    setIsGoogleSubmitting(true);
-    try {
-      const res = await loginWithGoogle(credential, false, false);
-      const { user, organizations, token } = res.data || res;
-      saveSession({ token, user, organizations });
-      setIsGoogleSubmitting(false);
-      if (onLoginSuccess) onLoginSuccess({ user, organizations, token });
-    } catch (err) {
-      setIsGoogleSubmitting(false);
-      if (isTermsRequiredError(err)) {
-        // No account yet for this Google identity - hand off to the
-        // registration wizard instead of showing an error.
-        if (onNewGoogleUser) onNewGoogleUser(credential);
-        return;
-      }
-      setGoogleError(err.message || 'Google sign-in failed. Please try again.');
-    }
-  };
+  const { wrapRef: googleWrapRef, overlayRef: googleOverlayRef, error: googleError, setError: setGoogleError, setCredentialRef } =
+    useGoogleSignIn(null, GOOGLE_LOGIN_ENABLED);
 
-  const { wrapRef: googleWrapRef, overlayRef: googleOverlayRef, error: googleError, setError: setGoogleError } =
-    useGoogleSignIn(handleGoogleCredential, GOOGLE_LOGIN_ENABLED);
+  // The Google handler closes over the latest setGoogleError /
+  // setIsGoogleSubmitting. We re-create it on every render and keep a ref
+  // to the latest version so the hook's GIS callback always invokes the
+  // current closure (see useGoogleSignIn.js).
+  const handleGoogleCredentialRef = useRef(null);
+  useEffect(() => {
+    handleGoogleCredentialRef.current = async (credential) => {
+      setGoogleError('');
+      setIsGoogleSubmitting(true);
+
+      try {
+        const res = await loginWithGoogle(credential, false, false);
+        const { user, organizations, token } = res.data || res;
+
+        saveSession({ token, user, organizations });
+
+        if (onLoginSuccess) {
+          onLoginSuccess({ user, organizations, token });
+        }
+      } catch (err) {
+        // Backend indicates that this Google identity does not have
+        // an account yet and needs to continue through registration.
+        if (isTermsRequiredError(err)) {
+          if (onNewGoogleUser) {
+            onNewGoogleUser(credential);
+          }
+          return;
+        }
+
+        // Any other error is a real Google/login failure.
+        setGoogleError(
+          err.message || 'Google sign-in failed. Please try again.'
+        );
+      } finally {
+        setIsGoogleSubmitting(false);
+      }
+    };
+    setCredentialRef(handleGoogleCredentialRef);
+  }, [setCredentialRef, onLoginSuccess, onNewGoogleUser, setGoogleError]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -98,11 +115,30 @@ const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, o
       setIsSubmitting(false);
       // Surface Laravel's field-level validation errors (422) when present,
       // otherwise fall back to the general message (401/invalid creds/etc).
+      // Backend may also signal specific account states (e.g.
+      // EMAIL_NOT_VERIFIED / ACCOUNT_SUSPENDED) via err.code or err.errors.code
+      // - surface those as a dedicated, actionable message instead of the
+      // generic "Invalid email or password" line.
+      const codeError =
+        err.errors?.code?.[0] ||
+        (typeof err.code === 'string' ? err.code : null);
+
       if (err.errors && Object.keys(err.errors).length > 0) {
         const fieldErrors = {};
         Object.entries(err.errors).forEach(([field, messages]) => {
+          if (field === 'code') return;
           fieldErrors[field] = Array.isArray(messages) ? messages[0] : messages;
         });
+        if (codeError === 'EMAIL_NOT_VERIFIED') {
+          fieldErrors.general =
+            'Your email address has not been verified yet. Please check your inbox for the verification code, or sign up again to receive a new code.';
+        } else if (codeError === 'ACCOUNT_SUSPENDED') {
+          fieldErrors.general =
+            'This account has been suspended. Please contact support for help.';
+        } else if (Object.keys(fieldErrors).length === 0) {
+          fieldErrors.general =
+            err.message || 'Invalid email or password. Please try again.';
+        }
         setErrors(fieldErrors);
       } else {
         setErrors({ general: err.message || 'Invalid email or password. Please try again.' });
