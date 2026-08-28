@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+
 import CompanyStep1 from './CompanyStep1';
 import CompanyStep2 from './CompanyStep2';
 import CompanyStep3 from './CompanyStep3';
@@ -7,10 +8,13 @@ import CompanyStep4 from './CompanyStep4';
 import CompanyStep5 from './CompanyStep5';
 import OtpVerification from './OtpVerification';
 
-// Flow per backend contract review: Registration (multipart POST, done at
-// the end of step 4) -> OTP -> Pending Admin Review (step 5). Nothing here
-// shows a "submitted" state before POST /api/auth/register/organization
-// actually returns 201.
+// Company Registration flow:
+// /company/register/account
+// /company/register/company-info
+// /company/register/documents
+// /company/register/terms
+// /company/register/verify
+// /company/register/submitted
 function CompanyWizard() {
   const [companyData, setCompanyData] = useState({});
   const navigate = useNavigate();
@@ -24,13 +28,14 @@ function CompanyWizard() {
             initialData={companyData}
             onNextSuccess={(step1Data) => {
               setCompanyData((prev) => ({ ...prev, ...step1Data }));
-              navigate('company-info');
+              navigate('/company/register/company-info');
             }}
             onNavigateToLogin={() => navigate('/company/login')}
             onBack={() => navigate('/')}
           />
         }
       />
+
       <Route
         path="company-info"
         element={
@@ -38,13 +43,14 @@ function CompanyWizard() {
             initialData={companyData}
             onNextSuccess={(step2Data) => {
               setCompanyData((prev) => ({ ...prev, ...step2Data }));
-              navigate('documents');
+              navigate('/company/register/documents');
             }}
-            onBack={() => navigate('account')}
+            onBack={() => navigate('/company/register/account')}
             onNavigateToLogin={() => navigate('/company/login')}
           />
         }
       />
+
       <Route
         path="documents"
         element={
@@ -52,35 +58,48 @@ function CompanyWizard() {
             initialData={companyData}
             onNextSuccess={(step3Data) => {
               setCompanyData((prev) => ({ ...prev, ...step3Data }));
-              navigate('terms');
+              navigate('/company/register/terms');
             }}
-            onBack={() => navigate('company-info')}
+            onBack={() => navigate('/company/register/company-info')}
             onNavigateToLogin={() => navigate('/company/login')}
           />
         }
       />
+
       <Route
         path="terms"
         element={
           <CompanyStep4
             companyData={companyData}
-            onNextSuccess={() => navigate('verify')}
-            onBack={() => navigate('documents')}
+            onNextSuccess={() =>
+              navigate('/company/register/verify')
+            }
+            onBack={() =>
+              navigate('/company/register/documents')
+            }
             onNavigateToLogin={() => navigate('/company/login')}
           />
         }
       />
+
       <Route
         path="verify"
         element={
           <OtpVerification
             userEmail={companyData.email}
-            onVerifySuccess={() => navigate('submitted')}
-            onContinueToLogin={() => navigate('submitted')}
-            onBack={() => navigate('terms')}
+            onVerifySuccess={() =>
+              navigate('/company/register/submitted')
+            }
+            onContinueToLogin={() =>
+              navigate('/company/register/submitted')
+            }
+            onBack={() =>
+              navigate('/company/register/terms')
+            }
           />
         }
       />
+
       <Route
         path="submitted"
         element={
@@ -91,7 +110,16 @@ function CompanyWizard() {
           />
         }
       />
-      <Route path="*" element={<Navigate to="account" replace />} />
+
+      <Route
+        path="*"
+        element={
+          <Navigate
+            to="/company/register/account"
+            replace
+          />
+        }
+      />
     </Routes>
   );
 }

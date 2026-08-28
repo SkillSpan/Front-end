@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './ResetPassword.css';
 import { resetPassword } from './api';
 
@@ -63,15 +63,18 @@ const ResetPassword = ({
         onSuccess();
       }
     } catch (error) {
-      setErrors({
-        general:
-          error.message ||
-          'Unable to reset your password. Please try again.',
-        password: error.errors?.password?.[0] || '',
-        confirmPassword:
-          error.errors?.password_confirmation?.[0] || '',
-      });
-    } finally {
+  const otpError = error.errors?.otp?.[0] || '';
+
+    setErrors({
+      general:
+        otpError ||
+        error.message ||
+        'Unable to reset your password. Please try again.',
+      password: error.errors?.password?.[0] || '',
+      confirmPassword:
+        error.errors?.password_confirmation?.[0] || '',
+    });
+  } finally {
       setIsSubmitting(false);
     }
   };

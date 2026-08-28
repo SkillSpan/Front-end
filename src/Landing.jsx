@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+import { useAuth } from './useAuth';
 
 const navItems = ['Home', 'Features', 'How it Works', 'About Us', 'Contact'];
 
@@ -54,8 +54,8 @@ function Landing() {
               minWidth: '220px',
               zIndex: 1000
             }}>
-              <li 
-                onClick={() => navigate('/register')} 
+              <li
+                onClick={() => navigate('/register/account')}
                 style={{
                   padding: '10px 16px',
                   color: '#e2e8f0',
@@ -68,8 +68,8 @@ function Landing() {
               >
                 Students & Graduates
               </li>
-              <li 
-                onClick={() => navigate('/company/register')} 
+              <li
+                onClick={() => navigate('/company/register/account')}
                 style={{
                   padding: '10px 16px',
                   color: '#e2e8f0',
@@ -137,7 +137,7 @@ function Landing() {
           ) : (
             <>
               <button className="btn log-in" onClick={() => navigate('/login')}>log in</button>
-              <button className="btn get-started" onClick={() => navigate('/register')}>
+              <button className="btn get-started" onClick={() => navigate('/register/account')}>
                 Get Started →
               </button>
             </>
@@ -159,7 +159,7 @@ function Landing() {
             by companies looking for top talent
           </p>
           <div className="hero-buttons">
-            <button className="btn primary-gradient" onClick={() => navigate('/register')}>
+            <button className="btn primary-gradient" onClick={() => navigate('/register/account')}>
               Start Your Journey →
             </button>
             <button className="btn outline-glow">
