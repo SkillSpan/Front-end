@@ -7,7 +7,7 @@ import { setCookie, getCookie, removeCookie } from './utils/cookies';
 // Base URL is injected at build time via Vite env vars. Set
 // VITE_API_BASE_URL in your .env (see .env.example) to point at the
 // Laravel backend for local dev / staging / production.
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://back-end-zdip.onrender.com';
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://back-end-zdip.onrender.com').replace(/\/+$/, '');
 
 const TOKEN_COOKIE = 'skillspan_token';
 const USER_COOKIE = 'skillspan_user';
