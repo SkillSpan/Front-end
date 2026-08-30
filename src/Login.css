@@ -1,0 +1,246 @@
+/* Login.css */
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #03081e;
+  box-sizing: border-box;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 980px;
+  background: #ffffff;
+  border-radius: 24px;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 50px rgba(43, 127, 255, 0.15), 0 25px 60px rgba(0, 0, 0, 0.6);
+  transition: transform 0.3s ease;
+}
+
+/* Sidebar Left */
+.sidebar-left {
+  width: 42%;
+  background-color: #0c1838;
+  color: white;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.sidebar-brand .white { color: #ffffff; }
+.sidebar-brand .blue { color: #3b82f6; }
+
+.sidebar-content h2 {
+  font-size: 1.8rem;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.sidebar-content p {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  margin-bottom: 30px;
+}
+
+.features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.features-list li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  line-height: 1.4;
+}
+
+.features-list .icon {
+  background: rgba(255, 255, 255, 0.08);
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.features-list .icon img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Form Right */
+.form-right {
+  flex: 1;
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.back-to-home-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.9rem;
+  align-self: flex-start;
+  margin-bottom: 15px;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.back-to-home-btn:hover {
+  color: #0c1838;
+}
+
+.login-heading {
+  font-size: 1.8rem;
+  color: #0c1838;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.new-here-text {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 25px;
+}
+
+.link-action {
+  color: #f59e0b;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.link-action:hover {
+  color: #d97706;
+}
+
+.btn-google {
+  width: 100%;
+  padding: 12px;
+  background-color: #0c1838;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 25px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-google:hover {
+  background-color: #162c5b;
+}
+
+.btn-google:active {
+  transform: scale(0.98);
+}
+
+.input-group {
+  margin-bottom: 18px;
+}
+
+.input-group label {
+  display: block;
+  font-weight: 600;
+  color: #0c1838;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.login-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background-color: #f1f5f9;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background-color: #fff;
+}
+
+.login-input.input-error {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  display: block;
+}
+
+.error-alert {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  border: 1px solid #fecaca;
+  text-align: center;
+}
+
+.forgot-container {
+  margin-bottom: 20px;
+  text-align: right;
+  font-size: 0.9rem;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 14px;
+  background-color: #0c1838;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-login:hover {
+  background-color: #162c5b;
+}
+
+.btn-login:active {
+  transform: scale(0.98);
+}
