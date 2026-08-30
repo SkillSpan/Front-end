@@ -1,37 +1,68 @@
-import { createContext, useContext, useState } from 'react';
-import { clearSession, getStoredUser, isAuthenticated } from './api';
+import { createContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  clearSession,
+  clearSessionAndRevoke,
+  getStoredUser,
+  isAuthenticated,
+  onSessionExpired,
+} from './api';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // Restore the session from the secure cookie synchronously on first
-  // render (lazy initializer) instead of in a useEffect - this is a plain
-  // synchronous read, not a subscription to an external system, so there's
-  // no need to render once without the user and then again with it.
-  const [authUser, setAuthUser] = useState(() =>
-    isAuthenticated() ? getStoredUser() : null
-  );
+  const [authUser, setAuthUser] = useState(() => {
+    if (!isAuthenticated()) {
+      return null;
+    }
 
-  const login = (user) => setAuthUser(user);
+    return getStoredUser();
+  });
+  const navigate = useNavigate();
 
-  const logout = () => {
+  // If any 401 from an authenticated endpoint clears the local session
+  // (see api.js request helper), mirror that in component state so the UI
+  // stops showing the user as logged in, and redirect to the dedicated
+  // Session Expired screen instead of leaving the user on a broken page.
+  useEffect(() => {
+    return onSessionExpired(() => {
+      setAuthUser(null);
+      navigate('/session-expired', { replace: true });
+    });
+  }, [navigate]);
+
+  const login = (user) => {
+    if (!user) {
+      setAuthUser(null);
+      return;
+    }
+
+    setAuthUser(user);
+  };
+
+  const logout = async () => {
+    setAuthUser(null);
+    await clearSessionAndRevoke();
+  };
+
+  const forceLogout = () => {
     clearSession();
     setAuthUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ authUser, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        authUser,
+        isAuthenticated: !!authUser,
+        login,
+        logout,
+        forceLogout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-// eslint-disable-next-line react-refresh/only-export-components -- this
-// hook is tightly coupled to AuthProvider/AuthContext above and is used
-// throughout the auth flows; splitting it into its own file would add
-// indirection for no real benefit here.
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
-  return ctx;
-}
+export { AuthContext };

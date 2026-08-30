@@ -93,7 +93,7 @@ describe('api.js', () => {
     expect(options.body).toBe(fd);
   });
 
-  it('loginWithGoogle posts credential + terms/privacy flags to /api/auth/login/google', async () => {
+  it('loginWithGoogle posts credential + terms/privacy flags to /api/v1/auth/login/google', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -105,7 +105,7 @@ describe('api.js', () => {
     await loginWithGoogle('the-id-token', true, true);
 
     const [url, options] = fetchMock.mock.calls[0];
-    expect(url).toBe(`${API_BASE_URL}/api/auth/login/google`);
+    expect(url).toBe(`${API_BASE_URL}/api/v1/auth/login/google`);
     expect(JSON.parse(options.body)).toEqual({
       credential: 'the-id-token',
       terms_accepted: true,
@@ -132,7 +132,7 @@ describe('api.js', () => {
     });
   });
 
-  it('loginOrganizationWithGoogle posts only the credential (login-only, no org creation)', async () => {
+  it('logoutUser posts to /api/v1/auth/logout (Sprint 1 single-session logout)', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -140,12 +140,12 @@ describe('api.js', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    const { loginOrganizationWithGoogle, API_BASE_URL } = await import('../api');
-    await loginOrganizationWithGoogle('org-id-token');
+    const { logoutUser, API_BASE_URL } = await import('../api');
+    await logoutUser();
 
     const [url, options] = fetchMock.mock.calls[0];
-    expect(url).toBe(`${API_BASE_URL}/api/auth/login/organization/google`);
-    expect(JSON.parse(options.body)).toEqual({ credential: 'org-id-token' });
+    expect(url).toBe(`${API_BASE_URL}/api/v1/auth/logout`);
+    expect(options.method).toBe('POST');
   });
 
   it('loginWithGoogle merges extra fields (e.g. academic_status) when finalizing a redirected sign-up', async () => {

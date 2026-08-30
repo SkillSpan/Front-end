@@ -6,7 +6,7 @@ import RegisterStep3 from './RegisterStep3';
 import OtpVerification from './OtpVerification';
 import { decodeJwtPayloadUnsafe } from './utils/jwt';
 import { saveSession } from './api';
-import { useAuth } from './AuthContext';
+import { useAuth } from './useAuth';
 
 // Each step has its own real URL (/register/account, /register/status,
 // /register/terms, /register/verify) so browser back/forward and refresh
@@ -38,12 +38,12 @@ function RegisterWizard() {
 
   const handleStep1Success = (step1Data) => {
     setRegisterData((prev) => ({ ...prev, ...step1Data }));
-    navigate('status');
+    navigate('/register/status');
   };
 
   const handleStep2Success = (step2Data) => {
     setRegisterData((prev) => ({ ...prev, ...step2Data }));
-    navigate('terms');
+    navigate('/register/terms');
   };
 
   const handleStep3Success = (step3Data) => {
@@ -62,7 +62,7 @@ function RegisterWizard() {
     }
 
     // Manual signup still needs to verify their email via OTP.
-    navigate('verify');
+    navigate('/register/verify');
   };
 
   return (
@@ -82,7 +82,7 @@ function RegisterWizard() {
         element={
           <RegisterStep2
             onNextSuccess={handleStep2Success}
-            onBack={() => navigate(googleCredential ? '/login' : 'account')}
+            onBack={() => navigate(googleCredential ? '/login' : '/register/account')}
             introText={
               googleProfile?.email
                 ? `Continuing setup for ${googleProfile.email}`
@@ -98,7 +98,7 @@ function RegisterWizard() {
             registerData={registerData}
             googleCredential={googleCredential}
             onNextSuccess={handleStep3Success}
-            onBack={() => navigate('status')}
+            onBack={() => navigate('/register/status')}
           />
         }
       />
@@ -109,11 +109,11 @@ function RegisterWizard() {
             userEmail={registerData.email}
             onVerifySuccess={() => navigate('/login')}
             onContinueToLogin={() => navigate('/login')}
-            onBack={() => navigate('terms')}
+            onBack={() => navigate('/register/terms')}
           />
         }
       />
-      <Route path="*" element={<Navigate to={googleCredential ? 'status' : 'account'} replace />} />
+      <Route path="*" element={<Navigate to={googleCredential ? '/register/status' : '/register/account'} replace />} />
     </Routes>
   );
 }

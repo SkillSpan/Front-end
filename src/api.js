@@ -7,11 +7,31 @@ import { setCookie, getCookie, removeCookie } from './utils/cookies';
 // Base URL is injected at build time via Vite env vars. Set
 // VITE_API_BASE_URL in your .env (see .env.example) to point at the
 // Laravel backend for local dev / staging / production.
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://back-end-zdip.onrender.com';
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://back-end-zdip.onrender.com').replace(/\/+$/, '');
 
 const TOKEN_COOKIE = 'skillspan_token';
 const USER_COOKIE = 'skillspan_user';
 const SESSION_DAYS = 7;
+
+// Listeners notified when the local session is cleared (e.g. 401 from the
+// backend). AuthContext subscribes so it can drop its in-memory user state
+// and bounce the user to the landing/login page.
+const sessionExpiredListeners = new Set();
+
+export function onSessionExpired(listener) {
+  sessionExpiredListeners.add(listener);
+  return () => sessionExpiredListeners.delete(listener);
+}
+
+function notifySessionExpired() {
+  sessionExpiredListeners.forEach((listener) => {
+    try {
+      listener();
+    } catch {
+      // ignore listener errors so one bad listener doesn't break the rest
+    }
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Session (cookie) helpers
@@ -45,6 +65,23 @@ export function isAuthenticated() {
 export function clearSession() {
   removeCookie(TOKEN_COOKIE);
   removeCookie(USER_COOKIE);
+}
+
+// Revokes the server-side session (if any) and then drops the local
+// cookies. Network/5xx failures are swallowed - the local session is
+// cleared regardless so the UI never gets stuck in a "logged in but
+// backend says no" state.
+export async function clearSessionAndRevoke() {
+  try {
+    await request('/api/v1/auth/logout', {
+      method: 'POST',
+      withAuth: true,
+    });
+  } catch {
+    // intentionally ignored - local cleanup must always run
+  }
+  clearSession();
+  notifySessionExpired();
 }
 
 // ---------------------------------------------------------------------------
@@ -84,14 +121,34 @@ async function request(path, { method = 'GET', body, isFormData = false, withAut
   }
 
   if (!response.ok) {
+    // 401 from an authenticated endpoint means the Laravel session/token
+    // is no longer valid. Drop the local session and notify subscribers
+    // (AuthContext) so the user is bounced to login. We exclude the
+    // unauthenticated auth endpoints themselves - a 401 from /login is a
+    // real "wrong password" error, not a session-expired event.
+    if (response.status === 401 && withAuth && isAuthEndpointRequiringSession(path)) {
+      clearSession();
+      notifySessionExpired();
+    }
+
     throw {
       status: response.status,
       message: data.message || 'Something went wrong. Please try again.',
       errors: data.errors || {},
+      data,
     };
   }
 
   return data;
+}
+
+// Paths that prove the user is currently signed in (logout, profile, etc).
+// A 401 from any of these means the session was revoked/expired and we
+// should drop the local cookies + redirect to login.
+function isAuthEndpointRequiringSession(path) {
+  if (!path) return false;
+  if (path.startsWith('/api/v1/auth/logout')) return true;
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -147,6 +204,16 @@ export const loginWithGoogle = (credential, termsAccepted = false, privacyAccept
 export const loginOrganization = (email, password) =>
   request('/api/v1/auth/login/organization', { method: 'POST', body: { email, password } });
 
+export const logoutUser = () =>
+  request('/api/v1/auth/logout', {
+    method: 'POST',
+    withAuth: true,
+  });
+
+// Revokes every active session/token for this account (all devices).
+export const logoutAllDevices = () =>
+  request('/api/v1/auth/logout-all', { method: 'POST', withAuth: true });
+
 export const forgotPassword = (email) =>
   request('/api/v1/auth/forgot-password', { method: 'POST', body: { email } });
 
@@ -160,24 +227,14 @@ export const resetPassword = ({ email, otp, password, password_confirmation }) =
   });
 
 // Alias used by VerifyCode.jsx
-export const resendForgotPasswordOtp = resendForgotPassword;
+export const resendForgotPasswordOtp = (email) =>
+  request('/api/v1/auth/forgot-password/resend', {
+    method: 'POST',
+    body: { email },
+  });
 
 export const verifyForgotPasswordOtp = (email, otp) =>
   request('/api/v1/auth/forgot-password/verify', {
     method: 'POST',
     body: { email, otp },
   });
-
-// ---------------------------------------------------------------------------
-// Logout
-// ---------------------------------------------------------------------------
-// Confirmed against the backend's routes/api.php (see api_endpoints_render.md).
-// Both require Authorization: Bearer {token}, which `request()` adds via withAuth.
-
-// Revokes only the current session's token on the server.
-export const logoutUser = () =>
-  request('/api/v1/auth/logout', { method: 'POST', withAuth: true });
-
-// Revokes every active session/token for this account (all devices).
-export const logoutAllDevices = () =>
-  request('/api/v1/auth/logout-all', { method: 'POST', withAuth: true });
