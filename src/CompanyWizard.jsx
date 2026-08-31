@@ -6,14 +6,12 @@ import CompanyStep2 from './CompanyStep2';
 import CompanyStep3 from './CompanyStep3';
 import CompanyStep4 from './CompanyStep4';
 import CompanyStep5 from './CompanyStep5';
-import OtpVerification from './OtpVerification';
 
 // Company Registration flow:
 // /company/register/account
 // /company/register/company-info
 // /company/register/documents
 // /company/register/terms
-// /company/register/verify
 // /company/register/submitted
 function CompanyWizard() {
   const [companyData, setCompanyData] = useState({});
@@ -72,30 +70,12 @@ function CompanyWizard() {
           <CompanyStep4
             companyData={companyData}
             onNextSuccess={() =>
-              navigate('/company/register/verify')
+              navigate('/company/register/submitted')
             }
             onBack={() =>
               navigate('/company/register/documents')
             }
             onNavigateToLogin={() => navigate('/company/login')}
-          />
-        }
-      />
-
-      <Route
-        path="verify"
-        element={
-          <OtpVerification
-            userEmail={companyData.email}
-            onVerifySuccess={() =>
-              navigate('/company/register/submitted')
-            }
-            onContinueToLogin={() =>
-              navigate('/company/register/submitted')
-            }
-            onBack={() =>
-              navigate('/company/register/terms')
-            }
           />
         }
       />

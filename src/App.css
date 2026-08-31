@@ -252,9 +252,11 @@ body,
     visibility 0.18s ease;
 }
 
-/* Open dropdown on desktop */
+/* Open dropdown on desktop (hover, keyboard focus, or click-toggle state) */
 .dropdown:hover .dropdown-menu,
-.dropdown:focus-within .dropdown-menu {
+.dropdown:focus-within .dropdown-menu,
+.dropdown.dropdown-open .dropdown-menu,
+.dropdown-menu.dropdown-menu-open {
   opacity: 1;
 
   visibility: visible;
@@ -917,8 +919,11 @@ body,
   }
 
   .dropdown:hover .dropdown-menu,
-  .dropdown:focus-within .dropdown-menu {
+  .dropdown:focus-within .dropdown-menu,
+  .dropdown.dropdown-open .dropdown-menu,
+  .dropdown-menu.dropdown-menu-open {
     display: block !important;
+    transform: none !important;
   }
 
   .dropdown-menu li {

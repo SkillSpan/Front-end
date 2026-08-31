@@ -37,11 +37,9 @@ const RegisterStep3 = ({ onNextSuccess, onBack, registerData, googleCredential }
         // call both creates the account and logs the user in - Google
         // already verified the email, so there's no separate OTP step
         // after this (see RegisterWizard.handleStep3Success).
-        res = await loginWithGoogle(
-          googleCredential,
-          agreeTerms,
-          agreePrivacy
-        );
+        res = await loginWithGoogle(googleCredential, agreeTerms, agreePrivacy, {
+          academic_status: registerData.academicStatus,
+        });
       } else {
         // This is the single point where the whole wizard's data is
         // actually sent to the backend. We only move on to OTP

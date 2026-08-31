@@ -210,6 +210,10 @@ export const logoutUser = () =>
     withAuth: true,
   });
 
+// Revokes every active session/token for this account (all devices).
+export const logoutAllDevices = () =>
+  request('/api/v1/auth/logout-all', { method: 'POST', withAuth: true });
+
 export const forgotPassword = (email) =>
   request('/api/v1/auth/forgot-password', { method: 'POST', body: { email } });
 

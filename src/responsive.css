@@ -150,10 +150,114 @@
   }
 }
 
+/* ===== Company wizard - Step 4 (Terms) & Step 5 (Confirmation) ===========
+ * These two steps use their own "company-step4-*" / "company-step5-*"
+ * class prefixes instead of the step1/step3 ones above, so they need their
+ * own copy of the same sidebar/card collapse behaviour.
+ */
+@media (max-width: 900px) {
+  .company-step4-card,
+  .company-step5-card {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .company-step4-sidebar,
+  .company-step5-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 26px 22px;
+    box-sizing: border-box;
+  }
+
+  .company-step4-form-sec,
+  .company-step5-form-sec {
+    max-height: none;
+    padding: 26px 22px;
+    box-sizing: border-box;
+  }
+
+  .company-step4-steps,
+  .company-step5-steps {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+  }
+}
+
+@media (max-width: 560px) {
+  .company-step4-header,
+  .company-step5-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .c-actions {
+    flex-direction: column;
+  }
+
+  .c-actions .c-btn-back,
+  .c-actions .c-btn-next {
+    width: 100%;
+  }
+
+  .c5-btn-landing {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+}
+
+/* ===== Company Login - small phone tuning =================================
+ * CompanyLogin.css only had a single 760px breakpoint; add the same
+ * small-phone refinements CompanyForgotPassword.css already has, so both
+ * screens feel consistent down to narrow phones.
+ */
+@media (max-width: 480px) {
+  .cl-wrapper {
+    padding: 12px;
+  }
+
+  .cl-form-inner {
+    padding: 26px 20px 36px;
+  }
+
+  .cl-heading {
+    font-size: 1.3rem;
+  }
+
+  .cl-sidebar-content h2 {
+    font-size: 1.25rem;
+  }
+
+  .cl-google-btn {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
 /* ===== Generic small-screen safety net ==================================== */
 @media (max-width: 420px) {
   .cl-card,
-  .cfp-card {
+  .cfp-card,
+  .company-step4-card,
+  .company-step5-card {
     border-radius: 16px;
   }
+}
+
+/* ===== Global overflow guard ==============================================
+ * Prevents any leftover fixed-width element (long inputs, badges, wide
+ * flex rows) from creating horizontal scroll on narrow phones.
+ */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img {
+  max-width: 100%;
 }

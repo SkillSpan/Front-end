@@ -93,7 +93,9 @@ describe('buildOrganizationFormData', () => {
 
   it('maps administrator name and account fields', () => {
     const fd = buildOrganizationFormData(baseCompanyData);
-    expect(fd.get('administrator_name')).toBe('Sam Admin');
+    expect(fd.get('name')).toBe('Sam Admin');
+    expect(fd.get('email')).toBe('sam@acme.test');
+    expect(fd.get('organization_contact_email')).toBe('sam@acme.test');
     expect(fd.get('password_confirmation')).toBe('orgpass123');
   });
 });

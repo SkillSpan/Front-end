@@ -63,18 +63,15 @@ const ResetPassword = ({
         onSuccess();
       }
     } catch (error) {
-  const otpError = error.errors?.otp?.[0] || '';
-
-    setErrors({
-      general:
-        otpError ||
-        error.message ||
-        'Unable to reset your password. Please try again.',
-      password: error.errors?.password?.[0] || '',
-      confirmPassword:
-        error.errors?.password_confirmation?.[0] || '',
-    });
-  } finally {
+      setErrors({
+        general:
+          error.message ||
+          'Unable to reset your password. Please try again.',
+        password: error.errors?.password?.[0] || '',
+        confirmPassword:
+          error.errors?.password_confirmation?.[0] || '',
+      });
+    } finally {
       setIsSubmitting(false);
     }
   };

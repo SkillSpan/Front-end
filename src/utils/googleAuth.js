@@ -1,7 +1,6 @@
 // utils/googleAuth.js
 //
-// Used by Login.jsx to distinguish the "new Google account"
-// response from other Google authentication errors. We switched to collecting
+// NOTE: not currently used by Login.jsx. We switched to collecting
 // Terms/Privacy agreement in our own UI BEFORE Google's popup opens (since
 // Google's account picker can't host third-party checkboxes), so we always
 // send terms_accepted/privacy_accepted = true and this post-hoc "was that
