@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import './ForgotPassword.css';
 import { forgotPassword } from './api';
 
@@ -7,23 +7,6 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
   const [error, setError] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [resendAvailableAt, setResendAvailableAt] = useState(null);
-  const [resendSecondsLeft, setResendSecondsLeft] = useState(0);
-
-  useEffect(() => {
-    if (!resendAvailableAt) return undefined;
-    const target = new Date(resendAvailableAt).getTime();
-    const tick = () => {
-      setResendSecondsLeft((prev) => {
-        const diff = Math.ceil((target - Date.now()) / 1000);
-        const next = diff > 0 ? diff : 0;
-        return prev === next ? prev : next;
-      });
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, [resendAvailableAt]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,35 +22,14 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
     setError('');
     setIsSubmitting(true);
     try {
-    const response = await forgotPassword(email.trim());
-    setResendAvailableAt(
-      response?.data?.resend_available_at || null
-    );
-
-    setIsSubmitted(true);
-} catch (err) {
+      await forgotPassword(email.trim());
+      setIsSubmitted(true);
+    } catch (err) {
       setError(err.message || 'Unable to send the reset code. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
-const getResendSecondsLeft = () => resendSecondsLeft;
-
-const handleResend = async () => {
-  if (isSubmitting || resendSecondsLeft > 0) return;
-  setIsSubmitting(true);
-  setError('');
-  try {
-    const response = await forgotPassword(email.trim());
-    setResendAvailableAt(
-      response?.data?.resend_available_at || null
-    );
-  } catch (err) {
-    setError(err.message || 'Unable to resend the reset code. Please try again.');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
   return (
     <div className="forgot-wrapper">
       <div className="forgot-card">
@@ -124,22 +86,6 @@ const handleResend = async () => {
                 >
                   Continue to Verify
                 </button>
-
-                <div className="back-link-container" style={{ marginTop: '12px' }}>
-                  Didn't get an email?{' '}
-                  <span
-                    className="link-action"
-                    onClick={getResendSecondsLeft() > 0 || isSubmitting ? undefined : handleResend}
-                    style={{
-                      cursor: getResendSecondsLeft() > 0 || isSubmitting ? 'default' : 'pointer',
-                      opacity: getResendSecondsLeft() > 0 || isSubmitting ? 0.5 : 1,
-                    }}
-                  >
-                    {getResendSecondsLeft() > 0
-                      ? `Resend in ${getResendSecondsLeft()}s`
-                      : 'Resend code'}
-                  </span>
-                </div>
               </div>
             ) : (
               <>

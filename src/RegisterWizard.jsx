@@ -62,7 +62,7 @@ function RegisterWizard() {
     }
 
     // Manual signup still needs to verify their email via OTP.
-    navigate('/register/terms');
+    navigate('/register/verify');
   };
 
   return (
