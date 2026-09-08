@@ -1,5 +1,5 @@
 import { ORGANIZATION_TYPES } from './config';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import './CompanyRegister.css'; // نفس ملف التنسيق الخاص بالشركات
 
 const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin, initialData }) => {

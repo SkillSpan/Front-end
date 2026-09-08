@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import './CompanyRegister.css'
 
 function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData }) {

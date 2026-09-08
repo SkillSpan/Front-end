@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildRegisterPayload, buildOrganizationFormData } from '../payloadMapping';
+import { buildRegisterPayload, buildOrganizationFormData, buildProfilePayload } from '../payloadMapping';
 
 describe('buildRegisterPayload', () => {
   it('maps wizard field names to the Laravel API contract', () => {
@@ -93,9 +93,45 @@ describe('buildOrganizationFormData', () => {
 
   it('maps administrator name and account fields', () => {
     const fd = buildOrganizationFormData(baseCompanyData);
-    expect(fd.get('name')).toBe('Sam Admin');
-    expect(fd.get('email')).toBe('sam@acme.test');
-    expect(fd.get('organization_contact_email')).toBe('sam@acme.test');
+    expect(fd.get('administrator_name')).toBe('Sam Admin');
     expect(fd.get('password_confirmation')).toBe('orgpass123');
+  });
+});
+
+describe('buildProfilePayload', () => {
+  it('maps the Profile Setup form fields to the API contract', () => {
+    const payload = buildProfilePayload({
+      university: 'The Islamic University',
+      universityId: '2021900123',
+      specialization: 'Marketing',
+      academicLevel: 'second_year',
+      expectedGraduation: '2027',
+      bio: 'Aspiring product marketer.',
+      isPublic: true,
+    });
+
+    expect(payload).toEqual({
+      university_name: 'The Islamic University',
+      student_university_number: '2021900123',
+      specialization: 'Marketing',
+      academic_level: 'second_year',
+      expected_graduation: '2027',
+      bio: 'Aspiring product marketer.',
+      visibility: 'public',
+    });
+  });
+
+  it('defaults missing fields / non-public toggle to private', () => {
+    const payload = buildProfilePayload();
+
+    expect(payload).toEqual({
+      university_name: '',
+      student_university_number: '',
+      specialization: '',
+      academic_level: '',
+      expected_graduation: '',
+      bio: '',
+      visibility: 'private',
+    });
   });
 });

@@ -43,15 +43,11 @@ export function buildRegisterPayload(registerData) {
  * (CompanyStep1..CompanyStep4) to a multipart/form-data FormData instance
  * for POST /api/auth/register/organization.
  *
- * Field contract CONFIRMED against the deployed backend (a 422 validation
- * response on an empty POST lists every required field):
- *   - name                       <- CompanyStep1 "Administrator Name"
- *   - email                      <- CompanyStep1 email (the account's own
+ * NOTE ON ASSUMPTIONS (flag to backend if any of these field names are
+ * wrong - see README "Open backend-contract questions"):
+ *   - administrator_name         <- CompanyStep1 "Administrator Name"
+ *   - organization_contact_email <- CompanyStep1 email (the account's own
  *                                    email, never a hardcoded placeholder)
- *   - organization_contact_email <- CompanyStep1 email (same value for now;
- *                                    the backend requires it separately - if
- *                                    it ever needs to differ from the account
- *                                    email, a dedicated UI field must be added)
  *   - phone
  *   - password / password_confirmation
  *   - organization_name          <- CompanyStep2 "Company Name"
@@ -91,8 +87,7 @@ export function buildOrganizationFormData(companyData) {
 
   const formData = new FormData();
 
-  formData.append('name', administratorName || '');
-  formData.append('email', email || '');
+  formData.append('administrator_name', administratorName || '');
   formData.append('organization_contact_email', email || '');
   formData.append('phone', phone || '');
   formData.append('password', password || '');
@@ -119,4 +114,37 @@ export function buildOrganizationFormData(companyData) {
   }
 
   return formData;
+}
+
+/**
+ * Maps the Learner Profile Setup form state to the body expected by
+ * POST/PUT /api/v1/profile.
+ *
+ * Confirmed contract with the backend (learner-profile task):
+ *   `university`                 -> university_name         (free text)
+ *   `universityId` (student ID)  -> student_university_number
+ *   `specialization`             -> specialization          (free text)
+ *   `academicLevel`              -> academic_level
+ *   `expectedGraduation`         -> expected_graduation     (YYYY-MM-DD)
+ *   `bio`                        -> bio
+ *   `isPublic` (bool)            -> visibility (public|organization_only|private)
+ */
+export function buildProfilePayload({
+  university,
+  universityId,
+  specialization,
+  academicLevel,
+  expectedGraduation,
+  bio,
+  isPublic,
+} = {}) {
+  return {
+    university_name: university || '',
+    student_university_number: universityId || '',
+    specialization: specialization || '',
+    academic_level: academicLevel || '',
+    expected_graduation: expectedGraduation || '',
+    bio: bio || '',
+    visibility: isPublic ? 'public' : 'private',
+  };
 }

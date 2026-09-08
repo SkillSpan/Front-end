@@ -1,6 +1,7 @@
+import React from 'react'
 import './CompanyRegister.css'
 
-function CompanyStep5({ onNavigateToLanding, onNavigateToLogin, email }) {
+function CompanyStep5({ onNavigateToLogin, email }) {
   return (
     <div className="company-step5-container">
       <div className="company-step5-card">
@@ -102,15 +103,12 @@ function CompanyStep5({ onNavigateToLanding, onNavigateToLogin, email }) {
               </div>
             </div>
 
-            <button onClick={onNavigateToLanding} className="c5-btn-landing">
+            <button onClick={onNavigateToLogin} className="c5-btn-landing">
               Go to Landing Page
             </button>
 
             <p className="c5-login-text">
-              Already Have a company account?{' '}
-              <span className="c5-login-link" onClick={onNavigateToLogin}>
-                log in
-              </span>
+              Already Have a company account? <span className="c5-login-link">log in</span>
             </p>
           </div>
         </div>
