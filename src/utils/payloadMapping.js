@@ -43,40 +43,24 @@ export function buildRegisterPayload(registerData) {
  * (CompanyStep1..CompanyStep4) to a multipart/form-data FormData instance
  * for POST /api/auth/register/organization.
  *
- * Confirmed against RegisterOrganizationRequest::rules() /
- * AuthService::createUser() + createOrganization() in the backend repo:
- * the endpoint creates TWO separate records from one payload -
- *   1) the admin User account -> needs top-level `name` + `email`
- *      (NOT administrator_name / organization_contact_email - those are
- *      the organization's own contact details, a distinct pair of fields)
- *   2) the Organization row -> every organization_* field below is read
- *      by name verbatim in AuthService::createOrganization(), so the
- *      `organization_` prefix is required on all of them.
- *
- *   - name                        <- CompanyStep1 "Administrator Name"
- *   - email                       <- CompanyStep1 email (the account's own
- *                                    login email, never a hardcoded
- *                                    placeholder)
- *   - phone                       <- CompanyStep1 phone (the admin's own,
- *                                    top-level `phone`, distinct from
- *                                    organization_contact_phone)
+ * NOTE ON ASSUMPTIONS (flag to backend if any of these field names are
+ * wrong - see README "Open backend-contract questions"):
+ *   - administrator_name         <- CompanyStep1 "Administrator Name"
+ *   - organization_contact_email <- CompanyStep1 email (the account's own
+ *                                    email, never a hardcoded placeholder)
+ *   - phone
  *   - password / password_confirmation
  *   - organization_name          <- CompanyStep2 "Company Name"
  *   - organization_type          <- CompanyStep2, restricted to
  *                                    company | university | training_partner
  *   - organization_industry      <- CompanyStep2 "Industry" (kept distinct
  *                                    from organization_type)
- *   - organization_company_size, organization_website,
- *     organization_description
- *   - organization_country, organization_city, organization_address,
- *     organization_postal_code
+ *   - organization_size, website, description
+ *   - country, city, address, postal_code
  *   - proof_file                 <- CompanyStep3 required document (actual
  *                                    File object, not just its name)
+ *   - additional_document        <- CompanyStep3 optional document
  *   - terms_accepted / privacy_accepted <- CompanyStep4
- *
- * `additional_document` is intentionally NOT sent: it isn't in
- * RegisterOrganizationRequest::rules(), so the backend has no field to
- * store it in yet - sending it just gets silently dropped.
  */
 export function buildOrganizationFormData(companyData) {
   const {
@@ -87,7 +71,6 @@ export function buildOrganizationFormData(companyData) {
     confirmPassword,
     companyName,
     organizationType,
-    organizationContactEmail,
     industry,
     companySize,
     website,
@@ -97,38 +80,39 @@ export function buildOrganizationFormData(companyData) {
     address,
     postalCode,
     proofFile,
+    additionalFile,
     agreedTerms,
     agreedPrivacy,
   } = companyData || {};
 
   const formData = new FormData();
 
-  // Admin (User) account fields.
-  formData.append('name', administratorName || '');
-  formData.append('email', email || '');
+  formData.append('administrator_name', administratorName || '');
+  formData.append('organization_contact_email', email || '');
   formData.append('phone', phone || '');
   formData.append('password', password || '');
   formData.append('password_confirmation', confirmPassword || '');
-  formData.append('terms_accepted', agreedTerms ? '1' : '0');
-  formData.append('privacy_accepted', agreedPrivacy ? '1' : '0');
-
-  // Organization fields - every key needs the organization_ prefix.
   formData.append('organization_name', companyName || '');
   formData.append('organization_type', organizationType || '');
-  formData.append('organization_contact_email', organizationContactEmail || email || '');
   formData.append('organization_industry', industry || '');
-  formData.append('organization_company_size', companySize || '');
-  formData.append('organization_website', website || '');
-  formData.append('organization_description', companyDescription || '');
-  formData.append('organization_country', country || '');
-  formData.append('organization_city', city || '');
-  formData.append('organization_address', address || '');
-  formData.append('organization_postal_code', postalCode || '');
+  formData.append('organization_size', companySize || '');
+  formData.append('website', website || '');
+  formData.append('description', companyDescription || '');
+  formData.append('country', country || '');
+  formData.append('city', city || '');
+  formData.append('address', address || '');
+  formData.append('postal_code', postalCode || '');
+  formData.append('terms_accepted', agreedTerms ? '1' : '0');
+  formData.append('privacy_accepted', agreedPrivacy ? '1' : '0');
 
   // Actual File objects, never just the file name.
   if (proofFile instanceof File) {
     formData.append('proof_file', proofFile);
   }
+  if (additionalFile instanceof File) {
+    formData.append('additional_document', additionalFile);
+  }
+
   return formData;
 }
 

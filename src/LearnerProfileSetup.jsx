@@ -63,13 +63,6 @@ const normalizeNameList = (res) => {
     .filter(Boolean);
 };
 
-const normalizeCountryList = (res) => {
-  const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-  return list
-    .map((item) => (typeof item === 'string' ? { id: item, name: item } : { id: item?.id, name: item?.name }))
-    .filter((item) => item.name);
-};
-
 const ACADEMIC_LEVELS = [
   { value: 'first_year', label: 'First year' },
   { value: 'second_year', label: 'Second year' },
@@ -166,12 +159,9 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
   const [universities, setUniversities] = useState(FALLBACK_UNIVERSITIES);
   const [specializations, setSpecializations] = useState(FALLBACK_SPECIALIZATIONS);
   const [countries, setCountries] = useState(FALLBACK_COUNTRIES);
-  // name -> id lookup for the countries currently in the dropdown (see
-  // normalizeCountryList above).
-  const [countryIdByName, setCountryIdByName] = useState({});
   // Country -> University coupling: picking a country re-fetches the
   // University dropdown scoped to it via
-  // GET /api/v1/reference/countries/{country_id}/universities (see api.js).
+  // GET /api/v1/reference/countries/{country}/universities (see api.js).
   // Left unset ("All countries"), the full unfiltered university list is
   // shown instead. This is purely a UI filter - `country` is never sent to
   // POST /api/v1/profile (no such field in that confirmed contract).
@@ -190,18 +180,10 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
         if (cancelled) return;
         const uniList = normalizeNameList(uniRes);
         const specList = normalizeNameList(specRes);
-        const countryEntries = normalizeCountryList(countryRes);
+        const countryList = normalizeNameList(countryRes);
         if (uniList.length) setUniversities([...uniList, 'Other']);
         if (specList.length) setSpecializations([...specList, 'Other']);
-        if (countryEntries.length) {
-          setCountries(countryEntries.map((c) => c.name));
-          setCountryIdByName(
-            countryEntries.reduce((map, c) => {
-              map[c.name] = c.id;
-              return map;
-            }, {})
-          );
-        }
+        if (countryList.length) setCountries(countryList);
       } catch {
         // Reference endpoints unreachable - keep the fallback lists above.
       }
@@ -232,8 +214,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
 
     setUniversitiesLoading(true);
     try {
-      const countryParam = countryIdByName[value] ?? value;
-      const res = await getUniversitiesByCountry(countryParam);
+      const res = await getUniversitiesByCountry(value);
       const list = normalizeNameList(res);
       if (list.length) {
         const nextUniversities = [...list, 'Other'];
