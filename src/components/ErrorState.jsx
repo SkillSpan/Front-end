@@ -1,0 +1,7 @@
+import React from "react";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
+import { AppHeader } from "./Shared";
+
+export default function ErrorState({ onRetry = () => {}, onContactSupport = () => {} }) {
+  return <main className="figma-page"><AppHeader /><div className="flex min-h-[calc(100vh-52px)] items-center justify-center px-5 py-20"><div className="w-full max-w-[430px] text-center"><div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#fecdca] bg-[#fef3f2] text-[#b42318]"><AlertTriangle size={26}/></div><p className="figma-eyebrow">Something went wrong</p><h1 className="mt-2 text-xl font-bold tracking-tight text-[#101828]">Failed to load evidence</h1><p className="mx-auto mt-2 max-w-[360px] text-sm leading-6 text-[#667085]">There was an error retrieving evidence records. This could be a network issue or the server may be temporarily unavailable.</p><div className="mt-7 flex justify-center gap-2.5"><button type="button" onClick={onRetry} className="figma-btn-primary">Try again</button><button type="button" onClick={onContactSupport} className="figma-btn-secondary">Contact support</button></div><p className="mt-7 font-mono text-[10px] text-[#98a2b3]">Error code: GET /api/v1/skills/evidence — 503</p><button type="button" onClick={onRetry} className="figma-link-btn mt-5 inline-flex items-center gap-1.5 px-1 py-0.5 text-xs font-semibold text-[#667085] transition hover:text-[#111827]"><ArrowLeft size={13}/>Back to Evidence Status</button></div></div></main>;
+}
