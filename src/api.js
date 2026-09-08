@@ -158,14 +158,13 @@ export const loginUser = (email, password) =>
 // that academic_status is accepted/stored on this endpoint before relying
 // on it; if not, we'll need a follow-up PATCH/profile-update call instead.
 //
-// NOTE ON THE ENDPOINT PATH: the backend guide we received contains a
-// garbled/contradictory note about whether this path is
-// /api/auth/login/google or /api/auth/google/login - but the guide's own
-// code sample unambiguously uses /api/auth/login/google, so that's what
-// we use here. Flag this to the backend team to confirm in writing if
-// requests start failing with 404.
+// NOTE ON THE ENDPOINT PATH: confirmed directly against routes/api.php -
+// the route is registered inside the `v1` prefix group
+// (Route::prefix('v1')->group(...) -> prefix('auth') ->
+// post('/login/google', ...)), so the real path is
+// /api/v1/auth/login/google, not /api/auth/login/google.
 export const loginWithGoogle = (credential, termsAccepted = false, privacyAccepted = false, extra = {}) =>
-  request('/api/auth/login/google', {
+  request('/api/v1/auth/login/google', {
     method: 'POST',
     body: {
       credential,
@@ -178,8 +177,16 @@ export const loginWithGoogle = (credential, termsAccepted = false, privacyAccept
 export const loginOrganization = (email, password) =>
   request('/api/v1/auth/login/organization', { method: 'POST', body: { email, password } });
 
+// NOT WIRED TO ANY ROUTE: routes/api.php only registers
+// POST /api/v1/auth/login/google (individual accounts). There is no
+// organization/company Google-login route on the backend at all, so this
+// call will always 404 as written. Kept only because config.js documents
+// that org Google sign-in was deliberately dropped for lack of a backend
+// contract; this function is unused by every screen (confirmed - no
+// component calls it). Do not wire a button to it until the backend adds
+// a matching route.
 export const loginOrganizationWithGoogle = (credential) =>
-  request('/api/auth/login/organization/google', { method: 'POST', body: { credential } });
+  request('/api/v1/auth/login/organization/google', { method: 'POST', body: { credential } });
 
 export const forgotPassword = (email) =>
   request('/api/v1/auth/forgot-password', { method: 'POST', body: { email } });
@@ -293,9 +300,10 @@ export const getSpecializations = () => request('/api/v1/reference/specializatio
 
 export const getCountries = () => request('/api/v1/reference/countries', { method: 'GET' });
 
-// Universities for one specific country only.
-export const getUniversitiesByCountry = (country) =>
-  request(`/api/v1/reference/countries/${encodeURIComponent(country)}/universities`, { method: 'GET' });
+// Universities for one specific country only. The backend expects the
+// country's numeric id in the URL, not its display name.
+export const getUniversitiesByCountry = (countryId) =>
+  request(`/api/v1/reference/countries/${encodeURIComponent(countryId)}/universities`, { method: 'GET' });
 
 // ---------------------------------------------------------------------------
 // Skills (requires Authorization: Bearer {token})
