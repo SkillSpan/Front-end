@@ -50,6 +50,7 @@ const FALLBACK_SPECIALIZATIONS = [
 // filtering it drives) is always visible instead of silently disappearing
 // when the backend isn't reachable yet.
 const FALLBACK_COUNTRIES = ['Palestine'];
+const FALLBACK_COUNTRY_OPTIONS = FALLBACK_COUNTRIES.map((name) => ({ id: null, name }));
 
 // GET /api/v1/reference/{universities,specializations,countries} (see
 // api.js) return shapes aren't confirmed with the backend yet - this
@@ -57,9 +58,41 @@ const FALLBACK_COUNTRIES = ['Palestine'];
 // {id, name}-shaped objects and always produces a flat string list, so the
 // <select> below never breaks on whichever shape the API actually sends.
 const normalizeNameList = (res) => {
-  const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+  const list = Array.isArray(res)
+    ? res
+    : Array.isArray(res?.data)
+      ? res.data
+      : Array.isArray(res?.data?.data)
+        ? res.data.data
+        : Array.isArray(res?.data?.universities)
+          ? res.data.universities
+          : Array.isArray(res?.universities)
+            ? res.universities
+            : [];
   return list
     .map((item) => (typeof item === 'string' ? item : item?.name ?? item?.title ?? null))
+    .filter(Boolean);
+};
+
+const normalizeCountryOptions = (res) => {
+  const list = Array.isArray(res)
+    ? res
+    : Array.isArray(res?.data)
+      ? res.data
+      : Array.isArray(res?.data?.data)
+        ? res.data.data
+        : Array.isArray(res?.data?.countries)
+          ? res.data.countries
+          : Array.isArray(res?.countries)
+            ? res.countries
+            : [];
+  return list
+    .map((item) => {
+      if (typeof item === 'string') return { id: null, name: item };
+      const name = item?.name ?? item?.title ?? null;
+      const id = item?.id ?? item?.country_id ?? item?.countryId ?? item?._id ?? null;
+      return name ? { id, name } : null;
+    })
     .filter(Boolean);
 };
 
@@ -159,9 +192,10 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
   const [universities, setUniversities] = useState(FALLBACK_UNIVERSITIES);
   const [specializations, setSpecializations] = useState(FALLBACK_SPECIALIZATIONS);
   const [countries, setCountries] = useState(FALLBACK_COUNTRIES);
+  const [countryOptions, setCountryOptions] = useState(FALLBACK_COUNTRY_OPTIONS);
   // Country -> University coupling: picking a country re-fetches the
   // University dropdown scoped to it via
-  // GET /api/v1/reference/countries/{country}/universities (see api.js).
+  // GET /api/v1/reference/countries/{country_id}/universities (see api.js).
   // Left unset ("All countries"), the full unfiltered university list is
   // shown instead. This is purely a UI filter - `country` is never sent to
   // POST /api/v1/profile (no such field in that confirmed contract).
@@ -180,10 +214,13 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
         if (cancelled) return;
         const uniList = normalizeNameList(uniRes);
         const specList = normalizeNameList(specRes);
-        const countryList = normalizeNameList(countryRes);
+        const countryOptsList = normalizeCountryOptions(countryRes);
         if (uniList.length) setUniversities([...uniList, 'Other']);
         if (specList.length) setSpecializations([...specList, 'Other']);
-        if (countryList.length) setCountries(countryList);
+        if (countryOptsList.length) {
+          setCountries(countryOptsList.map((countryOption) => countryOption.name));
+          setCountryOptions(countryOptsList);
+        }
       } catch {
         // Reference endpoints unreachable - keep the fallback lists above.
       }
@@ -213,21 +250,24 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
     }
 
     setUniversitiesLoading(true);
+    setUniversities([]);
+    setUniversity('');
     try {
-      const res = await getUniversitiesByCountry(value);
+      const selectedCountry = countryOptions.find((countryOption) => countryOption.name === value);
+      const countryId = selectedCountry?.id ?? value;
+      const res = await getUniversitiesByCountry(countryId);
       const list = normalizeNameList(res);
       if (list.length) {
         const nextUniversities = [...list, 'Other'];
         setUniversities(nextUniversities);
         setUniversity((prev) => (nextUniversities.includes(prev) ? prev : ''));
       } else {
-        // No universities returned for this country - don't leave the
-        // learner stuck with a stale list from a different country.
+        // No universities returned for this country.
         setUniversities(['Other']);
-        setUniversity((prev) => (prev === 'Other' ? prev : ''));
       }
     } catch {
-      // Keep whatever university list is already showing.
+      // Do not show the unfiltered list after a country-specific request fails.
+      setUniversities(['Other']);
     } finally {
       setUniversitiesLoading(false);
     }

@@ -7,7 +7,7 @@ import { setCookie, getCookie, removeCookie } from './utils/cookies';
 // Base URL is injected at build time via Vite env vars. Set
 // VITE_API_BASE_URL in your .env (see .env.example) to point at the
 // Laravel backend for local dev / staging / production.
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://back-end-zdip.onrender.com').replace(/\/+$/, '');
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://back-end-zdip.onrender.com';
 
 const TOKEN_COOKIE = 'skillspan_token';
 const USER_COOKIE = 'skillspan_user';
@@ -293,9 +293,10 @@ export const getSpecializations = () => request('/api/v1/reference/specializatio
 
 export const getCountries = () => request('/api/v1/reference/countries', { method: 'GET' });
 
-// Universities for one specific country only.
-export const getUniversitiesByCountry = (country) =>
-  request(`/api/v1/reference/countries/${encodeURIComponent(country)}/universities`, { method: 'GET' });
+// Universities for one specific country only. The backend expects the
+// country's numeric id in the URL, not its display name.
+export const getUniversitiesByCountry = (countryId) =>
+  request(`/api/v1/reference/countries/${encodeURIComponent(countryId)}/universities`, { method: 'GET' });
 
 // ---------------------------------------------------------------------------
 // Skills (requires Authorization: Bearer {token})
