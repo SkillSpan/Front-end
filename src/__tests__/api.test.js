@@ -167,4 +167,36 @@ describe('api.js', () => {
       academic_status: 'student',
     });
   });
+
+  it('fetches countries from the reference endpoint', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ data: [] }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { getCountries, API_BASE_URL } = await import('../api');
+    await getCountries();
+
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toBe(`${API_BASE_URL}/api/v1/reference/countries`);
+    expect(options.method).toBe('GET');
+  });
+
+  it('fetches universities by numeric country id', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ data: [] }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { getUniversitiesByCountry, API_BASE_URL } = await import('../api');
+    await getUniversitiesByCountry(7);
+
+    const [url, options] = fetchMock.mock.calls[0];
+    expect(url).toBe(`${API_BASE_URL}/api/v1/reference/countries/7/universities`);
+    expect(options.method).toBe('GET');
+  });
 });
