@@ -50,7 +50,7 @@ const FALLBACK_SPECIALIZATIONS = [
 // filtering it drives) is always visible instead of silently disappearing
 // when the backend isn't reachable yet.
 const FALLBACK_COUNTRIES = ['Palestine'];
-const FALLBACK_COUNTRY_OPTIONS = FALLBACK_COUNTRIES.map((name) => ({ id: null, name }));
+const FALLBACK_COUNTRY_IDS = {};
 
 // GET /api/v1/reference/{universities,specializations,countries} (see
 // api.js) return shapes aren't confirmed with the backend yet - this
@@ -192,7 +192,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
   const [universities, setUniversities] = useState(FALLBACK_UNIVERSITIES);
   const [specializations, setSpecializations] = useState(FALLBACK_SPECIALIZATIONS);
   const [countries, setCountries] = useState(FALLBACK_COUNTRIES);
-  const [countryOptions, setCountryOptions] = useState(FALLBACK_COUNTRY_OPTIONS);
+  const [countryIdByName, setCountryIdByName] = useState(FALLBACK_COUNTRY_IDS);
   // Country -> University coupling: picking a country re-fetches the
   // University dropdown scoped to it via
   // GET /api/v1/reference/countries/{country_id}/universities (see api.js).
@@ -219,7 +219,14 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
         if (specList.length) setSpecializations([...specList, 'Other']);
         if (countryOptsList.length) {
           setCountries(countryOptsList.map((countryOption) => countryOption.name));
-          setCountryOptions(countryOptsList);
+          setCountryIdByName(
+            countryOptsList.reduce((map, countryOption) => {
+              if (countryOption.id !== null && countryOption.id !== undefined) {
+                map[countryOption.name] = countryOption.id;
+              }
+              return map;
+            }, {})
+          );
         }
       } catch {
         // Reference endpoints unreachable - keep the fallback lists above.
@@ -253,8 +260,11 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
     setUniversities([]);
     setUniversity('');
     try {
-      const selectedCountry = countryOptions.find((countryOption) => countryOption.name === value);
-      const countryId = selectedCountry?.id ?? value;
+      const countryId = countryIdByName[value];
+      if (!countryId) {
+        setUniversities(FALLBACK_UNIVERSITIES);
+        return;
+      }
       const res = await getUniversitiesByCountry(countryId);
       const list = normalizeNameList(res);
       if (list.length) {
