@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   clearSession,
@@ -11,21 +11,34 @@ import {
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // Restore the session from the secure cookie synchronously on first
-  // render (lazy initializer) instead of in a useEffect - this is a plain
-  // synchronous read, not a subscription to an external system, so there's
-  // no need to render once without the user and then again with it.
-  const [authUser, setAuthUser] = useState(() =>
-    isAuthenticated() ? getStoredUser() : null
-  );
+  const [authUser, setAuthUser] = useState(() => {
+    if (!isAuthenticated()) {
+      return null;
+    }
+
+    return getStoredUser();
+  });
   const navigate = useNavigate();
 
-  useEffect(() => onSessionExpired(() => {
-    setAuthUser(null);
-    navigate('/session-expired', { replace: true });
-  }), [navigate]);
+  // If any 401 from an authenticated endpoint clears the local session
+  // (see api.js request helper), mirror that in component state so the UI
+  // stops showing the user as logged in, and redirect to the dedicated
+  // Session Expired screen instead of leaving the user on a broken page.
+  useEffect(() => {
+    return onSessionExpired(() => {
+      setAuthUser(null);
+      navigate('/session-expired', { replace: true });
+    });
+  }, [navigate]);
 
-  const login = (user) => setAuthUser(user);
+  const login = (user) => {
+    if (!user) {
+      setAuthUser(null);
+      return;
+    }
+
+    setAuthUser(user);
+  };
 
   const logout = async () => {
     setAuthUser(null);
@@ -38,20 +51,18 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{
-      authUser,
-      isAuthenticated: !!authUser,
-      login,
-      logout,
-      forceLogout,
-    }}>
+    <AuthContext.Provider
+      value={{
+        authUser,
+        isAuthenticated: !!authUser,
+        login,
+        logout,
+        forceLogout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within an AuthProvider');
-  return context;
-}
+export { AuthContext };

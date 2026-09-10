@@ -67,7 +67,31 @@ const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onFo
       setIsSubmitting(false);
       // The API already returns tailored messages for a pending or
       // rejected organization, and for bad credentials — surface it as-is.
-      setErrors({ general: err.message || 'Unable to log in right now. Please try again.' });
+      // When the backend signals a specific company-account state via
+      // err.errors.code, surface a more actionable message instead of a
+      // generic "invalid credentials" line.
+      const codeError =
+        err.errors?.code?.[0] ||
+        (typeof err.code === 'string' ? err.code : null);
+
+      if (codeError === 'COMPANY_PENDING') {
+        setErrors({
+          general:
+            'Your company account is still under review. You will be notified by email once it is approved.',
+        });
+      } else if (codeError === 'COMPANY_REJECTED') {
+        setErrors({
+          general:
+            'Your company registration was not approved. Please contact support for more information.',
+        });
+      } else if (codeError === 'EMAIL_NOT_VERIFIED') {
+        setErrors({
+          general:
+            'Your email address has not been verified yet. Please check your inbox for the verification code.',
+        });
+      } else {
+        setErrors({ general: err.message || 'Unable to log in right now. Please try again.' });
+      }
     }
   };
 
