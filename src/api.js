@@ -7,15 +7,11 @@ import { setCookie, getCookie, removeCookie } from './utils/cookies';
 // Base URL is injected at build time via Vite env vars. Set
 // VITE_API_BASE_URL in your .env (see .env.example) to point at the
 // Laravel backend for local dev / staging / production.
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://back-end-zdip.onrender.com').replace(/\/+$/, '');
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://back-end-zdip.onrender.com';
 
 const TOKEN_COOKIE = 'skillspan_token';
 const USER_COOKIE = 'skillspan_user';
 const SESSION_DAYS = 7;
-
-// Listeners notified when the local session is cleared (e.g. 401 from the
-// backend). AuthContext subscribes so it can drop its in-memory user state
-// and bounce the user to the landing/login page.
 const sessionExpiredListeners = new Set();
 
 export function onSessionExpired(listener) {
@@ -28,7 +24,7 @@ function notifySessionExpired() {
     try {
       listener();
     } catch {
-      // ignore listener errors so one bad listener doesn't break the rest
+      // A listener must not prevent the remaining listeners from running.
     }
   });
 }
@@ -67,18 +63,11 @@ export function clearSession() {
   removeCookie(USER_COOKIE);
 }
 
-// Revokes the server-side session (if any) and then drops the local
-// cookies. Network/5xx failures are swallowed - the local session is
-// cleared regardless so the UI never gets stuck in a "logged in but
-// backend says no" state.
 export async function clearSessionAndRevoke() {
   try {
-    await request('/api/v1/auth/logout', {
-      method: 'POST',
-      withAuth: true,
-    });
+    await request('/api/v1/auth/logout', { method: 'POST', withAuth: true });
   } catch {
-    // intentionally ignored - local cleanup must always run
+    // Local cleanup still happens when the server is unavailable.
   }
   clearSession();
   notifySessionExpired();
@@ -121,16 +110,10 @@ async function request(path, { method = 'GET', body, isFormData = false, withAut
   }
 
   if (!response.ok) {
-    // 401 from an authenticated endpoint means the Laravel session/token
-    // is no longer valid. Drop the local session and notify subscribers
-    // (AuthContext) so the user is bounced to login. We exclude the
-    // unauthenticated auth endpoints themselves - a 401 from /login is a
-    // real "wrong password" error, not a session-expired event.
-    if (response.status === 401 && withAuth && isAuthEndpointRequiringSession(path)) {
+    if (response.status === 401 && withAuth && path.startsWith('/api/v1/auth/logout')) {
       clearSession();
       notifySessionExpired();
     }
-
     throw {
       status: response.status,
       message: data.message || 'Something went wrong. Please try again.',
@@ -140,15 +123,6 @@ async function request(path, { method = 'GET', body, isFormData = false, withAut
   }
 
   return data;
-}
-
-// Paths that prove the user is currently signed in (logout, profile, etc).
-// A 401 from any of these means the session was revoked/expired and we
-// should drop the local cookies + redirect to login.
-function isAuthEndpointRequiringSession(path) {
-  if (!path) return false;
-  if (path.startsWith('/api/v1/auth/logout')) return true;
-  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -191,7 +165,7 @@ export const loginUser = (email, password) =>
 // we use here. Flag this to the backend team to confirm in writing if
 // requests start failing with 404.
 export const loginWithGoogle = (credential, termsAccepted = false, privacyAccepted = false, extra = {}) =>
-  request('/api/v1/auth/login/google', {
+  request('/api/auth/login/google', {
     method: 'POST',
     body: {
       credential,
@@ -204,15 +178,8 @@ export const loginWithGoogle = (credential, termsAccepted = false, privacyAccept
 export const loginOrganization = (email, password) =>
   request('/api/v1/auth/login/organization', { method: 'POST', body: { email, password } });
 
-export const logoutUser = () =>
-  request('/api/v1/auth/logout', {
-    method: 'POST',
-    withAuth: true,
-  });
-
-// Revokes every active session/token for this account (all devices).
-export const logoutAllDevices = () =>
-  request('/api/v1/auth/logout-all', { method: 'POST', withAuth: true });
+export const loginOrganizationWithGoogle = (credential) =>
+  request('/api/auth/login/organization/google', { method: 'POST', body: { credential } });
 
 export const forgotPassword = (email) =>
   request('/api/v1/auth/forgot-password', { method: 'POST', body: { email } });
@@ -227,14 +194,124 @@ export const resetPassword = ({ email, otp, password, password_confirmation }) =
   });
 
 // Alias used by VerifyCode.jsx
-export const resendForgotPasswordOtp = (email) =>
-  request('/api/v1/auth/forgot-password/resend', {
-    method: 'POST',
-    body: { email },
-  });
+export const resendForgotPasswordOtp = resendForgotPassword;
 
 export const verifyForgotPasswordOtp = (email, otp) =>
   request('/api/v1/auth/forgot-password/verify', {
     method: 'POST',
     body: { email, otp },
   });
+
+// ---------------------------------------------------------------------------
+// Logout
+// ---------------------------------------------------------------------------
+// Confirmed against the backend's routes/api.php (see api_endpoints_render.md).
+// Both require Authorization: Bearer {token}, which `request()` adds via withAuth.
+
+// Revokes only the current session's token on the server.
+export const logoutUser = () =>
+  request('/api/v1/auth/logout', { method: 'POST', withAuth: true });
+
+// Revokes every active session/token for this account (all devices).
+export const logoutAllDevices = () =>
+  request('/api/v1/auth/logout-all', { method: 'POST', withAuth: true });
+
+// ---------------------------------------------------------------------------
+// Learner profile (role:learner only)
+// ---------------------------------------------------------------------------
+// Confirmed against the backend's routes/api.php (see api_endpoints_render.md):
+// POST/GET/PUT /api/v1/profile, all requiring Authorization: Bearer {token}.
+//
+// Confirmed field contract (learner-profile task):
+//   university_name            (free text - university name)
+//   student_university_number  (free text - learner's student/university ID)
+//   specialization             (free text - specialization name)
+//   academic_level
+//   expected_graduation        (YYYY-MM-DD)
+//   bio
+//   visibility                 (public | organization_only | private)
+// NOTE: POST is an upsert; a StudentProfile row is created at registration,
+// so POST fills/updates the existing row (200) or creates one (201) instead
+// of rejecting with "already exists". The frontend can always POST the full
+// profile data during onboarding (LearnerProfileSetup.jsx).
+export const getProfile = () => request('/api/v1/profile', { method: 'GET', withAuth: true });
+
+export const createProfile = (payload) =>
+  request('/api/v1/profile', { method: 'POST', body: payload, withAuth: true });
+
+export const updateProfile = (payload) =>
+  request('/api/v1/profile', { method: 'PUT', body: payload, withAuth: true });
+
+// ---------------------------------------------------------------------------
+// Baseline Assessments (role:learner only, requires Authorization: Bearer {token})
+// ---------------------------------------------------------------------------
+// Confirmed against SkillSpan_New_Endpoints.pdf (an addendum to
+// api_endpoints_render.md - these routes come straight from routes/api.php
+// and are not documented anywhere else). Drives the Baseline Skill
+// Assessment flow in AssessmentWizard.jsx / SkillAssessment.jsx:
+//   1. startBaselineAssessment()               - POST, begins a new attempt,
+//                                                 returns { assessment id }
+//   2. getBaselineAssessment(id)                - GET,  fetch one attempt
+//   3. autosaveBaselineAssessment(id, payload)  - PATCH, save progress
+//                                                 before final submission
+//   4. submitBaselineAssessment(id)             - POST, final submit +
+//                                                 server-side score/skill
+//                                                 calculation
+// ⚠️ Exact response/request field names are NOT confirmed with the backend
+// team yet (the PDF only lists method+path+description, no schemas) -
+// callers should treat the response shape defensively and keep a local
+// fallback (see assessmentStorage.js) until this is confirmed in writing.
+
+export const startBaselineAssessment = () =>
+  request('/api/v1/baseline-assessments', { method: 'POST', withAuth: true });
+
+export const getBaselineAssessment = (assessmentId) =>
+  request(`/api/v1/baseline-assessments/${assessmentId}`, { method: 'GET', withAuth: true });
+
+// Autosave (progress save before submission) - PATCH per the addendum.
+export const autosaveBaselineAssessment = (assessmentId, payload) =>
+  request(`/api/v1/baseline-assessments/${assessmentId}`, {
+    method: 'PATCH',
+    body: payload,
+    withAuth: true,
+  });
+
+// Final submit - locks the attempt in and triggers score calculation.
+export const submitBaselineAssessment = (assessmentId) =>
+  request(`/api/v1/baseline-assessments/${assessmentId}/submit`, { method: 'POST', withAuth: true });
+
+// ---------------------------------------------------------------------------
+// Reference data / dropdowns (public - no token required)
+// ---------------------------------------------------------------------------
+// Confirmed against SkillSpan_New_Endpoints.pdf. Used to populate the
+// University / Specialization / Country dropdowns in LearnerProfileSetup.jsx
+// instead of the previous hardcoded lists.
+
+export const getUniversities = () => request('/api/v1/reference/universities', { method: 'GET' });
+
+export const getSpecializations = () => request('/api/v1/reference/specializations', { method: 'GET' });
+
+export const getCountries = () => request('/api/v1/reference/countries', { method: 'GET' });
+
+// Universities for one specific country only. The backend expects the
+// country's numeric id in the URL, not its display name.
+export const getUniversitiesByCountry = (countryId) =>
+  request(`/api/v1/reference/countries/${encodeURIComponent(countryId)}/universities`, { method: 'GET' });
+
+// ---------------------------------------------------------------------------
+// Skills (requires Authorization: Bearer {token})
+// ---------------------------------------------------------------------------
+// Confirmed against SkillSpan_New_Endpoints.pdf. The Skill Matrix is what
+// SkillAssessmentResults.jsx calls "Initializing Skill Matrix" (BR-11) -
+// getSkillsMatrix() is used there to prefer the server-calculated matrix
+// over the locally-computed one whenever it's available.
+
+export const getSkillsTaxonomy = () => request('/api/v1/skills/taxonomy', { method: 'GET', withAuth: true });
+
+export const getSkillsMatrix = () => request('/api/v1/skills/matrix', { method: 'GET', withAuth: true });
+
+export const addSkillToMatrix = (payload) =>
+  request('/api/v1/skills/matrix', { method: 'POST', body: payload, withAuth: true });
+
+export const updateSkillMatrixEntry = (id, payload) =>
+  request(`/api/v1/skills/matrix/${id}`, { method: 'PUT', body: payload, withAuth: true });

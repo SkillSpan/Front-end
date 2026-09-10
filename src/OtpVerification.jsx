@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { verifyOtp, resendOtp } from './api';
 import './OtpVerification.css';
 
-const OtpVerification = ({ email: propEmail, onVerifySuccess, onBack, onContinueToLogin }) => {
-  const [emailInput, setEmailInput] = useState(propEmail || '');
+const OtpVerification = ({ email: propEmail, userEmail, onVerifySuccess, onBack, onContinueToLogin }) => {
+  const [emailInput, setEmailInput] = useState(propEmail || userEmail || '');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(600);
   const [resendTimer, setResendTimer] = useState(60);

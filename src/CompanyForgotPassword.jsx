@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './CompanyForgotPassword.css';
 import { forgotPassword, resendForgotPassword, resetPassword, verifyForgotPasswordOtp } from './api';
 
@@ -91,21 +91,17 @@ const Sidebar = () => (
 // Small helper: counts down to a given ISO timestamp (resend_available_at) and
 // returns the remaining whole seconds (0 once it has passed / is missing).
 function useCountdown(targetIso) {
-  const [secondsLeft, setSecondsLeft] = useState(() => {
-    if (!targetIso) return 0;
-    const diff = Math.ceil((new Date(targetIso).getTime() - Date.now()) / 1000);
-    return diff > 0 ? diff : 0;
-  });
+  const [secondsLeft, setSecondsLeft] = useState(0);
 
   useEffect(() => {
-    if (!targetIso) return undefined;
+    if (!targetIso) {
+      setSecondsLeft(0);
+      return undefined;
+    }
     const target = new Date(targetIso).getTime();
     const tick = () => {
-      setSecondsLeft((prev) => {
-        const diff = Math.ceil((target - Date.now()) / 1000);
-        const next = diff > 0 ? diff : 0;
-        return prev === next ? prev : next;
-      });
+      const diff = Math.ceil((target - Date.now()) / 1000);
+      setSecondsLeft(diff > 0 ? diff : 0);
     };
     tick();
     const id = setInterval(tick, 1000);

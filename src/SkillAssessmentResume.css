@@ -1,0 +1,301 @@
+/* SkillAssessmentResume.css
+ * "8. Resume state" - "Continue Assessment". Same simple topbar as the
+ * intro screen (brand + step label, no step tracker), then a two-card
+ * layout: left card is the "pick up where you left off" summary + CTA,
+ * right card is a per-section progress breakdown + a preview of the next
+ * question.
+ */
+
+.assessment-resume-page {
+  min-height: 100vh;
+  background-color: #f4f6fb;
+  display: flex;
+  flex-direction: column;
+  font-family: inherit;
+}
+
+.assessment-resume-topbar-meta {
+  margin-left: auto;
+}
+
+.assessment-resume-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items: start;
+  padding: 48px 56px;
+  max-width: 1320px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.assessment-resume-card {
+  background: linear-gradient(160deg, #f2f4fc, #eceffb);
+  border: 1px solid #e6e8f5;
+  border-radius: 22px;
+  padding: 40px 36px;
+  box-sizing: border-box;
+}
+
+/* -------------------------------- Main card -------------------------------- */
+
+.assessment-resume-icon-box {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.assessment-resume-icon-box svg {
+  width: 26px;
+  height: 26px;
+}
+
+.assessment-resume-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: fit-content;
+  margin: 0 auto 18px;
+  background: #e0e7ff;
+  color: #4338ca;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.assessment-resume-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4338ca;
+}
+
+.assessment-resume-title {
+  text-align: center;
+  font-size: 1.55rem;
+  color: #10132a;
+  margin: 0 0 14px;
+}
+
+.assessment-resume-desc {
+  text-align: center;
+  font-size: 0.92rem;
+  color: #6b7080;
+  line-height: 1.6;
+  max-width: 420px;
+  margin: 0 auto 30px;
+}
+
+.assessment-resume-progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+  color: #4b4f5e;
+  margin-bottom: 8px;
+}
+
+.assessment-resume-progress-row strong {
+  color: #4338ca;
+}
+
+.assessment-resume-progress-track {
+  height: 8px;
+  border-radius: 999px;
+  background: #dfe3f5;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.assessment-resume-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4f6df5, #7c3aed);
+  transition: width 0.3s ease;
+}
+
+.assessment-resume-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #9297a8;
+  margin-bottom: 30px;
+}
+
+.assessment-resume-continue {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 24px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(90deg, #4f6df5, #7c3aed);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.assessment-resume-continue:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.assessment-resume-continue svg {
+  width: 16px;
+  height: 16px;
+}
+
+.assessment-resume-restart {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 14px 0 0;
+  font-size: 0.85rem;
+  color: #9297a8;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.assessment-resume-restart:hover {
+  color: #6b7080;
+}
+
+/* -------------------------------- Sections card -------------------------------- */
+
+.assessment-resume-card-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9297a8;
+  margin-bottom: 22px;
+}
+
+.assessment-resume-section-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.assessment-resume-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.assessment-resume-section-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: #dfe3f5;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.assessment-resume-section-icon.complete {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.assessment-resume-section-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.assessment-resume-section-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #10132a;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.assessment-resume-section-row span:last-child {
+  font-weight: 500;
+  color: #9297a8;
+  font-size: 0.8rem;
+}
+
+.assessment-resume-section-row span.complete {
+  color: #16a34a;
+}
+
+.assessment-resume-section-track {
+  height: 6px;
+  border-radius: 999px;
+  background: #dfe3f5;
+  overflow: hidden;
+}
+
+.assessment-resume-section-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #a5b4fc;
+  transition: width 0.3s ease;
+}
+
+.assessment-resume-section-fill.complete {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.assessment-resume-next {
+  background: #e8ecff;
+  border: 1px solid #d7defc;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.assessment-resume-next-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6366f1;
+  margin-bottom: 8px;
+}
+
+.assessment-resume-next p {
+  margin: 0 0 12px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: #10132a;
+}
+
+.assessment-resume-next-tag {
+  display: inline-block;
+  background: #dbe1ff;
+  color: #4338ca;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive                                                          */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 980px) {
+  .assessment-resume-body {
+    grid-template-columns: 1fr;
+    padding: 32px 20px;
+  }
+}
