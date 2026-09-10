@@ -1,0 +1,253 @@
+/* VerifyCode.css */
+.verify-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #03081e;
+  box-sizing: border-box;
+}
+
+.verify-card {
+  width: 100%;
+  max-width: 980px;
+  background: #ffffff;
+  border-radius: 24px;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 50px rgba(43, 127, 255, 0.15), 0 25px 60px rgba(0, 0, 0, 0.6);
+  position: relative;
+}
+
+/* القسم الأيمن لتأكيد الكود */
+.form-right-verify {
+  flex: 1;
+  padding: 40px 50px 50px 50px;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  position: relative;
+  text-align: center;
+}
+
+.verify-content-box {
+  max-width: 420px;
+  margin: 0 auto;
+  width: 100%;
+  text-align: center;
+}
+
+/* أيقونة الرسالة العلوية - صندوق داكن مطابق لتصميم Email Verification */
+.verify-mail-icon-box {
+  width: 72px;
+  height: 72px;
+  background-color: #0c1838;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px auto;
+  box-shadow: 0 8px 20px rgba(12, 24, 56, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.verify-mail-svg {
+  width: 36px;
+  height: 36px;
+  display: block;
+}
+
+/* وسم EMAIL VERIFICATION */
+.verify-subtag {
+  color: #1d72b8;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.verify-heading {
+  font-size: 1.6rem;
+  color: #0c1838;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+/* حقل الإيميل القابل للتعديل */
+.verify-email-field {
+  text-align: left;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.verify-email-field label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #333333;
+  font-weight: 600;
+}
+
+.verify-email-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  background-color: #f9fafb;
+  font-family: inherit;
+  color: #0c1838;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.verify-email-input:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+  background-color: #ffffff;
+}
+
+/* مربعات إدخال كود الـ OTP */
+.otp-inputs-container {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.otp-input-box {
+  width: 50px;
+  height: 56px;
+  background-color: #fce8a6;
+  border: 1px solid #f59e0b;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #0c1838;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.otp-input-box:focus {
+  background-color: #ffffff;
+  border-color: #d97706;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+  transform: translateY(-2px);
+}
+
+/* مؤقت انتهاء صلاحية الكود */
+.verify-timer-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #475569;
+  margin-bottom: 24px;
+}
+
+.verify-timer-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #f59e0b;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.verify-timer-highlight {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-bottom: 15px;
+  display: block;
+}
+
+/* زر Verify code - نفس تصميم الزر الدائري في صفحة Email Verification */
+.btn-verify-code {
+  width: 100%;
+  padding: 16px;
+  background-color: #0c1838;
+  color: white;
+  border: none;
+  border-radius: 28px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-verify-code:hover {
+  background-color: #162c5b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(12, 24, 56, 0.35);
+}
+
+.btn-verify-code:active {
+  transform: scale(0.98);
+}
+
+/* تذييل الصفحة: إعادة الإرسال + Back، أسفل الصفحة تمامًا */
+.verify-footer {
+  max-width: 420px;
+  margin: 24px auto 0 auto;
+  padding-top: 20px;
+  width: 100%;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.verify-resend-line {
+  font-size: 0.9rem;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.verify-resend-btn {
+  background: none;
+  border: none;
+  color: #1e3a8a;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.verify-resend-btn:hover {
+  color: #0c1838;
+  text-decoration: underline;
+}
+
+.verify-resend-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.verify-resend-disabled {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.verify-back-btn {
+  background: none;
+  border: none;
+  color: #1e3a8a;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.verify-back-btn:hover {
+  color: #0c1838;
+}
