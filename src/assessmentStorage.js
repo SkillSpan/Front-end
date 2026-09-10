@@ -13,32 +13,32 @@
 export const STORAGE_KEY = 'skillspan_assessment_answers';
 
 export const loadSavedAnswers = () => {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
+    try {
+        const raw = sessionStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch {
+        return {};
+    }
 };
 
 export const saveAnswers = (answers) => {
-  try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(answers));
-  } catch {
-    // Best effort only - losing autosave shouldn't block the quiz.
-  }
+    try {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(answers));
+    } catch {
+        // Best effort only - losing autosave shouldn't block the quiz.
+    }
 };
 
 export const clearSavedAnswers = () => {
-  try {
-    sessionStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // no-op
-  }
+    try {
+        sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+        // no-op
+    }
 };
 
 export const countAnswered = (answers) =>
-  Object.keys(answers || {}).filter((id) => answers[id] !== undefined && answers[id] !== '').length;
+    Object.keys(answers || {}).filter((id) => answers[id] !== undefined && answers[id] !== '').length;
 
 // ---------------------------------------------------------------------------
 // Backend assessment id + submission result
@@ -54,20 +54,20 @@ const ASSESSMENT_ID_KEY = 'skillspan_assessment_id';
 const SUBMISSION_RESULT_KEY = 'skillspan_assessment_result';
 
 export const loadAssessmentId = () => {
-  try {
-    return sessionStorage.getItem(ASSESSMENT_ID_KEY) || null;
-  } catch {
-    return null;
-  }
+    try {
+        return sessionStorage.getItem(ASSESSMENT_ID_KEY) || null;
+    } catch {
+        return null;
+    }
 };
 
 export const saveAssessmentId = (id) => {
-  try {
-    if (id === null || id === undefined) sessionStorage.removeItem(ASSESSMENT_ID_KEY);
-    else sessionStorage.setItem(ASSESSMENT_ID_KEY, String(id));
-  } catch {
-    // Best effort only - the assessment still works locally without it.
-  }
+    try {
+        if (id === null || id === undefined) sessionStorage.removeItem(ASSESSMENT_ID_KEY);
+        else sessionStorage.setItem(ASSESSMENT_ID_KEY, String(id));
+    } catch {
+        // Best effort only - the assessment still works locally without it.
+    }
 };
 
 export const clearAssessmentId = () => saveAssessmentId(null);
@@ -76,21 +76,21 @@ export const clearAssessmentId = () => saveAssessmentId(null);
 // succeeded - SkillAssessmentResults.jsx prefers this over its own local
 // calculation whenever it's present and looks usable.
 export const loadSubmissionResult = () => {
-  try {
-    const raw = sessionStorage.getItem(SUBMISSION_RESULT_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+    try {
+        const raw = sessionStorage.getItem(SUBMISSION_RESULT_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
 };
 
 export const saveSubmissionResult = (result) => {
-  try {
-    if (result) sessionStorage.setItem(SUBMISSION_RESULT_KEY, JSON.stringify(result));
-    else sessionStorage.removeItem(SUBMISSION_RESULT_KEY);
-  } catch {
-    // Best effort only.
-  }
+    try {
+        if (result) sessionStorage.setItem(SUBMISSION_RESULT_KEY, JSON.stringify(result));
+        else sessionStorage.removeItem(SUBMISSION_RESULT_KEY);
+    } catch {
+        // Best effort only.
+    }
 };
 
 export const clearSubmissionResult = () => saveSubmissionResult(null);
