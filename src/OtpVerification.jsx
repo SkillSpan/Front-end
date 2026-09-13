@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useRef, useEffect } from 'react';
 import './OtpVerification.css';
 import { verifyOtp, resendOtp } from './api';
