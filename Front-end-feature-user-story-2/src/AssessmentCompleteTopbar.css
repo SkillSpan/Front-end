@@ -1,0 +1,64 @@
+/* AssessmentCompleteTopbar.css
+ * The dark topbar variant used once the 12 questions are answered
+ * (Submitting / Completion / Results screens). A thin, fully-filled
+ * gradient strip runs along the very top edge under the bar itself, and
+ * the right side shows a short progress track + a green completion check
+ * instead of the step tracker used earlier in the wizard.
+ */
+
+.assessment-complete-topbar {
+  position: relative;
+  justify-content: space-between;
+}
+
+.assessment-complete-topbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 3px;
+  background: linear-gradient(90deg, #4f6df5, #7c3aed);
+}
+
+.assessment-complete-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.assessment-complete-topbar-track {
+  width: 180px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.assessment-complete-topbar-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4f6df5, #7c3aed);
+}
+
+.assessment-complete-topbar-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #4ade80;
+  white-space: nowrap;
+}
+
+.assessment-complete-topbar-check svg {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 640px) {
+  .assessment-complete-topbar-track {
+    width: 100px;
+  }
+}

@@ -1,0 +1,166 @@
+.verified-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+}
+
+/* أيقونة الصح الخضراء داخل الدائرة الداكنة */
+.success-icon-box {
+  width: 80px;
+  height: 80px;
+  background-color: #1e293b;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 25px rgba(30, 41, 59, 0.2);
+}
+
+.success-svg-icon {
+  width: 40px;
+  height: 40px;
+  color: #22c55e;
+}
+
+.verified-heading {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0c1838;
+  margin-bottom: 12px;
+}
+
+.verified-desc {
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 30px;
+}
+
+/* زر المتابعة */
+.btn-continue {
+  width: 100%;
+  max-width: 420px;
+  padding: 16px;
+  background-color: #0c1838;
+  color: #ffffff;
+  border: none;
+  border-radius: 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-bottom: 20px;
+}
+
+.btn-continue:hover {
+  background-color: #162c5b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(12, 24, 56, 0.35);
+}
+
+/* رابط العودة للرئيسية */
+.verified-footer-link {
+  margin-top: 10px;
+}
+
+.landing-link-btn {
+  background: none;
+  border: none;
+  color: #0c1838;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.landing-link-btn:hover {
+  color: #1e3a8a;
+}
+/* --- تنسيقات شاشة النجاح (Email Verified) --- */
+.verified-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+}
+
+.success-icon-box {
+  width: 80px;
+  height: 80px;
+  background-color: #0c1838;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 25px rgba(12, 24, 56, 0.2);
+}
+
+.success-svg-icon {
+  width: 40px;
+  height: 40px;
+  color: #22c55e;
+}
+
+.verified-heading {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0c1838;
+  margin-bottom: 12px;
+}
+
+.verified-desc {
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin-bottom: 30px;
+}
+
+.btn-continue {
+  width: 100%;
+  max-width: 420px;
+  padding: 16px;
+  background-color: #0c1838;
+  color: #ffffff;
+  border: none;
+  border-radius: 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-bottom: 20px;
+}
+
+.btn-continue:hover {
+  background-color: #162c5b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(12, 24, 56, 0.35);
+}
+
+.verified-footer-link {
+  margin-top: 10px;
+}
+
+.landing-link-btn {
+  background: none;
+  border: none;
+  color: #0c1838;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.landing-link-btn:hover {
+  color: #1e3a8a;
+}
