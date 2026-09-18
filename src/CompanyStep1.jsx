@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import './CompanyRegister.css';
+<<<<<<< HEAD
+=======
+import { ShieldCheckIcon, LockIcon, EyeIcon, EyeOffIcon } from './CompanyIcons';
+>>>>>>> feature/hide-scrollbars
 
 const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack, initialData }) => {
   const [formData, setFormData] = useState({
@@ -44,6 +48,7 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack, initialData })
     <div className="company-step1-container">
       <div className="company-step1-card">
         <div className="company-step1-sidebar">
+<<<<<<< HEAD
           <div className="company-step1-brand">
             <span className="c-white">Skill</span><span className="c-blue">Span</span>
           </div>
@@ -79,6 +84,39 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack, initialData })
 
           <div className="company-step1-sec-badge">
             <span>🛡️</span>
+=======
+          <div>
+            <div className="company-step1-brand" aria-label="SkillSpan brand name">
+              <span className="brand-wordmark"><span className="brand-skill">Skill</span><span className="brand-span">Span</span></span>
+            </div>
+
+            <ul className="company-step1-steps">
+              <li className="company-step1-step-item active">
+                <span className="c-indicator"></span>
+                <span>1. Account Details</span>
+              </li>
+              <li className="company-step1-step-item">
+                <span className="c-indicator"></span>
+                <span>2. Company Information</span>
+              </li>
+              <li className="company-step1-step-item">
+                <span className="c-indicator"></span>
+                <span>3. Verification & Documents</span>
+              </li>
+              <li className="company-step1-step-item">
+                <span className="c-indicator"></span>
+                <span>4. Terms & Agreement</span>
+              </li>
+              <li className="company-step1-step-item">
+                <span className="c-indicator"></span>
+                <span>5. Confirmation Screen</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="company-step1-sec-badge">
+            <span className="sec-icon"><ShieldCheckIcon /></span>
+>>>>>>> feature/hide-scrollbars
             <div>
               <p className="sec-t">Your information is secure</p>
               <p className="sec-d">We protect your data and never share it with anyone.</p>
@@ -91,6 +129,10 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack, initialData })
             <h2>Welcome to Registration</h2>
             <span className="c-step-badge">Step 1</span>
           </div>
+<<<<<<< HEAD
+=======
+          <div className="company-step1-scroll">
+>>>>>>> feature/hide-scrollbars
 
           {error && <div style={{ color: '#ef4444', marginBottom: '15px', fontSize: '14px' }}>{error}</div>}
 
@@ -142,8 +184,13 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack, initialData })
                   onChange={handleChange}
                   required
                 />
+<<<<<<< HEAD
                 <span onClick={() => setShowPassword(!showPassword)} style={{ cursor: 'pointer', position: 'absolute', right: '14px' }}>
                   {showPassword ? '👁️' : '👁️‍🗨️'}
+=======
+                <span className="c-pass-toggle" onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? <EyeIcon /> : <EyeOffIcon />}
+>>>>>>> feature/hide-scrollbars
                 </span>
               </div>
             </div>
@@ -159,14 +206,23 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack, initialData })
                   onChange={handleChange}
                   required
                 />
+<<<<<<< HEAD
                 <span onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ cursor: 'pointer', position: 'absolute', right: '14px' }}>
                   {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+=======
+                <span className="c-pass-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  {showConfirmPassword ? <EyeIcon /> : <EyeOffIcon />}
+>>>>>>> feature/hide-scrollbars
                 </span>
               </div>
             </div>
 
             <div className="c-notice-box">
+<<<<<<< HEAD
               <span>🔒</span>
+=======
+              <span className="c-notice-icon"><LockIcon /></span>
+>>>>>>> feature/hide-scrollbars
               <p>You'll be able to add more team members later.<br />This account will be the primary admin for your company.</p>
             </div>
 
@@ -183,6 +239,10 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack, initialData })
               Already Have a company account? <span onClick={onNavigateToLogin} style={{ color: '#3b82f6', cursor: 'pointer', fontWeight: '600' }}>log in</span>
             </div>
           </form>
+<<<<<<< HEAD
+=======
+          </div>
+>>>>>>> feature/hide-scrollbars
         </div>
       </div>
     </div>

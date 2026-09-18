@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* الحاوية الرئيسية */
@@ -166,16 +167,283 @@
   flex-direction: column;
   overflow-y: auto;
   max-height: 85vh;
+=======
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ============================================================
+   Full-bleed split-screen shell (dark sidebar + light form panel).
+   Shared by CompanyStep1 .. CompanyStep5.
+   ============================================================ */
+.company-step1-container,
+.company-step2-container,
+.company-step3-container,
+.company-step4-container,
+.company-step5-container {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+.company-step1-card,
+.company-step2-card,
+.company-step3-card,
+.company-step4-card,
+.company-step5-card {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------------- Sidebar ---------------- */
+.company-step1-sidebar,
+.company-step2-sidebar,
+.company-step3-sidebar,
+.company-step4-sidebar,
+.company-step5-sidebar {
+  position: relative;
+  overflow-y: auto;
+  height: 100%;
+  width: 36%;
+  min-width: 300px;
+  max-width: 400px;
+  padding: 28px 32px;
+  background: #05070f;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.company-step1-sidebar::before,
+.company-step2-sidebar::before,
+.company-step3-sidebar::before,
+.company-step4-sidebar::before,
+.company-step5-sidebar::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  left: -100px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.28) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.company-step1-sidebar::after,
+.company-step2-sidebar::after,
+.company-step3-sidebar::after,
+.company-step4-sidebar::after,
+.company-step5-sidebar::after {
+  content: '';
+  position: absolute;
+  bottom: -140px;
+  right: -100px;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.company-step1-brand,
+.company-step2-brand,
+.company-step3-brand,
+.company-step4-brand,
+.company-step5-brand {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 30px;
+  font-weight: 500;
+  margin-bottom: 28px;
+  line-height: 1;
+}
+
+.brand-wordmark {
+  font-family: 'Instrument Sans', sans-serif;
+  letter-spacing: 0;
+  font-weight: 500;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(180deg, #0491AF 0%, #034076 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.brand-skill {
+  color: #ffffff;
+}
+
+.brand-span {
+  background: linear-gradient(180deg, #0491AF 0%, #034076 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.c-white { color: #ffffff; }
+.c-blue { color: #38bdf8; }
+
+/* ---------------- Vertical stepper ---------------- */
+.company-step1-steps,
+.company-step2-steps,
+.company-step3-steps,
+.company-step4-steps,
+.company-step5-steps {
+  position: relative;
+  z-index: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.company-step1-step-item,
+.company-step2-step-item,
+.company-step3-step-item,
+.company-step4-step-item,
+.company-step5-step-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 24px;
+  padding-left: 2px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Connecting vertical line running behind the circles */
+.company-step1-step-item:not(:last-child)::before,
+.company-step2-step-item:not(:last-child)::before,
+.company-step3-step-item:not(:last-child)::before,
+.company-step4-step-item:not(:last-child)::before,
+.company-step5-step-item:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 28px;
+  width: 2px;
+  height: calc(100% - 4px);
+  background: rgba(255, 255, 255, 0.18);
+  z-index: 0;
+}
+
+.company-step1-step-item.active,
+.company-step2-step-item.active,
+.company-step3-step-item.active,
+.company-step4-step-item.active,
+.company-step5-step-item.active {
+  color: #a78bfa;
+}
+
+.c-indicator {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: #05070f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #ffffff;
+}
+
+.company-step1-step-item.active .c-indicator,
+.company-step2-step-item.active .c-indicator,
+.company-step3-step-item.active .c-indicator,
+.company-step4-step-item.active .c-indicator,
+.company-step5-step-item.active .c-indicator {
+  border-color: #60a5fa;
+  background: radial-gradient(circle at 35% 35%, #a855f7 0%, #6366f1 55%, #38bdf8 100%);
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
+}
+
+.company-step1-step-item.completed .c-indicator,
+.company-step2-step-item.completed .c-indicator,
+.company-step3-step-item.completed .c-indicator,
+.company-step4-step-item.completed .c-indicator,
+.company-step5-step-item.completed .c-indicator {
+  border-color: #60a5fa;
+  background: radial-gradient(circle at 35% 35%, #a855f7 0%, #6366f1 55%, #38bdf8 100%);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* ---------------- Security badge (bottom of sidebar) ---------------- */
+.company-step1-sec-badge,
+.company-step2-sec-badge,
+.company-step3-sec-badge,
+.company-step4-sec-badge,
+.company-step5-sec-badge {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 20px;
+  flex-shrink: 0;
+}
+
+.sec-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.sec-t { font-size: 0.92rem; font-weight: 700; color: #22c55e; margin: 0 0 3px 0; }
+.sec-d { font-size: 0.82rem; color: #e2e8f0; margin: 0; line-height: 1.4; font-weight: 500; }
+
+/* ---------------- Form panel (light) ---------------- */
+.company-step1-form-sec,
+.company-step2-form-sec,
+.company-step3-form-sec,
+.company-step4-form-sec,
+.company-step5-form-sec {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  background: #eef1f7;
+  padding: 32px 48px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+>>>>>>> feature/hide-scrollbars
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
 .company-step1-form-sec::-webkit-scrollbar,
+<<<<<<< HEAD
 .company-step3-form-sec::-webkit-scrollbar {
+=======
+.company-step2-form-sec::-webkit-scrollbar,
+.company-step3-form-sec::-webkit-scrollbar,
+.company-step4-form-sec::-webkit-scrollbar,
+.company-step5-form-sec::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+>>>>>>> feature/hide-scrollbars
   display: none;
 }
 
 .company-step1-header,
+<<<<<<< HEAD
 .company-step3-header {
   display: flex;
   justify-content: space-between;
@@ -207,6 +475,93 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+=======
+.company-step2-header,
+.company-step3-header,
+.company-step4-header,
+.company-step5-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.company-step1-header h2,
+.company-step2-header h2,
+.company-step3-header h2,
+.company-step4-header h2,
+.company-step5-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.c-step-badge {
+  flex-shrink: 0;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.company-step1-scroll,
+.company-step2-scroll,
+.company-step3-scroll,
+.company-step4-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.company-step1-scroll::-webkit-scrollbar,
+.company-step2-scroll::-webkit-scrollbar,
+.company-step3-scroll::-webkit-scrollbar,
+.company-step4-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.company-step4-scroll {
+  padding-top: 2px;
+  max-width: 680px;
+}
+
+/* ---------------- Form elements ---------------- */
+.company-step1-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 720px;
+}
+
+.c-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.c-section-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.c-section-title-spaced {
+  margin-top: 4px;
+>>>>>>> feature/hide-scrollbars
 }
 
 .c-input-group {
@@ -215,6 +570,7 @@
   gap: 6px;
 }
 
+<<<<<<< HEAD
 .c-input-group label {
   font-size: 0.85rem;
   font-weight: 500;
@@ -238,6 +594,49 @@
 .c-input-group textarea:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+=======
+.c-input-group-spaced {
+  margin-top: 4px;
+}
+
+.c-input-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.c-input-group input,
+.c-input-group select,
+.c-input-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid #d7dce6;
+  border-radius: 10px;
+  padding: 11px 16px;
+  color: #0f172a;
+  font-size: 0.92rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.c-input-group textarea {
+  resize: none;
+  min-height: 58px;
+}
+
+.c-input-group input::placeholder,
+.c-input-group textarea::placeholder {
+  color: #94a3b8;
+}
+
+.c-input-group input:focus,
+.c-input-group select:focus,
+.c-input-group textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+>>>>>>> feature/hide-scrollbars
 }
 
 .c-pass-wrap {
@@ -247,6 +646,7 @@
 }
 
 .c-pass-wrap input {
+<<<<<<< HEAD
   width: 100%;
 }
 
@@ -509,31 +909,393 @@
 .c-checkbox-card.checked .custom-checkbox {
   background: #3b82f6;
   border-color: #3b82f6;
+=======
+  padding-right: 44px;
+}
+
+.c-pass-toggle {
+  position: absolute;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.c-pass-toggle:hover {
+  color: #475569;
+}
+
+/* Notice / info boxes (yellow) */
+.c-notice-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fdf1d8;
+  border: 1px solid #f3d99b;
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.c-notice-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1e2333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.c-notice-box p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #7a5b12;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.c-form-error {
+  color: #b91c1c;
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.c-form-error-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Upload boxes (step 3) */
+.c-verify-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.c-verify-sub {
+  font-size: 0.86rem;
+  color: #64748b;
+  margin: 4px 0 6px;
+}
+
+.c-upload-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.c-required { color: #dc6a3f; font-weight: 600; }
+.c-optional { color: #94a3b8; font-weight: 600; }
+
+.c-upload-box {
+  position: relative;
+  border: 1px dashed #cbd5e1;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.c-upload-box:hover {
+  border-color: #94a3b8;
+}
+
+.c-upload-box.has-file {
+  border-style: solid;
+  border-color: #6366f1;
+  background: #f5f6ff;
+}
+
+.c-upload-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.c-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.c-upload-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #eef1fb;
+  color: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.c-upload-title {
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.c-upload-hint {
+  color: #94a3b8;
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
+.c-upload-selected {
+  margin-top: 14px;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 8px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: #4338ca;
+  font-weight: 600;
+}
+
+.c-upload-selected-tag {
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Terms & agreement (step 4) */
+.c-terms-lead {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  flex-shrink: 0;
+}
+
+.c-terms-sub {
+  margin: 0 0 14px;
+  font-size: 0.86rem;
+  color: #64748b;
+  max-width: 620px;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
+.c-terms-service-card,
+.c-privacy-policy-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 74px;
+  border-radius: 12px;
+  border: 1px solid #d8dde8;
+  background: #ffffff;
+  padding: 12px 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  margin-bottom: 10px;
+}
+
+.c-privacy-policy-card {
+  border-color: #d8dde8;
+  background: #f9fafb;
+}
+
+.c-terms-service-icon,
+.c-privacy-policy-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #eef2f9;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.c-privacy-policy-icon {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.c-terms-service-title,
+.c-privacy-policy-title {
+  color: #0f172a;
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.c-terms-service-copy,
+.c-privacy-policy-copy {
+  color: #475569;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.c-agreement-heading {
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 12px 0 8px;
+}
+
+.c-checkbox-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition: none;
+}
+
+.c-checkbox-card:hover {
+  border-color: transparent;
+}
+
+.c-checkbox-card.checked {
+  border-color: transparent;
+  background: transparent;
+}
+
+.custom-checkbox {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.c-checkbox-card.checked .custom-checkbox {
+  background: #0f172a;
+  border-color: #0f172a;
+>>>>>>> feature/hide-scrollbars
 }
 
 .checkmark {
   color: #ffffff;
+<<<<<<< HEAD
   font-size: 13px;
+=======
+  font-size: 12px;
+>>>>>>> feature/hide-scrollbars
   font-weight: 700;
 }
 
 .checkbox-text {
+<<<<<<< HEAD
   color: #cbd5e1;
   font-size: 0.9rem;
+=======
+  color: #1e293b;
+  font-size: 0.92rem;
+>>>>>>> feature/hide-scrollbars
   line-height: 1.4;
 }
 
 .highlight-text {
+<<<<<<< HEAD
   color: #38bdf8;
   font-weight: 600;
 }
 
 /* ─── Step 5: Confirmation success content ─────────────────────────── */
+=======
+  color: #4338ca;
+  font-weight: 700;
+}
+
+/* ---------------- Actions / buttons ---------------- */
+.c-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.c-btn-back,
+.c-btn-next {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.c-btn-back {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.c-btn-back:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.c-btn-next {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.c-btn-next:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.c-btn-next:disabled,
+.c-btn-back:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.c-login-text {
+  text-align: center;
+  font-size: 0.88rem;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.c-login-link {
+  color: #4f46e5;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.c-login-link:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================
+   Step 5: confirmation screen
+   ============================================================ */
+>>>>>>> feature/hide-scrollbars
 .company-step5-success {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+<<<<<<< HEAD
   padding: 20px 10px 10px 10px;
 }
 
@@ -659,11 +1421,71 @@
 .c5-info-desc {
   color: #94a3b8;
   font-size: 0.85rem;
+=======
+  max-width: 560px;
+}
+
+.c5-check-badge {
+  margin-bottom: 14px;
+}
+
+.c5-thank-you {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 6px;
+}
+
+.c5-thank-desc {
+  color: #475569;
+  font-size: 0.95rem;
+  max-width: 460px;
+  margin: 0 0 22px;
+  line-height: 1.5;
+}
+
+.c5-info-list-plain {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.c5-info-list-plain > li {
+  position: relative;
+  padding-left: 20px;
+}
+
+.c5-info-list-plain > li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  top: 1px;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.c5-info-title {
+  color: #0f172a;
+  font-size: 1.02rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.c5-info-desc {
+  color: #64748b;
+  font-size: 0.9rem;
+>>>>>>> feature/hide-scrollbars
   line-height: 1.5;
   margin: 0;
 }
 
 .c5-info-desc strong {
+<<<<<<< HEAD
   color: #cbd5e1;
 }
 
@@ -694,20 +1516,156 @@
 .c5-btn-landing:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(139, 92, 246, 0.35);
+=======
+  color: #1e293b;
+}
+
+.c5-info-sublist {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.c5-btn-landing {
+  width: 100%;
+  max-width: 460px;
+  padding: 13px 24px;
+  border-radius: 10px;
+  border: none;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-bottom: 12px;
+}
+
+.c5-btn-landing:hover {
+  opacity: 0.88;
+>>>>>>> feature/hide-scrollbars
 }
 
 .c5-login-text {
   font-size: 0.88rem;
+<<<<<<< HEAD
   color: #94a3b8;
+=======
+  color: #64748b;
+>>>>>>> feature/hide-scrollbars
   margin: 0;
 }
 
 .c5-login-link {
+<<<<<<< HEAD
   color: #60a5fa;
   font-weight: 600;
+=======
+  color: #4f46e5;
+  font-weight: 700;
+>>>>>>> feature/hide-scrollbars
   cursor: pointer;
 }
 
 .c5-login-link:hover {
   text-decoration: underline;
 }
+<<<<<<< HEAD
+=======
+
+/* Center step 5 content vertically within its panel */
+.company-step5-form-sec {
+  justify-content: center;
+  align-items: center;
+}
+
+.company-step5-form-sec .company-step5-header {
+  width: 100%;
+  max-width: 560px;
+  justify-content: center;
+  position: relative;
+}
+
+.company-step5-form-sec .company-step5-header .c-step-badge {
+  position: absolute;
+  right: 0;
+  top: 4px;
+}
+
+.company-step5-form-sec .company-step5-header h2 {
+  text-align: center;
+  width: 100%;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 900px) {
+  .company-step1-container,
+  .company-step2-container,
+  .company-step3-container,
+  .company-step4-container,
+  .company-step5-container {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .company-step1-card,
+  .company-step2-card,
+  .company-step3-card,
+  .company-step4-card,
+  .company-step5-card {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .company-step1-sidebar,
+  .company-step2-sidebar,
+  .company-step3-sidebar,
+  .company-step4-sidebar,
+  .company-step5-sidebar {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .company-step1-form-sec,
+  .company-step2-form-sec,
+  .company-step3-form-sec,
+  .company-step4-form-sec,
+  .company-step5-form-sec {
+    height: auto;
+    padding: 28px 20px;
+    overflow-y: visible;
+  }
+
+  .company-step1-scroll,
+  .company-step2-scroll,
+  .company-step3-scroll {
+    overflow-y: visible;
+  }
+
+  .c-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .company-step1-header h2,
+  .company-step2-header h2,
+  .company-step3-header h2,
+  .company-step4-header h2,
+  .company-step5-header h2 {
+    font-size: 1.4rem;
+  }
+
+  .c-actions {
+    flex-direction: column;
+  }
+}
+>>>>>>> feature/hide-scrollbars

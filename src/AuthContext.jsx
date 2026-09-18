@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -7,6 +8,10 @@ import {
   isAuthenticated,
   onSessionExpired,
 } from './api';
+=======
+import { createContext, useContext, useState } from 'react';
+import { clearSession, getStoredUser, isAuthenticated } from './api';
+>>>>>>> feature/hide-scrollbars
 
 const AuthContext = createContext(null);
 
@@ -18,6 +23,7 @@ export function AuthProvider({ children }) {
   const [authUser, setAuthUser] = useState(() =>
     isAuthenticated() ? getStoredUser() : null
   );
+<<<<<<< HEAD
   const navigate = useNavigate();
 
   useEffect(() => onSessionExpired(() => {
@@ -33,11 +39,18 @@ export function AuthProvider({ children }) {
   };
 
   const forceLogout = () => {
+=======
+
+  const login = (user) => setAuthUser(user);
+
+  const logout = () => {
+>>>>>>> feature/hide-scrollbars
     clearSession();
     setAuthUser(null);
   };
 
   return (
+<<<<<<< HEAD
     <AuthContext.Provider value={{
       authUser,
       isAuthenticated: !!authUser,
@@ -45,13 +58,27 @@ export function AuthProvider({ children }) {
       logout,
       forceLogout,
     }}>
+=======
+    <AuthContext.Provider value={{ authUser, login, logout }}>
+>>>>>>> feature/hide-scrollbars
       {children}
     </AuthContext.Provider>
   );
 }
 
+<<<<<<< HEAD
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
+=======
+// eslint-disable-next-line react-refresh/only-export-components -- this
+// hook is tightly coupled to AuthProvider/AuthContext above and is used
+// throughout the auth flows; splitting it into its own file would add
+// indirection for no real benefit here.
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
+  return ctx;
+>>>>>>> feature/hide-scrollbars
 }

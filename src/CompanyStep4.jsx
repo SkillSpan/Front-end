@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import './CompanyRegister.css'
+<<<<<<< HEAD
+=======
+import { ShieldCheckIcon, InfoIcon, FileDocIcon } from './CompanyIcons'
+>>>>>>> feature/hide-scrollbars
 import { registerOrganization } from './api'
 import { buildOrganizationFormData } from './utils/payloadMapping'
 
@@ -43,8 +47,14 @@ function CompanyStep4({ onNextSuccess, onBack, onNavigateToLogin, companyData })
       <div className="company-step4-card">
         <div className="company-step4-sidebar">
           <div>
+<<<<<<< HEAD
             <div className="company-step4-brand"><span className="c-white">Skill</span><span className="c-blue">Span</span></div>
             <div className="company-step4-dropdown-box"><button type="button" className="company-step4-drop-btn">Register Your Company <span>▾</span></button></div>
+=======
+            <div className="company-step4-brand" aria-label="SkillSpan brand name">
+              <span className="brand-wordmark"><span className="brand-skill">Skill</span><span className="brand-span">Span</span></span>
+            </div>
+>>>>>>> feature/hide-scrollbars
             <ul className="company-step4-steps">
               <li className="company-step4-step-item completed"><span className="c-indicator">✓</span> 1. Account Details</li>
               <li className="company-step4-step-item completed"><span className="c-indicator">✓</span> 2. Company Information</li>
@@ -53,6 +63,7 @@ function CompanyStep4({ onNextSuccess, onBack, onNavigateToLogin, companyData })
               <li className="company-step4-step-item"><span className="c-indicator"></span> 5. Confirmation Screen</li>
             </ul>
           </div>
+<<<<<<< HEAD
           <div className="company-step4-sec-badge"><div className="sec-icon">🛡️</div><div><p className="sec-t">Your information is secure</p><p className="sec-d">We protect your data and never share it with anyone.</p></div></div>
         </div>
         <div className="company-step4-form-sec">
@@ -68,6 +79,48 @@ function CompanyStep4({ onNextSuccess, onBack, onNavigateToLogin, companyData })
             </div>
             <div className="c-login-text">Already Have a company account? <span onClick={onNavigateToLogin} style={{color:'#3b82f6',cursor:'pointer',fontWeight:'600'}}>log in</span></div>
           </form>
+=======
+          <div className="company-step4-sec-badge"><div className="sec-icon"><ShieldCheckIcon /></div><div><p className="sec-t">Your information is secure</p><p className="sec-d">We protect your data and never share it with anyone.</p></div></div>
+        </div>
+        <div className="company-step4-form-sec">
+          <div className="company-step4-header"><h2>Terms & Agreement</h2><span className="c-step-badge">Step 4</span></div>
+          <div className="company-step4-scroll">
+            <p className="c-terms-lead">Please review and accept the following</p>
+            <p className="c-terms-sub">Read our terms carefully. By proceeding, you agree to our policies and terms of service.</p>
+
+            <div className="c-terms-service-card">
+              <span className="c-terms-service-icon"><FileDocIcon size={28} /></span>
+              <div className="c-terms-service-text">
+                <div className="c-terms-service-title">Terms of Service</div>
+                <div className="c-terms-service-copy">These terms outline the rules and guidelines for using SkillSpan platform and services.</div>
+              </div>
+            </div>
+
+            <div className="c-privacy-policy-card">
+              <span className="c-privacy-policy-icon"><ShieldCheckIcon size={28} /></span>
+              <div className="c-privacy-policy-text">
+                <div className="c-privacy-policy-title">Privacy Policy</div>
+                <div className="c-privacy-policy-copy">Learn how we collect, use, and protect your company's<br />data and information.</div>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="company-step1-form">
+              <div className="c-agreement-heading">Agreement</div>
+              <div className={`c-checkbox-card ${agreeTerms ? 'checked' : ''}`} onClick={() => { setAgreeTerms(v=>!v); setError('') }}><div className="custom-checkbox">{agreeTerms && <span className="checkmark">✓</span>}</div><span className="checkbox-text">I have read, understood, and agree to the <span className="highlight-text">Terms of Service</span>.</span></div>
+              <div className={`c-checkbox-card ${agreePrivacy ? 'checked' : ''}`} onClick={() => { setAgreePrivacy(v=>!v); setError('') }}><div className="custom-checkbox">{agreePrivacy && <span className="checkmark">✓</span>}</div><span className="checkbox-text">I have read, understood, and agree to the <span className="highlight-text">Privacy Policy</span>.</span></div>
+              <div className="c-notice-box">
+                <span className="c-notice-icon"><InfoIcon size={16} /></span>
+                <p>You must accept all terms and policies to continue with your company registration.</p>
+              </div>
+              {error && <div className="c-form-error c-form-error-icon"><InfoIcon size={16} /> {error}</div>}
+              <div className="c-actions">
+                <button type="button" className="c-btn-back" onClick={onBack} disabled={isSubmitting}>← Back</button>
+                <button type="submit" className="c-btn-next" disabled={isSubmitting || !agreeTerms || !agreePrivacy}>{isSubmitting ? 'Creating account...' : 'Next →'}</button>
+              </div>
+              <div className="c-login-text">Already Have a company account? <span onClick={onNavigateToLogin} className="c-login-link">log in</span></div>
+            </form>
+          </div>
+>>>>>>> feature/hide-scrollbars
         </div>
       </div>
     </div>

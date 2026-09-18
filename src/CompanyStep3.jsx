@@ -1,5 +1,9 @@
 import React, { useState } from 'react'
 import './CompanyRegister.css'
+<<<<<<< HEAD
+=======
+import { ShieldCheckIcon, FileDocIcon, InfoIcon } from './CompanyIcons'
+>>>>>>> feature/hide-scrollbars
 
 function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData }) {
   const [uploadedFile, setUploadedFile] = useState(initialData?.proofFile || null)
@@ -62,6 +66,7 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
       <div className="company-step3-card">
         <div className="company-step3-sidebar">
           <div>
+<<<<<<< HEAD
             <div className="company-step3-brand">
               <span className="c-white">Skill</span><span className="c-blue">Span</span>
             </div>
@@ -70,6 +75,10 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
               <button className="company-step3-drop-btn">
                 Register Your Company <span>▾</span>
               </button>
+=======
+            <div className="company-step3-brand" aria-label="SkillSpan brand name">
+              <span className="brand-wordmark"><span className="brand-skill">Skill</span><span className="brand-span">Span</span></span>
+>>>>>>> feature/hide-scrollbars
             </div>
 
             <ul className="company-step3-steps">
@@ -92,7 +101,11 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
           </div>
 
           <div className="company-step3-sec-badge">
+<<<<<<< HEAD
             <div className="sec-icon">🛡️</div>
+=======
+            <div className="sec-icon"><ShieldCheckIcon /></div>
+>>>>>>> feature/hide-scrollbars
             <div>
               <p className="sec-t">Your information is secure</p>
               <p className="sec-d">We protect your data and never share it with anyone.</p>
@@ -106,6 +119,7 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
             <span className="c-step-badge">Step 3</span>
           </div>
 
+<<<<<<< HEAD
           <form onSubmit={handleSubmit} className="company-step1-form">
             <div className="c-input-group">
               <label style={{ fontSize: '1rem', fontWeight: 'bold', color: '#ffffff' }}>Verify Your Company</label>
@@ -127,10 +141,26 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
                 cursor: 'pointer',
                 marginTop: '5px'
               }}>
+=======
+          <div className="company-step1-scroll">
+          <form onSubmit={handleSubmit} className="company-step1-form">
+            <div className="c-input-group">
+              <label className="c-verify-title">Verify Your Company</label>
+              <p className="c-verify-sub">
+                Please upload the required documents to verify your company.
+              </p>
+
+              <label className="c-upload-label">
+                Business Registration Document <span className="c-required">(Required)</span>
+              </label>
+
+              <div className={`c-upload-box ${uploadedFile ? 'has-file' : ''}`}>
+>>>>>>> feature/hide-scrollbars
                 <input
                   type="file"
                   accept=".pdf,.png,.jpg,.jpeg"
                   onChange={handleFileChange}
+<<<<<<< HEAD
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -148,10 +178,20 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
                       Upload Company Registration or Trade License
                     </div>
                     <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>PDF, PNG, JPG (Max 5MB)</div>
+=======
+                  className="c-upload-input"
+                />
+                <div className="c-upload-row">
+                  <div className="c-upload-icon"><FileDocIcon /></div>
+                  <div className="c-upload-copy">
+                    <div className="c-upload-title">Upload Company Registration or Trade License</div>
+                    <div className="c-upload-hint">PDF, PNG, JPG (Max 5MB)</div>
+>>>>>>> feature/hide-scrollbars
                   </div>
                 </div>
 
                 {uploadedFile && (
+<<<<<<< HEAD
                   <div style={{
                     marginTop: '15px',
                     background: 'rgba(255, 255, 255, 0.05)',
@@ -164,11 +204,17 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
                   }}>
                     <span style={{ color: '#38bdf8', fontSize: '0.85rem' }}>📎 {uploadedFile.name}</span>
                     <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Selected</span>
+=======
+                  <div className="c-upload-selected">
+                    <span>{uploadedFile.name}</span>
+                    <span className="c-upload-selected-tag">Selected</span>
+>>>>>>> feature/hide-scrollbars
                   </div>
                 )}
               </div>
             </div>
 
+<<<<<<< HEAD
             <div className="c-input-group" style={{ marginTop: '10px' }}>
               <label style={{ color: '#cbd5e1' }}>
                 Additional Document <span style={{ color: '#94a3b8' }}>(Optional)</span>
@@ -183,10 +229,19 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
                 position: 'relative',
                 cursor: 'pointer'
               }}>
+=======
+            <div className="c-input-group c-input-group-spaced">
+              <label className="c-upload-label">
+                Additional Document <span className="c-optional">(Optional)</span>
+              </label>
+
+              <div className={`c-upload-box ${optionalFile ? 'has-file' : ''}`}>
+>>>>>>> feature/hide-scrollbars
                 <input
                   type="file"
                   accept=".pdf,.png,.jpg,.jpeg"
                   onChange={handleOptionalFileChange}
+<<<<<<< HEAD
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -204,10 +259,20 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
                       Upload Company Registration or Trade License
                     </div>
                     <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>PDF, PNG, JPG (Max 5MB)</div>
+=======
+                  className="c-upload-input"
+                />
+                <div className="c-upload-row">
+                  <div className="c-upload-icon"><FileDocIcon /></div>
+                  <div className="c-upload-copy">
+                    <div className="c-upload-title">Upload Company Registration or Trade License</div>
+                    <div className="c-upload-hint">PDF, PNG, JPG (Max 5MB)</div>
+>>>>>>> feature/hide-scrollbars
                   </div>
                 </div>
 
                 {optionalFile && (
+<<<<<<< HEAD
                   <div style={{
                     marginTop: '15px',
                     background: 'rgba(255, 255, 255, 0.05)',
@@ -220,14 +285,24 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
                   }}>
                     <span style={{ color: '#38bdf8', fontSize: '0.85rem' }}>📎 {optionalFile.name}</span>
                     <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>Selected</span>
+=======
+                  <div className="c-upload-selected">
+                    <span>{optionalFile.name}</span>
+                    <span className="c-upload-selected-tag">Selected</span>
+>>>>>>> feature/hide-scrollbars
                   </div>
                 )}
               </div>
             </div>
 
             {fileError && (
+<<<<<<< HEAD
               <div style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '10px', padding: '8px 12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
                 ⓘ {fileError}
+=======
+              <div className="c-form-error c-form-error-icon">
+                <InfoIcon size={16} /> {fileError}
+>>>>>>> feature/hide-scrollbars
               </div>
             )}
 
@@ -239,20 +314,30 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
                 type="submit"
                 className="c-btn-next"
                 disabled={!uploadedFile}
+<<<<<<< HEAD
                 style={{
                   opacity: uploadedFile ? 1 : 0.5,
                   cursor: uploadedFile ? 'pointer' : 'not-allowed',
                   backgroundColor: uploadedFile ? '#3b82f6' : '#475569'
                 }}
+=======
+>>>>>>> feature/hide-scrollbars
               >
                 Next →
               </button>
             </div>
 
             <div className="c-login-text">
+<<<<<<< HEAD
               Already Have a company account? <span onClick={onNavigateToLogin} style={{ color: '#3b82f6', cursor: 'pointer', fontWeight: '600' }}>log in</span>
             </div>
           </form>
+=======
+              Already Have a company account? <span onClick={onNavigateToLogin} className="c-login-link">log in</span>
+            </div>
+          </form>
+          </div>
+>>>>>>> feature/hide-scrollbars
         </div>
       </div>
     </div>

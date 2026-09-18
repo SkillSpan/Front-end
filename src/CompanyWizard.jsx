@@ -5,7 +5,10 @@ import CompanyStep2 from './CompanyStep2';
 import CompanyStep3 from './CompanyStep3';
 import CompanyStep4 from './CompanyStep4';
 import CompanyStep5 from './CompanyStep5';
+<<<<<<< HEAD
 import OtpVerification from './OtpVerification';
+=======
+>>>>>>> feature/hide-scrollbars
 
 // Flow per backend contract review: Registration (multipart POST, done at
 // the end of step 4) -> OTP -> Pending Admin Review (step 5). Nothing here
@@ -76,13 +79,18 @@ function CompanyWizard() {
         element={
           <CompanyStep4
             companyData={companyData}
+<<<<<<< HEAD
             onNextSuccess={() => navigate('/company/register/verify')}
+=======
+            onNextSuccess={() => navigate('/company/register/submitted')}
+>>>>>>> feature/hide-scrollbars
             onBack={() => navigate('/company/register/documents')}
             onNavigateToLogin={() => navigate('/company/login')}
           />
         }
       />
       <Route
+<<<<<<< HEAD
         path="verify"
         element={
           <OtpVerification
@@ -94,6 +102,8 @@ function CompanyWizard() {
         }
       />
       <Route
+=======
+>>>>>>> feature/hide-scrollbars
         path="submitted"
         element={
           <CompanyStep5

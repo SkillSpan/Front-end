@@ -1,5 +1,63 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
+<<<<<<< HEAD
+=======
+/* Hide all page and sidebar scrollbars while keeping scroll enabled */
+html,
+body,
+#root,
+.sidebar-left,
+.cl-sidebar,
+.cfp-sidebar,
+.reset-sidebar,
+.sa-sidebar,
+.company-step1-sidebar,
+.company-step2-sidebar,
+.company-step3-sidebar,
+.company-step4-sidebar,
+.company-step5-sidebar,
+.company-step1-form-sec,
+.company-step2-form-sec,
+.company-step3-form-sec,
+.company-step4-form-sec,
+.company-step5-form-sec {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+#root::-webkit-scrollbar,
+.sidebar-left::-webkit-scrollbar,
+.cl-sidebar::-webkit-scrollbar,
+.cfp-sidebar::-webkit-scrollbar,
+.reset-sidebar::-webkit-scrollbar,
+.sa-sidebar::-webkit-scrollbar,
+.company-step1-sidebar::-webkit-scrollbar,
+.company-step2-sidebar::-webkit-scrollbar,
+.company-step3-sidebar::-webkit-scrollbar,
+.company-step4-sidebar::-webkit-scrollbar,
+.company-step5-sidebar::-webkit-scrollbar,
+.company-step1-form-sec::-webkit-scrollbar,
+.company-step2-form-sec::-webkit-scrollbar,
+.company-step3-form-sec::-webkit-scrollbar,
+.company-step4-form-sec::-webkit-scrollbar,
+.company-step5-form-sec::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+>>>>>>> feature/hide-scrollbars
 /* ==========================================
    Global
 ========================================== */

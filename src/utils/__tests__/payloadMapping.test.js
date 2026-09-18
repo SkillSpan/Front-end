@@ -73,6 +73,10 @@ describe('buildOrganizationFormData', () => {
 
   it('uses the real submitted email, never a hardcoded placeholder', () => {
     const fd = buildOrganizationFormData(baseCompanyData);
+<<<<<<< HEAD
+=======
+    expect(fd.get('email')).toBe('sam@acme.test');
+>>>>>>> feature/hide-scrollbars
     expect(fd.get('organization_contact_email')).toBe('sam@acme.test');
     expect(fd.get('organization_contact_email')).not.toBe('info@company.com');
   });
@@ -96,6 +100,14 @@ describe('buildOrganizationFormData', () => {
     expect(fd.get('administrator_name')).toBe('Sam Admin');
     expect(fd.get('password_confirmation')).toBe('orgpass123');
   });
+<<<<<<< HEAD
+=======
+
+  it('includes the required top-level name field in the organization payload', () => {
+    const fd = buildOrganizationFormData(baseCompanyData);
+    expect(fd.get('name')).toBe('Sam Admin');
+  });
+>>>>>>> feature/hide-scrollbars
 });
 
 describe('buildProfilePayload', () => {

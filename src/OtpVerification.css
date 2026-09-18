@@ -1,3 +1,17 @@
+<<<<<<< HEAD
+=======
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* This screen now mirrors the "company" pages' light form panel
+   (see CompanyForgotPassword.css's .cfp-form-col / .cfp-otp-box / .cfp-input):
+   a soft light-gray canvas instead of plain white, white outlined OTP boxes,
+   and indigo focus accents instead of the filled amber boxes it used to have. */
+.form-right.otp-container {
+  background: #eef1f7;
+  font-family: 'Inter', sans-serif;
+}
+
+>>>>>>> feature/hide-scrollbars
 .otp-container {
   display: flex;
   flex-direction: column;
@@ -14,6 +28,54 @@
   margin: 6px 0 20px 0;
 }
 
+<<<<<<< HEAD
+=======
+/* Confirmed-email line, styled to match the rest of the app's
+   "here's where we sent it" pattern (ForgotPassword.jsx / CompanyStep5.jsx)
+   instead of an editable field. */
+.otp-email-confirm {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0 0 20px 0;
+  line-height: 1.55;
+}
+
+.otp-email-confirm strong {
+  color: #1e293b;
+}
+
+.otp-email-fallback {
+  margin-bottom: 16px;
+  width: 100%;
+  text-align: left;
+}
+
+.otp-email-fallback label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.otp-email-fallback input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #d7dce6;
+  background-color: #ffffff;
+  font-size: 0.9rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.otp-email-fallback input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+>>>>>>> feature/hide-scrollbars
 .otp-form-content {
   width: 100%;
   max-width: 420px;
@@ -32,6 +94,7 @@
 
 .otp-box {
   width: 50px;
+<<<<<<< HEAD
   height: 56px;
   background-color: #fce8a6;
   border: 1px solid #f59e0b;
@@ -49,6 +112,24 @@
   border-color: #d97706;
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
   transform: translateY(-2px);
+=======
+  height: 58px;
+  background-color: #ffffff;
+  border: 1px solid #d7dce6;
+  border-radius: 10px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.otp-box:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+>>>>>>> feature/hide-scrollbars
 }
 
 /* Timer display */
@@ -105,16 +186,26 @@
 }
 
 .resend-action {
+<<<<<<< HEAD
   color: #1e3a8a;
   font-weight: 600;
+=======
+  color: #4f46e5;
+  font-weight: 700;
+>>>>>>> feature/hide-scrollbars
   cursor: pointer;
 }
 
 .edit-email-btn {
   background: none;
   border: none;
+<<<<<<< HEAD
   color: #1e3a8a;
   font-weight: 600;
+=======
+  color: #4f46e5;
+  font-weight: 700;
+>>>>>>> feature/hide-scrollbars
   cursor: pointer;
   text-decoration: underline;
   padding: 0;
@@ -122,6 +213,7 @@
 }
 
 .edit-email-btn:hover {
+<<<<<<< HEAD
   color: #0c1838;
 }
 /* صندوق إعادة الإرسال */
@@ -129,6 +221,15 @@
   background-color: #fef3c7; /* لون أصفر فاتح */
   padding: 15px;
   border-radius: 8px;
+=======
+  color: #4338ca;
+}
+/* صندوق إعادة الإرسال */
+.resend-info-box {
+  background-color: #eef2ff; /* أزرق-بنفسجي فاتح، بنفس روح تصميم صفحات company */
+  padding: 15px;
+  border-radius: 10px;
+>>>>>>> feature/hide-scrollbars
   margin-top: 20px;
   display: flex;
   align-items: center;
@@ -142,7 +243,11 @@
 .repeat-svg {
   width: 24px;
   height: 24px;
+<<<<<<< HEAD
   color: #d97706;
+=======
+  color: #4f46e5;
+>>>>>>> feature/hide-scrollbars
 }
 
 .resend-title {
@@ -160,11 +265,19 @@
 .resend-countdown {
   margin: 5px 0 0 0;
   font-size: 13px;
+<<<<<<< HEAD
   color: #d97706;
 }
 /* تصميم رسالة الخطأ الأنيقة تحت الزر */
 .elegant-error-msg {
   color: #ef4444;
+=======
+  color: #4f46e5;
+}
+/* تصميم رسالة الخطأ الأنيقة تحت الزر */
+.elegant-error-msg {
+  color: #dc2626;
+>>>>>>> feature/hide-scrollbars
   font-size: 0.88rem;
   text-align: center;
   margin-top: -10px;
@@ -192,7 +305,11 @@
   text-align: center !important;
   padding: 40px !important;
   height: 100% !important;
+<<<<<<< HEAD
   min-height: 450px !important; /* ضمان وجود مساحة كافية للتوسيط */
+=======
+  min-height: 450px !important;
+>>>>>>> feature/hide-scrollbars
   margin: auto !important;
   box-sizing: border-box !important;
 }
@@ -268,4 +385,19 @@
 
 .form-right.verified-container .landing-link-btn:hover {
   color: #1e3a8a !important;
+<<<<<<< HEAD
+=======
+}
+
+/* Small screens: keep the OTP boxes from overflowing, same breakpوينت اللي عم تستخدمها صفحات company */
+@media (max-width: 480px) {
+  .otp-inputs-row {
+    gap: 8px;
+  }
+  .otp-box {
+    width: 40px;
+    height: 48px;
+    font-size: 1.05rem;
+  }
+>>>>>>> feature/hide-scrollbars
 }

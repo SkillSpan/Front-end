@@ -167,6 +167,7 @@ describe('api.js', () => {
       academic_status: 'student',
     });
   });
+<<<<<<< HEAD
 
   it('fetches countries from the reference endpoint', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
@@ -199,4 +200,6 @@ describe('api.js', () => {
     expect(url).toBe(`${API_BASE_URL}/api/v1/reference/countries/7/universities`);
     expect(options.method).toBe('GET');
   });
+=======
+>>>>>>> feature/hide-scrollbars
 });

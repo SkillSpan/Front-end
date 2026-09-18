@@ -50,7 +50,10 @@ const FALLBACK_SPECIALIZATIONS = [
 // filtering it drives) is always visible instead of silently disappearing
 // when the backend isn't reachable yet.
 const FALLBACK_COUNTRIES = ['Palestine'];
+<<<<<<< HEAD
 const FALLBACK_COUNTRY_IDS = {};
+=======
+>>>>>>> feature/hide-scrollbars
 
 // GET /api/v1/reference/{universities,specializations,countries} (see
 // api.js) return shapes aren't confirmed with the backend yet - this
@@ -58,6 +61,7 @@ const FALLBACK_COUNTRY_IDS = {};
 // {id, name}-shaped objects and always produces a flat string list, so the
 // <select> below never breaks on whichever shape the API actually sends.
 const normalizeNameList = (res) => {
+<<<<<<< HEAD
   const list = Array.isArray(res)
     ? res
     : Array.isArray(res?.data)
@@ -69,11 +73,15 @@ const normalizeNameList = (res) => {
           : Array.isArray(res?.universities)
             ? res.universities
             : [];
+=======
+  const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+>>>>>>> feature/hide-scrollbars
   return list
     .map((item) => (typeof item === 'string' ? item : item?.name ?? item?.title ?? null))
     .filter(Boolean);
 };
 
+<<<<<<< HEAD
 const normalizeCountryOptions = (res) => {
   const list = Array.isArray(res)
     ? res
@@ -96,6 +104,8 @@ const normalizeCountryOptions = (res) => {
     .filter(Boolean);
 };
 
+=======
+>>>>>>> feature/hide-scrollbars
 const ACADEMIC_LEVELS = [
   { value: 'first_year', label: 'First year' },
   { value: 'second_year', label: 'Second year' },
@@ -192,10 +202,16 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
   const [universities, setUniversities] = useState(FALLBACK_UNIVERSITIES);
   const [specializations, setSpecializations] = useState(FALLBACK_SPECIALIZATIONS);
   const [countries, setCountries] = useState(FALLBACK_COUNTRIES);
+<<<<<<< HEAD
   const [countryIdByName, setCountryIdByName] = useState(FALLBACK_COUNTRY_IDS);
   // Country -> University coupling: picking a country re-fetches the
   // University dropdown scoped to it via
   // GET /api/v1/reference/countries/{country_id}/universities (see api.js).
+=======
+  // Country -> University coupling: picking a country re-fetches the
+  // University dropdown scoped to it via
+  // GET /api/v1/reference/countries/{country}/universities (see api.js).
+>>>>>>> feature/hide-scrollbars
   // Left unset ("All countries"), the full unfiltered university list is
   // shown instead. This is purely a UI filter - `country` is never sent to
   // POST /api/v1/profile (no such field in that confirmed contract).
@@ -214,6 +230,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
         if (cancelled) return;
         const uniList = normalizeNameList(uniRes);
         const specList = normalizeNameList(specRes);
+<<<<<<< HEAD
         const countryOptsList = normalizeCountryOptions(countryRes);
         if (uniList.length) setUniversities([...uniList, 'Other']);
         if (specList.length) setSpecializations([...specList, 'Other']);
@@ -228,6 +245,12 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
             }, {})
           );
         }
+=======
+        const countryList = normalizeNameList(countryRes);
+        if (uniList.length) setUniversities([...uniList, 'Other']);
+        if (specList.length) setSpecializations([...specList, 'Other']);
+        if (countryList.length) setCountries(countryList);
+>>>>>>> feature/hide-scrollbars
       } catch {
         // Reference endpoints unreachable - keep the fallback lists above.
       }
@@ -257,6 +280,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
     }
 
     setUniversitiesLoading(true);
+<<<<<<< HEAD
     setUniversities([]);
     setUniversity('');
     try {
@@ -266,18 +290,32 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
         return;
       }
       const res = await getUniversitiesByCountry(countryId);
+=======
+    try {
+      const res = await getUniversitiesByCountry(value);
+>>>>>>> feature/hide-scrollbars
       const list = normalizeNameList(res);
       if (list.length) {
         const nextUniversities = [...list, 'Other'];
         setUniversities(nextUniversities);
         setUniversity((prev) => (nextUniversities.includes(prev) ? prev : ''));
       } else {
+<<<<<<< HEAD
         // No universities returned for this country.
         setUniversities(['Other']);
       }
     } catch {
       // Do not show the unfiltered list after a country-specific request fails.
       setUniversities(['Other']);
+=======
+        // No universities returned for this country - don't leave the
+        // learner stuck with a stale list from a different country.
+        setUniversities(['Other']);
+        setUniversity((prev) => (prev === 'Other' ? prev : ''));
+      }
+    } catch {
+      // Keep whatever university list is already showing.
+>>>>>>> feature/hide-scrollbars
     } finally {
       setUniversitiesLoading(false);
     }

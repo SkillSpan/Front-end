@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import React from 'react';
+>>>>>>> feature/hide-scrollbars
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import OtpVerification from '../OtpVerification';
@@ -22,7 +26,11 @@ describe('OtpVerification', () => {
     vi.spyOn(api, 'verifyOtp').mockResolvedValue({ data: {} });
     render(<OtpVerification userEmail="student@example.com" />);
 
+<<<<<<< HEAD
     const boxes = document.querySelectorAll('.otp-box');
+=======
+    const boxes = screen.getAllByRole('textbox');
+>>>>>>> feature/hide-scrollbars
     '123456'.split('').forEach((digit, i) => fireEvent.change(boxes[i], { target: { value: digit } }));
     fireEvent.click(screen.getByRole('button', { name: /verify code/i }));
 
@@ -40,7 +48,11 @@ describe('OtpVerification', () => {
     });
     render(<OtpVerification userEmail="student@example.com" />);
 
+<<<<<<< HEAD
     const boxes = document.querySelectorAll('.otp-box');
+=======
+    const boxes = screen.getAllByRole('textbox');
+>>>>>>> feature/hide-scrollbars
     '000000'.split('').forEach((digit, i) => fireEvent.change(boxes[i], { target: { value: digit } }));
     fireEvent.click(screen.getByRole('button', { name: /verify code/i }));
 

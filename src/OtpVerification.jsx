@@ -2,8 +2,20 @@ import { useState, useRef, useEffect } from 'react';
 import { verifyOtp, resendOtp } from './api';
 import './OtpVerification.css';
 
+<<<<<<< HEAD
 const OtpVerification = ({ email: propEmail, userEmail, onVerifySuccess, onBack, onContinueToLogin }) => {
   const [emailInput, setEmailInput] = useState(propEmail || userEmail || '');
+=======
+// ملاحظة: الصفحتين اللي بتستدعوا هاد الكومبوننت (RegisterWizard.jsx و
+// CompanyWizard.jsx) بيبعتوا الإيميل باسم `userEmail` مش `email` - قبل
+// التعديل كان الكومبوننت يقرأ `email` فقط، فكانت الخانة تظهر فاضية دايماً.
+// هيك صار المستخدم يضطر يكتب إيميله يدوياً، وأي غلطة إملائية = الكود يروح
+// لعنوان غلط. الحل: نقرأ `userEmail` (ونخلي `email` احتياطي لأي استدعاء
+// مستقبلي).
+const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBack, onContinueToLogin }) => {
+  const confirmedEmail = userEmail || legacyEmail || '';
+  const [emailInput, setEmailInput] = useState(confirmedEmail);
+>>>>>>> feature/hide-scrollbars
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(600);
   const [resendTimer, setResendTimer] = useState(60);
@@ -14,6 +26,14 @@ const OtpVerification = ({ email: propEmail, userEmail, onVerifySuccess, onBack,
   const [isResending, setIsResending] = useState(false);
   const inputRefs = useRef([]);
 
+<<<<<<< HEAD
+=======
+  // نحدّث الحقل تلقائياً إذا وصل الإيميل بعد أول رندر
+  useEffect(() => {
+    if (confirmedEmail) setEmailInput(confirmedEmail);
+  }, [confirmedEmail]);
+
+>>>>>>> feature/hide-scrollbars
   useEffect(() => {
     let timer = null;
     if (timeLeft > 0 || (isResendState && resendTimer > 0)) {
@@ -55,15 +75,24 @@ const OtpVerification = ({ email: propEmail, userEmail, onVerifySuccess, onBack,
       setError('Please enter a valid email address first.');
       return;
     }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> feature/hide-scrollbars
     setIsResending(true);
     setError('');
     try {
       await resendOtp(emailInput);
       setIsResendState(true);
       setResendTimer(60);
+<<<<<<< HEAD
       setTimeLeft(582); 
       setOtp(['', '', '', '', '', '']); 
+=======
+      setTimeLeft(582);
+      setOtp(['', '', '', '', '', '']);
+>>>>>>> feature/hide-scrollbars
       inputRefs.current[0]?.focus();
     } catch (err) {
       setError(err.message || 'Failed to resend the code. Please try again.');
@@ -91,7 +120,11 @@ const OtpVerification = ({ email: propEmail, userEmail, onVerifySuccess, onBack,
 
     try {
       await verifyOtp(emailInput, enteredCode);
+<<<<<<< HEAD
       setIsVerified(true); 
+=======
+      setIsVerified(true);
+>>>>>>> feature/hide-scrollbars
     } catch (err) {
       setError(err.message || 'The verification code is invalid or has expired.');
     } finally {
@@ -145,9 +178,15 @@ const OtpVerification = ({ email: propEmail, userEmail, onVerifySuccess, onBack,
               You can now access your account.
             </p>
 
+<<<<<<< HEAD
             <button 
               type="button" 
               className="btn-continue" 
+=======
+            <button
+              type="button"
+              className="btn-continue"
+>>>>>>> feature/hide-scrollbars
               onClick={() => {
                 if (typeof onContinueToLogin === 'function') {
                   onContinueToLogin();
@@ -211,12 +250,17 @@ const OtpVerification = ({ email: propEmail, userEmail, onVerifySuccess, onBack,
           </div>
 
           <span className="sub-tag">EMAIL VERIFICATION</span>
+<<<<<<< HEAD
           
+=======
+
+>>>>>>> feature/hide-scrollbars
           <h1 className="otp-heading">
             {isResendState ? 'We sent you a new code!' : 'Check your inbox'}
           </h1>
 
           <form onSubmit={handleVerify} className="otp-form-content">
+<<<<<<< HEAD
             
             <div style={{ marginBottom: '16px', width: '100%', textAlign: 'left' }}>
               <label style={{ display: 'block', fontSize: '13px', marginBottom: '6px', color: '#333', fontWeight: '600' }}>
@@ -239,6 +283,25 @@ const OtpVerification = ({ email: propEmail, userEmail, onVerifySuccess, onBack,
                 }}
               />
             </div>
+=======
+
+            {confirmedEmail ? (
+              <p className="otp-email-confirm">
+                We sent a code to <strong>{confirmedEmail}</strong>
+              </p>
+            ) : (
+              <div className="otp-email-fallback">
+                <label htmlFor="otp-email-input">Email Address</label>
+                <input
+                  id="otp-email-input"
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="Enter your email address"
+                />
+              </div>
+            )}
+>>>>>>> feature/hide-scrollbars
 
             <div className="otp-inputs-row">
               {otp.map((digit, index) => (

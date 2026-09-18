@@ -87,7 +87,16 @@ export function buildOrganizationFormData(companyData) {
 
   const formData = new FormData();
 
+<<<<<<< HEAD
   formData.append('administrator_name', administratorName || '');
+=======
+  // Backend requires both a top-level administrator `name` and a plain
+  // `email` field for validation, while still preserving the established
+  // organization_contact_email alias used elsewhere in the contract.
+  formData.append('name', administratorName || '');
+  formData.append('administrator_name', administratorName || '');
+  formData.append('email', email || '');
+>>>>>>> feature/hide-scrollbars
   formData.append('organization_contact_email', email || '');
   formData.append('phone', phone || '');
   formData.append('password', password || '');
