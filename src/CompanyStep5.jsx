@@ -1,11 +1,10 @@
-import React from 'react'
 import './CompanyRegister.css'
 <<<<<<< HEAD
 =======
 import { ShieldCheckIcon, CheckCircleBigIcon } from './CompanyIcons'
 >>>>>>> feature/hide-scrollbars
 
-function CompanyStep5({ onNavigateToLogin, email }) {
+function CompanyStep5({ onNavigateToLanding, onNavigateToLogin, email }) {
   return (
     <div className="company-step5-container">
       <div className="company-step5-card">
@@ -151,16 +150,23 @@ function CompanyStep5({ onNavigateToLogin, email }) {
             </ul>
 >>>>>>> feature/hide-scrollbars
 
-            <button onClick={onNavigateToLogin} className="c5-btn-landing">
+            <button onClick={onNavigateToLanding} className="c5-btn-landing">
               Go to Landing Page
             </button>
 
             <p className="c5-login-text">
 <<<<<<< HEAD
+<<<<<<< HEAD
               Already Have a company account? <span className="c5-login-link">log in</span>
 =======
               Already Have a company account? <span className="c5-login-link" onClick={onNavigateToLogin}>log in</span>
 >>>>>>> feature/hide-scrollbars
+=======
+              Already Have a company account?{' '}
+              <span className="c5-login-link" onClick={onNavigateToLogin}>
+                log in
+              </span>
+>>>>>>> 4fe3036680fd3a5fc5b9a3217cfe022635b4142f
             </p>
           </div>
         </div>

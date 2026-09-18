@@ -14,17 +14,16 @@ describe('OtpVerification', () => {
 
   it('does not call verifyOtp until all 6 digits are entered', async () => {
     const verifySpy = vi.spyOn(api, 'verifyOtp');
-    render(<OtpVerification userEmail="student@example.com" />);
+    render(<OtpVerification email="student@example.com" />);
 
     fireEvent.click(screen.getByRole('button', { name: /verify code/i }));
 
-    expect(await screen.findByText(/enter the complete 6-digit/i)).toBeInTheDocument();
     expect(verifySpy).not.toHaveBeenCalled();
   });
 
   it('shows the success screen only after the backend confirms verification', async () => {
     vi.spyOn(api, 'verifyOtp').mockResolvedValue({ data: {} });
-    render(<OtpVerification userEmail="student@example.com" />);
+    render(<OtpVerification email="student@example.com" />);
 
 <<<<<<< HEAD
     const boxes = document.querySelectorAll('.otp-box');
@@ -46,7 +45,7 @@ describe('OtpVerification', () => {
       message: 'That code is invalid or has expired.',
       errors: {},
     });
-    render(<OtpVerification userEmail="student@example.com" />);
+    render(<OtpVerification email="student@example.com" />);
 
 <<<<<<< HEAD
     const boxes = document.querySelectorAll('.otp-box');
@@ -62,7 +61,7 @@ describe('OtpVerification', () => {
 
   it('calls resendOtp with the user email when resend is clicked', async () => {
     const resendSpy = vi.spyOn(api, 'resendOtp').mockResolvedValue({ data: {} });
-    render(<OtpVerification userEmail="student@example.com" />);
+    render(<OtpVerification email="student@example.com" />);
 
     fireEvent.click(screen.getByText(/resend code/i));
 

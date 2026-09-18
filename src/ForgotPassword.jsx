@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './ForgotPassword.css';
 import { forgotPassword } from './api';
 
@@ -30,7 +30,6 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
       setIsSubmitting(false);
     }
   };
-
   return (
     <div className="forgot-wrapper">
       <div className="forgot-card">
@@ -75,13 +74,14 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
                 
                 <h1 className="forgot-heading">Check your email</h1>
                 <p className="forgot-subtitle">
-                  A 6-digit reset code has been sent to your email address <strong>{email}</strong>. 
-                  Please check your inbox (and spam folder) and enter the code on the next screen. The code will expire in 10 minutes.
+                  A 6-digit reset code has been sent to your email address{' '}
+                  <strong>{email}</strong>. Please check your inbox (and spam folder)
+                  and enter the code on the next screen. The code is valid for 10 minutes.
                 </p>
 
-                <button 
+                <button
                   type="button"
-                  className="btn-send-link" 
+                  className="btn-send-link"
                   onClick={() => onContinueToVerify && onContinueToVerify(email)}
                 >
                   Continue to Verify

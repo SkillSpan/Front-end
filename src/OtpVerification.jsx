@@ -3,6 +3,7 @@ import { verifyOtp, resendOtp } from './api';
 import './OtpVerification.css';
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 const OtpVerification = ({ email: propEmail, userEmail, onVerifySuccess, onBack, onContinueToLogin }) => {
   const [emailInput, setEmailInput] = useState(propEmail || userEmail || '');
 =======
@@ -16,6 +17,10 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
   const confirmedEmail = userEmail || legacyEmail || '';
   const [emailInput, setEmailInput] = useState(confirmedEmail);
 >>>>>>> feature/hide-scrollbars
+=======
+const OtpVerification = ({ email: propEmail, onVerifySuccess, onBack, onContinueToLogin }) => {
+  const [emailInput, setEmailInput] = useState(propEmail || '');
+>>>>>>> 4fe3036680fd3a5fc5b9a3217cfe022635b4142f
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(600);
   const [resendTimer, setResendTimer] = useState(60);

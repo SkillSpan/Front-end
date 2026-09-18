@@ -1,5 +1,9 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { createContext, useContext, useEffect, useState } from 'react';
+=======
+import { createContext, useEffect, useState } from 'react';
+>>>>>>> 4fe3036680fd3a5fc5b9a3217cfe022635b4142f
 import { useNavigate } from 'react-router-dom';
 import {
   clearSession,
@@ -16,6 +20,7 @@ import { clearSession, getStoredUser, isAuthenticated } from './api';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+<<<<<<< HEAD
   // Restore the session from the secure cookie synchronously on first
   // render (lazy initializer) instead of in a useEffect - this is a plain
   // synchronous read, not a subscription to an external system, so there's
@@ -24,14 +29,36 @@ export function AuthProvider({ children }) {
     isAuthenticated() ? getStoredUser() : null
   );
 <<<<<<< HEAD
+=======
+  const [authUser, setAuthUser] = useState(() => {
+    if (!isAuthenticated()) {
+      return null;
+    }
+
+    return getStoredUser();
+  });
+>>>>>>> 4fe3036680fd3a5fc5b9a3217cfe022635b4142f
   const navigate = useNavigate();
 
-  useEffect(() => onSessionExpired(() => {
-    setAuthUser(null);
-    navigate('/session-expired', { replace: true });
-  }), [navigate]);
+  // If any 401 from an authenticated endpoint clears the local session
+  // (see api.js request helper), mirror that in component state so the UI
+  // stops showing the user as logged in, and redirect to the dedicated
+  // Session Expired screen instead of leaving the user on a broken page.
+  useEffect(() => {
+    return onSessionExpired(() => {
+      setAuthUser(null);
+      navigate('/session-expired', { replace: true });
+    });
+  }, [navigate]);
 
-  const login = (user) => setAuthUser(user);
+  const login = (user) => {
+    if (!user) {
+      setAuthUser(null);
+      return;
+    }
+
+    setAuthUser(user);
+  };
 
   const logout = async () => {
     setAuthUser(null);
@@ -51,6 +78,7 @@ export function AuthProvider({ children }) {
 
   return (
 <<<<<<< HEAD
+<<<<<<< HEAD
     <AuthContext.Provider value={{
       authUser,
       isAuthenticated: !!authUser,
@@ -61,11 +89,23 @@ export function AuthProvider({ children }) {
 =======
     <AuthContext.Provider value={{ authUser, login, logout }}>
 >>>>>>> feature/hide-scrollbars
+=======
+    <AuthContext.Provider
+      value={{
+        authUser,
+        isAuthenticated: !!authUser,
+        login,
+        logout,
+        forceLogout,
+      }}
+    >
+>>>>>>> 4fe3036680fd3a5fc5b9a3217cfe022635b4142f
       {children}
     </AuthContext.Provider>
   );
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 export function useAuth() {
   const context = useContext(AuthContext);
@@ -82,3 +122,6 @@ export function useAuth() {
   return ctx;
 >>>>>>> feature/hide-scrollbars
 }
+=======
+export { AuthContext };
+>>>>>>> 4fe3036680fd3a5fc5b9a3217cfe022635b4142f
