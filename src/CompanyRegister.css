@@ -674,7 +674,7 @@
   background: transparent;
 }
 
-.custom-checkbox {
+.c-checkbox-card .custom-checkbox {
   flex-shrink: 0;
   width: 20px;
   height: 20px;
@@ -691,19 +691,19 @@
   border-color: #0f172a;
 }
 
-.checkmark {
+.c-checkbox-card .checkmark {
   color: #ffffff;
   font-size: 12px;
   font-weight: 700;
 }
 
-.checkbox-text {
+.c-checkbox-card .checkbox-text {
   color: #1e293b;
   font-size: 0.92rem;
   line-height: 1.4;
 }
 
-.highlight-text {
+.c-checkbox-card .highlight-text {
   color: #4338ca;
   font-weight: 700;
 }

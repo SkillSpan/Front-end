@@ -421,11 +421,11 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
 
             <div className={`profile-setup-field ${touched && !universityIdNumber.trim() ? 'field-error' : ''}`}>
               <label>
-                University ID Number<span className="required-star">*</span>
+                Student ID<span className="required-star">*</span>
               </label>
               <input
                 type="text"
-                placeholder="Enter your student/university ID number"
+                placeholder="Enter your student ID"
                 value={universityIdNumber}
                 onChange={(e) => {
                   setUniversityIdNumber(e.target.value);
