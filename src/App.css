@@ -1,7 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-<<<<<<< HEAD
-=======
 /* Hide all page and sidebar scrollbars while keeping scroll enabled */
 html,
 body,
@@ -57,7 +55,6 @@ body::-webkit-scrollbar {
   display: none;
 }
 
->>>>>>> feature/hide-scrollbars
 /* ==========================================
    Global
 ========================================== */

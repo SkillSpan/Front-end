@@ -1,53 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './CompanyForgotPassword.css';
 import { forgotPassword, resendForgotPassword, resetPassword, verifyForgotPasswordOtp } from './api';
-<<<<<<< HEAD
-
-const ShieldIcon = () => (
-  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M12 2.5l7.5 3v5.2c0 4.8-3.2 9.1-7.5 10.3-4.3-1.2-7.5-5.5-7.5-10.3V5.5l7.5-3z"
-      stroke="url(#cfpShieldGradient)"
-      strokeWidth="1.6"
-      strokeLinejoin="round"
-    />
-    <path d="M8.5 12.3l2.3 2.3 4.5-4.8" stroke="url(#cfpShieldGradient)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    <defs>
-      <linearGradient id="cfpShieldGradient" x1="4" y1="2" x2="20" y2="21" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#8b5cf6" />
-        <stop offset="1" stopColor="#38bdf8" />
-      </linearGradient>
-    </defs>
-  </svg>
-);
-
-// Gradient outline envelope, used on the "Verify Your Identity" screen.
-const MailGradientIcon = () => (
-  <svg width="46" height="46" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M4 6.5C4 5.67 4.67 5 5.5 5h13c.83 0 1.5.67 1.5 1.5v11c0 .83-.67 1.5-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5v-11z"
-      stroke="url(#cfpMailGradient)"
-      strokeWidth="1.6"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M4.5 6.2l6.6 5.7c.53.46 1.3.46 1.83 0l6.6-5.7"
-      stroke="url(#cfpMailGradient)"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <defs>
-      <linearGradient id="cfpMailGradient" x1="4" y1="5" x2="20" y2="18" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#8b5cf6" />
-        <stop offset="1" stopColor="#38bdf8" />
-      </linearGradient>
-    </defs>
-  </svg>
-);
-=======
 import { ShieldCheckIcon, LockKeyIcon, MailCheckIcon, MailOpenIcon, CheckCircleBigIcon, EyeIcon, EyeOffIcon } from './CompanyIcons';
->>>>>>> feature/hide-scrollbars
 
 // Masks an email address for display, e.g. ahmad@example.com -> a***d@example.com
 function maskEmail(email) {
@@ -60,13 +14,8 @@ function maskEmail(email) {
 const Sidebar = () => (
   <div className="cfp-sidebar">
     <div>
-<<<<<<< HEAD
-      <div className="cfp-brand">
-        <span className="white">Skill</span><span className="blue">Span</span>
-=======
       <div className="cfp-brand" aria-label="SkillSpan brand name">
         <span className="brand-wordmark"><span className="brand-skill">Skill</span><span className="brand-span">Span</span></span>
->>>>>>> feature/hide-scrollbars
       </div>
       <div className="cfp-sidebar-content">
         <h2>Welcome Back!</h2>
@@ -88,11 +37,7 @@ const Sidebar = () => (
       </div>
     </div>
     <div className="cfp-security">
-<<<<<<< HEAD
-      <ShieldIcon />
-=======
       <ShieldCheckIcon size={30} />
->>>>>>> feature/hide-scrollbars
       <div>
         <p className="cfp-security-title">Your information is secure</p>
         <p className="cfp-security-desc">We protect your data and never share it with anyone.</p>
@@ -104,21 +49,17 @@ const Sidebar = () => (
 // Small helper: counts down to a given ISO timestamp (resend_available_at) and
 // returns the remaining whole seconds (0 once it has passed / is missing).
 function useCountdown(targetIso) {
-  const [secondsLeft, setSecondsLeft] = useState(() => {
-    if (!targetIso) return 0;
-    const diff = Math.ceil((new Date(targetIso).getTime() - Date.now()) / 1000);
-    return diff > 0 ? diff : 0;
-  });
+  const [secondsLeft, setSecondsLeft] = useState(0);
 
   useEffect(() => {
-    if (!targetIso) return undefined;
+    if (!targetIso) {
+      setSecondsLeft(0);
+      return undefined;
+    }
     const target = new Date(targetIso).getTime();
     const tick = () => {
-      setSecondsLeft((prev) => {
-        const diff = Math.ceil((target - Date.now()) / 1000);
-        const next = diff > 0 ? diff : 0;
-        return prev === next ? prev : next;
-      });
+      const diff = Math.ceil((target - Date.now()) / 1000);
+      setSecondsLeft(diff > 0 ? diff : 0);
     };
     tick();
     const id = setInterval(tick, 1000);
@@ -135,11 +76,8 @@ const CompanyForgotPassword = ({ onBackToLogin }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-<<<<<<< HEAD
-=======
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
->>>>>>> feature/hide-scrollbars
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
@@ -313,17 +251,6 @@ const CompanyForgotPassword = ({ onBackToLogin }) => {
         <Sidebar />
 
         <div className="cfp-form-col">
-<<<<<<< HEAD
-          <div className="cfp-topbar" />
-
-          <div className="cfp-form-inner">
-            {/* ---------------- Stage 1: request email ---------------- */}
-            {stage === 'request' && (
-              <>
-                <h1 className="cfp-heading">Reset Your Password</h1>
-                <p className="cfp-subtext">
-                  Please enter the email address associated with your account, and we will send you a password reset code.
-=======
           <div className="cfp-form-inner">
             {/* ---------------- Stage 1: request email ---------------- */}
             {stage === 'request' && (
@@ -334,7 +261,6 @@ const CompanyForgotPassword = ({ onBackToLogin }) => {
                 <h1 className="cfp-heading">Reset Your Password</h1>
                 <p className="cfp-subtext">
                   Please enter the email address associated with your account, and we will send you a password reset link.
->>>>>>> feature/hide-scrollbars
                 </p>
 
                 <form onSubmit={handleRequestSubmit} noValidate>
@@ -354,11 +280,7 @@ const CompanyForgotPassword = ({ onBackToLogin }) => {
                   </div>
 
                   <button type="submit" className="cfp-submit-btn" disabled={isSubmitting}>
-<<<<<<< HEAD
-                    {isSubmitting ? 'Sending...' : 'Send Reset Code'}
-=======
                     {isSubmitting ? 'Sending...' : 'Send Reset Link'}
->>>>>>> feature/hide-scrollbars
                   </button>
                 </form>
 
@@ -367,22 +289,14 @@ const CompanyForgotPassword = ({ onBackToLogin }) => {
                     <span className="cfp-link" onClick={onBackToLogin}>← Back to Log in</span>
                   </p>
                 )}
-<<<<<<< HEAD
-              </>
-=======
               </div>
->>>>>>> feature/hide-scrollbars
             )}
 
             {/* ---------------- Stage 2: check your email ---------------- */}
             {stage === 'checkEmail' && (
               <div className="cfp-center-col">
                 <div className="cfp-icon-badge">
-<<<<<<< HEAD
-                  <img src="/image/7.png" alt="Check your email" />
-=======
                   <MailCheckIcon />
->>>>>>> feature/hide-scrollbars
                 </div>
 
                 <h1 className="cfp-heading">Check your email</h1>
@@ -407,13 +321,8 @@ const CompanyForgotPassword = ({ onBackToLogin }) => {
             {/* ---------------- Stage 3: verify identity (OTP only) ---------------- */}
             {stage === 'verify' && (
               <div className="cfp-center-col">
-<<<<<<< HEAD
-                <div className="cfp-icon-badge cfp-icon-badge-gradient">
-                  <MailGradientIcon />
-=======
                 <div className="cfp-icon-badge">
                   <MailOpenIcon />
->>>>>>> feature/hide-scrollbars
                 </div>
 
                 <h1 className="cfp-heading">Verify Your Identity</h1>
@@ -457,35 +366,16 @@ const CompanyForgotPassword = ({ onBackToLogin }) => {
 
             {/* ---------------- Stage 4: reset password only ---------------- */}
             {stage === 'reset' && (
-<<<<<<< HEAD
-              <>
-                <h1 className="cfp-heading">Reset Your Password</h1>
-                <p className="cfp-subtext">Enter your new password below.</p>
-=======
               <div className="cfp-center-col">
                 <div className="cfp-icon-badge">
                   <LockKeyIcon />
                 </div>
                 <h1 className="cfp-heading">Reset Your Password</h1>
                 <p className="cfp-subtext">Enter your new Password below</p>
->>>>>>> feature/hide-scrollbars
 
                 <form onSubmit={handleResetSubmit} noValidate>
                   <div className="cfp-input-group">
                     <label>New Password</label>
-<<<<<<< HEAD
-                    <input
-                      type="password"
-                      className={`cfp-input ${errors.password ? 'cfp-input-error' : ''}`}
-                      placeholder="Enter new password"
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        setErrors((prev) => ({ ...prev, password: '' }));
-                      }}
-                      autoComplete="new-password"
-                    />
-=======
                     <div className="cfp-pass-wrap">
                       <input
                         type={showNewPassword ? 'text' : 'password'}
@@ -502,25 +392,11 @@ const CompanyForgotPassword = ({ onBackToLogin }) => {
                         {showNewPassword ? <EyeIcon /> : <EyeOffIcon />}
                       </span>
                     </div>
->>>>>>> feature/hide-scrollbars
                     {errors.password && <span className="cfp-error-text">{errors.password}</span>}
                   </div>
 
                   <div className="cfp-input-group">
                     <label>Confirm New Password</label>
-<<<<<<< HEAD
-                    <input
-                      type="password"
-                      className={`cfp-input ${errors.confirmPassword ? 'cfp-input-error' : ''}`}
-                      placeholder="Re-enter new password"
-                      value={confirmPassword}
-                      onChange={(e) => {
-                        setConfirmPassword(e.target.value);
-                        setErrors((prev) => ({ ...prev, confirmPassword: '' }));
-                      }}
-                      autoComplete="new-password"
-                    />
-=======
                     <div className="cfp-pass-wrap">
                       <input
                         type={showConfirmNewPassword ? 'text' : 'password'}
@@ -537,7 +413,6 @@ const CompanyForgotPassword = ({ onBackToLogin }) => {
                         {showConfirmNewPassword ? <EyeIcon /> : <EyeOffIcon />}
                       </span>
                     </div>
->>>>>>> feature/hide-scrollbars
                     {errors.confirmPassword && <span className="cfp-error-text">{errors.confirmPassword}</span>}
                   </div>
 
@@ -557,23 +432,14 @@ const CompanyForgotPassword = ({ onBackToLogin }) => {
                     ← Back to verification code
                   </span>
                 </p>
-<<<<<<< HEAD
-              </>
-=======
               </div>
->>>>>>> feature/hide-scrollbars
             )}
 
             {/* ---------------- Stage 5: success ---------------- */}
             {stage === 'success' && (
               <div className="cfp-center-col">
-<<<<<<< HEAD
-                <div className="cfp-success-icon-wrap">
-                  <img src="/image/6.png" alt="Password reset successful" />
-=======
                 <div className="cfp-icon-badge cfp-icon-badge-plain">
                   <CheckCircleBigIcon size={72} />
->>>>>>> feature/hide-scrollbars
                 </div>
                 <h1 className="cfp-heading">Password Reset Successful!</h1>
                 <p className="cfp-subtext">

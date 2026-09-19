@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './useAuth';
+import { useAuth } from './AuthContext';
 import LogoutModal from './LogoutModal';
 import { logoutUser, logoutAllDevices } from './api';
 
@@ -118,7 +118,7 @@ function Landing() {
             </span>
             <ul className={`dropdown-menu ${isSolutionsOpen ? 'dropdown-menu-open' : ''}`}>
               <li 
-                onClick={() => { navigate('/register/account'); setIsMenuOpen(false); setIsSolutionsOpen(false); }} 
+                onClick={() => { navigate('/register'); setIsMenuOpen(false); setIsSolutionsOpen(false); }} 
                 style={{
                   padding: '10px 16px',
                   color: '#e2e8f0',
@@ -132,7 +132,7 @@ function Landing() {
                 Students & Graduates
               </li>
               <li 
-                onClick={() => { navigate('/company/register/account'); setIsMenuOpen(false); setIsSolutionsOpen(false); }} 
+                onClick={() => { navigate('/company/register'); setIsMenuOpen(false); setIsSolutionsOpen(false); }} 
                 style={{
                   padding: '10px 16px',
                   color: '#e2e8f0',
@@ -202,7 +202,7 @@ function Landing() {
           ) : (
             <>
               <button className="btn log-in" onClick={() => { navigate('/login'); setIsMenuOpen(false); }}>log in</button>
-              <button className="btn get-started" onClick={() => { navigate('/register/account'); setIsMenuOpen(false); }}>
+              <button className="btn get-started" onClick={() => { navigate('/register'); setIsMenuOpen(false); }}>
                 Get Started →
               </button>
             </>
@@ -224,7 +224,7 @@ function Landing() {
             by companies looking for top talent
           </p>
           <div className="hero-buttons">
-            <button className="btn primary-gradient" onClick={() => navigate('/register/account')}>
+            <button className="btn primary-gradient" onClick={() => navigate('/register')}>
               Start Your Journey →
             </button>
             <button className="btn outline-glow">

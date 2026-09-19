@@ -2,8 +2,15 @@ import { useState, useRef, useEffect } from 'react';
 import { verifyOtp, resendOtp } from './api';
 import './OtpVerification.css';
 
+// ملاحظة: الصفحتين اللي بتستدعوا هاد الكومبوننت (RegisterWizard.jsx و
+// CompanyWizard.jsx) بيبعتوا الإيميل باسم `userEmail` مش `email` - قبل
+// التعديل كان الكومبوننت يقرأ `email` فقط، فكانت الخانة تظهر فاضية دايماً.
+// هيك صار المستخدم يضطر يكتب إيميله يدوياً، وأي غلطة إملائية = الكود يروح
+// لعنوان غلط. الحل: نقرأ `userEmail` (ونخلي `email` احتياطي لأي استدعاء
+// مستقبلي).
 const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBack, onContinueToLogin }) => {
   const confirmedEmail = userEmail || legacyEmail || '';
+  const [emailInput, setEmailInput] = useState(confirmedEmail);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(600);
   const [resendTimer, setResendTimer] = useState(60);
@@ -13,6 +20,11 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const inputRefs = useRef([]);
+
+  // نحدّث الحقل تلقائياً إذا وصل الإيميل بعد أول رندر
+  useEffect(() => {
+    if (confirmedEmail) setEmailInput(confirmedEmail);
+  }, [confirmedEmail]);
 
   useEffect(() => {
     let timer = null;
@@ -51,7 +63,7 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
   };
 
   const handleResendClick = async () => {
-    if (!confirmedEmail || !confirmedEmail.includes('@')) {
+    if (!emailInput || !emailInput.includes('@')) {
       setError('Please enter a valid email address first.');
       return;
     }
@@ -59,7 +71,7 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
     setIsResending(true);
     setError('');
     try {
-      await resendOtp(confirmedEmail);
+      await resendOtp(emailInput);
       setIsResendState(true);
       setResendTimer(60);
       setTimeLeft(582);
@@ -76,7 +88,7 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
     e.preventDefault();
     const enteredCode = otp.join('');
 
-    if (!confirmedEmail || !confirmedEmail.includes('@')) {
+    if (!emailInput || !emailInput.includes('@')) {
       setError('Please enter a valid email address.');
       return;
     }
@@ -90,7 +102,7 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
     setIsVerifying(true);
 
     try {
-      await verifyOtp(confirmedEmail, enteredCode);
+      await verifyOtp(emailInput, enteredCode);
       setIsVerified(true);
     } catch (err) {
       setError(err.message || 'The verification code is invalid or has expired.');
@@ -217,10 +229,22 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
           </h1>
 
           <form onSubmit={handleVerify} className="otp-form-content">
-            {confirmedEmail && (
+
+            {confirmedEmail ? (
               <p className="otp-email-confirm">
                 We sent a code to <strong>{confirmedEmail}</strong>
               </p>
+            ) : (
+              <div className="otp-email-fallback">
+                <label htmlFor="otp-email-input">Email Address</label>
+                <input
+                  id="otp-email-input"
+                  type="email"
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
+                  placeholder="Enter your email address"
+                />
+              </div>
             )}
 
             <div className="otp-inputs-row">

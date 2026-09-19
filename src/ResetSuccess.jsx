@@ -1,3 +1,4 @@
+import React from 'react';
 import './VerifyCode.css';
 
 const ResetSuccess = ({ onGoToLogin }) => {

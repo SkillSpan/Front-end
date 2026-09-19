@@ -1,37 +1,13 @@
 import { useState } from 'react';
 import './CompanyLogin.css';
 import { loginOrganization, saveSession } from './api';
-<<<<<<< HEAD
-
-const ShieldIcon = () => (
-  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M12 2.5l7.5 3v5.2c0 4.8-3.2 9.1-7.5 10.3-4.3-1.2-7.5-5.5-7.5-10.3V5.5l7.5-3z"
-      stroke="url(#shieldGradient)"
-      strokeWidth="1.6"
-      strokeLinejoin="round"
-    />
-    <path d="M8.5 12.3l2.3 2.3 4.5-4.8" stroke="url(#shieldGradient)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    <defs>
-      <linearGradient id="shieldGradient" x1="4" y1="2" x2="20" y2="21" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#8b5cf6" />
-        <stop offset="1" stopColor="#38bdf8" />
-      </linearGradient>
-    </defs>
-  </svg>
-);
-=======
 import { ShieldCheckIcon, EyeIcon, EyeOffIcon } from './CompanyIcons';
->>>>>>> feature/hide-scrollbars
 
 const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onForgotPassword, onLoginSuccess }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-<<<<<<< HEAD
-=======
   const [showPassword, setShowPassword] = useState(false);
->>>>>>> feature/hide-scrollbars
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -75,31 +51,7 @@ const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onFo
       setIsSubmitting(false);
       // The API already returns tailored messages for a pending or
       // rejected organization, and for bad credentials — surface it as-is.
-      // When the backend signals a specific company-account state via
-      // err.errors.code, surface a more actionable message instead of a
-      // generic "invalid credentials" line.
-      const codeError =
-        err.errors?.code?.[0] ||
-        (typeof err.code === 'string' ? err.code : null);
-
-      if (codeError === 'COMPANY_PENDING') {
-        setErrors({
-          general:
-            'Your company account is still under review. You will be notified by email once it is approved.',
-        });
-      } else if (codeError === 'COMPANY_REJECTED') {
-        setErrors({
-          general:
-            'Your company registration was not approved. Please contact support for more information.',
-        });
-      } else if (codeError === 'EMAIL_NOT_VERIFIED') {
-        setErrors({
-          general:
-            'Your email address has not been verified yet. Please check your inbox for the verification code.',
-        });
-      } else {
-        setErrors({ general: err.message || 'Unable to log in right now. Please try again.' });
-      }
+      setErrors({ general: err.message || 'Unable to log in right now. Please try again.' });
     }
   };
 
@@ -108,21 +60,12 @@ const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onFo
       <div className="cl-card">
         <div className="cl-sidebar">
           <div>
-<<<<<<< HEAD
-            {onBack && (
-              <button className="cl-back-btn" onClick={onBack} type="button">← Back to Home</button>
-            )}
-            <div className="cl-brand">
-              <span className="white">Skill</span><span className="blue">Span</span>
-            </div>
-=======
             <div className="cl-brand" aria-label="SkillSpan brand name">
               <span className="cl-brand-wordmark"><span className="brand-skill">Skill</span><span className="brand-span">Span</span></span>
             </div>
             {onBack && (
               <button className="cl-back-btn" onClick={onBack} type="button">← Back to Home</button>
             )}
->>>>>>> feature/hide-scrollbars
 
             <div className="cl-sidebar-content">
               <h2>Welcome Back!</h2>
@@ -146,11 +89,7 @@ const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onFo
           </div>
 
           <div className="cl-security">
-<<<<<<< HEAD
-            <ShieldIcon />
-=======
             <ShieldCheckIcon size={30} />
->>>>>>> feature/hide-scrollbars
             <div>
               <p className="cl-security-title">Your information is secure</p>
               <p className="cl-security-desc">We protect your data and never share it with anyone.</p>
@@ -159,11 +98,6 @@ const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onFo
         </div>
 
         <div className="cl-form-col">
-<<<<<<< HEAD
-          <div className="cl-topbar" />
-
-=======
->>>>>>> feature/hide-scrollbars
           <div className="cl-form-inner">
             <h1 className="cl-heading">Log in to your account</h1>
             <p className="cl-subtext">
@@ -189,17 +123,6 @@ const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onFo
 
               <div className="cl-input-group">
                 <label>Enter your password</label>
-<<<<<<< HEAD
-                <input
-                  name="password"
-                  type="password"
-                  className={`cl-input ${errors.password ? 'cl-input-error' : ''}`}
-                  placeholder="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  autoComplete="current-password"
-                />
-=======
                 <div className="cl-pass-wrap">
                   <input
                     name="password"
@@ -214,7 +137,6 @@ const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onFo
                     {showPassword ? <EyeIcon /> : <EyeOffIcon />}
                   </span>
                 </div>
->>>>>>> feature/hide-scrollbars
                 {errors.password && <span className="cl-error-text">{errors.password}</span>}
               </div>
 

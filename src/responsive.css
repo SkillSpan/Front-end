@@ -17,8 +17,6 @@
  * ---------------------------------------------------------------------------
  */
 
-<<<<<<< HEAD
-=======
 /* ===== Sidebar width reduction for shared split layouts ==================
  * Shrink the dark sidebar column across registration/login/forgot/reset
  * and company steps without changing the actual form area layout.
@@ -40,7 +38,6 @@
   max-width: 330px !important;
 }
 
->>>>>>> feature/hide-scrollbars
 /* ===== Split "sidebar + form" auth cards =================================
  * Covers: Login, ForgotPassword, VerifyCode/ResetSuccess, RegisterStep1-3,
  * EmailVerification, OtpVerification (all built on the shared
