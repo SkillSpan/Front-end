@@ -1,5 +1,5 @@
 import { ORGANIZATION_TYPES } from './config';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './CompanyRegister.css'; // نفس ملف التنسيق الخاص بالشركات
 import { ShieldCheckIcon } from './CompanyIcons';
 
@@ -93,151 +93,153 @@ const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin, initialData })
 
         {/* Form Section */}
         <div className="company-step1-form-sec">
-          <div className="company-step1-header">
-            <h2>Start Your Corporate Journey</h2>
-            <span className="c-step-badge">Step 2</span>
-          </div>
-
-          <div className="company-step1-scroll">
-          {error && <div className="c-form-error">{error}</div>}
-
-          <form onSubmit={handleNext} className="company-step1-form" lang="en">
-            <h3 className="c-section-title">Company information</h3>
-
-            <div className="c-grid-2">
-              <div className="c-input-group">
-                <label>Company Name</label>
-                <input
-                  type="text"
-                  name="companyName"
-                  placeholder="TechNova Solutions"
-                  value={formData.companyName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="c-input-group">
-                <label>Company Type</label>
-                <select name="organizationType" value={formData.organizationType} onChange={handleChange}>
-                  {ORGANIZATION_TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>{type.label}</option>
-                  ))}
-                </select>
-              </div>
+          <div className="c-center-col">
+            <div className="company-step1-header">
+              <h2>Start Your Corporate Journey</h2>
+              <span className="c-step-badge">Step 2</span>
             </div>
 
-            <div className="c-grid-2">
-              <div className="c-input-group">
-                <label>Industry (Required)</label>
-                <select name="industry" value={formData.industry} onChange={handleChange}>
-                  <option value="Software & IT Services">Software & IT Services</option>
-                  <option value="Digital Marketing">Digital Marketing</option>
-                  <option value="E-commerce">E-commerce</option>
-                </select>
+            <div className="company-step1-scroll">
+            {error && <div className="c-form-error">{error}</div>}
+
+            <form onSubmit={handleNext} className="company-step1-form" lang="en">
+              <h3 className="c-section-title">Company information</h3>
+
+              <div className="c-grid-2">
+                <div className="c-input-group">
+                  <label>Company Name</label>
+                  <input
+                    type="text"
+                    name="companyName"
+                    placeholder="TechNova Solutions"
+                    value={formData.companyName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="c-input-group">
+                  <label>Company Type</label>
+                  <select name="organizationType" value={formData.organizationType} onChange={handleChange}>
+                    {ORGANIZATION_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>{type.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="c-input-group">
-                <label>Company Size</label>
-                <select name="companySize" value={formData.companySize} onChange={handleChange}>
-                  <option value="1 - 10 employees">1 - 10 employees</option>
-                  <option value="11 - 50 employees">11 - 50 employees</option>
-                  <option value="51 - 200 employees">51 - 200 employees</option>
-                  <option value="200+ employees">200+ employees</option>
-                </select>
+              <div className="c-grid-2">
+                <div className="c-input-group">
+                  <label>Industry (Required)</label>
+                  <select name="industry" value={formData.industry} onChange={handleChange}>
+                    <option value="Software & IT Services">Software & IT Services</option>
+                    <option value="Digital Marketing">Digital Marketing</option>
+                    <option value="E-commerce">E-commerce</option>
+                  </select>
+                </div>
+
+                <div className="c-input-group">
+                  <label>Company Size</label>
+                  <select name="companySize" value={formData.companySize} onChange={handleChange}>
+                    <option value="1 - 10 employees">1 - 10 employees</option>
+                    <option value="11 - 50 employees">11 - 50 employees</option>
+                    <option value="51 - 200 employees">51 - 200 employees</option>
+                    <option value="200+ employees">200+ employees</option>
+                  </select>
+                </div>
               </div>
+
+              <div className="c-grid-2">
+                <div className="c-input-group">
+                  <label>Website (URL)</label>
+                  <input
+                    type="text"
+                    name="website"
+                    placeholder="https://technova.com"
+                    value={formData.website}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="c-input-group">
+                  <label>Company Description</label>
+                  <textarea
+                    name="companyDescription"
+                    placeholder="We build innovative software solutions that..."
+                    value={formData.companyDescription}
+                    onChange={handleChange}
+                    rows="2"
+                  />
+                </div>
+              </div>
+
+              <h3 className="c-section-title c-section-title-spaced">Company Address</h3>
+
+              <div className="c-grid-2">
+                <div className="c-input-group">
+                  <label>Country</label>
+                  <input
+                    type="text"
+                    name="country"
+                    placeholder="Saudi Arabia"
+                    value={formData.country}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="c-input-group">
+                  <label>City</label>
+                  <input
+                    type="text"
+                    name="city"
+                    placeholder="Riyadh"
+                    value={formData.city}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="c-grid-2">
+                <div className="c-input-group">
+                  <label>Address</label>
+                  <input
+                    type="text"
+                    name="address"
+                    placeholder="King Fahd Road, Al Olaya"
+                    value={formData.address}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="c-input-group">
+                  <label>Postal Code</label>
+                  <input
+                    type="text"
+                    name="postalCode"
+                    placeholder="12211"
+                    value={formData.postalCode}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="c-actions">
+                <button type="button" className="c-btn-back" onClick={onBack}>
+                  ← Back
+                </button>
+                <button type="submit" className="c-btn-next">
+                  Next →
+                </button>
+              </div>
+
+              <div className="c-login-text">
+                Already Have a company account? <span className="c-login-link" onClick={onNavigateToLogin}>log in</span>
+              </div>
+            </form>
             </div>
-
-            <div className="c-grid-2">
-              <div className="c-input-group">
-                <label>Website (URL)</label>
-                <input
-                  type="text"
-                  name="website"
-                  placeholder="https://technova.com"
-                  value={formData.website}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="c-input-group">
-                <label>Company Description</label>
-                <textarea
-                  name="companyDescription"
-                  placeholder="We build innovative software solutions that..."
-                  value={formData.companyDescription}
-                  onChange={handleChange}
-                  rows="2"
-                />
-              </div>
-            </div>
-
-            <h3 className="c-section-title c-section-title-spaced">Company Address</h3>
-
-            <div className="c-grid-2">
-              <div className="c-input-group">
-                <label>Country</label>
-                <input
-                  type="text"
-                  name="country"
-                  placeholder="Saudi Arabia"
-                  value={formData.country}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="c-input-group">
-                <label>City</label>
-                <input
-                  type="text"
-                  name="city"
-                  placeholder="Riyadh"
-                  value={formData.city}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="c-grid-2">
-              <div className="c-input-group">
-                <label>Address</label>
-                <input
-                  type="text"
-                  name="address"
-                  placeholder="King Fahd Road, Al Olaya"
-                  value={formData.address}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="c-input-group">
-                <label>Postal Code</label>
-                <input
-                  type="text"
-                  name="postalCode"
-                  placeholder="12211"
-                  value={formData.postalCode}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <div className="c-actions">
-              <button type="button" className="c-btn-back" onClick={onBack}>
-                ← Back
-              </button>
-              <button type="submit" className="c-btn-next">
-                Next →
-              </button>
-            </div>
-
-            <div className="c-login-text">
-              Already Have a company account? <span className="c-login-link" onClick={onNavigateToLogin}>log in</span>
-            </div>
-          </form>
           </div>
         </div>
 

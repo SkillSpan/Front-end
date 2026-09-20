@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './CompanyRegister.css';
 import { ShieldCheckIcon, LockIcon, EyeIcon, EyeOffIcon } from './CompanyIcons';
 
@@ -84,103 +84,105 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack, initialData })
         </div>
 
         <div className="company-step1-form-sec">
-          <div className="company-step1-header">
-            <h2>Welcome to Registration</h2>
-            <span className="c-step-badge">Step 1</span>
-          </div>
-          <div className="company-step1-scroll">
-
-          {error && <div style={{ color: '#ef4444', marginBottom: '15px', fontSize: '14px' }}>{error}</div>}
-
-          <form onSubmit={handleNext} className="company-step1-form" lang="en">
-            <div className="c-input-group">
-              <label>Full Name</label>
-              <input
-                type="text"
-                name="name"
-                placeholder="e.g., Alex Smith"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
+          <div className="c-center-col">
+            <div className="company-step1-header">
+              <h2>Welcome to Registration</h2>
+              <span className="c-step-badge">Step 1</span>
             </div>
+            <div className="company-step1-scroll">
 
-            <div className="c-input-group">
-              <label>Email Address</label>
-              <input
-                type="email"
-                name="email"
-                placeholder="e.g., alex.smith@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
+            {error && <div style={{ color: '#ef4444', marginBottom: '15px', fontSize: '14px' }}>{error}</div>}
 
-            <div className="c-input-group">
-              <label>Phone Number</label>
-              <input
-                type="text"
-                name="phone"
-                placeholder="e.g., +1-555-0199"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="c-input-group">
-              <label>Password</label>
-              <div className="c-pass-wrap">
+            <form onSubmit={handleNext} className="company-step1-form" lang="en">
+              <div className="c-input-group">
+                <label>Full Name</label>
                 <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="********"
-                  value={formData.password}
+                  type="text"
+                  name="name"
+                  placeholder="e.g., Alex Smith"
+                  value={formData.name}
                   onChange={handleChange}
                   required
                 />
-                <span className="c-pass-toggle" onClick={() => setShowPassword(!showPassword)}>
-                  {showPassword ? <EyeIcon /> : <EyeOffIcon />}
-                </span>
               </div>
-            </div>
 
-            <div className="c-input-group">
-              <label>Confirm Password</label>
-              <div className="c-pass-wrap">
+              <div className="c-input-group">
+                <label>Email Address</label>
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  placeholder="********"
-                  value={formData.confirmPassword}
+                  type="email"
+                  name="email"
+                  placeholder="e.g., alex.smith@example.com"
+                  value={formData.email}
                   onChange={handleChange}
                   required
                 />
-                <span className="c-pass-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                  {showConfirmPassword ? <EyeIcon /> : <EyeOffIcon />}
-                </span>
               </div>
-            </div>
 
-            <div className="c-notice-box">
-              <span className="c-notice-icon"><LockIcon /></span>
-              <p>You'll be able to add more team members later.<br />This account will be the primary admin for your company.</p>
-            </div>
+              <div className="c-input-group">
+                <label>Phone Number</label>
+                <input
+                  type="text"
+                  name="phone"
+                  placeholder="e.g., +1-555-0199"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-            <div className="c-actions">
-              <button type="button" className="c-btn-back" onClick={onBack}>
-                ← Back
-              </button>
-              <button type="submit" className="c-btn-next">
-                Next →
-              </button>
-            </div>
+              <div className="c-input-group">
+                <label>Password</label>
+                <div className="c-pass-wrap">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="********"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                  />
+                  <span className="c-pass-toggle" onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <EyeIcon /> : <EyeOffIcon />}
+                  </span>
+                </div>
+              </div>
 
-            <div className="c-login-text">
-              Already Have a company account? <span onClick={onNavigateToLogin} style={{ color: '#3b82f6', cursor: 'pointer', fontWeight: '600' }}>log in</span>
+              <div className="c-input-group">
+                <label>Confirm Password</label>
+                <div className="c-pass-wrap">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    placeholder="********"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                  />
+                  <span className="c-pass-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    {showConfirmPassword ? <EyeIcon /> : <EyeOffIcon />}
+                  </span>
+                </div>
+              </div>
+
+              <div className="c-notice-box">
+                <span className="c-notice-icon"><LockIcon /></span>
+                <p>You'll be able to add more team members later.<br />This account will be the primary admin for your company.</p>
+              </div>
+
+              <div className="c-actions">
+                <button type="button" className="c-btn-back" onClick={onBack}>
+                  ← Back
+                </button>
+                <button type="submit" className="c-btn-next">
+                  Next →
+                </button>
+              </div>
+
+              <div className="c-login-text">
+                Already Have a company account? <span onClick={onNavigateToLogin} style={{ color: '#3b82f6', cursor: 'pointer', fontWeight: '600' }}>log in</span>
+              </div>
+            </form>
             </div>
-          </form>
           </div>
         </div>
       </div>

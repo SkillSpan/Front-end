@@ -1,8 +1,7 @@
-import React from 'react'
 import './CompanyRegister.css'
 import { ShieldCheckIcon, CheckCircleBigIcon } from './CompanyIcons'
 
-function CompanyStep5({ onNavigateToLogin, email }) {
+function CompanyStep5({ onNavigateToLanding, onNavigateToLogin, email }) {
   return (
     <div className="company-step5-container">
       <div className="company-step5-card">
@@ -41,53 +40,55 @@ function CompanyStep5({ onNavigateToLogin, email }) {
         </div>
 
         <div className="company-step5-form-sec">
-          <div className="company-step5-header">
-            <h2>Registration Submitted!</h2>
-            <span className="c-step-badge">Step 5</span>
-          </div>
-
-          <div className="company-step5-success">
-            <div className="c5-check-badge">
-              <CheckCircleBigIcon />
+          <div className="c-center-col c-center-col--narrow">
+            <div className="company-step5-header">
+              <h2>Registration Submitted!</h2>
+              <span className="c-step-badge">Step 5</span>
             </div>
 
-            <h3 className="c5-thank-you">Thank You!</h3>
-            <p className="c5-thank-desc">
-              Your company registration has been submitted successfully.
-            </p>
+            <div className="company-step5-success">
+              <div className="c5-check-badge">
+                <CheckCircleBigIcon />
+              </div>
 
-            <ul className="c5-info-list-plain">
-              <li>
-                <p className="c5-info-title">Check your email</p>
-                <p className="c5-info-desc">
-                  We have sent a verification link to <strong>{email || 'info@company.com'}</strong>. Please verify your
-                  email address to activate your account.
-                </p>
-              </li>
+              <h3 className="c5-thank-you">Thank You!</h3>
+              <p className="c5-thank-desc">
+                Your company registration has been submitted successfully.
+              </p>
 
-              <li>
-                <p className="c5-info-title">Review in progress</p>
-                <p className="c5-info-desc">
-                  Our team will review your information and documents.
-                  This usually takes 1-2 business days.
-                </p>
-              </li>
+              <ul className="c5-info-list-plain">
+                <li>
+                  <p className="c5-info-title">Check your email</p>
+                  <p className="c5-info-desc">
+                    We have sent a verification link to <strong>{email || 'info@company.com'}</strong>. Please verify your
+                    email address to activate your account.
+                  </p>
+                </li>
 
-              <li>
-                <p className="c5-info-title">We'll notify you</p>
-                <ul className="c5-info-sublist">
-                  <li>You will receive an email once your company account is approved and ready to use.</li>
-                </ul>
-              </li>
-            </ul>
+                <li>
+                  <p className="c5-info-title">Review in progress</p>
+                  <p className="c5-info-desc">
+                    Our team will review your information and documents.
+                    This usually takes 1-2 business days.
+                  </p>
+                </li>
 
-            <button onClick={onNavigateToLogin} className="c5-btn-landing">
-              Go to Landing Page
-            </button>
+                <li>
+                  <p className="c5-info-title">We'll notify you</p>
+                  <ul className="c5-info-sublist">
+                    <li>You will receive an email once your company account is approved and ready to use.</li>
+                  </ul>
+                </li>
+              </ul>
 
-            <p className="c5-login-text">
-              Already Have a company account? <span className="c5-login-link" onClick={onNavigateToLogin}>log in</span>
-            </p>
+              <button onClick={onNavigateToLanding} className="c5-btn-landing">
+                Go to Landing Page
+              </button>
+
+              <p className="c5-login-text">
+                Already Have a company account? <span className="c5-login-link" onClick={onNavigateToLogin}>log in</span>
+              </p>
+            </div>
           </div>
         </div>
       </div>

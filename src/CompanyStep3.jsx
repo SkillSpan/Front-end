@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import './CompanyRegister.css'
 import { ShieldCheckIcon, FileDocIcon, InfoIcon } from './CompanyIcons'
 
@@ -96,99 +96,101 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
         </div>
 
         <div className="company-step3-form-sec">
-          <div className="company-step3-header">
-            <h2>Start Your Corporate Journey</h2>
-            <span className="c-step-badge">Step 3</span>
-          </div>
+          <div className="c-center-col">
+            <div className="company-step3-header">
+              <h2>Start Your Corporate Journey</h2>
+              <span className="c-step-badge">Step 3</span>
+            </div>
 
-          <div className="company-step1-scroll">
-          <form onSubmit={handleSubmit} className="company-step1-form">
-            <div className="c-input-group">
-              <label className="c-verify-title">Verify Your Company</label>
-              <p className="c-verify-sub">
-                Please upload the required documents to verify your company.
-              </p>
+            <div className="company-step1-scroll">
+            <form onSubmit={handleSubmit} className="company-step1-form">
+              <div className="c-input-group">
+                <label className="c-verify-title">Verify Your Company</label>
+                <p className="c-verify-sub">
+                  Please upload the required documents to verify your company.
+                </p>
 
-              <label className="c-upload-label">
-                Business Registration Document <span className="c-required">(Required)</span>
-              </label>
+                <label className="c-upload-label">
+                  Business Registration Document <span className="c-required">(Required)</span>
+                </label>
 
-              <div className={`c-upload-box ${uploadedFile ? 'has-file' : ''}`}>
-                <input
-                  type="file"
-                  accept=".pdf,.png,.jpg,.jpeg"
-                  onChange={handleFileChange}
-                  className="c-upload-input"
-                />
-                <div className="c-upload-row">
-                  <div className="c-upload-icon"><FileDocIcon /></div>
-                  <div className="c-upload-copy">
-                    <div className="c-upload-title">Upload Company Registration or Trade License</div>
-                    <div className="c-upload-hint">PDF, PNG, JPG (Max 5MB)</div>
+                <div className={`c-upload-box ${uploadedFile ? 'has-file' : ''}`}>
+                  <input
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    onChange={handleFileChange}
+                    className="c-upload-input"
+                  />
+                  <div className="c-upload-row">
+                    <div className="c-upload-icon"><FileDocIcon /></div>
+                    <div className="c-upload-copy">
+                      <div className="c-upload-title">Upload Company Registration or Trade License</div>
+                      <div className="c-upload-hint">PDF, PNG, JPG (Max 5MB)</div>
+                    </div>
                   </div>
+
+                  {uploadedFile && (
+                    <div className="c-upload-selected">
+                      <span>{uploadedFile.name}</span>
+                      <span className="c-upload-selected-tag">Selected</span>
+                    </div>
+                  )}
                 </div>
-
-                {uploadedFile && (
-                  <div className="c-upload-selected">
-                    <span>{uploadedFile.name}</span>
-                    <span className="c-upload-selected-tag">Selected</span>
-                  </div>
-                )}
               </div>
-            </div>
 
-            <div className="c-input-group c-input-group-spaced">
-              <label className="c-upload-label">
-                Additional Document <span className="c-optional">(Optional)</span>
-              </label>
+              <div className="c-input-group c-input-group-spaced">
+                <label className="c-upload-label">
+                  Additional Document <span className="c-optional">(Optional)</span>
+                </label>
 
-              <div className={`c-upload-box ${optionalFile ? 'has-file' : ''}`}>
-                <input
-                  type="file"
-                  accept=".pdf,.png,.jpg,.jpeg"
-                  onChange={handleOptionalFileChange}
-                  className="c-upload-input"
-                />
-                <div className="c-upload-row">
-                  <div className="c-upload-icon"><FileDocIcon /></div>
-                  <div className="c-upload-copy">
-                    <div className="c-upload-title">Upload Company Registration or Trade License</div>
-                    <div className="c-upload-hint">PDF, PNG, JPG (Max 5MB)</div>
+                <div className={`c-upload-box ${optionalFile ? 'has-file' : ''}`}>
+                  <input
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    onChange={handleOptionalFileChange}
+                    className="c-upload-input"
+                  />
+                  <div className="c-upload-row">
+                    <div className="c-upload-icon"><FileDocIcon /></div>
+                    <div className="c-upload-copy">
+                      <div className="c-upload-title">Upload Company Registration or Trade License</div>
+                      <div className="c-upload-hint">PDF, PNG, JPG (Max 5MB)</div>
+                    </div>
                   </div>
+
+                  {optionalFile && (
+                    <div className="c-upload-selected">
+                      <span>{optionalFile.name}</span>
+                      <span className="c-upload-selected-tag">Selected</span>
+                    </div>
+                  )}
                 </div>
-
-                {optionalFile && (
-                  <div className="c-upload-selected">
-                    <span>{optionalFile.name}</span>
-                    <span className="c-upload-selected-tag">Selected</span>
-                  </div>
-                )}
               </div>
-            </div>
 
-            {fileError && (
-              <div className="c-form-error c-form-error-icon">
-                <InfoIcon size={16} /> {fileError}
+              {fileError && (
+                <div className="c-form-error c-form-error-icon">
+                  <InfoIcon size={16} /> {fileError}
+                </div>
+              )}
+
+              <div className="c-actions">
+                <button type="button" className="c-btn-back" onClick={onBack}>
+                  ← Back
+                </button>
+                <button
+                  type="submit"
+                  className="c-btn-next"
+                  disabled={!uploadedFile}
+                >
+                  Next →
+                </button>
               </div>
-            )}
 
-            <div className="c-actions">
-              <button type="button" className="c-btn-back" onClick={onBack}>
-                ← Back
-              </button>
-              <button
-                type="submit"
-                className="c-btn-next"
-                disabled={!uploadedFile}
-              >
-                Next →
-              </button>
+              <div className="c-login-text">
+                Already Have a company account? <span onClick={onNavigateToLogin} className="c-login-link">log in</span>
+              </div>
+            </form>
             </div>
-
-            <div className="c-login-text">
-              Already Have a company account? <span onClick={onNavigateToLogin} className="c-login-link">log in</span>
-            </div>
-          </form>
           </div>
         </div>
       </div>
