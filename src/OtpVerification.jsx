@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { verifyOtp, resendOtp } from './api';
 import './OtpVerification.css';
 
