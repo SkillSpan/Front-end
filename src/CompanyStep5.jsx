@@ -96,4 +96,8 @@ function CompanyStep5({ onNavigateToLanding, onNavigateToLogin, email }) {
   )
 }
 
+<<<<<<< HEAD
 export default CompanyStep5
+=======
+export default CompanyStep5
+>>>>>>> feature-my-work

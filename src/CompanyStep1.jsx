@@ -190,4 +190,8 @@ const CompanyStep1 = ({ onNextSuccess, onNavigateToLogin, onBack, initialData })
   );
 };
 
+<<<<<<< HEAD
 export default CompanyStep1;
+=======
+export default CompanyStep1;
+>>>>>>> feature-my-work
