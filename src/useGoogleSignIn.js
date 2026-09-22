@@ -22,25 +22,29 @@ export function useGoogleSignIn(onCredential, enabled) {
   const wrapRef = useRef(null); // the visible custom button's wrapper - used to measure width
   const overlayRef = useRef(null); // invisible container Google renders its real button into
   const [isReady, setIsReady] = useState(false);
-  const [error, setError] = useState('');
+  const [customError, setCustomError] = useState('');
+
+  const error = !GOOGLE_CLIENT_ID && enabled
+    ? 'Google sign-in is not configured (missing VITE_GOOGLE_CLIENT_ID).'
+    : customError;
+
+  const onCredentialRef = useRef(onCredential);
+  useEffect(() => {
+    onCredentialRef.current = onCredential;
+  }, [onCredential]);
 
   useEffect(() => {
-    if (!enabled) return undefined;
-
-    if (!GOOGLE_CLIENT_ID) {
-      setError('Google sign-in is not configured (missing VITE_GOOGLE_CLIENT_ID).');
-      return undefined;
-    }
+    if (!enabled || !GOOGLE_CLIENT_ID) return undefined;
 
     let cancelled = false;
     let attempts = 0;
 
     const handleResponse = (response) => {
       if (!response || !response.credential) {
-        setError('Google did not return a valid credential. Please try again.');
+        setCustomError('Google did not return a valid credential. Please try again.');
         return;
       }
-      onCredential(response.credential);
+      onCredentialRef.current(response.credential);
     };
 
     const tryInit = () => {
@@ -69,7 +73,7 @@ export function useGoogleSignIn(onCredential, enabled) {
       if (attempts < 40) {
         setTimeout(tryInit, 150);
       } else {
-        setError('Unable to load Google sign-in. Please refresh the page.');
+        setCustomError('Unable to load Google sign-in. Please refresh the page.');
       }
     };
 
@@ -77,8 +81,7 @@ export function useGoogleSignIn(onCredential, enabled) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 
-  return { wrapRef, overlayRef, isReady, error, setError };
+  return { wrapRef, overlayRef, isReady, error, setError: setCustomError };
 }

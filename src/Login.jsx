@@ -26,10 +26,11 @@ const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, o
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Google Sign-In state
+  const [googleAuthError, setGoogleAuthError] = useState('');
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   const handleGoogleCredential = async (credential) => {
-    setGoogleError('');
+    setGoogleAuthError('');
     setIsGoogleSubmitting(true);
     try {
       const res = await loginWithGoogle(credential, false, false);
@@ -45,12 +46,14 @@ const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, o
         if (onNewGoogleUser) onNewGoogleUser(credential);
         return;
       }
-      setGoogleError(err.message || 'Google sign-in failed. Please try again.');
+      setGoogleAuthError(err.message || 'Google sign-in failed. Please try again.');
     }
   };
 
-  const { wrapRef: googleWrapRef, overlayRef: googleOverlayRef, error: googleError, setError: setGoogleError } =
+  const { wrapRef: googleWrapRef, overlayRef: googleOverlayRef, error: googleInitError } =
     useGoogleSignIn(handleGoogleCredential, GOOGLE_LOGIN_ENABLED);
+
+  const googleError = googleInitError || googleAuthError;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

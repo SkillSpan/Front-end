@@ -93,7 +93,6 @@ function normalizeTaxonomy(raw) {
       // obvious which field name to add above, instead of having to
       // manually expand the {...} in the console.
       const sample = rawCategories[0]?.skills?.[0] || rawCategories[0]?.children?.[0] || rawCategories[0];
-      // eslint-disable-next-line no-console
       console.warn('[SkillMatrix] Taxonomy items had no recognizable id field. Sample item keys:', sample && Object.keys(sample), sample);
     }
 
@@ -196,8 +195,10 @@ export default function SkillMatrix({ onNavigate }) {
   // Maps skill id -> backend matrix row id, so edits PUT /skills/matrix/{id}
   // instead of re-POSTing (which would try to upsert a duplicate pair).
   const [rowIds, setRowIds] = useState({});
-  const [loadingMatrix, setLoadingMatrix] = useState(true);
-  const [loadError, setLoadError] = useState(null);
+  const [loadingMatrix, setLoadingMatrix] = useState(() => !!learnerId);
+  const [loadError, setLoadError] = useState(() =>
+    learnerId ? null : "We couldn't find your learner id in your session. Try logging out and back in."
+  );
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [tab, setTab] = useState('all'); // all | assessment | self
@@ -243,16 +244,10 @@ export default function SkillMatrix({ onNavigate }) {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
     if (!learnerId) {
-      // Same "can't resolve who you are" situation as saveSkill() below -
-      // don't bother calling the API when we already know it'll 422.
-      setLoadingMatrix(false);
-      setLoadError("We couldn't find your learner id in your session. Try logging out and back in.");
       return undefined;
     }
-    setLoadingMatrix(true);
-    setLoadError(null);
+    let cancelled = false;
     getSkillsMatrix(learnerId)
       .then((data) => {
         if (cancelled) return;

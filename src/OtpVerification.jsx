@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { verifyOtp, resendOtp } from './api';
 import './OtpVerification.css';
 
@@ -10,7 +10,16 @@ import './OtpVerification.css';
 // مستقبلي).
 const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBack, onContinueToLogin }) => {
   const confirmedEmail = userEmail || legacyEmail || '';
+  const [prevConfirmedEmail, setPrevConfirmedEmail] = useState(confirmedEmail);
   const [emailInput, setEmailInput] = useState(confirmedEmail);
+
+  if (confirmedEmail !== prevConfirmedEmail) {
+    setPrevConfirmedEmail(confirmedEmail);
+    if (confirmedEmail) {
+      setEmailInput(confirmedEmail);
+    }
+  }
+
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(600);
   const [resendTimer, setResendTimer] = useState(60);
@@ -20,11 +29,6 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const inputRefs = useRef([]);
-
-  // نحدّث الحقل تلقائياً إذا وصل الإيميل بعد أول رندر
-  useEffect(() => {
-    if (confirmedEmail) setEmailInput(confirmedEmail);
-  }, [confirmedEmail]);
 
   useEffect(() => {
     let timer = null;

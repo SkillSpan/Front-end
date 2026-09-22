@@ -198,8 +198,4 @@ function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData })
   )
 }
 
-<<<<<<< HEAD
-export default CompanyStep3
-=======
-export default CompanyStep3
->>>>>>> feature-my-work
+export default CompanyStep3;

@@ -558,8 +558,22 @@ export default function CareerRoles({ user, onLogout, onNavigate }) {
   };
 
   useEffect(() => {
-    loadCatalog();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false;
+    loadCareerRolesCatalog()
+      .then(({ roles: loaded, levelsBySkillId: levels }) => {
+        if (cancelled) return;
+        setRoles(loaded);
+        setLevelsBySkillId(levels);
+        setStatus('ready');
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setLoadError(err?.message || 'Could not load career roles.');
+        setStatus('error');
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const toggleSave = (id) => {
