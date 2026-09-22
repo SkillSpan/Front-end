@@ -382,15 +382,10 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
                 options={countries}
                 value={country}
                 onChange={handleCountryChange}
-<<<<<<< HEAD
                 placeholder="All countries"
                 searchPlaceholder="Search countries…"
                 allowClear
                 clearLabel="All countries"
-=======
-                placeholder="Select your country"
-                searchPlaceholder="Search countries…"
->>>>>>> feature-my-work
               />
               <span style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'block' }}>
                 Pick a country to filter the University list below to that country only.
@@ -430,11 +425,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
               </label>
               <input
                 type="text"
-<<<<<<< HEAD
                 placeholder="Enter your student ID"
-=======
-                placeholder="Enter your student ID number"
->>>>>>> feature-my-work
                 value={universityIdNumber}
                 onChange={(e) => {
                   setUniversityIdNumber(e.target.value);
@@ -560,8 +551,4 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
   );
 };
 
-<<<<<<< HEAD
 export default LearnerProfileSetup;
-=======
-export default LearnerProfileSetup;
->>>>>>> feature-my-work

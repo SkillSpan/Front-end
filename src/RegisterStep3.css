@@ -36,23 +36,7 @@
 }
 
 /* مربع التحديد المخصص */
-<<<<<<< HEAD
 .custom-checkbox {
-=======
-/*
- * NOTE: .custom-checkbox / .checkmark / .checkbox-text / .highlight-text
- * are generic class names that CompanyRegister.css ALSO defines (for the
- * company registration flow), with equal selector specificity. Since both
- * flows live in the same app bundle, whichever file's CSS lands later in
- * the compiled stylesheet used to silently win here - which is exactly why
- * this step's text was rendering in CompanyRegister's dark, low-contrast
- * colors on top of this page's navy card background. Every rule below is
- * now scoped under .agreements-container (unique to this file) so this
- * page's own colors always win, regardless of build/import order. Colors
- * only - no markup or logic changed.
- */
-.agreements-container .custom-checkbox {
->>>>>>> feature-my-work
   width: 22px;
   height: 22px;
   background-color: #ffffff;
@@ -64,51 +48,31 @@
   transition: all 0.2s ease;
 }
 
-<<<<<<< HEAD
 .checkbox-card:hover .custom-checkbox {
-=======
-.agreements-container .checkbox-card:hover .custom-checkbox {
->>>>>>> feature-my-work
   transform: scale(1.08);
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
 
-<<<<<<< HEAD
 .checkmark {
-=======
-.agreements-container .checkmark {
->>>>>>> feature-my-work
   color: #0b1528;
   font-weight: bold;
   font-size: 14px;
   animation: popCheck 0.2s ease-in-out;
 }
 
-<<<<<<< HEAD
 .checkbox-text {
-=======
-.agreements-container .checkbox-text {
->>>>>>> feature-my-work
   color: #ffffff;
   font-size: 0.95rem;
   font-weight: 500;
 }
 
-<<<<<<< HEAD
 .highlight-text {
-=======
-.agreements-container .highlight-text {
->>>>>>> feature-my-work
   color: #f59e0b;
   font-weight: 600;
   transition: color 0.2s ease;
 }
 
-<<<<<<< HEAD
 .checkbox-card:hover .highlight-text {
-=======
-.agreements-container .checkbox-card:hover .highlight-text {
->>>>>>> feature-my-work
   color: #fbbf24;
   text-decoration: underline;
 }
