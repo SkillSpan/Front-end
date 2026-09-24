@@ -18,7 +18,7 @@ import {
   clearSubmissionResult,
 } from './assessmentStorage';
 import { TOTAL_QUESTIONS } from './assessmentQuestions';
-import { startBaselineAssessment, autosaveBaselineAssessment, submitBaselineAssessment } from './api';
+import { startBaselineAssessment, autosaveBaselineAssessment, submitBaselineAssessment } from '../../api';
 
 // NOTE: every navigate() call below uses an ABSOLUTE path
 // (/register/assessment/...) rather than a relative one, for the same

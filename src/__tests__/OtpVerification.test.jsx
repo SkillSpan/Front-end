@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import OtpVerification from '../OtpVerification';
+import OtpVerification from '../components/auth/OtpVerification';
 import * as api from '../api';
 
 describe('OtpVerification', () => {

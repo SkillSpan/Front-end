@@ -4,10 +4,10 @@ import RegisterStep1 from './RegisterStep1';
 import RegisterStep2 from './RegisterStep2';
 import RegisterStep3 from './RegisterStep3';
 import OtpVerification from './OtpVerification';
-import LearnerProfileSetup from './LearnerProfileSetup';
-import AssessmentWizard from './AssessmentWizard';
-import { decodeJwtPayloadUnsafe } from './utils/jwt';
-import { saveSession, loginUser } from './api';
+import LearnerProfileSetup from '../assessment/LearnerProfileSetup';
+import AssessmentWizard from '../assessment/AssessmentWizard';
+import { decodeJwtPayloadUnsafe } from '../../utils/jwt';
+import { saveSession, loginUser } from '../../api';
 import { useAuth } from './AuthContext';
 
 // Each step has its own real URL (/register/account, /register/status,
@@ -167,12 +167,10 @@ function RegisterWizard() {
         path="assessment/*"
         element={
           <AssessmentWizard
-            // No results/dashboard page exists yet in this app - land the
-            // learner on the homepage once the assessment is done or
-            // skipped. Update this once one exists (see
-            // api_endpoints_render.md for the readiness endpoints this
-            // would presumably lead into).
-            onFinish={() => navigate('/')}
+            // A dashboard now exists (merged in from the skill-matrix /
+            // career-roles branch) - land the learner there once the
+            // assessment is done or skipped, instead of the homepage.
+            onFinish={() => navigate('/dashboard')}
           />
         }
       />

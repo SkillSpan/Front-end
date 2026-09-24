@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './AuthContext';
-import LogoutModal from './LogoutModal';
-import { logoutUser, logoutAllDevices } from './api';
+import { useAuth } from '../auth/AuthContext';
+import LogoutModal from '../dashboard/LogoutModal';
+import { logoutUser, logoutAllDevices } from '../../api';
 
 const navItems = ['Home', 'Features', 'How it Works', 'About Us', 'Contact'];
 
@@ -202,7 +202,7 @@ function Landing() {
           ) : (
             <>
               <button className="btn log-in" onClick={() => { navigate('/login'); setIsMenuOpen(false); }}>log in</button>
-              <button className="btn get-started" onClick={() => { navigate('/register'); setIsMenuOpen(false); }}>
+              <button className="btn get-started" onClick={() => { navigate('/dashboard'); setIsMenuOpen(false); }}>
                 Get Started →
               </button>
             </>
@@ -224,7 +224,7 @@ function Landing() {
             by companies looking for top talent
           </p>
           <div className="hero-buttons">
-            <button className="btn primary-gradient" onClick={() => navigate('/register')}>
+            <button className="btn primary-gradient" onClick={() => navigate('/dashboard')}>
               Start Your Journey →
             </button>
             <button className="btn outline-glow">

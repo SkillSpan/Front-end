@@ -1,5 +1,5 @@
 import AssessmentCompleteTopbar from './AssessmentCompleteTopbar';
-import { useAuth } from './AuthContext';
+import { useAuth } from '../auth/AuthContext';
 import { SECTIONS, RATED_QUESTIONS, TOTAL_QUESTIONS } from './assessmentQuestions';
 import './SkillAssessmentCompletion.css';
 

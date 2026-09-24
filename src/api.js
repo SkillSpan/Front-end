@@ -64,6 +64,14 @@ export function isAuthenticated() {
   return !!getToken();
 }
 
+// Pulled in from the skill-matrix/career-roles branch merge - the backend
+// user object shape has varied a bit across endpoints (id / user_id /
+// learner_id / uuid), so this centralizes "which field is the learner's id"
+// instead of every caller guessing.
+export function resolveLearnerId(user) {
+  return user?.id ?? user?.user_id ?? user?.learner_id ?? user?.uuid ?? null;
+}
+
 export function clearSession() {
   removeCookie(TOKEN_COOKIE);
   removeCookie(USER_COOKIE);
@@ -372,3 +380,73 @@ export const addSkillToMatrix = (payload) =>
 
 export const updateSkillMatrixEntry = (id, payload) =>
   request(`/api/v1/skills/matrix/${id}`, { method: 'PUT', body: payload, withAuth: true });
+
+// Alias for addSkillToMatrix - same endpoint, kept under this name because
+// it's what SkillMatrix.jsx / careerRolesApi.js (merged in from the
+// skill-matrix/career-roles branch) import. It's an upsert server-side
+// (unique on learner_id + skill_id, see SkillsController@store), not a
+// strict create.
+export const upsertSkillMatrix = addSkillToMatrix;
+
+// ---------------------------------------------------------------------------
+// Evidence (requires Authorization: Bearer {token})
+// ---------------------------------------------------------------------------
+// Confirmed against SkillSpan_Full_API_Reference.pdf / EvidenceController.
+
+// payload should be FormData when sending evidence_file, or a plain object
+// when sending evidence_url instead - pass isFormData accordingly.
+// role:learner.
+export const submitEvidence = (payload, isFormData = false) =>
+  request('/api/v1/evidence', { method: 'POST', body: payload, isFormData, withAuth: true });
+
+// role:learner - returns only the current user's *verified* evidence.
+export const getMyEvidence = () => request('/api/v1/evidence', { method: 'GET', withAuth: true });
+
+// ⚠️ No ownership/role check on this one server-side - any signed-in user
+// can fetch any evidence record by id. Flagged, not fixed here (backend
+// issue) - don't rely on this endpoint alone to gate access to a record's
+// contents in the UI.
+export const getEvidenceById = (id) => request(`/api/v1/evidence/${id}`, { method: 'GET', withAuth: true });
+
+// role:admin - accept/reject; does NOT recalculate the skill's level/
+// confidence automatically (see SKL-06 in the SRS - that's a separate step).
+export const reviewEvidence = (id, verificationStatus, reviewerNotes) =>
+  request(`/api/v1/evidence/${id}/review`, {
+    method: 'PUT',
+    body: { verification_status: verificationStatus, reviewer_notes: reviewerNotes },
+    withAuth: true,
+  });
+
+// ---------------------------------------------------------------------------
+// Career roles (requires Authorization: Bearer {token}, role:learner)
+// ---------------------------------------------------------------------------
+// Confirmed against CareerRoleController.php - GET /, GET /{id}, and
+// GET /{id}/skills are all implemented and registered under
+// prefix('career-roles'). Only approved career roles are ever returned;
+// an existing-but-unapproved role responds 422 (code CAREER_ROLE_NOT_APPROVED),
+// a missing one 404 (CAREER_ROLE_NOT_FOUND) - see careerRolesApi.js for how
+// those surface in the UI.
+
+// page/perPage are optional - only sent when provided.
+export const getCareerRoles = ({ page, perPage } = {}) => {
+  const params = new URLSearchParams();
+  if (page) params.set('page', page);
+  if (perPage) params.set('per_page', perPage);
+  const qs = params.toString();
+  return request(`/api/v1/career-roles${qs ? `?${qs}` : ''}`, { method: 'GET', withAuth: true });
+};
+
+export const getCareerRoleById = (id) =>
+  request(`/api/v1/career-roles/${id}`, { method: 'GET', withAuth: true });
+
+export const getCareerRoleSkills = (id) =>
+  request(`/api/v1/career-roles/${id}/skills`, { method: 'GET', withAuth: true });
+
+// ---------------------------------------------------------------------------
+// Readiness (requires Authorization: Bearer {token}, role:learner)
+// ---------------------------------------------------------------------------
+
+export const calculateReadiness = (payload) =>
+  request('/api/v1/readiness/calculate', { method: 'POST', body: payload, withAuth: true });
+
+export const getLatestReadiness = () => request('/api/v1/readiness/latest', { method: 'GET', withAuth: true });

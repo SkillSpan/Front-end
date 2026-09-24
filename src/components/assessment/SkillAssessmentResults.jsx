@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import AssessmentCompleteTopbar from './AssessmentCompleteTopbar';
 import { loadSavedAnswers, loadSubmissionResult } from './assessmentStorage';
-import { getSkillsMatrix } from './api';
+import { getSkillsMatrix } from '../../api';
 import { RATED_QUESTIONS, RATING_LEVELS } from './assessmentQuestions';
 import './SkillAssessmentResults.css';
 

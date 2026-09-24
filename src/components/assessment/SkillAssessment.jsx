@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import './SkillAssessment.css';
 import { loadSavedAnswers, saveAnswers } from './assessmentStorage';
-import { autosaveBaselineAssessment } from './api';
+import { autosaveBaselineAssessment } from '../../api';
 import {
   RATING_LEVELS,
   LEVEL_ACCENT,

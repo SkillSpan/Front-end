@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './CompanyLogin.css';
-import { loginOrganization, saveSession } from './api';
+import { loginOrganization, saveSession } from '../../api';
 import { ShieldCheckIcon, EyeIcon, EyeOffIcon } from './CompanyIcons';
 
 const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onForgotPassword, onLoginSuccess }) => {

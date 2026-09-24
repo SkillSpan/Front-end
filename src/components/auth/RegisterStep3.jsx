@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './RegisterStep3.css';
-import { registerUser, loginWithGoogle } from './api';
-import { buildRegisterPayload } from './utils/payloadMapping';
+import { registerUser, loginWithGoogle } from '../../api';
+import { buildRegisterPayload } from '../../utils/payloadMapping';
 
 const RegisterStep3 = ({ onNextSuccess, onBack, registerData, googleCredential }) => {
   const [agreeTerms, setAgreeTerms] = useState(false);

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import './CompanyRegister.css'
 import { ShieldCheckIcon, InfoIcon, FileDocIcon } from './CompanyIcons'
-import { registerOrganization } from './api'
-import { buildOrganizationFormData } from './utils/payloadMapping'
+import { registerOrganization } from '../../api'
+import { buildOrganizationFormData } from '../../utils/payloadMapping'
 
 function CompanyStep4({ onNextSuccess, onBack, onNavigateToLogin, companyData }) {
   const [agreeTerms, setAgreeTerms] = useState(false)
