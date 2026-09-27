@@ -1,0 +1,713 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* الحاوية الرئيسية */
+.company-step1-container,
+.company-step3-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #030712;
+  font-family: 'Inter', sans-serif;
+  padding: 20px;
+  width: 100%;
+  overflow-y: auto;
+}
+
+/* بطاقة المحتوى */
+.company-step1-card,
+.company-step3-card {
+  display: flex;
+  background: #0b0f19;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  width: 1000px;
+  max-width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  overflow: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.company-step1-card::-webkit-scrollbar,
+.company-step3-card::-webkit-scrollbar {
+  display: none;
+}
+
+/* الشريط الجانبي */
+.company-step1-sidebar,
+.company-step3-sidebar {
+  width: 380px;
+  background: #050b22;
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.company-step1-brand,
+.company-step3-brand {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 25px;
+}
+.c-white { color: #ffffff; }
+.c-blue { color: #1d72b8; }
+
+.company-step1-dropdown-box,
+.company-step3-dropdown-box {
+  margin-bottom: 35px;
+}
+
+.company-step1-drop-btn,
+.company-step3-drop-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.company-step1-drop-btn:hover,
+.company-step3-drop-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* خطوات التنقل الجانبية */
+.company-step1-steps,
+.company-step3-steps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 0;
+  margin: 0;
+}
+
+.company-step1-step-item,
+.company-step3-step-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.company-step1-step-item.active,
+.company-step3-step-item.active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* تنسيق الخطوة المكتملة لتكون واضحة وبارزة */
+.company-step1-step-item.completed,
+.company-step3-step-item.completed {
+  color: #38bdf8 !important;
+  font-weight: 600;
+  opacity: 1 !important;
+}
+
+.c-indicator {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #475569;
+  display: inline-block;
+}
+
+.company-step1-step-item.active .c-indicator,
+.company-step3-step-item.active .c-indicator {
+  border-color: #3b82f6;
+  background: radial-gradient(circle, #3b82f6 40%, transparent 50%);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+.company-step1-step-item.completed .c-indicator,
+.company-step3-step-item.completed .c-indicator {
+  background-color: #38bdf8;
+  border-color: #38bdf8;
+  color: #030712;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+/* قسم الأمان في الشريط الجانبي */
+.company-step1-sec-badge,
+.company-step3-sec-badge {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 40px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+.sec-t { font-size: 0.85rem; font-weight: 600; color: #22c55e; margin: 0 0 2px 0; }
+.sec-d { font-size: 0.75rem; color: #94a3b8; margin: 0; line-height: 1.4; }
+
+/* قسم الفورم والمحتوى */
+.company-step1-form-sec,
+.company-step3-form-sec {
+  flex: 1;
+  padding: 40px;
+  background: #070d26;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: 85vh;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.company-step1-form-sec::-webkit-scrollbar,
+.company-step3-form-sec::-webkit-scrollbar {
+  display: none;
+}
+
+.company-step1-header,
+.company-step3-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, #1d72b8 0%, #8b5cf6 100%);
+  padding: 18px 24px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.company-step1-header h2,
+.company-step3-header h2 {
+  font-size: 1.3rem;
+  color: #ffffff;
+  margin: 0;
+  font-weight: 700;
+}
+
+.c-step-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.company-step1-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.c-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.c-input-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #cbd5e1;
+}
+
+.c-input-group input, 
+.c-input-group select, 
+.c-input-group textarea {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: #ffffff;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.c-input-group input:focus, 
+.c-input-group select:focus, 
+.c-input-group textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.c-pass-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.c-pass-wrap input {
+  width: 100%;
+}
+
+.c-notice-box {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #93c5fd;
+  line-height: 1.4;
+}
+
+.c-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.c-btn-back, .c-btn-next {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.c-btn-back {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #cbd5e1;
+}
+.c-btn-back:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #cbd5e1;
+  transition: all 0.3s ease;
+}
+
+.c-btn-next {
+  background: linear-gradient(90deg, #1d72b8 0%, #3b82f6 100%);
+  border: none;
+  color: #ffffff;
+}
+.c-btn-next:hover {
+  background: linear-gradient(90deg, #1d72b8 0%, #2563eb 100%);
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+.c-login-text {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: 5px;
+}
+/* ─── Step 4 & Step 5: alias all step3 selectors ─────────────────────────── */
+.company-step4-container,
+.company-step5-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #030712;
+  font-family: 'Inter', sans-serif;
+  padding: 20px;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.company-step4-card,
+.company-step5-card {
+  display: flex;
+  background: #0b0f19;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  width: 1000px;
+  max-width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  overflow: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.company-step4-sidebar,
+.company-step5-sidebar {
+  width: 380px;
+  background: #050b22;
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.company-step4-brand,
+.company-step5-brand {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 25px;
+}
+
+.company-step4-dropdown-box,
+.company-step5-dropdown-box {
+  margin-bottom: 35px;
+}
+
+.company-step4-drop-btn,
+.company-step5-drop-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.company-step4-steps,
+.company-step5-steps {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 0;
+  margin: 0;
+}
+
+.company-step4-step-item,
+.company-step5-step-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.company-step4-step-item.active,
+.company-step5-step-item.active {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.company-step4-step-item.completed,
+.company-step5-step-item.completed {
+  color: #38bdf8 !important;
+  font-weight: 600;
+  opacity: 1 !important;
+}
+
+.company-step4-step-item.active .c-indicator,
+.company-step5-step-item.active .c-indicator {
+  border-color: #3b82f6;
+  background: radial-gradient(circle, #3b82f6 40%, transparent 50%);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+.company-step4-step-item.completed .c-indicator,
+.company-step5-step-item.completed .c-indicator {
+  background-color: #38bdf8;
+  border-color: #38bdf8;
+  color: #030712;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+.company-step4-sec-badge,
+.company-step5-sec-badge {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 40px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.company-step4-form-sec,
+.company-step5-form-sec {
+  flex: 1;
+  padding: 40px;
+  background: #070d26;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: 85vh;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.company-step4-header,
+.company-step5-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, #1d72b8 0%, #8b5cf6 100%);
+  padding: 18px 24px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+.company-step4-header h2,
+.company-step5-header h2 {
+  font-size: 1.3rem;
+  color: #ffffff;
+  margin: 0;
+  font-weight: 700;
+}
+
+/* Checkbox cards for step 4 */
+.c-checkbox-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.c-checkbox-card:hover {
+  background: rgba(59, 130, 246, 0.06);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.c-checkbox-card.checked {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: #3b82f6;
+}
+
+.custom-checkbox {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255,255,255,0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.c-checkbox-card.checked .custom-checkbox {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.checkmark {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.checkbox-text {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.highlight-text {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+/* ─── Step 5: Confirmation success content ─────────────────────────── */
+.company-step5-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 20px 10px 10px 10px;
+}
+
+/* شارة الصح مع الكونفيتي */
+.c5-check-badge {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.c5-check-circle {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: #1c2333;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.c5-check-circle svg {
+  width: 34px;
+  height: 34px;
+  padding: 6px;
+  background: #22c55e;
+  border-radius: 50%;
+  stroke: #0b0f19;
+}
+
+.c5-confetti {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  z-index: 1;
+}
+
+.c5-confetti-1 {
+  top: 2px;
+  left: 8px;
+  background: #a855f7;
+  transform: rotate(20deg);
+}
+
+.c5-confetti-2 {
+  top: 10px;
+  right: 4px;
+  background: #38bdf8;
+  transform: rotate(-15deg);
+}
+
+.c5-confetti-3 {
+  bottom: 6px;
+  left: 2px;
+  background: #f59e0b;
+  transform: rotate(45deg);
+}
+
+.c5-confetti-4 {
+  bottom: 2px;
+  right: 10px;
+  background: #ec4899;
+  transform: rotate(-30deg);
+}
+
+.c5-thank-you {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 10px 0;
+}
+
+.c5-thank-desc {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  max-width: 420px;
+  margin: 0 0 28px 0;
+  line-height: 1.5;
+}
+
+/* صندوق المعلومات الثلاثة */
+.c5-info-box {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 26px;
+  text-align: left;
+}
+
+.c5-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.c5-info-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.c5-info-title {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.c5-info-desc {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.c5-info-desc strong {
+  color: #cbd5e1;
+}
+
+.c5-info-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* زر الانتقال للصفحة الرئيسية */
+.c5-btn-landing {
+  width: 100%;
+  max-width: 480px;
+  padding: 15px 24px;
+  border-radius: 30px;
+  border: none;
+  background: linear-gradient(90deg, #8b5cf6 0%, #3b82f6 100%);
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-bottom: 16px;
+}
+
+.c5-btn-landing:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.35);
+}
+
+.c5-login-text {
+  font-size: 0.88rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.c5-login-link {
+  color: #60a5fa;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.c5-login-link:hover {
+  text-decoration: underline;
+}
