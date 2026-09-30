@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+
+/* ==========================================================================
+   Right panel - "Check your email"
+   ========================================================================== */
+.register-card .form-right.verification-container {
+  width: auto;
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding: clamp(56px, 25vh, 260px) 48px 36px 48px;
+  background: #ffffff;
+  font-family: 'Inter', sans-serif;
+}
+
+.verification-container .email-icon-box {
+  width: 96px;
+  height: 96px;
+  margin: 0 0 8px 0;
+  background-color: transparent;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAA3BJREFUeAHt3M9t4kAUx/HhT5JDDksJbAcc8u9IKth0EHfAdgDpIFvBJhUsHYS9IeDAVhCXwBXEn30vYiQ0ioONPZ734PeVIgyOI8wHD2BGMQYhhBBCCCGEEEIIIR1VjPJarVazXq8/8PJyuexPp9PYKE4tCENcXFx0N5tNtHt7pVJ5mc/nT1ph1IEkQbhphVEDcnV11a5Wqx1afMiynTYY8SAMQQ9ql37aJkdaYMSCFAXhJh1GHIgvCDepMGJAckDE9AL/xAu8PV00s2wsDSY4SF6I8Xj8snvj9fV1dCjMarV6nUwmAxOwYCCHQhDCgCH2PXCHwqT9+74qHcQ3hJs2mNJAyoZw0wLjHSQ0hJt0GG8g0iDc8sDQdr9Go1HfeKhwEOkQbnx/a7Uanxtrm2x9+i4vb4WBaINwkwKTG0Q7hFtomINBjg3CLRRMZpBjh3ArGyY1CL8roYvHU4Fw234fE9Hio8lWJpi9IFpPQfjq7u6uuV6ve8YTTCIIfVXaODs7+3OqR8S+csBMF4vFPZ1dnn22spq0FX1vHWXBYAi6g/f0DLg/dgxuOBzG9OEwomHsO119zbBp6/z8/GfSyuoXG/4wKTo1CDcHJu2n91bSiq9A0jSjo2iwXC5jc8Lx8E5Pyse078To974lrcsL0qCfHh2C77e3t795io45oRji5uamS6+173S1R0/OhslZ3RQUz5MimIhgVE9USxND0L52aJ/5taBBEKaoCgOxHTPMdpJeh4anyBQMYcs7ZCW2hTmKoYzvP+8H7w8fFUUMTUl5A7FphnEgIlNC3kFsmmBCQNhKA7FJhgkJYSsdxCYJhk8choawBQOxhYRhCDp5+kafst9CQ9iCg9jKhNmF8D2HOGtiQGw+YSRD2MSB2IqE0QBhEwtiywOjCcImHsSWBUYjhE0NiG0Xhh/43XWaIWyFn1wsK4bhSQcE8DG1k653tCLsphbEtkVo+zjzGiJ1Q9axBxBhAURYABEWQIQFEGEBRFgAERZAhAUQYQFEWAARFkCEBRBhAURYABEWQIQFEGEBRFgAERZAhAUQYQFEWAARFkCEBRBhAURYABEWQIQFEGEBRFiJIJvN5q9BvvqXtCIRZLFYPNNFbFDRxbVa7TlpZdp/E9s0KHc06sSXl5f9wWAwMwghhBBCCCGEEEIIKe8/BF+ZEKbJrksAAAAASUVORK5CYII=');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+
+/* the old amber inline SVG is replaced by the dark open-envelope icon above */
+.verification-container .email-svg-icon {
+  display: none;
+}
+
+/* Typography */
+.verification-container .verification-title {
+  font-size: 2.2rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: #0c1030;
+  margin: 0 0 20px 0;
+}
+
+.verification-container .verification-desc {
+  max-width: 560px;
+  font-size: 1.3rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: #8c8c8c;
+  margin: 0 0 40px 0;
+}
+
+.verification-container .verification-desc strong {
+  color: #5f5f5f;
+  font-weight: 600;
+}
+
+/* Status Banner for Feedback */
+.verification-container .status-banner {
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.verification-container .status-banner.success {
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.verification-container .status-banner.error {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+/* Continue button - pinned to the bottom of the panel */
+.verification-container .btn-continue-setup {
+  margin-top: auto;
+  margin-bottom: 30px;
+  width: 100%;
+  max-width: 330px;
+  height: 48px;
+  padding: 0 16px;
+  background-color: #001650;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.verification-container .btn-continue-setup:hover {
+  background-color: #0a2470;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0, 22, 80, 0.28);
+}
+
+.verification-container .btn-continue-setup:focus-visible {
+  outline: 3px solid rgba(0, 22, 80, 0.35);
+  outline-offset: 3px;
+}
+
+/* Resend link and timer */
+.verification-container .resend-wrapper {
+  font-size: 0.95rem;
+}
+
+.verification-container .resend-text {
+  margin: 0;
+  color: #2b3a7c;
+  font-weight: 600;
+}
+
+.verification-container .resend-text.disabled {
+  color: #94a3b8;
+}
+
+.verification-container .btn-resend-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: #2b3a7c;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.verification-container .btn-resend-link:hover {
+  color: #001650;
+  text-decoration: underline;
+}
+
+.verification-container .timer-count {
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tablet / mobile: stack the panels */
+@media (max-width: 900px) {
+
+  .register-card .form-right.verification-container {
+    width: 100%;
+    flex: none;
+    padding: 40px 24px 32px 24px;
+  }
+
+  .verification-container .email-icon-box {
+    width: 76px;
+    height: 76px;
+  }
+
+  .verification-container .verification-title {
+    font-size: 1.7rem;
+  }
+
+  .verification-container .verification-desc {
+    font-size: 1.05rem;
+  }
+}
