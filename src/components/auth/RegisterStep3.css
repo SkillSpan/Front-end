@@ -159,3 +159,216 @@
     transform: translateY(0) scale(1);
   }
 }
+
+/* ==========================================================================
+   Terms & Privacy (Step 3) - تصميم جديد
+   كل القواعد مقيّدة بـ :has(.terms-box) حتى لا تتأثر باقي الصفحات
+   ========================================================================== */
+
+/* ---------- تخطيط الجانب الأيمن + نفس مسافة الخطوة 2 ---------- */
+.form-right:has(.terms-box) {
+  --step3-side-gap: 10.5%;
+  justify-content: flex-start;
+  padding: 40px 48px 72px 48px;
+  box-sizing: border-box;
+}
+
+.form-right:has(.terms-box) > * {
+  align-self: stretch !important;
+  box-sizing: border-box;
+  width: auto !important;
+  max-width: none !important;
+  margin-left: var(--step3-side-gap) !important;
+  margin-right: var(--step3-side-gap) !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+@media (max-width: 1200px) {
+  .form-right:has(.terms-box) {
+    --step3-side-gap: 0px;
+  }
+}
+
+/* ---------- الهيدر + شريط التقدم (3 مقاطع مكتملة) ---------- */
+.form-right:has(.terms-box) .step-header {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  margin-bottom: 20px;
+}
+
+.form-right:has(.terms-box) .step-title,
+.form-right:has(.terms-box) .step-percent {
+  color: #f5a623;
+}
+
+.form-right:has(.terms-box) .progress-bar-steps {
+  display: flex;
+  gap: 4.43%;
+  margin-top: 0;
+  margin-bottom: 44px;
+}
+
+.form-right:has(.terms-box) .step-line {
+  flex: 1;
+  height: 8px;
+  border-radius: 0;
+  background-color: #e6e6ea;
+}
+
+.form-right:has(.terms-box) .step-line.filled {
+  background-color: #f5a623;
+}
+
+/* ---------- العنوان ---------- */
+.form-right:has(.terms-box) .form-heading {
+  margin-bottom: 30px;
+}
+
+.form-right:has(.terms-box) .form-heading h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0a0a14;
+  line-height: 1.25;
+  margin: 0 0 24px 0;
+}
+
+.form-right:has(.terms-box) .form-heading p {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ---------- صندوق الشروط ---------- */
+.terms-box {
+  border: 1px solid #e6e9f2;
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.terms-box-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: #f5f7ff;
+  border-bottom: 1px solid #eef0f8;
+  color: #5b6cf0;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.terms-box-header svg {
+  flex-shrink: 0;
+}
+
+.terms-box-body {
+  padding: 20px 20px 26px;
+  max-height: min(470px, 52vh);
+  overflow-y: auto;
+}
+
+.terms-section {
+  margin-bottom: 34px;
+}
+
+.terms-section:last-child {
+  margin-bottom: 0;
+}
+
+.terms-section h4 {
+  margin: 0 0 6px 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0a0a14;
+  line-height: 1.4;
+}
+
+.terms-section p {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+/* ---------- مربع الموافقة ---------- */
+.terms-agreement {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.terms-check-box {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  border-radius: 5px;
+  border: 1.5px solid #c7cbe0;
+  background: #ffffff;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.terms-check.checked .terms-check-box {
+  border-color: #6366f1;
+  background: linear-gradient(135deg, #6d5df5 0%, #5b6cf0 100%);
+}
+
+.terms-check:focus-visible .terms-check-box {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+.terms-check-box svg {
+  animation: popCheck 0.2s ease-in-out;
+}
+
+.terms-check-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.terms-link {
+  color: #5b6cf0;
+  font-weight: 600;
+}
+
+.terms-check:hover .terms-link {
+  text-decoration: underline;
+}
+
+/* ---------- شاشات صغيرة ---------- */
+@media (max-width: 850px) {
+  .form-right:has(.terms-box) {
+    padding: 30px 24px;
+  }
+
+  .form-right:has(.terms-box) .step-header {
+    font-size: 1.1rem;
+  }
+
+  .form-right:has(.terms-box) .progress-bar-steps {
+    margin-bottom: 30px;
+  }
+}

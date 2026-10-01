@@ -29,34 +29,26 @@ const RegisterStep2 = ({ onNextSuccess, onBack, introText }) => {
         <div className="sidebar-left">
           <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">
-            <h2>Start Your<br />Career Journey</h2>
+            <h2>Start Your<br />Career&nbsp;Journey</h2>
             <p className="sidebar-desc">
               From education to your first opportunity in clear, verified steps
             </p>
 
             <ul className="features-list">
               <li>
-                <span className="icon">
-                  <img src="/image/2.png" alt="Readiness" />
-                </span>
+                <span className="icon"><img src="/image/icon-readiness.png" alt="Readiness" /></span>
                 <span>Assess your real readiness</span>
               </li>
               <li>
-                <span className="icon">
-                  <img src="/image/3.png" alt="Roadmap" />
-                </span>
+                <span className="icon"><img src="/image/icon-roadmap.png" alt="Roadmap" /></span>
                 <span>A roadmap built for you</span>
               </li>
               <li>
-                <span className="icon">
-                  <img src="/image/4.png" alt="Projects" />
-                </span>
+                <span className="icon"><img src="/image/icon-projects.png" alt="Projects" /></span>
                 <span>Real projects from companies</span>
               </li>
               <li>
-                <span className="icon">
-                  <img src="/image/5.png" alt="Record" />
-                </span>
+                <span className="icon"><img src="/image/icon-record.png" alt="Record" /></span>
                 <span>A verified professional record</span>
               </li>
             </ul>
@@ -101,7 +93,7 @@ const RegisterStep2 = ({ onNextSuccess, onBack, introText }) => {
               className={`option-card ${academicStatus === 'student' ? 'selected-card' : ''}`}
               onClick={() => handleSelect('student')}
             >
-              <div className="option-icon">🎓</div>
+              <div className="option-icon" aria-hidden="true"></div>
               <div className="option-text">
                 <h3>Student</h3>
                 <p>Currently pursuing my degree</p>
@@ -113,10 +105,22 @@ const RegisterStep2 = ({ onNextSuccess, onBack, introText }) => {
               className={`option-card ${academicStatus === 'graduate' ? 'selected-card' : ''}`}
               onClick={() => handleSelect('graduate')}
             >
-              <div className="option-icon">📜</div>
+              <div className="option-icon" aria-hidden="true"></div>
               <div className="option-text">
                 <h3>Graduate</h3>
                 <p>Completed my academic studies</p>
+              </div>
+            </div>
+
+            {/* Professional Card */}
+            <div
+              className={`option-card ${academicStatus === 'professional' ? 'selected-card' : ''}`}
+              onClick={() => handleSelect('professional')}
+            >
+              <div className="option-icon" aria-hidden="true"></div>
+              <div className="option-text">
+                <h3>Professional</h3>
+                <p>Currently working in a professional role</p>
               </div>
             </div>
           </div>
@@ -124,10 +128,12 @@ const RegisterStep2 = ({ onNextSuccess, onBack, introText }) => {
           {/* Navigation Action Buttons */}
           <div className="action-buttons">
             <button type="button" className="btn-back" onClick={onBack}>
+              <svg className="btn-arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12H3M10 5l-7 7 7 7" /></svg>
               Back
             </button>
             <button type="button" className="btn-next-step" onClick={handleSubmit}>
-              Next →
+              Next
+              <svg className="btn-arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12h18M14 5l7 7-7 7" /></svg>
             </button>
           </div>
         </div>

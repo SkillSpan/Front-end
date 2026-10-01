@@ -1,54 +1,159 @@
+
+/* ---------- تخطيط الجانب الأيمن (خاص بهذه الخطوة فقط) ---------- */
+.form-right:has(.options-container) {
+  justify-content: flex-start;
+  padding: 40px 48px 72px 48px;
+  box-sizing: border-box;
+}
+
+.form-right:has(.options-container) {
+  --step2-side-gap: 10.5%;
+}
+
+.form-right:has(.options-container) > * {
+  align-self: stretch !important;
+  box-sizing: border-box;
+  width: auto !important;
+  max-width: none !important;
+  margin-left: var(--step2-side-gap) !important;
+  margin-right: var(--step2-side-gap) !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+@media (max-width: 1200px) {
+  .form-right:has(.options-container) {
+    --step2-side-gap: 0px;
+  }
+}
+
+/* ---------- الهيدر: STEP 2 OF 3 / 66% ---------- */
+.form-right:has(.options-container) .step-header {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  margin-bottom: 20px;
+}
+
+.form-right:has(.options-container) .step-title,
+.form-right:has(.options-container) .step-percent {
+  color: #f5a623;
+}
+
+/* ---------- شريط التقدم: 3 مقاطع منفصلة ---------- */
+.form-right:has(.options-container) .progress-bar {
+  height: 8px;
+  border-radius: 0;
+  overflow: hidden;
+  margin-bottom: 84px;
+  background-color: transparent;
+  background-image: linear-gradient(
+    to right,
+    #e6e6ea 0 30.38%,
+    transparent 30.38% 34.81%,
+    #e6e6ea 34.81% 65.19%,
+    transparent 65.19% 69.62%,
+    #e6e6ea 69.62% 100%
+  );
+}
+
+.form-right:has(.options-container) .progress-fill {
+  border-radius: 0;
+  background-color: transparent;
+  /* نفس تقسيم المقاطع لكن بلون أصفر، ومحاذي لمقاطع الشريط الأساسي */
+  background-image: linear-gradient(
+    to right,
+    #f5a623 0 30.38%,
+    transparent 30.38% 34.81%,
+    #f5a623 34.81% 65.19%,
+    transparent 65.19% 69.62%,
+    #f5a623 69.62% 100%
+  );
+  background-size: 151.5% 100%;
+  background-repeat: no-repeat;
+}
+
+/* ---------- العناوين ---------- */
+.form-right:has(.options-container) .form-heading {
+  margin-bottom: 0;
+}
+
+.form-right:has(.options-container) .sub-tag {
+  color: #111111;
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  margin-bottom: 22px;
+}
+
+.form-right:has(.options-container) .form-heading h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #050a2b;
+  line-height: 1.2;
+  margin: 0 0 14px 0;
+}
+
+.form-right:has(.options-container) .form-heading p {
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: #4a4a4a;
+  margin: 0;
+}
+
+/* ---------- البطاقات ---------- */
 .options-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 20px;
+  gap: 24px;
+  margin-top: 78px;
   margin-bottom: 30px;
 }
 
-/* التنسيق الافتراضي الأساسي للبطاقتين (Student & Graduate) */
 .option-card {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 20px 24px;
-  border-radius: 18px;
+  gap: 14px;
+  box-sizing: border-box;
+  min-height: 78px;
+  padding: 0 16px;
+  border-radius: 6px;
   cursor: pointer;
-  background-color: #eef3fe;
-  border: 2px solid transparent;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: #ffffff;
+  border: 1px solid #2b2b2b;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .option-card .option-text h3 {
   font-size: 1.15rem;
-  font-weight: 800;
-  margin: 0 0 4px 0;
-  color: #111827;
-  transition: color 0.3s ease;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+  color: #262626;
+  line-height: 1.3;
+  transition: color 0.25s ease;
 }
 
 .option-card .option-text p {
-  font-size: 0.88rem;
+  font-size: 1rem;
   margin: 0;
-  color: #6b7280;
+  color: #6b6b6b;
   font-weight: 500;
-  transition: color 0.3s ease;
+  line-height: 1.3;
+  transition: color 0.25s ease;
 }
 
-/* تأثير التفاعل عند مرور مؤشر الماوس قبل الاختيار */
+/* Hover */
 .option-card:hover {
-  transform: translateY(-3px);
   border-color: #1d72b8;
-  box-shadow: 0 8px 20px rgba(29, 114, 184, 0.15);
-  background-color: #e5edff;
+  box-shadow: 0 6px 16px rgba(29, 114, 184, 0.14);
+  background-color: #f8fafc;
 }
 
-/* التنسيق الموحد عند اختيار المستخدم لأي من البطاقتين */
+/* Selected */
 .option-card.selected-card {
   background-color: #0b1a48;
-  border-color: #1d72b8;
-  color: #ffffff;
-  box-shadow: 0 10px 25px rgba(11, 26, 72, 0.25);
+  border-color: #0b1a48;
+  box-shadow: 0 8px 20px rgba(11, 26, 72, 0.22);
 }
 
 .option-card.selected-card .option-text h3 {
@@ -59,37 +164,78 @@
   color: #d1d5db;
 }
 
+/* ---------- الأيقونات (تستبدل الإيموجي بصور) ---------- */
 .option-icon {
-  width: 54px;
-  height: 54px;
-  background-color: #ffffff;
-  border-radius: 14px;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 44px auto;
+  border-radius: 0;
+  box-shadow: none;
+  /* إخفاء الإيموجي الموجود في JSX */
+  font-size: 0;
+  line-height: 0;
+  color: transparent;
+  overflow: hidden;
+}
+
+.option-card:nth-child(1) .option-icon {
+  background-image: url('/image/student.png');
+}
+
+.option-card:nth-child(2) .option-icon {
+  background-image: url('/image/graduate.png');
+}
+
+.option-card:nth-child(3) .option-icon {
+  background-image: url('/image/professional.png');
+}
+
+/* الأيقونة تصبح بيضاء عند اختيار البطاقة الداكنة */
+.option-card.selected-card .option-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* ---------- أزرار Back / Next (حجم ثابت في المنتصف حسب التصميم) ---------- */
+.action-buttons {
   display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 46px;
+  margin-top: auto;
+  padding-top: 30px;
+}
+
+.btn-back,
+.btn-next-step {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-arrow {
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
 }
 
-/* أزرار التنقل (Back & Next) */
-.action-buttons {
-  display: flex;
-  gap: 16px;
-  margin-top: 10px;
-}
-
 .btn-back {
-  width: 40%;
-  padding: 14px;
-  background-color: #0b1a48;
-  color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s ease;
+  width: 165px;
+  max-width: 45%;
+  background-color: #03061a;
 }
 
 .btn-back:hover {
@@ -97,20 +243,50 @@
 }
 
 .btn-next-step {
-  width: 60%;
-  padding: 14px;
-  background-color: #03081e;
-  color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s ease;
+  width: 168px;
+  max-width: 45%;
+  background-color: #001a5c;
 }
 
 .btn-next-step:hover {
   background-color: #1d72b8;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(29, 114, 184, 0.35);
+}
+
+/* ---------- شاشات صغيرة ---------- */
+@media (max-width: 850px) {
+  .form-right:has(.options-container) {
+    padding: 30px 24px;
+  }
+
+  .form-right:has(.options-container) .progress-bar {
+    margin-bottom: 40px;
+  }
+
+  .form-right:has(.options-container) .step-header {
+    font-size: 1.1rem;
+  }
+
+  .form-right:has(.options-container) .sub-tag {
+    font-size: 1.1rem;
+  }
+
+  .form-right:has(.options-container) .form-heading h1 {
+    font-size: 1.6rem;
+  }
+
+  .options-container {
+    margin-top: 32px;
+  }
+
+  .action-buttons {
+    gap: 20px;
+  }
+
+  .btn-back,
+  .btn-next-step {
+    font-size: 1rem;
+  }
+
 }

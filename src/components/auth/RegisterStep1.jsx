@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './RegisterStep1.css';
 
-const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData }) => {
+const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData, initialErrors }) => {
   const [formData, setFormData] = useState({
     fullName: initialData?.fullName || '',
     email: initialData?.email || '',
@@ -9,7 +9,7 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData }) => {
     confirmPassword: initialData?.confirmPassword || '',
   });
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState(initialErrors || {});
   const [showPassword, setShowPassword] = useState(false);
 
   // دالة لتوليد كلمة مرور قوية
@@ -79,37 +79,29 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData }) => {
         <div className="sidebar-left">
           <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">
-            <h2>Start Your<br />Career Journey</h2>
+            <h2>Start Your<br />Career&nbsp;Journey</h2>
             <p className="sidebar-desc">
               From education to your first opportunity in clear, verified steps
             </p>
 
-        <ul className="features-list">
-  <li>
-    <span className="icon">
-      <img src="/image/2.png" alt="Readiness" />
-    </span>
-    <span>Assess your real readiness</span>
-  </li>
-  <li>
-    <span className="icon">
-      <img src="/image/3.png" alt="Roadmap" />
-    </span>
-    <span>A roadmap built for you</span>
-  </li>
-  <li>
-    <span className="icon">
-      <img src="/image/4.png" alt="Projects" />
-    </span>
-    <span>Real projects from companies</span>
-  </li>
-  <li>
-    <span className="icon">
-      <img src="/image/5.png" alt="Record" />
-    </span>
-    <span>A verified professional record</span>
-  </li>
-</ul>
+            <ul className="features-list">
+              <li>
+                <span className="icon"><img src="/image/icon-readiness.png" alt="Readiness" /></span>
+                <span>Assess your real readiness</span>
+              </li>
+              <li>
+                <span className="icon"><img src="/image/icon-roadmap.png" alt="Roadmap" /></span>
+                <span>A roadmap built for you</span>
+              </li>
+              <li>
+                <span className="icon"><img src="/image/icon-projects.png" alt="Projects" /></span>
+                <span>Real projects from companies</span>
+              </li>
+              <li>
+                <span className="icon"><img src="/image/icon-record.png" alt="Record" /></span>
+                <span>A verified professional record</span>
+              </li>
+            </ul>
           </div>
         </div>
 
@@ -131,10 +123,14 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData }) => {
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="input-group">
+              <label className="field-label" htmlFor="fullName">
+                Full Name <span className="required-star">*</span>
+              </label>
               <input
+                id="fullName"
                 type="text"
                 name="fullName"
-                placeholder="Full Name"
+                placeholder="Your full name"
                 value={formData.fullName}
                 onChange={handleChange}
                 className={errors.fullName ? 'input-error' : ''}
@@ -143,10 +139,14 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData }) => {
             </div>
 
             <div className="input-group">
+              <label className="field-label" htmlFor="email">
+                Email Address <span className="required-star">*</span>
+              </label>
               <input
+                id="email"
                 type="email"
                 name="email"
-                placeholder="Email Address"
+                placeholder="you@example.com"
                 value={formData.email}
                 onChange={handleChange}
                 className={errors.email ? 'input-error' : ''}
@@ -156,11 +156,15 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData }) => {
 
             {/* Password Input with Generate Option */}
             <div className="input-group">
+              <label className="field-label" htmlFor="password">
+                Password <span className="required-star">*</span>
+              </label>
               <div className="password-input-wrapper">
                 <input
+                  id="password"
                   type={showPassword ? 'text' : 'password'}
                   name="password"
-                  placeholder="Password"
+                  placeholder="Create a password"
                   value={formData.password}
                   onChange={handleChange}
                   className={errors.password ? 'input-error' : ''}
@@ -173,27 +177,31 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData }) => {
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
-              <div className="password-helper">
-                <button
-                  type="button"
-                  className="generate-btn"
-                  onClick={generatePassword}
-                >
-                  ✨ Auto-generate strong password
-                </button>
-              </div>
               {errors.password && <span className="error-text">{errors.password}</span>}
             </div>
 
             <div className="input-group">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={errors.confirmPassword ? 'input-error' : ''}
-              />
+              <label className="field-label" htmlFor="confirmPassword">
+                Confirm Password <span className="required-star">*</span>
+              </label>
+              <div className="password-input-wrapper">
+                <input
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={errors.confirmPassword ? 'input-error' : ''}
+                />
+                <button
+                  type="button"
+                  className="toggle-show-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
               {errors.confirmPassword && (
                 <span className="error-text">{errors.confirmPassword}</span>
               )}
@@ -205,7 +213,7 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData }) => {
           </form>
 
           <p className="login-prompt">
-            Already have an account?{' '}
+            Already Have a company account?
             <span className="login-link" onClick={onNavigateToLogin}>
               log in
             </span>

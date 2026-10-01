@@ -35,92 +35,89 @@ const ForgotPassword = ({ onBackToLogin, onContinueToVerify }) => {
     <div className="forgot-wrapper">
       <div className="forgot-card">
         <div className="sidebar-left">
-           <div className="sidebar-brand">
-             <span className="white">Skill</span><span className="blue">Span</span>
-           </div>
-           
-           <div className="sidebar-content">
-             <h2>Start Your Career Journey</h2>
-             <p>From education to your first opportunity in clear, verified steps</p>
-             
-             <ul className="features-list">
-               <li>
-                 <span className="icon"><img src="/image/2.png" alt="Readiness" /></span>
-                 <span>Assess your real readiness</span>
-               </li>
-               <li>
-                 <span className="icon"><img src="/image/3.png" alt="Roadmap" /></span>
-                 <span>A roadmap built for you</span>
-               </li>
-               <li>
-                 <span className="icon"><img src="/image/4.png" alt="Projects" /></span>
-                 <span>Real projects from companies</span>
-               </li>
-               <li>
-                 <span className="icon"><img src="/image/5.png" alt="Record" /></span>
-                 <span>A verified professional record</span>
-               </li>
-             </ul>
-           </div>
+          <div className="sidebar-brand">SkillSpan</div>
+          <div className="sidebar-content">
+            <h2>Start Your<br />Career&nbsp;Journey</h2>
+            <p className="sidebar-desc">
+              From education to your first opportunity in clear, verified steps
+            </p>
+
+            <ul className="features-list">
+              <li>
+                <span className="icon"><img src="/image/icon-readiness.png" alt="Readiness" /></span>
+                <span>Assess your real readiness</span>
+              </li>
+              <li>
+                <span className="icon"><img src="/image/icon-roadmap.png" alt="Roadmap" /></span>
+                <span>A roadmap built for you</span>
+              </li>
+              <li>
+                <span className="icon"><img src="/image/icon-projects.png" alt="Projects" /></span>
+                <span>Real projects from companies</span>
+              </li>
+              <li>
+                <span className="icon"><img src="/image/icon-record.png" alt="Record" /></span>
+                <span>A verified professional record</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div className="form-right-forgot">
-          <div className="forgot-content-box">
+          {isSubmitted ? (
+            <>
+              <div className="fp-icon fp-icon-mail" aria-hidden="true" />
 
-            {isSubmitted ? (
-              <div className="email-sent-container">
-                <div className="email-icon-wrapper">
-                  <img src="/image/7.png" alt="Check email" className="custom-mail-img" />
+              <h1 className="forgot-heading fp-heading fp-heading-sent">Check your email</h1>
+              <p className="forgot-subtitle fp-subtitle fp-subtitle-sent">
+                A 6-digit reset code has been sent to your email address <strong>{email}</strong>.
+                {' '}Please check your inbox (and spam folder) and enter the code on the next screen.
+                {' '}The code will expire in 10 minutes.
+              </p>
+
+              <button
+                type="button"
+                className="btn-send-link fp-btn"
+                onClick={() => onContinueToVerify && onContinueToVerify(email)}
+              >
+                Continue to Verify
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="fp-icon fp-icon-lock" aria-hidden="true" />
+
+              <h1 className="forgot-heading fp-heading">Reset Your Password</h1>
+              <p className="forgot-subtitle fp-subtitle">
+                Please enter the email address associated with your account, and we will send you a password reset link.
+              </p>
+
+              <form className="fp-form" onSubmit={handleSubmit} noValidate>
+                <div className="input-group fp-input-group">
+                  <input
+                    type="email"
+                    className={`forgot-input ${error ? 'input-error' : ''}`}
+                    placeholder="Email Address"
+                    aria-label="Email Address"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setError('');
+                    }}
+                  />
+                  {error && <span className="error-text">{error}</span>}
                 </div>
-                
-                <h1 className="forgot-heading">Check your email</h1>
-                <p className="forgot-subtitle">
-                  A 6-digit reset code has been sent to your email address <strong>{email}</strong>. 
-                  Please check your inbox (and spam folder) and enter the code on the next screen. The code will expire in 10 minutes.
-                </p>
 
-                <button 
-                  type="button"
-                  className="btn-send-link" 
-                  onClick={() => onContinueToVerify && onContinueToVerify(email)}
-                >
-                  Continue to Verify
+                <button type="submit" className="btn-send-link fp-btn" disabled={isSubmitting}>
+                  {isSubmitting ? 'Sending...' : 'Send Reset Link'}
                 </button>
-              </div>
-            ) : (
-              <>
-                <h1 className="forgot-heading">Reset Your Password</h1>
-                <p className="forgot-subtitle">
-                  Please enter the email address associated with your account, and we will send you a password reset link.
-                </p>
 
-                <form onSubmit={handleSubmit} noValidate>
-                  <div className="input-group">
-                    <input 
-                      type="email"
-                      className={`forgot-input ${error ? 'input-error' : ''}`}
-                      placeholder="Email Address" 
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value);
-                        setError('');
-                      }} 
-                    />
-                    {error && <span className="error-text">{error}</span>}
-                  </div>
-
-                  <button type="submit" className="btn-send-link" disabled={isSubmitting}>
-                    {isSubmitting ? 'Sending...' : 'Send Reset Link'}
-                  </button>
-                </form>
-
-                <div className="back-link-container">
+                <div className="back-link-container fp-back">
                   <span onClick={onBackToLogin} className="link-action">← Back to Log in</span>
                 </div>
-              </>
-            )}
-
-          </div>
+              </form>
+            </>
+          )}
         </div>
       </div>
     </div>

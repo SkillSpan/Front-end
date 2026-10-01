@@ -3,15 +3,16 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import RegisterStep1 from './RegisterStep1';
 import RegisterStep2 from './RegisterStep2';
 import RegisterStep3 from './RegisterStep3';
+import EmailVerification from './EmailVerified';
 import OtpVerification from './OtpVerification';
 import LearnerProfileSetup from '../assessment/LearnerProfileSetup';
 import AssessmentWizard from '../assessment/AssessmentWizard';
 import { decodeJwtPayloadUnsafe } from '../../utils/jwt';
-import { saveSession, loginUser } from '../../api';
+import { saveSession, loginUser, resendOtp } from '../../api';
 import { useAuth } from './AuthContext';
 
 // Each step has its own real URL (/register/account, /register/status,
-// /register/terms, /register/verify) so browser back/forward and refresh
+// /register/terms, /register/check-email, /register/verify) so browser back/forward and refresh
 // land you on the right screen instead of always bouncing to the landing
 // page. The accumulated wizard data itself stays in memory (it includes a
 // password field, so we deliberately do NOT persist it to
@@ -29,6 +30,8 @@ import { useAuth } from './AuthContext';
 function RegisterWizard() {
   const location = useLocation();
   const [registerData, setRegisterData] = useState({});
+  // أخطاء بدها تنعرض بـ Step 1 (مثلاً الإيميل مستخدم من قبل - بنعرفها بس بآخر خطوة)
+  const [step1Errors, setStep1Errors] = useState({});
   const [googleCredential] = useState(() => location.state?.googleCredential || null);
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -51,7 +54,15 @@ function RegisterWizard() {
   // paths here to sidestep this entirely.
   const handleStep1Success = (step1Data) => {
     setRegisterData((prev) => ({ ...prev, ...step1Data }));
+    setStep1Errors({});
     navigate('/register/status');
+  };
+
+  // الباك إند بيرفض الإيميل (مستخدم من قبل...) عند الطلب النهائي بـ Step 3،
+  // فبنرجّع المستخدم لـ Step 1 وبنعرض الخطأ تحت حقل الإيميل.
+  const handleEmailError = (message) => {
+    setStep1Errors({ email: message });
+    navigate('/register/account');
   };
 
   const handleStep2Success = (step2Data) => {
@@ -74,8 +85,9 @@ function RegisterWizard() {
       return;
     }
 
-    // Manual signup still needs to verify their email via OTP.
-    navigate('/register/verify');
+    // Manual signup still needs to verify their email via OTP: first the
+    // "Check your email" screen, then the code-entry screen.
+    navigate('/register/check-email');
   };
 
   // /auth/verify doesn't hand back a session token (per the confirmed
@@ -110,6 +122,7 @@ function RegisterWizard() {
         element={
           <RegisterStep1
             initialData={registerData}
+            initialErrors={step1Errors}
             onNextSuccess={handleStep1Success}
             onNavigateToLogin={() => navigate('/login')}
           />
@@ -136,7 +149,22 @@ function RegisterWizard() {
             registerData={registerData}
             googleCredential={googleCredential}
             onNextSuccess={handleStep3Success}
+            onEmailError={handleEmailError}
             onBack={() => navigate('/register/status')}
+          />
+        }
+      />
+      <Route
+        path="check-email"
+        element={
+          <EmailVerification
+            onContinueToSetup={() => navigate('/register/verify')}
+            onResendEmail={() => {
+              if (!registerData.email) {
+                return Promise.reject(new Error('Please go back and enter your email again.'));
+              }
+              return resendOtp(registerData.email);
+            }}
           />
         }
       />
@@ -147,7 +175,7 @@ function RegisterWizard() {
             userEmail={registerData.email}
             onVerifySuccess={handleContinueAfterVerify}
             onContinueToLogin={handleContinueAfterVerify}
-            onBack={() => navigate('/register/terms')}
+            onBack={() => navigate('/register/check-email')}
           />
         }
       />
@@ -167,10 +195,8 @@ function RegisterWizard() {
         path="assessment/*"
         element={
           <AssessmentWizard
-            // A dashboard now exists (merged in from the skill-matrix /
-            // career-roles branch) - land the learner there once the
-            // assessment is done or skipped, instead of the homepage.
-            onFinish={() => navigate('/dashboard')}
+            // بعد ما يخلّص (أو يطلع من) الـ Assessment بيروح على الـ Dashboard.
+            onFinish={() => navigate('/dashboard', { replace: true })}
           />
         }
       />

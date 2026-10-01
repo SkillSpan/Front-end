@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import './EmailVerification.css';
 
-const EmailVerification = ({ onContinueToSetup, onResendEmail, userEmail }) => {
-  const [timer, setTimer] = useState(60);
+const EmailVerification = ({ onContinueToSetup, onResendEmail }) => {
+  const [timer, setTimer] = useState(0);
   const [message, setMessage] = useState({ text: '', type: '' });
 
   const canResend = timer === 0;
@@ -75,25 +75,13 @@ const EmailVerification = ({ onContinueToSetup, onResendEmail, userEmail }) => {
         </div>
 
         <div className="form-right verification-container">
-          <div className="email-icon-box">
-            <svg
-              className="email-svg-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#f59e0b"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-              <polyline points="22,6 12,13 2,6" />
-            </svg>
-          </div>
+          <div className="email-icon-box" aria-hidden="true" />
 
           <h1 className="verification-title">Check your email</h1>
           <p className="verification-desc">
-            We sent a 6-digit verification code to your email address
-            {userEmail ? <strong> {userEmail}</strong> : ''}. Enter it on the next screen to activate your account.
+            We sent a verification link to your email address.
+            <br />
+            Click it to activate your account
           </p>
 
           {message.text && (

@@ -1,0 +1,311 @@
+:root {
+  --auth-sidebar-width: 380px;
+  --auth-btn-bottom: 72px;   /* بعد الزر الرئيسي عن أسفل الصفحة */
+  --auth-link-bottom: 26px;  /* بعد روابط (Back / Resend) عن أسفل الصفحة */
+}
+
+@media (min-width: 901px) {
+
+  /* ---------- 1) السايد بار: العرض + الطول الكامل (كل الصفحات) ---------- */
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) > .sidebar-left,
+  .reset-password-wrapper .reset-password-card > .reset-sidebar {
+    box-sizing: border-box !important;
+    flex: 0 0 var(--auth-sidebar-width) !important;
+    width: var(--auth-sidebar-width) !important;
+    min-width: var(--auth-sidebar-width) !important;
+    max-width: var(--auth-sidebar-width) !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    align-self: stretch !important;
+  }
+
+  /* ---------- نفس شكل السايد بار (Register) على كل الصفحات ---------- */
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) > .sidebar-left,
+  .reset-password-wrapper .reset-password-card > .reset-sidebar {
+    background: linear-gradient(145deg, #0D0F24 6.17%, #111230 41.23%, #0E1128 93.83%) !important;
+    padding: 28px 56px 28px 30px !important;
+    justify-content: flex-start !important;
+    border: none !important;
+    border-radius: 0 !important;
+    color: #ffffff;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .sidebar-brand {
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    margin: 0 0 40px 0;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .sidebar-brand :is(.white, .blue) {
+    color: #ffffff;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .sidebar-content {
+    margin-top: 0;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .sidebar-content h2 {
+    font-size: 1.5rem !important;
+    font-weight: 800;
+    line-height: 1.3;
+    color: #ffffff;
+    white-space: normal;
+    text-wrap: balance;
+    margin: 0 0 40px 0;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .sidebar-content p {
+    color: #9ca3af;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin: 0 0 40px 0;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .features-list {
+    gap: 22px;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .features-list li {
+    gap: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #e5e7eb;
+    line-height: 1.4;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .features-list .icon {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    background: transparent;
+    overflow: visible;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .features-list .icon img {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* ---------- نفس الشي لسايد بار Reset Password (كلاسات reset-*) ---------- */
+  .reset-password-wrapper .reset-password-card .reset-brand {
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    margin: 0 0 40px 0;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-brand :is(.white, .blue) {
+    color: #ffffff;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-sidebar-content h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.3;
+    color: #ffffff;
+    text-wrap: balance;
+    margin: 0 0 40px 0;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-sidebar-content > p {
+    color: #9ca3af;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin: 0 0 40px 0;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-features {
+    gap: 22px;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-features li {
+    gap: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #e5e7eb;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-feature-icon {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-feature-icon img {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* ======================================================================
+  /* Login */
+  .login-wrapper .login-card .form-right {
+    padding-bottom: var(--auth-btn-bottom) !important;
+  }
+  .login-wrapper .login-card .btn-login {
+    margin-bottom: 0 !important;
+  }
+
+  /* Forgot password (طلب الكود + Check your email) */
+  .forgot-wrapper .forgot-card .form-right-forgot {
+    padding-bottom: var(--auth-btn-bottom) !important;
+  }
+  .forgot-wrapper .forgot-card .fp-btn {
+    margin-bottom: 0 !important;
+  }
+  .forgot-wrapper .forgot-card .fp-back {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--auth-link-bottom);
+    margin: 0 !important;
+    text-align: center;
+  }
+
+  /* Verify code + Password reset successful */
+  .verify-wrapper .verify-card .form-right-verify {
+    padding-bottom: var(--auth-btn-bottom) !important;
+  }
+  .verify-wrapper .verify-card :is(.btn-verify-code, .success-btn) {
+    margin-bottom: 0 !important;
+  }
+  .verify-wrapper .verify-card .verify-back-btn {
+    position: absolute;
+    left: 50%;
+    bottom: var(--auth-link-bottom);
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  /* Reset your password (كلمة السر الجديدة) */
+  .reset-password-wrapper .reset-password-card .reset-form-inner {
+    padding-bottom: var(--auth-btn-bottom) !important;
+  }
+  .reset-password-wrapper .reset-password-card .reset-submit-button {
+    margin-bottom: 0 !important;
+  }
+  .reset-password-wrapper .reset-password-card .reset-back-button {
+    position: absolute;
+    left: 50%;
+    bottom: var(--auth-link-bottom);
+    transform: translateX(-50%);
+    margin: 0 !important;
+    white-space: nowrap;
+  }
+
+  /* Check your email (التسجيل) */
+  .register-card .form-right.verification-container {
+    position: relative;
+    padding-bottom: var(--auth-btn-bottom) !important;
+  }
+  .verification-container .btn-continue-setup {
+    margin-bottom: 0 !important;
+  }
+  .verification-container .resend-wrapper {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--auth-link-bottom);
+    text-align: center;
+  }
+
+  /* OTP + Email verified (التسجيل) */
+  .register-card .form-right:is(.otp-container, .verified-container) {
+    position: relative;
+    padding-bottom: var(--auth-btn-bottom) !important;
+  }
+  .otp-container .btn-verify-code,
+  .verified-container .btn-continue {
+    margin-bottom: 0 !important;
+  }
+  .otp-container .otp-footer-links:has(.edit-email-btn),
+  .verified-container .verified-footer-link {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--auth-link-bottom);
+    margin: 0 !important;
+    text-align: center;
+  }
+
+  /* Register Step 1: زر Next أسفل الصفحة + رابط "log in" تحته */
+  .register-card .form-right:has(.btn-next) {
+    position: relative;
+    justify-content: flex-start;
+    padding: 40px 48px var(--auth-btn-bottom) 48px !important;
+  }
+  .register-card .form-right:has(.btn-next) > form {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .register-card .form-right .btn-next {
+    margin: auto auto 0 auto !important;
+  }
+  .register-card .form-right:has(.btn-next) > .login-prompt {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--auth-link-bottom);
+    margin: 0;
+  }
+}

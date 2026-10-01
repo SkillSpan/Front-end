@@ -1,11 +1,5 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import {
-  clearSession,
-  clearSessionAndRevoke,
-  getStoredUser,
-  isAuthenticated,
-  onSessionExpired,
-} from '../../api';
+import { createContext, useContext, useState } from 'react';
+import { clearSession, getStoredUser, isAuthenticated } from '../../api';
 
 const AuthContext = createContext(null);
 
@@ -18,54 +12,26 @@ export function AuthProvider({ children }) {
     isAuthenticated() ? getStoredUser() : null
   );
 
-  // Merged in from the skill-matrix/career-roles branch: a full-page
-  // "Your session has expired" takeover (see SessionExpired.jsx) instead
-  // of silently dropping back to a logged-out state. A 401-expired token
-  // means nothing else currently on screen can be trusted/acted on anyway.
-  const [sessionExpired, setSessionExpired] = useState(false);
-
   const login = (user) => setAuthUser(user);
 
   const logout = () => {
-    // Best-effort: tell the backend to revoke this token too. clearSessionAndRevoke
-    // already swallows network/5xx errors and clears the local cookies
-    // regardless, so the UI never gets stuck "logged in but backend says no".
-    clearSessionAndRevoke();
+    clearSession();
     setAuthUser(null);
   };
 
-  // If api.js detects the backend has revoked/expired the session (a 401 on
-  // an authenticated endpoint), drop the in-memory user and show the
-  // full-page session-expired screen instead of leaving a stale
-  // authenticated screen on-screen that will just keep failing.
-  useEffect(
-    () =>
-      onSessionExpired(() => {
-        clearSession();
-        setAuthUser(null);
-        setSessionExpired(true);
-      }),
-    []
-  );
-
-  const dismissSessionExpired = () => setSessionExpired(false);
-
   return (
-    <AuthContext.Provider
-      value={{ authUser, login, logout, sessionExpired, dismissSessionExpired }}
-    >
+    <AuthContext.Provider value={{ authUser, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-// This hook is tightly coupled to AuthProvider/AuthContext above and is
-// used throughout the auth flows; splitting it into its own file would add
+// eslint-disable-next-line react-refresh/only-export-components -- this
+// hook is tightly coupled to AuthProvider/AuthContext above and is used
+// throughout the auth flows; splitting it into its own file would add
 // indirection for no real benefit here.
-/* eslint-disable react-refresh/only-export-components */
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
   return ctx;
 }
-/* eslint-enable react-refresh/only-export-components */

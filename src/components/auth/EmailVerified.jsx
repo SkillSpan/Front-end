@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import './EmailVerification.css';
 
-const EmailVerification = ({ onContinueToSetup, onResendEmail, userEmail }) => {
-  const [timer, setTimer] = useState(60);
+const EmailVerification = ({ onContinueToSetup, onResendEmail }) => {
+  const [timer, setTimer] = useState(0);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [isResending, setIsResending] = useState(false);
 
@@ -50,38 +50,26 @@ const EmailVerification = ({ onContinueToSetup, onResendEmail, userEmail }) => {
         <div className="sidebar-left">
           <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">
-            <h2>
-              Start Your
-              <br />
-              Career Journey
-            </h2>
+            <h2>Start Your<br />Career&nbsp;Journey</h2>
             <p className="sidebar-desc">
               From education to your first opportunity in clear, verified steps
             </p>
 
             <ul className="features-list">
               <li>
-                <span className="icon">
-                  <img src="/image/2.png" alt="Readiness" />
-                </span>
+                <span className="icon"><img src="/image/icon-readiness.png" alt="Readiness" /></span>
                 <span>Assess your real readiness</span>
               </li>
               <li>
-                <span className="icon">
-                  <img src="/image/3.png" alt="Roadmap" />
-                </span>
+                <span className="icon"><img src="/image/icon-roadmap.png" alt="Roadmap" /></span>
                 <span>A roadmap built for you</span>
               </li>
               <li>
-                <span className="icon">
-                  <img src="/image/4.png" alt="Projects" />
-                </span>
+                <span className="icon"><img src="/image/icon-projects.png" alt="Projects" /></span>
                 <span>Real projects from companies</span>
               </li>
               <li>
-                <span className="icon">
-                  <img src="/image/5.png" alt="Record" />
-                </span>
+                <span className="icon"><img src="/image/icon-record.png" alt="Record" /></span>
                 <span>A verified professional record</span>
               </li>
             </ul>
@@ -89,25 +77,13 @@ const EmailVerification = ({ onContinueToSetup, onResendEmail, userEmail }) => {
         </div>
 
         <div className="form-right verification-container">
-          <div className="email-icon-box">
-            <svg
-              className="email-svg-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#f59e0b"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-              <polyline points="22,6 12,13 2,6" />
-            </svg>
-          </div>
+          <div className="email-icon-box" aria-hidden="true" />
 
           <h1 className="verification-title">Check your email</h1>
           <p className="verification-desc">
-            We sent a 6-digit verification code to your email address
-            {userEmail ? <strong> {userEmail}</strong> : ''}. Enter it on the next screen to activate your account.
+            We sent a verification link to your email address.
+            <br />
+            Click it to activate your account
           </p>
 
           {message.text && (

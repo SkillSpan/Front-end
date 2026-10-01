@@ -28,14 +28,22 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
 
   useEffect(() => {
     let timer = null;
-    if (timeLeft > 0 || (isResendState && resendTimer > 0)) {
+    if (timeLeft > 0 || resendTimer > 0) {
       timer = setInterval(() => {
         if (timeLeft > 0) setTimeLeft((prev) => prev - 1);
-        if (isResendState && resendTimer > 0) setResendTimer((prev) => prev - 1);
+        if (resendTimer > 0) setResendTimer((prev) => prev - 1);
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [timeLeft, resendTimer, isResendState]);
+  }, [timeLeft, resendTimer]);
+
+  // s***t@example.com - shows enough to recognise the address without exposing it
+  const maskEmail = (value) => {
+    const [local = '', domain = ''] = String(value).split('@');
+    if (!domain) return value;
+    if (local.length <= 2) return `${local[0] || ''}***@${domain}`;
+    return `${local[0]}***${local[local.length - 1]}@${domain}`;
+  };
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -118,26 +126,26 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
           <div className="sidebar-left">
             <div className="sidebar-brand">SkillSpan</div>
             <div className="sidebar-content">
-              <h2>Start Your<br />Career Journey</h2>
+              <h2>Start Your<br />Career&nbsp;Journey</h2>
               <p className="sidebar-desc">
                 From education to your first opportunity in clear, verified steps
               </p>
 
               <ul className="features-list">
                 <li>
-                  <span className="icon"><img src="/image/2.png" alt="Readiness" /></span>
+                  <span className="icon"><img src="/image/icon-readiness.png" alt="Readiness" /></span>
                   <span>Assess your real readiness</span>
                 </li>
                 <li>
-                  <span className="icon"><img src="/image/3.png" alt="Roadmap" /></span>
+                  <span className="icon"><img src="/image/icon-roadmap.png" alt="Roadmap" /></span>
                   <span>A roadmap built for you</span>
                 </li>
                 <li>
-                  <span className="icon"><img src="/image/4.png" alt="Projects" /></span>
+                  <span className="icon"><img src="/image/icon-projects.png" alt="Projects" /></span>
                   <span>Real projects from companies</span>
                 </li>
                 <li>
-                  <span className="icon"><img src="/image/5.png" alt="Record" /></span>
+                  <span className="icon"><img src="/image/icon-record.png" alt="Record" /></span>
                   <span>A verified professional record</span>
                 </li>
               </ul>
@@ -188,26 +196,26 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
         <div className="sidebar-left">
           <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">
-            <h2>Start Your<br />Career Journey</h2>
+            <h2>Start Your<br />Career&nbsp;Journey</h2>
             <p className="sidebar-desc">
               From education to your first opportunity in clear, verified steps
             </p>
 
             <ul className="features-list">
               <li>
-                <span className="icon"><img src="/image/2.png" alt="Readiness" /></span>
+                <span className="icon"><img src="/image/icon-readiness.png" alt="Readiness" /></span>
                 <span>Assess your real readiness</span>
               </li>
               <li>
-                <span className="icon"><img src="/image/3.png" alt="Roadmap" /></span>
+                <span className="icon"><img src="/image/icon-roadmap.png" alt="Roadmap" /></span>
                 <span>A roadmap built for you</span>
               </li>
               <li>
-                <span className="icon"><img src="/image/4.png" alt="Projects" /></span>
+                <span className="icon"><img src="/image/icon-projects.png" alt="Projects" /></span>
                 <span>Real projects from companies</span>
               </li>
               <li>
-                <span className="icon"><img src="/image/5.png" alt="Record" /></span>
+                <span className="icon"><img src="/image/icon-record.png" alt="Record" /></span>
                 <span>A verified professional record</span>
               </li>
             </ul>
@@ -215,24 +223,16 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
         </div>
 
         <div className="form-right otp-container">
-          <div className="email-icon-box">
-            <svg className="email-svg-icon" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-              <polyline points="22,6 12,13 2,6" />
-            </svg>
-          </div>
+          <div className="email-icon-box" aria-hidden="true" />
 
-          <span className="sub-tag">EMAIL VERIFICATION</span>
-
-          <h1 className="otp-heading">
-            {isResendState ? 'We sent you a new code!' : 'Check your inbox'}
-          </h1>
+          <h1 className="otp-heading">Verify Your Identity</h1>
 
           <form onSubmit={handleVerify} className="otp-form-content">
 
             {confirmedEmail ? (
               <p className="otp-email-confirm">
-                We sent a code to <strong>{confirmedEmail}</strong>
+                We've sent a 6-digit verification code to{' '}
+                <strong>{maskEmail(confirmedEmail)}</strong>. Please enter it below to proceed.
               </p>
             ) : (
               <div className="otp-email-fallback">
@@ -273,24 +273,22 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
 
             {error && <div className="elegant-error-msg">{error}</div>}
 
-            {!isResendState ? (
-              <div className="otp-footer-links">
-                <p>
-                  Didn't get the code?{' '}
-                  <span
-                    className="resend-action"
-                    onClick={isResending ? undefined : handleResendClick}
-                    style={{ cursor: isResending ? 'default' : 'pointer', color: '#0056b3', fontWeight: 'bold', opacity: isResending ? 0.6 : 1 }}
-                  >
-                    {isResending ? 'Sending...' : 'Resend code'}
-                  </span>
-                </p>
-              </div>
-            ) : (
+            {isResendState && resendTimer > 0 ? (
               <div className="resend-info-box">
                 <div className="resend-icon-text">
-                  <svg className="repeat-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.68-5.68" />
+                  <svg
+                    className="repeat-svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="23 4 23 10 17 10" />
+                    <polyline points="1 20 1 14 7 14" />
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
                   </svg>
                   <div className="resend-text-content">
                     <p className="resend-title">Didn't get the code?</p>
@@ -300,6 +298,23 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
                     </p>
                   </div>
                 </div>
+              </div>
+            ) : (
+              <div className="otp-footer-links">
+                {resendTimer > 0 ? (
+                  <p>Didn't get the code? Resend in {resendTimer}s</p>
+                ) : (
+                  <p>
+                    Didn't get the code?{' '}
+                    <span
+                      className="resend-action"
+                      onClick={isResending ? undefined : handleResendClick}
+                      style={{ cursor: isResending ? 'default' : 'pointer', opacity: isResending ? 0.6 : 1 }}
+                    >
+                      {isResending ? 'Sending...' : 'Resend code'}
+                    </span>
+                  </p>
+                )}
               </div>
             )}
 

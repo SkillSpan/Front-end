@@ -21,6 +21,14 @@ const VerifyCode = ({ email, onBack, onSuccess }) => {
     return () => clearInterval(id);
   }, [timeLeft, resendTimer]);
 
+  // s***t@example.com - enough to recognise the address without exposing it
+  const maskEmail = (value) => {
+    const [local = '', domain = ''] = String(value).split('@');
+    if (!domain) return value;
+    if (local.length <= 2) return `${local[0] || ''}***@${domain}`;
+    return `${local[0]}***${local[local.length - 1]}@${domain}`;
+  };
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -103,48 +111,47 @@ const VerifyCode = ({ email, onBack, onSuccess }) => {
     <div className="verify-wrapper">
       <div className="verify-card">
         <div className="sidebar-left">
-           <div className="sidebar-brand">
-             <span className="white">Skill</span><span className="blue">Span</span>
-           </div>
-           
-           <div className="sidebar-content">
-             <h2>Start Your Career Journey</h2>
-             <p>From education to your first opportunity in clear, verified steps</p>
-             
-             <ul className="features-list">
-               <li>
-                 <span className="icon"><img src="/image/2.png" alt="Readiness" /></span>
-                 <span>Assess your real readiness</span>
-               </li>
-               <li>
-                 <span className="icon"><img src="/image/3.png" alt="Roadmap" /></span>
-                 <span>A roadmap built for you</span>
-               </li>
-               <li>
-                 <span className="icon"><img src="/image/4.png" alt="Projects" /></span>
-                 <span>Real projects from companies</span>
-               </li>
-               <li>
-                 <span className="icon"><img src="/image/5.png" alt="Record" /></span>
-                 <span>A verified professional record</span>
-               </li>
-             </ul>
-           </div>
+          <div className="sidebar-brand">SkillSpan</div>
+          <div className="sidebar-content">
+            <h2>Start Your<br />Career&nbsp;Journey</h2>
+            <p className="sidebar-desc">
+              From education to your first opportunity in clear, verified steps
+            </p>
+
+            <ul className="features-list">
+              <li>
+                <span className="icon"><img src="/image/icon-readiness.png" alt="Readiness" /></span>
+                <span>Assess your real readiness</span>
+              </li>
+              <li>
+                <span className="icon"><img src="/image/icon-roadmap.png" alt="Roadmap" /></span>
+                <span>A roadmap built for you</span>
+              </li>
+              <li>
+                <span className="icon"><img src="/image/icon-projects.png" alt="Projects" /></span>
+                <span>Real projects from companies</span>
+              </li>
+              <li>
+                <span className="icon"><img src="/image/icon-record.png" alt="Record" /></span>
+                <span>A verified professional record</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div className="form-right-verify">
-          <div className="verify-content-box">
-            <div className="verify-mail-icon-box">
-              <svg className="verify-mail-svg" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                <polyline points="22,6 12,13 2,6" />
-              </svg>
-            </div>
+          <div className="verify-mail-icon-box" aria-hidden="true" />
 
-            <span className="verify-subtag">EMAIL VERIFICATION</span>
-            <h1 className="verify-heading">Check your inbox</h1>
+          <h1 className="verify-heading">Verify Your Identity</h1>
 
-            <form onSubmit={handleVerify}>
+          <form className="verify-form" onSubmit={handleVerify} noValidate>
+            {email ? (
+              <p className="verify-email-confirm">
+                We've sent a 6-digit verification code to{' '}
+                <strong>{maskEmail(email)}</strong>. Please enter it below to proceed.
+              </p>
+            ) : (
+              // Only shown when the wizard has no email (e.g. after a page refresh).
               <div className="verify-email-field">
                 <label htmlFor="verify-email-input">Email Address</label>
                 <input
@@ -156,36 +163,27 @@ const VerifyCode = ({ email, onBack, onSuccess }) => {
                   className="verify-email-input"
                 />
               </div>
+            )}
 
-              <div className="otp-inputs-container">
-                {code.map((digit, index) => (
-                  <input
-                    key={index}
-                    type="text"
-                    maxLength="1"
-                    value={digit}
-                    ref={(el) => (inputRefs.current[index] = el)}
-                    onChange={(e) => handleChange(e.target.value, index)}
-                    onKeyDown={(e) => handleKeyDown(e, index)}
-                    className="otp-input-box"
-                  />
-                ))}
-              </div>
+            <div className="otp-inputs-container">
+              {code.map((digit, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  maxLength="1"
+                  value={digit}
+                  ref={(el) => (inputRefs.current[index] = el)}
+                  onChange={(e) => handleChange(e.target.value, index)}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  className="otp-input-box"
+                />
+              ))}
+            </div>
 
-              <div className="verify-timer-info">
-                <span className="verify-timer-dot"></span>
-                <span>Code expires in <strong className="verify-timer-highlight">{formatTime(timeLeft)}</strong></span>
-              </div>
+            <div className="verify-timer-info">
+              <span>Code expires in <strong className="verify-timer-highlight">{formatTime(timeLeft)}</strong></span>
+            </div>
 
-              {error && <span className="error-text">{error}</span>}
-
-              <button type="submit" className="btn-verify-code" disabled={isVerifying}>
-                {isVerifying ? 'Verifying...' : 'Verify code'}
-              </button>
-            </form>
-          </div>
-
-          <div className="verify-footer">
             <p className="verify-resend-line">
               Didn't get the code?{' '}
               {resendTimer > 0 ? (
@@ -201,10 +199,17 @@ const VerifyCode = ({ email, onBack, onSuccess }) => {
                 </button>
               )}
             </p>
+
+            {error && <span className="error-text verify-error">{error}</span>}
+
+            <button type="submit" className="btn-verify-code" disabled={isVerifying}>
+              {isVerifying ? 'Verifying...' : 'Verify code'}
+            </button>
+
             <button type="button" className="verify-back-btn" onClick={onBack}>
               Back
             </button>
-          </div>
+          </form>
         </div>
       </div>
     </div>
