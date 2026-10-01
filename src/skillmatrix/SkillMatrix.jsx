@@ -201,6 +201,7 @@ export default function SkillMatrix({ onNavigate }) {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [tab, setTab] = useState('all'); // all | assessment | self
+  const [searchQuery, setSearchQuery] = useState(''); // taxonomy sidebar search
   const [openCategories, setOpenCategories] = useState(() => new Set(FALLBACK_TAXONOMY.map((c) => c.key)));
   const [panelSkillId, setPanelSkillId] = useState(null);
   const [panelLevel, setPanelLevel] = useState(1);
@@ -298,6 +299,19 @@ export default function SkillMatrix({ onNavigate }) {
       }),
     [skills, taxonomy]
   );
+
+  // Taxonomy sidebar search: case-insensitive match on the skill name.
+  // While a search is active we only keep categories that still have matches.
+  const searchTerm = searchQuery.trim().toLowerCase();
+  const visibleTaxonomy = useMemo(() => {
+    if (!searchTerm) return taxonomy;
+    return taxonomy
+      .map((cat) => ({
+        ...cat,
+        skills: cat.skills.filter((s) => String(s.name).toLowerCase().includes(searchTerm)),
+      }))
+      .filter((cat) => cat.skills.length > 0);
+  }, [taxonomy, searchTerm]);
 
   const cards = useMemo(() => {
     return skillIds
@@ -406,11 +420,27 @@ export default function SkillMatrix({ onNavigate }) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
             </svg>
-            <input placeholder="Search skills..." />
+            <input
+              type="text"
+              placeholder="Search skills..."
+              aria-label="Search skills"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') setSearchQuery('');
+              }}
+            />
           </div>
 
-          {taxonomy.map((cat) => {
-            const isOpen = openCategories.has(cat.key);
+          {searchTerm && visibleTaxonomy.length === 0 && (
+            <div className="sm-category-count" style={{ padding: '12px 4px' }}>
+              No skills match &ldquo;{searchQuery.trim()}&rdquo;
+            </div>
+          )}
+
+          {visibleTaxonomy.map((cat) => {
+            // While searching, every category with matches is expanded so the results are visible.
+            const isOpen = !!searchTerm || openCategories.has(cat.key);
             const haveCount = cat.skills.filter((s) => skills[s.id]).length;
             return (
               <div className="sm-category" key={cat.key}>

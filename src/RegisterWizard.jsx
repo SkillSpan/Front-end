@@ -195,12 +195,8 @@ function RegisterWizard() {
         path="assessment/*"
         element={
           <AssessmentWizard
-            // No results/dashboard page exists yet in this app - land the
-            // learner on the homepage once the assessment is done or
-            // skipped. Update this once one exists (see
-            // api_endpoints_render.md for the readiness endpoints this
-            // would presumably lead into).
-            onFinish={() => navigate('/')}
+            // بعد ما يخلّص (أو يطلع من) الـ Assessment بيروح على الـ Dashboard.
+            onFinish={() => navigate('/dashboard', { replace: true })}
           />
         }
       />

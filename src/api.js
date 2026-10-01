@@ -113,9 +113,12 @@ export const resendOtp = (email) =>
 export const loginUser = (email, password) =>
   request('/api/v1/auth/login', { method: 'POST', body: { email, password } });
 
-// Google Sign-In endpoints expected by the current frontend contract tests.
+// Google Sign-In endpoints.
+// NOTE: paths now use /api/v1/... like every other auth route. The old
+// '/api/auth/login/google' returned "route could not be found". If the backend
+// team uses a different path, change it here (single place).
 export const loginWithGoogle = (credential, termsAccepted = false, privacyAccepted = false, extra = {}) =>
-  request('/api/auth/login/google', {
+  request('/api/v1/auth/login/google', {
     method: 'POST',
     body: {
       credential,
@@ -126,7 +129,7 @@ export const loginWithGoogle = (credential, termsAccepted = false, privacyAccept
   });
 
 export const loginOrganizationWithGoogle = (credential) =>
-  request('/api/auth/login/organization/google', {
+  request('/api/v1/auth/login/organization/google', {
     method: 'POST',
     body: {
       credential,
