@@ -1,0 +1,707 @@
+.register-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  padding: 0;
+  background-color: #03081e;
+  box-sizing: border-box;
+}
+
+.register-card {
+  width: 100%;
+  max-width: none;
+  background: #ffffff;
+  border-radius: 0;
+  display: flex;
+  overflow: hidden;
+  border: none;
+  box-shadow: none;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-left {
+  width: 330px;
+  height: auto;
+  align-self: stretch;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: var(--auth-sidebar-bg);
+  color: #ffffff;
+  padding: 28px 56px 28px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  border-right: none;
+}
+
+.sidebar-content {
+  margin-top: 0;
+}
+
+.sidebar-brand {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin-bottom: 40px;
+}
+
+.sidebar-content h2 {
+  font-size: 1.5rem !important;
+  font-weight: 800;
+  line-height: 1.3;
+  margin-bottom: 14px;
+  color: #ffffff;
+  white-space: normal;
+  margin-bottom: 40px;
+}
+
+.sidebar-desc {
+  color: #9ca3af;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+/* تعريف واحد فقط لقائمة المزايا - تم حذف التكرار القديم */
+.features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.features-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  font-weight: 600;
+  color: #e5e7eb;
+  line-height: 1.4;
+}
+
+.features-list .icon {
+  background: transparent;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.features-list .icon img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
+}
+
+.form-right {
+  flex: 1;
+  padding: 45px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.step-header {
+  width: 78%;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.step-title, .step-percent {
+  color: #f59e0b;
+}
+
+.progress-bar {
+  width: 78%;
+  margin-left: auto;
+  margin-right: auto;
+  height: 4px;
+  background-color: #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #f59e0b;
+  border-radius: 10px;
+}
+
+.form-heading {
+  width: 78%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 20px;
+}
+
+.sub-tag {
+  color: #1d72b8;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.form-heading h1 {
+  font-size: 1.75rem;
+  color: #111827;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.form-heading p {
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+
+.input-group {
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 6px;
+  width: 78%;
+}
+
+.required-star {
+  color: #dc2626;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 78%;
+}
+
+.input-group input {
+  width: 78%;
+  padding: 13px 16px;
+  background-color: #f0f5ff;
+  border: 1px solid #B8D6BF;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  color: #1f2937;
+  font-weight: 500;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.25s ease;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+}
+
+.input-group input:focus {
+  background-color: #ffffff;
+  border-color: #2b7fff;
+  box-shadow: 0 0 0 4px rgba(43, 127, 255, 0.15);
+}
+
+.toggle-show-btn {
+  position: absolute;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  background: url('/image/9.png') center / contain no-repeat;
+  border: none;
+  color: transparent;
+  font-size: 0;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.toggle-show-btn:hover {
+  opacity: 0.85;
+}
+
+.password-helper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.generate-btn {
+  background: none;
+  border: none;
+  color: #2b7fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.generate-btn:hover {
+  color: #1d72b8;
+  text-decoration: underline;
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 4px;
+  width: 78%;
+  text-align: left;
+}
+.btn-next {
+  box-sizing: border-box;
+  display: block;
+  margin: 8px auto 0;
+  width: 327px;
+  height: 48px;
+  padding: 10px 45px;
+  background-color: #03081e;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  opacity: 1;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-next:hover {
+  background-color: #1d72b8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(29, 114, 184, 0.35);
+}
+
+.login-prompt {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.88rem;
+  color: #6b7280;
+}
+
+.login-link {
+  color: #03081e;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+@media (max-width: 850px) {
+  .register-card {
+    flex-direction: column;
+    max-width: 500px;
+  }
+
+  .sidebar-left {
+    width: 100%;
+    height: auto;
+    padding: 30px 24px;
+    box-sizing: border-box;
+  }
+
+  .form-right {
+    width: 100%;
+    padding: 30px 24px;
+    box-sizing: border-box;
+  }
+}
+
+/* ===== Desktop override: responsive.css / Login.css also style .sidebar-left
+   (width 30% !important, max 330px, space-between). This higher-specificity
+   rule makes RegisterStep1's sidebar win on desktop only. ===== */
+/* الخلفية على كل الصفحات وكل عروض الشاشة */
+:is(
+  .register-wrapper .register-card,
+  .login-wrapper .login-card,
+  .forgot-wrapper .forgot-card,
+  .verify-wrapper .verify-card
+) > .sidebar-left,
+.reset-password-wrapper .reset-password-card > .reset-sidebar {
+  background: var(--auth-sidebar-bg) !important;
+}
+
+@media (min-width: 901px) {
+  .register-wrapper .register-card .sidebar-left {
+    width: 380px !important;
+    min-width: 380px !important;
+    max-width: 380px !important;
+    justify-content: flex-start !important;
+    padding: 28px 56px 28px 30px !important;
+    box-sizing: border-box;
+  }
+
+  .register-wrapper .register-card .sidebar-content {
+    margin-top: 0 !important;
+  }
+
+  .register-wrapper .register-card .sidebar-content h2 {
+    margin-top: 0;
+  }
+}
+
+/* ==========================================================================
+   تنسيق موحّد لكل واجهات Login / Register / Forgot password
+   (مجمّعة هون بدل ملف منفصل):
+     1) السايد بار (نفس تصميم Register) وطوله يغطي الصفحة كاملة.
+     2) الأزرار الرئيسية كلها على نفس المستوى (نفس البعد عن أسفل الصفحة).
+   للتعديل: غيّر المتغيرات تحت وبتتغير كل الصفحات مع بعض.
+   ========================================================================== */
+:root {
+  /* خلفية السايد بار: التدرج الخطي + 3 توهّجات خفيفة (نفس التصميم) */
+  --auth-sidebar-bg:
+    radial-gradient(circle 75px at 21% 11%, rgba(107, 98, 255, 0.20), rgba(107, 98, 255, 0)),
+    radial-gradient(circle 60px at 65% 48%, rgba(168, 85, 247, 0.10), rgba(168, 85, 247, 0)),
+    radial-gradient(circle 88px at 62% 80%, rgba(59, 130, 246, 0.155), rgba(59, 130, 246, 0)),
+    linear-gradient(145deg, #0D0F24 6.17%, #111230 41.23%, #0E1128 93.83%);
+  --auth-sidebar-width: 380px;
+  --auth-btn-bottom: 72px;   /* بعد الزر الرئيسي عن أسفل الصفحة */
+  --auth-link-bottom: 26px;  /* بعد روابط (Back / Resend) عن أسفل الصفحة */
+}
+
+/* ==========================================================================
+   أيقونات السايد بار: صورتين (roadmap / record) الكانفس تبعهم أكبر من الرمز
+   نفسه، فبنعرضهم بنفس مقياس أيقونتين readiness / projects عشان الأربعة
+   يطلعوا بنفس الحجم.
+   ========================================================================== */
+.sidebar-left .features-list .icon img[src*="icon-roadmap"],
+.sidebar-left .features-list .icon img[src*="icon-record"] {
+  width: 38px !important;
+  height: 41px !important;
+  max-width: none !important;
+  object-fit: fill !important;
+}
+
+@media (min-width: 901px) {
+
+  /* ---------- 1) السايد بار: العرض + الطول الكامل (كل الصفحات) ---------- */
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) > .sidebar-left,
+  .reset-password-wrapper .reset-password-card > .reset-sidebar {
+    box-sizing: border-box !important;
+    flex: 0 0 var(--auth-sidebar-width) !important;
+    width: var(--auth-sidebar-width) !important;
+    min-width: var(--auth-sidebar-width) !important;
+    max-width: var(--auth-sidebar-width) !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    align-self: stretch !important;
+  }
+
+  /* ---------- نفس شكل السايد بار (Register) على كل الصفحات ---------- */
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) > .sidebar-left,
+  .reset-password-wrapper .reset-password-card > .reset-sidebar {
+    padding: 28px 56px 28px 30px !important;
+    justify-content: flex-start !important;
+    border: none !important;
+    border-radius: 0 !important;
+    color: #ffffff;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .sidebar-brand {
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    margin: 0 0 40px 0;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .sidebar-brand :is(.white, .blue) {
+    color: #ffffff;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .sidebar-content {
+    margin-top: 0;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .sidebar-content h2 {
+    font-size: 1.5rem !important;
+    font-weight: 800;
+    line-height: 1.3;
+    color: #ffffff;
+    white-space: normal;
+    text-wrap: balance;
+    margin: 0 0 40px 0;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .sidebar-content p {
+    color: #9ca3af;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin: 0 0 40px 0;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .features-list {
+    gap: 22px;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .features-list li {
+    gap: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #e5e7eb;
+    line-height: 1.4;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .features-list .icon {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    background: transparent;
+    overflow: visible;
+  }
+
+  :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) .features-list .icon img {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* ---------- نفس الشي لسايد بار Reset Password (كلاسات reset-*) ---------- */
+  .reset-password-wrapper .reset-password-card .reset-brand {
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    margin: 0 0 40px 0;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-brand :is(.white, .blue) {
+    color: #ffffff;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-sidebar-content h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.3;
+    color: #ffffff;
+    text-wrap: balance;
+    margin: 0 0 40px 0;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-sidebar-content > p {
+    color: #9ca3af;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin: 0 0 40px 0;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-features {
+    gap: 22px;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-features li {
+    gap: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #e5e7eb;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-feature-icon {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+  }
+
+  .reset-password-wrapper .reset-password-card .reset-feature-icon img {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* ======================================================================
+     2) الأزرار: نفس المستوى في كل الصفحات
+        - الزر الرئيسي: أسفله بالضبط var(--auth-btn-bottom) من نهاية الصفحة
+        - أي رابط تحته (Back / Resend...) ينحط بمكان ثابت أسفل الزر
+        (Step 2 و Step 3 أصلاً على 72px فما بحتاجوا تعديل)
+     ====================================================================== */
+
+  /* Login */
+  .login-wrapper .login-card .form-right {
+    padding-bottom: var(--auth-btn-bottom) !important;
+  }
+  .login-wrapper .login-card .btn-login {
+    margin-bottom: 0 !important;
+  }
+
+  /* Forgot password (طلب الكود + Check your email) */
+  .forgot-wrapper .forgot-card .form-right-forgot {
+    padding-bottom: var(--auth-btn-bottom) !important;
+  }
+  .forgot-wrapper .forgot-card .fp-btn {
+    margin-bottom: 0 !important;
+  }
+  .forgot-wrapper .forgot-card .fp-back {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--auth-link-bottom);
+    margin: 0 !important;
+    text-align: center;
+  }
+
+  /* Verify code + Password reset successful */
+  .verify-wrapper .verify-card .form-right-verify {
+    padding-bottom: var(--auth-btn-bottom) !important;
+  }
+  .verify-wrapper .verify-card :is(.btn-verify-code, .success-btn) {
+    margin-bottom: 0 !important;
+  }
+  .verify-wrapper .verify-card .verify-back-btn {
+    position: absolute;
+    left: 50%;
+    bottom: var(--auth-link-bottom);
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  /* Reset your password (كلمة السر الجديدة) */
+  .reset-password-wrapper .reset-password-card .reset-form-inner {
+    padding-bottom: var(--auth-btn-bottom) !important;
+  }
+  .reset-password-wrapper .reset-password-card .reset-submit-button {
+    margin-bottom: 0 !important;
+  }
+  .reset-password-wrapper .reset-password-card .reset-back-button {
+    position: absolute;
+    left: 50%;
+    bottom: var(--auth-link-bottom);
+    transform: translateX(-50%);
+    margin: 0 !important;
+    white-space: nowrap;
+  }
+
+  /* Check your email (التسجيل) */
+  .register-card .form-right.verification-container {
+    position: relative;
+    padding-bottom: var(--auth-btn-bottom) !important;
+  }
+  .verification-container .btn-continue-setup {
+    margin-bottom: 0 !important;
+  }
+  .verification-container .resend-wrapper {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--auth-link-bottom);
+    text-align: center;
+  }
+
+  /* OTP + Email verified (التسجيل) */
+  .register-card .form-right:is(.otp-container, .verified-container) {
+    position: relative;
+    padding-bottom: var(--auth-btn-bottom) !important;
+  }
+  .otp-container .btn-verify-code,
+  .verified-container .btn-continue {
+    margin-bottom: 0 !important;
+  }
+  .otp-container .otp-footer-links:has(.edit-email-btn),
+  .verified-container .verified-footer-link {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--auth-link-bottom);
+    margin: 0 !important;
+    text-align: center;
+  }
+
+  /* Register Step 1: زر Next أسفل الصفحة + رابط "log in" تحته */
+  .register-card .form-right:has(.btn-next) {
+    position: relative;
+    justify-content: flex-start;
+    padding: 40px 48px var(--auth-btn-bottom) 48px !important;
+  }
+  .register-card .form-right:has(.btn-next) > form {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .register-card .form-right .btn-next {
+    margin: auto auto 0 auto !important;
+  }
+  .register-card .form-right:has(.btn-next) > .login-prompt {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--auth-link-bottom);
+    margin: 0;
+  }
+}

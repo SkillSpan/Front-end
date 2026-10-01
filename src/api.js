@@ -6,21 +6,14 @@ import { setCookie, getCookie, removeCookie } from './utils/cookies';
 
 // Base URL is injected at build time via Vite env vars. Set
 // VITE_API_BASE_URL in your .env (see .env.example) to point at the
-<<<<<<< HEAD
-// Laravel backend for local dev / staging / production.
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://back-end-zdip.onrender.com';
-=======
 // Laravel backend for local dev / staging / production. Trailing slashes
 // are stripped so `${API_BASE_URL}${path}` never ends up with `//`.
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://back-end-zdip.onrender.com').replace(/\/+$/, '');
->>>>>>> feature-my-work
 
 const TOKEN_COOKIE = 'skillspan_token';
 const USER_COOKIE = 'skillspan_user';
 const SESSION_DAYS = 7;
 
-<<<<<<< HEAD
-=======
 // Listeners notified when the local session is cleared because the backend
 // told us it's no longer valid (a 401 on an authenticated endpoint that
 // proves the session, e.g. logout). AuthContext subscribes so it can drop
@@ -42,7 +35,6 @@ function notifySessionExpired() {
   });
 }
 
->>>>>>> feature-my-work
 // ---------------------------------------------------------------------------
 // Session (cookie) helpers
 // ---------------------------------------------------------------------------
@@ -72,13 +64,19 @@ export function isAuthenticated() {
   return !!getToken();
 }
 
+// Pulled in from the skill-matrix/career-roles branch merge - the backend
+// user object shape has varied a bit across endpoints (id / user_id /
+// learner_id / uuid), so this centralizes "which field is the learner's id"
+// instead of every caller guessing.
+export function resolveLearnerId(user) {
+  return user?.id ?? user?.user_id ?? user?.learner_id ?? user?.uuid ?? null;
+}
+
 export function clearSession() {
   removeCookie(TOKEN_COOKIE);
   removeCookie(USER_COOKIE);
 }
 
-<<<<<<< HEAD
-=======
 // Revokes the server-side session (if any) and then drops the local
 // cookies. Network/5xx failures are swallowed - the local session is
 // cleared regardless so the UI never gets stuck in a "logged in but
@@ -93,19 +91,14 @@ export async function clearSessionAndRevoke() {
   notifySessionExpired();
 }
 
->>>>>>> feature-my-work
 // ---------------------------------------------------------------------------
 // Low level request helper
 // ---------------------------------------------------------------------------
 
-<<<<<<< HEAD
-async function request(path, { method = 'GET', body, isFormData = false, withAuth = false } = {}) {
-=======
 async function request(
   path,
   { method = 'GET', body, isFormData = false, withAuth = false, timeoutMs = 0, signal } = {},
 ) {
->>>>>>> feature-my-work
   const headers = { Accept: 'application/json' };
   if (!isFormData) headers['Content-Type'] = 'application/json';
   if (withAuth) {
@@ -113,8 +106,6 @@ async function request(
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-<<<<<<< HEAD
-=======
   // Optional hard timeout + caller-provided cancel signal. Without this a
   // sleeping / unreachable backend leaves the fetch pending forever and the
   // UI stuck on a "loading" state.
@@ -133,18 +124,12 @@ async function request(
     else signal.addEventListener('abort', onExternalAbort, { once: true });
   }
 
->>>>>>> feature-my-work
   let response;
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       method,
       headers,
       credentials: 'include',
-<<<<<<< HEAD
-      body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
-    });
-  } catch (networkError) {
-=======
       signal: controller.signal,
       body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
     });
@@ -161,19 +146,15 @@ async function request(
     if (signal?.aborted) {
       throw { status: 0, aborted: true, message: 'Request cancelled.', errors: {}, cause: networkError };
     }
->>>>>>> feature-my-work
     throw {
       status: 0,
       message: 'Unable to reach the server. Please check your internet connection and try again.',
       errors: {},
       cause: networkError,
     };
-<<<<<<< HEAD
-=======
   } finally {
     if (timer) clearTimeout(timer);
     if (signal) signal.removeEventListener('abort', onExternalAbort);
->>>>>>> feature-my-work
   }
 
   let data = {};
@@ -184,8 +165,6 @@ async function request(
   }
 
   if (!response.ok) {
-<<<<<<< HEAD
-=======
     // 401 from an authenticated endpoint means the Laravel session/token
     // is no longer valid. Drop the local session and notify subscribers
     // (AuthContext) so the user is bounced to login. We exclude the
@@ -196,7 +175,6 @@ async function request(
       notifySessionExpired();
     }
 
->>>>>>> feature-my-work
     throw {
       status: response.status,
       message: data.message || 'Something went wrong. Please try again.',
@@ -207,8 +185,6 @@ async function request(
   return data;
 }
 
-<<<<<<< HEAD
-=======
 // Paths that prove the user is currently signed in (logout, profile, etc).
 // A 401 from any of these means the session was revoked/expired and we
 // should drop the local cookies + redirect to login.
@@ -219,7 +195,6 @@ function isAuthEndpointRequiringSession(path) {
   return false;
 }
 
->>>>>>> feature-my-work
 // ---------------------------------------------------------------------------
 // Auth endpoints
 // ---------------------------------------------------------------------------
@@ -227,10 +202,6 @@ function isAuthEndpointRequiringSession(path) {
 export const registerUser = (payload) =>
   request('/api/v1/auth/register', { method: 'POST', body: payload });
 
-<<<<<<< HEAD
-export const registerOrganization = (formData) =>
-  request('/api/v1/auth/register/organization', { method: 'POST', body: formData, isFormData: true });
-=======
 // Registration uploads documents (multipart) and may hit a sleeping backend,
 // so it gets a generous timeout and can be cancelled through `signal`.
 export const REGISTER_ORGANIZATION_TIMEOUT_MS = 90000;
@@ -243,7 +214,6 @@ export const registerOrganization = (formData, { signal, timeoutMs = REGISTER_OR
     timeoutMs,
     signal,
   });
->>>>>>> feature-my-work
 
 export const verifyOtp = (email, otp) =>
   request('/api/v1/auth/verify', { method: 'POST', body: { email, otp } });
@@ -256,7 +226,7 @@ export const loginUser = (email, password) =>
 
 // Google Sign-In endpoints expected by the current frontend contract tests.
 export const loginWithGoogle = (credential, termsAccepted = false, privacyAccepted = false, extra = {}) =>
-  request('/api/auth/login/google', {
+  request('/api/v1/auth/login/google', {
     method: 'POST',
     body: {
       credential,
@@ -267,7 +237,7 @@ export const loginWithGoogle = (credential, termsAccepted = false, privacyAccept
   });
 
 export const loginOrganizationWithGoogle = (credential) =>
-  request('/api/auth/login/organization/google', {
+  request('/api/v1/auth/login/organization/google', {
     method: 'POST',
     body: {
       credential,
@@ -410,3 +380,73 @@ export const addSkillToMatrix = (payload) =>
 
 export const updateSkillMatrixEntry = (id, payload) =>
   request(`/api/v1/skills/matrix/${id}`, { method: 'PUT', body: payload, withAuth: true });
+
+// Alias for addSkillToMatrix - same endpoint, kept under this name because
+// it's what SkillMatrix.jsx / careerRolesApi.js (merged in from the
+// skill-matrix/career-roles branch) import. It's an upsert server-side
+// (unique on learner_id + skill_id, see SkillsController@store), not a
+// strict create.
+export const upsertSkillMatrix = addSkillToMatrix;
+
+// ---------------------------------------------------------------------------
+// Evidence (requires Authorization: Bearer {token})
+// ---------------------------------------------------------------------------
+// Confirmed against SkillSpan_Full_API_Reference.pdf / EvidenceController.
+
+// payload should be FormData when sending evidence_file, or a plain object
+// when sending evidence_url instead - pass isFormData accordingly.
+// role:learner.
+export const submitEvidence = (payload, isFormData = false) =>
+  request('/api/v1/evidence', { method: 'POST', body: payload, isFormData, withAuth: true });
+
+// role:learner - returns only the current user's *verified* evidence.
+export const getMyEvidence = () => request('/api/v1/evidence', { method: 'GET', withAuth: true });
+
+// ⚠️ No ownership/role check on this one server-side - any signed-in user
+// can fetch any evidence record by id. Flagged, not fixed here (backend
+// issue) - don't rely on this endpoint alone to gate access to a record's
+// contents in the UI.
+export const getEvidenceById = (id) => request(`/api/v1/evidence/${id}`, { method: 'GET', withAuth: true });
+
+// role:admin - accept/reject; does NOT recalculate the skill's level/
+// confidence automatically (see SKL-06 in the SRS - that's a separate step).
+export const reviewEvidence = (id, verificationStatus, reviewerNotes) =>
+  request(`/api/v1/evidence/${id}/review`, {
+    method: 'PUT',
+    body: { verification_status: verificationStatus, reviewer_notes: reviewerNotes },
+    withAuth: true,
+  });
+
+// ---------------------------------------------------------------------------
+// Career roles (requires Authorization: Bearer {token}, role:learner)
+// ---------------------------------------------------------------------------
+// Confirmed against CareerRoleController.php - GET /, GET /{id}, and
+// GET /{id}/skills are all implemented and registered under
+// prefix('career-roles'). Only approved career roles are ever returned;
+// an existing-but-unapproved role responds 422 (code CAREER_ROLE_NOT_APPROVED),
+// a missing one 404 (CAREER_ROLE_NOT_FOUND) - see careerRolesApi.js for how
+// those surface in the UI.
+
+// page/perPage are optional - only sent when provided.
+export const getCareerRoles = ({ page, perPage } = {}) => {
+  const params = new URLSearchParams();
+  if (page) params.set('page', page);
+  if (perPage) params.set('per_page', perPage);
+  const qs = params.toString();
+  return request(`/api/v1/career-roles${qs ? `?${qs}` : ''}`, { method: 'GET', withAuth: true });
+};
+
+export const getCareerRoleById = (id) =>
+  request(`/api/v1/career-roles/${id}`, { method: 'GET', withAuth: true });
+
+export const getCareerRoleSkills = (id) =>
+  request(`/api/v1/career-roles/${id}/skills`, { method: 'GET', withAuth: true });
+
+// ---------------------------------------------------------------------------
+// Readiness (requires Authorization: Bearer {token}, role:learner)
+// ---------------------------------------------------------------------------
+
+export const calculateReadiness = (payload) =>
+  request('/api/v1/readiness/calculate', { method: 'POST', body: payload, withAuth: true });
+
+export const getLatestReadiness = () => request('/api/v1/readiness/latest', { method: 'GET', withAuth: true });

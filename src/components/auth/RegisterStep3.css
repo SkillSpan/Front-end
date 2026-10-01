@@ -1,0 +1,374 @@
+.agreements-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 25px 0;
+}
+
+/* بطاقات الشروط والخصوصية مع إضافة تأثيرات التفاعل والارتفاع عند تحريك الماوس */
+.checkbox-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 20px;
+  background-color: #122247;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+/* تفاعل الماوس عند التمرير على البطاقات */
+.checkbox-card:hover {
+  background-color: #182e5d;
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(18, 34, 71, 0.6);
+}
+
+/* عند تحديد الخيار */
+.checkbox-card.checked {
+  background-color: #152957;
+  border: 1px solid #2b4c8c;
+  box-shadow: 0 0 12px rgba(43, 76, 140, 0.4);
+}
+
+/* مربع التحديد المخصص */
+.custom-checkbox {
+  width: 22px;
+  height: 22px;
+  background-color: #ffffff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.checkbox-card:hover .custom-checkbox {
+  transform: scale(1.08);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+
+.checkmark {
+  color: #0b1528;
+  font-weight: bold;
+  font-size: 14px;
+  animation: popCheck 0.2s ease-in-out;
+}
+
+.checkbox-text {
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.highlight-text {
+  color: #f59e0b;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.checkbox-card:hover .highlight-text {
+  color: #fbbf24;
+  text-decoration: underline;
+}
+
+/* --- تصميم رسالة الخطأ المميز والبارز --- */
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  color: #ffffff;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: 1px solid #ef4444;
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.45);
+  /* انيميشن الظهور مع الاهتزاز الخفيف لجذب الانتباه */
+  animation: shakeFadeIn 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.error-icon {
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.2);
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Progress bar 3 segments */
+.progress-bar-steps {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0 25px 0;
+}
+
+.step-line {
+  height: 4px;
+  flex: 1;
+  background-color: #1e293b;
+  border-radius: 2px;
+}
+
+.step-line.filled {
+  background-color: #f59e0b;
+}
+
+/* Animations */
+@keyframes popCheck {
+  0% {
+    transform: scale(0);
+  }
+  80% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shakeFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ==========================================================================
+   Terms & Privacy (Step 3) - تصميم جديد
+   كل القواعد مقيّدة بـ :has(.terms-box) حتى لا تتأثر باقي الصفحات
+   ========================================================================== */
+
+/* ---------- تخطيط الجانب الأيمن + نفس مسافة الخطوة 2 ---------- */
+.form-right:has(.terms-box) {
+  --step3-side-gap: 10.5%;
+  justify-content: flex-start;
+  padding: 40px 48px 72px 48px;
+  box-sizing: border-box;
+}
+
+.form-right:has(.terms-box) > * {
+  align-self: stretch !important;
+  box-sizing: border-box;
+  width: auto !important;
+  max-width: none !important;
+  margin-left: var(--step3-side-gap) !important;
+  margin-right: var(--step3-side-gap) !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+@media (max-width: 1200px) {
+  .form-right:has(.terms-box) {
+    --step3-side-gap: 0px;
+  }
+}
+
+/* ---------- الهيدر + شريط التقدم (3 مقاطع مكتملة) ---------- */
+.form-right:has(.terms-box) .step-header {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  margin-bottom: 20px;
+}
+
+.form-right:has(.terms-box) .step-title,
+.form-right:has(.terms-box) .step-percent {
+  color: #f5a623;
+}
+
+.form-right:has(.terms-box) .progress-bar-steps {
+  display: flex;
+  gap: 4.43%;
+  margin-top: 0;
+  margin-bottom: 44px;
+}
+
+.form-right:has(.terms-box) .step-line {
+  flex: 1;
+  height: 8px;
+  border-radius: 0;
+  background-color: #e6e6ea;
+}
+
+.form-right:has(.terms-box) .step-line.filled {
+  background-color: #f5a623;
+}
+
+/* ---------- العنوان ---------- */
+.form-right:has(.terms-box) .form-heading {
+  margin-bottom: 30px;
+}
+
+.form-right:has(.terms-box) .form-heading h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0a0a14;
+  line-height: 1.25;
+  margin: 0 0 24px 0;
+}
+
+.form-right:has(.terms-box) .form-heading p {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ---------- صندوق الشروط ---------- */
+.terms-box {
+  border: 1px solid #e6e9f2;
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.terms-box-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: #f5f7ff;
+  border-bottom: 1px solid #eef0f8;
+  color: #5b6cf0;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.terms-box-header svg {
+  flex-shrink: 0;
+}
+
+.terms-box-body {
+  padding: 20px 20px 26px;
+  max-height: min(470px, 52vh);
+  overflow-y: auto;
+}
+
+.terms-section {
+  margin-bottom: 34px;
+}
+
+.terms-section:last-child {
+  margin-bottom: 0;
+}
+
+.terms-section h4 {
+  margin: 0 0 6px 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0a0a14;
+  line-height: 1.4;
+}
+
+.terms-section p {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+/* ---------- مربع الموافقة ---------- */
+.terms-agreement {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+}
+
+.terms-check-box {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  border-radius: 5px;
+  border: 1.5px solid #c7cbe0;
+  background: #ffffff;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.terms-check.checked .terms-check-box {
+  border-color: #6366f1;
+  background: linear-gradient(135deg, #6d5df5 0%, #5b6cf0 100%);
+}
+
+.terms-check:focus-visible .terms-check-box {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+.terms-check-box svg {
+  animation: popCheck 0.2s ease-in-out;
+}
+
+.terms-check-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.terms-link {
+  color: #5b6cf0;
+  font-weight: 600;
+}
+
+.terms-check:hover .terms-link {
+  text-decoration: underline;
+}
+
+/* ---------- شاشات صغيرة ---------- */
+@media (max-width: 850px) {
+  .form-right:has(.terms-box) {
+    padding: 30px 24px;
+  }
+
+  .form-right:has(.terms-box) .step-header {
+    font-size: 1.1rem;
+  }
+
+  .form-right:has(.terms-box) .progress-bar-steps {
+    margin-bottom: 30px;
+  }
+}

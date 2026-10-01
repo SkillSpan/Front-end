@@ -1,0 +1,528 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+
+/* ==========================================================================
+   Right panel - "Verify your identity"
+   ========================================================================== */
+.register-card .form-right.otp-container {
+  width: auto;
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding: clamp(56px, 25vh, 260px) 48px 36px 48px;
+  background: #ffffff;
+  font-family: 'Inter', sans-serif;
+}
+
+.otp-container .email-icon-box {
+  width: 96px;
+  height: 96px;
+  margin: 0 0 8px 0;
+  background-color: transparent;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAOdEVYdFNvZnR3YXJlAEZpZ21hnrGWYwAAA3BJREFUeAHt3M9t4kAUx/HhT5JDDksJbAcc8u9IKth0EHfAdgDpIFvBJhUsHYS9IeDAVhCXwBXEn30vYiQ0ioONPZ734PeVIgyOI8wHD2BGMQYhhBBCCCGEEEIIIR1VjPJarVazXq8/8PJyuexPp9PYKE4tCENcXFx0N5tNtHt7pVJ5mc/nT1ph1IEkQbhphVEDcnV11a5Wqx1afMiynTYY8SAMQQ9ql37aJkdaYMSCFAXhJh1GHIgvCDepMGJAckDE9AL/xAu8PV00s2wsDSY4SF6I8Xj8snvj9fV1dCjMarV6nUwmAxOwYCCHQhDCgCH2PXCHwqT9+74qHcQ3hJs2mNJAyoZw0wLjHSQ0hJt0GG8g0iDc8sDQdr9Go1HfeKhwEOkQbnx/a7Uanxtrm2x9+i4vb4WBaINwkwKTG0Q7hFtomINBjg3CLRRMZpBjh3ArGyY1CL8roYvHU4Fw234fE9Hio8lWJpi9IFpPQfjq7u6uuV6ve8YTTCIIfVXaODs7+3OqR8S+csBMF4vFPZ1dnn22spq0FX1vHWXBYAi6g/f0DLg/dgxuOBzG9OEwomHsO119zbBp6/z8/GfSyuoXG/4wKTo1CDcHJu2n91bSiq9A0jSjo2iwXC5jc8Lx8E5Pyse078To974lrcsL0qCfHh2C77e3t795io45oRji5uamS6+173S1R0/OhslZ3RQUz5MimIhgVE9USxND0L52aJ/5taBBEKaoCgOxHTPMdpJeh4anyBQMYcs7ZCW2hTmKoYzvP+8H7w8fFUUMTUl5A7FphnEgIlNC3kFsmmBCQNhKA7FJhgkJYSsdxCYJhk8choawBQOxhYRhCDp5+kafst9CQ9iCg9jKhNmF8D2HOGtiQGw+YSRD2MSB2IqE0QBhEwtiywOjCcImHsSWBUYjhE0NiG0Xhh/43XWaIWyFn1wsK4bhSQcE8DG1k653tCLsphbEtkVo+zjzGiJ1Q9axBxBhAURYABEWQIQFEGEBRFgAERZAhAUQYQFEWAARFkCEBRBhAURYABEWQIQFEGEBRFgAERZAhAUQYQFEWAARFkCEBRBhAURYABEWQIQFEGEBRFiJIJvN5q9BvvqXtCIRZLFYPNNFbFDRxbVa7TlpZdp/E9s0KHc06sSXl5f9wWAwMwghhBBCCCGEEEIIKe8/BF+ZEKbJrksAAAAASUVORK5CYII=');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+
+/* the old amber inline SVG is replaced by the dark open-envelope icon above */
+.otp-container .email-svg-icon {
+  display: none;
+}
+
+/* the small "EMAIL VERIFICATION" tag is not part of the design */
+.otp-container .sub-tag {
+  display: none !important;
+}
+
+.otp-container .otp-heading {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: #0c1030;
+  margin: 0 0 22px 0;
+}
+
+/* Form fills the rest of the panel so the button can sit at the bottom.
+   Visual order is set with "order" (timer -> resend text -> error -> button). */
+.otp-container .otp-form-content {
+  width: 100%;
+  max-width: 640px;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* flexible spacer that pushes the button down (min 40px) */
+.otp-container .otp-form-content::before {
+  content: '';
+  order: 6;
+  flex: 1 0 40px;
+}
+
+/* "We've sent a 6-digit verification code to ..." */
+.otp-container .otp-email-confirm {
+  order: 1;
+  max-width: 600px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #555555;
+  margin: 0 0 44px 0;
+}
+
+.otp-container .otp-email-confirm strong {
+  color: #555555;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.otp-container .otp-email-fallback {
+  order: 1;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 0 32px 0;
+  text-align: left;
+}
+
+.otp-container .otp-email-fallback label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.otp-container .otp-email-fallback input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #cfd5e2;
+  background-color: #ffffff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.otp-container .otp-email-fallback input:focus {
+  border-color: #001650;
+  box-shadow: 0 0 0 3px rgba(0, 22, 80, 0.12);
+}
+
+/* OTP boxes */
+.otp-container .otp-inputs-row {
+  order: 2;
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  justify-content: center;
+  gap: clamp(8px, 1.2vw, 16px);
+  margin: 0 0 40px 0;
+}
+
+.otp-container .otp-box {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 80px;
+  height: 88px;
+  box-sizing: border-box;
+  padding: 0;
+  background-color: #ffffff;
+  border: 2.5px solid #0a0a0a;
+  border-radius: 20px;
+  font-family: inherit;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0a0a0a;
+  text-align: center;
+  outline: none;
+  caret-color: #001650;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.otp-container .otp-box:focus {
+  border-color: #001650;
+  box-shadow: 0 0 0 4px rgba(0, 22, 80, 0.14);
+}
+
+/* Timer */
+.otp-container .timer-info {
+  order: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: #0b1c5c;
+  margin: 0 0 10px 0;
+}
+
+.otp-container .timer-dot {
+  display: none;
+}
+
+.otp-container .timer-highlight {
+  color: #111111;
+  font-weight: 400;
+}
+
+/* "Didn't get the code? Resend ..." (and the not-yet-clickable countdown box) */
+.otp-container .otp-footer-links {
+  order: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  font-size: 1.05rem;
+  color: #111111;
+}
+
+.otp-container .otp-footer-links p {
+  margin: 0;
+}
+
+.otp-container .resend-action {
+  color: #001650;
+  font-weight: 600;
+}
+
+.otp-container .resend-action:hover {
+  text-decoration: underline;
+}
+
+.otp-container .resend-info-box {
+  order: 4;
+  width: 100%;
+  max-width: 600px;
+}
+
+.otp-container .elegant-error-msg {
+  order: 5;
+}
+
+/* Verify button - pinned to the bottom of the panel */
+.otp-container .btn-verify-code {
+  order: 8;
+  margin: 0 0 22px 0;
+  width: 100%;
+  max-width: 330px;
+  height: 48px;
+  padding: 0 16px;
+  background-color: #001650;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.otp-container .btn-verify-code:hover:not(:disabled) {
+  background-color: #0a2470;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0, 22, 80, 0.28);
+}
+
+.otp-container .btn-verify-code:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.otp-container .btn-verify-code:focus-visible {
+  outline: 3px solid rgba(0, 22, 80, 0.35);
+  outline-offset: 3px;
+}
+
+/* "Back" link under the button, styled like the resend link on the email screen */
+.otp-container .otp-footer-links:has(.edit-email-btn) {
+  order: 9;
+  margin: 0 !important;
+}
+
+.otp-container .edit-email-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2b3a7c;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.otp-container .edit-email-btn:hover {
+  color: #001650;
+  text-decoration: underline;
+}
+
+/* Resend box (shown right after "Resend code" is clicked) */
+.resend-info-box {
+  box-sizing: border-box;
+  background-color: #fbb94a;
+  border: 2px solid #f5a623;
+  border-radius: 14px;
+  padding: 12px 20px;
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+
+.resend-icon-text {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.repeat-svg {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  color: #0a0a0a;
+}
+
+.resend-text-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resend-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #111111;
+}
+
+.resend-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: #222222;
+}
+
+.resend-countdown {
+  margin: 4px 0 0 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111111;
+}
+
+.resend-countdown strong {
+  font-weight: 500;
+  color: #0b1c5c;
+}
+
+/* تصميم رسالة الخطأ الأنيقة تحت الزر */
+.elegant-error-msg {
+  color: #dc2626;
+  font-size: 0.88rem;
+  text-align: center;
+  margin: 14px 0 0 0;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* إطار ولون خفيف لمربعات الإدخال عند حدوث خطأ */
+.otp-box-error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* ==========================================================================
+   "Email verified!" screen - same layout as the other two screens:
+   icon at the top, button pinned to the bottom.
+   ========================================================================== */
+.register-card .form-right.verified-container {
+  width: auto;
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding: clamp(56px, 25vh, 260px) 48px 36px 48px;
+  background: #ffffff;
+  font-family: 'Inter', sans-serif;
+}
+
+.verified-container .success-icon-box {
+  width: 88px;
+  height: 88px;
+  margin: 0 0 12px 0;
+  background-color: #4caf50;
+  border-radius: 50%;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.verified-container .success-svg-icon {
+  width: 46px;
+  height: 46px;
+  color: #ffffff;
+  stroke-width: 3;
+}
+
+.verified-container .verified-heading {
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: #0c1030;
+  margin: 0 0 22px 0;
+}
+
+.verified-container .verified-desc {
+  max-width: 560px;
+  font-size: 1.2rem;
+  font-weight: 400;
+  line-height: 1.9;
+  color: #555555;
+  margin: 0;
+}
+
+.verified-container .btn-continue {
+  margin-top: auto;
+  margin-bottom: 22px;
+  width: 100%;
+  max-width: 330px;
+  height: 48px;
+  padding: 0 16px;
+  background-color: #001650;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.verified-container .btn-continue:hover {
+  background-color: #0a2470;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(0, 22, 80, 0.28);
+}
+
+.verified-container .btn-continue:focus-visible {
+  outline: 3px solid rgba(0, 22, 80, 0.35);
+  outline-offset: 3px;
+}
+
+.verified-container .verified-footer-link {
+  margin: 0;
+  text-align: center;
+}
+
+.verified-container .landing-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2b3a7c;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.verified-container .landing-link-btn:hover {
+  color: #001650;
+  text-decoration: underline;
+}
+
+/* Tablet / mobile: stack the panels */
+@media (max-width: 900px) {
+
+  .register-card .form-right.otp-container,
+  .register-card .form-right.verified-container {
+    width: 100%;
+    flex: none;
+    padding: 40px 24px 32px 24px;
+  }
+
+  .otp-container .email-icon-box {
+    width: 76px;
+    height: 76px;
+  }
+
+  .otp-container .otp-heading {
+    font-size: 1.6rem;
+  }
+
+  .otp-container .otp-email-confirm {
+    font-size: 1.05rem;
+    margin-bottom: 30px;
+  }
+
+  .otp-container .otp-box {
+    height: 68px;
+    font-size: 1.6rem;
+    border-radius: 14px;
+  }
+
+  .verified-container .success-icon-box {
+    width: 72px;
+    height: 72px;
+  }
+
+  .verified-container .success-svg-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .verified-container .verified-heading {
+    font-size: 1.7rem;
+  }
+
+  .verified-container .verified-desc {
+    font-size: 1.05rem;
+  }
+
+  .resend-icon-text {
+    gap: 12px;
+  }
+
+  .repeat-svg {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .otp-container .otp-box {
+    flex: 0 0 auto;
+    border-radius: 10px;
+    border-width: 2px;
+  }
+}

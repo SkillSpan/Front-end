@@ -7,14 +7,5 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.js'],
-<<<<<<< HEAD
-    pool: 'forks',
-    poolOptions: {
-      forks: {
-        singleFork: true,
-      },
-    },
-=======
->>>>>>> feature-my-work
   },
 })
