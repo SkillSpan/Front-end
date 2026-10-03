@@ -1,0 +1,116 @@
+.options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+/* التنسيق الافتراضي الأساسي للبطاقتين (Student & Graduate) */
+.option-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 24px;
+  border-radius: 18px;
+  cursor: pointer;
+  background-color: #eef3fe;
+  border: 2px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.option-card .option-text h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+  color: #111827;
+  transition: color 0.3s ease;
+}
+
+.option-card .option-text p {
+  font-size: 0.88rem;
+  margin: 0;
+  color: #6b7280;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+/* تأثير التفاعل عند مرور مؤشر الماوس قبل الاختيار */
+.option-card:hover {
+  transform: translateY(-3px);
+  border-color: #1d72b8;
+  box-shadow: 0 8px 20px rgba(29, 114, 184, 0.15);
+  background-color: #e5edff;
+}
+
+/* التنسيق الموحد عند اختيار المستخدم لأي من البطاقتين */
+.option-card.selected-card {
+  background-color: #0b1a48;
+  border-color: #1d72b8;
+  color: #ffffff;
+  box-shadow: 0 10px 25px rgba(11, 26, 72, 0.25);
+}
+
+.option-card.selected-card .option-text h3 {
+  color: #ffffff;
+}
+
+.option-card.selected-card .option-text p {
+  color: #d1d5db;
+}
+
+.option-icon {
+  width: 54px;
+  height: 54px;
+  background-color: #ffffff;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+}
+
+/* أزرار التنقل (Back & Next) */
+.action-buttons {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.btn-back {
+  width: 40%;
+  padding: 14px;
+  background-color: #0b1a48;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-back:hover {
+  background-color: #1a2e68;
+}
+
+.btn-next-step {
+  width: 60%;
+  padding: 14px;
+  background-color: #03081e;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-next-step:hover {
+  background-color: #1d72b8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(29, 114, 184, 0.35);
+}
