@@ -129,7 +129,7 @@ async function request(
     response = await fetch(`${API_BASE_URL}${path}`, {
       method,
       headers,
-      credentials: 'include',
+      credentials: 'omit',
       signal: controller.signal,
       body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
     });
@@ -450,3 +450,77 @@ export const calculateReadiness = (payload) =>
   request('/api/v1/readiness/calculate', { method: 'POST', body: payload, withAuth: true });
 
 export const getLatestReadiness = () => request('/api/v1/readiness/latest', { method: 'GET', withAuth: true });
+
+
+// ---------------------------------------------------------------------------
+// Learner workspace APIs (API handoff 29-09-2026)
+// ---------------------------------------------------------------------------
+export const getApplications = ({ page, perPage } = {}) => {
+  const q = new URLSearchParams(); if (page) q.set('page', page); if (perPage) q.set('per_page', perPage);
+  return request(`/api/v1/applications${q.toString() ? `?${q}` : ''}`, { withAuth: true });
+};
+export const updateApplication = (projectId, applicationId, payload = {}) =>
+  request(`/api/v1/projects/${projectId}/applications/${applicationId}`, { method: 'PATCH', body: payload, withAuth: true });
+export const withdrawApplication = (applicationId) =>
+  request(`/api/v1/applications/${applicationId}/withdraw`, { method: 'POST', withAuth: true });
+export const getProjects = () => request('/api/v1/projects', { withAuth: true });
+export const getProject = (id) => request(`/api/v1/projects/${id}`, { withAuth: true });
+export const applyToProject = (projectId, payload = {}) =>
+  request(`/api/v1/projects/${projectId}/applications`, { method: 'POST', body: payload, withAuth: true });
+export const matchProject = (projectId, payload = {}) =>
+  request(`/api/v1/projects/${projectId}/match`, { method: 'POST', body: payload, withAuth: true });
+export const getRecommendations = ({ page, perPage } = {}) => {
+  const q = new URLSearchParams(); if (page) q.set('page', page); if (perPage) q.set('per_page', perPage);
+  return request(`/api/v1/recommendations${q.toString() ? `?${q}` : ''}`, { withAuth: true });
+};
+export const submitRecommendationFeedback = (id, payload) =>
+  request(`/api/v1/recommendations/${id}/feedback`, { method: 'POST', body: payload, withAuth: true });
+export const calculateIntelligence = (payload = {}) =>
+  request('/api/v1/intelligence/calculate', { method: 'POST', body: payload, withAuth: true });
+export const getLatestIntelligence = () => request('/api/v1/intelligence/latest', { withAuth: true });
+export const calculateReadinessScore = (payload = {}) =>
+  request('/api/v1/readiness/calculate', { method: 'POST', body: payload, withAuth: true });
+export const askAssistant = (payload) =>
+  request('/api/v1/assistant/ask', { method: 'POST', body: payload, withAuth: true });
+export const reportAssistantInteraction = (id, payload) =>
+  request(`/api/v1/assistant/interactions/${id}/report`, { method: 'PUT', body: payload, withAuth: true });
+export const getMentorConnections = ({ page, perPage } = {}) => {
+  const q = new URLSearchParams(); if (page) q.set('page', page); if (perPage) q.set('per_page', perPage);
+  return request(`/api/v1/mentor/connections${q.toString() ? `?${q}` : ''}`, { withAuth: true });
+};
+export const createMentorConnection = (payload) => request('/api/v1/mentor/connections', { method: 'POST', body: payload, withAuth: true });
+export const updateMentorConnection = (id, payload) => request(`/api/v1/mentor/connections/${id}`, { method: 'PATCH', body: payload, withAuth: true });
+export const getMentorStudents = () => request('/api/v1/mentor/students', { withAuth: true });
+export const getConversations = ({ page, perPage } = {}) => {
+  const q = new URLSearchParams(); if (page) q.set('page', page); if (perPage) q.set('per_page', perPage);
+  return request(`/api/v1/conversations${q.toString() ? `?${q}` : ''}`, { withAuth: true });
+};
+export const getNotifications = ({ page, perPage } = {}) => {
+  const q = new URLSearchParams(); if (page) q.set('page', page); if (perPage) q.set('per_page', perPage);
+  return request(`/api/v1/notifications${q.toString() ? `?${q}` : ''}`, { withAuth: true });
+};
+export const getUnreadNotificationCount = () => request('/api/v1/notifications/unread-count', { withAuth: true });
+export const markAllNotificationsRead = () => request('/api/v1/notifications/read-all', { method: 'POST', withAuth: true });
+export const markNotificationRead = (id) => request(`/api/v1/notifications/${id}/read`, { method: 'POST', withAuth: true });
+
+export function unwrapApiData(payload) {
+  return payload?.data?.data ?? payload?.data ?? payload;
+}
+
+export const getOrganizationProfile = () => request('/api/v1/organization/profile', { withAuth: true });
+export const getNotificationsPreferences = () => request('/api/v1/notifications/preferences', { withAuth: true });
+export const updateNotificationsPreferences = (payload) => request('/api/v1/notifications/preferences', { method: 'PUT', body: payload, withAuth: true });
+export const getConversation = (id) => request(`/api/v1/conversations/${id}`, { withAuth: true });
+export const getConversationMessages = (id, { page, perPage } = {}) => {
+  const q = new URLSearchParams(); if (page) q.set('page', page); if (perPage) q.set('per_page', perPage);
+  return request(`/api/v1/conversations/${id}/messages${q.toString() ? `?${q}` : ''}`, { withAuth: true });
+};
+export const sendConversationMessage = (id, payload) => request(`/api/v1/conversations/${id}/messages`, { method: 'POST', body: payload, withAuth: true });
+export const getChatbotMessages = (id, { page, perPage } = {}) => {
+  const q = new URLSearchParams(); if (page) q.set('page', page); if (perPage) q.set('per_page', perPage);
+  return request(`/api/v1/conversations/${id}/chatbot/messages${q.toString() ? `?${q}` : ''}`, { withAuth: true });
+};
+export const sendChatbotMessage = (id, payload) => request(`/api/v1/conversations/${id}/chatbot/messages`, { method: 'POST', body: payload, withAuth: true });
+export const markConversationRead = (id) => request(`/api/v1/conversations/${id}/read`, { method: 'POST', withAuth: true });
+export const getConversationStatus = (id) => request(`/api/v1/conversations/${id}/status`, { withAuth: true });
+export const createConversation = (connectionId, payload = {}) => request(`/api/v1/connections/${connectionId}/conversations`, { method: 'POST', body: payload, withAuth: true });

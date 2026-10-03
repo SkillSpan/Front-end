@@ -1,0 +1,4 @@
+.learner-content{height:100%;min-height:0;min-width:0;overflow:auto}
+.learner-loading{position:fixed;right:20px;top:78px;z-index:150;background:#fff;border:1px solid #e8eaf0;border-radius:8px;padding:8px 12px;font-size:12px;color:#64748b;box-shadow:0 3px 12px rgba(0,0,0,.08)}
+.learner-api-note{position:fixed;right:20px;bottom:16px;z-index:150;max-width:460px;background:#fff8e6;border:1px solid #f2d38b;color:#8a6500;border-radius:10px;padding:10px 12px;font-size:11px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+@media(max-width:700px){.learner-loading{right:10px;top:70px}.learner-api-note{right:10px;left:74px;max-width:none}}

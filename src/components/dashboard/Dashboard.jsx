@@ -107,20 +107,20 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       readinessScore={d.readinessScore}
       roleLabel={d.roleLabel}
     >
-      <h1 className="dash-title">Welcome back, {firstName} 👋</h1>
+      <h1 className="dash-title motion-enter">Welcome back, {firstName} 👋</h1>
       <p className="dash-subtitle">Here's your career readiness overview for today.</p>
 
-      <div className="dash-top-row">
-        <div className="dash-card dash-readiness-card">
+      <div className="dash-top-row motion-stagger">
+        <div className="dash-card dash-readiness-card motion-scale-in">
           <ReadinessRing value={d.readinessScore} />
           <div className="r-label">Readiness Score</div>
           <div className="r-sub">{d.roleLabel}</div>
-          <button type="button" className="btn-pill" onClick={() => onNavigate && onNavigate('roles')}>
+          <button type="button" className="btn-pill" onClick={() => onNavigate && onNavigate('career-journey')}>
             View Roadmap →
           </button>
         </div>
 
-        <div className="dash-card dash-action-card">
+        <div className="dash-card dash-action-card motion-scale-in">
           <span className="dash-action-tag">⚡ Next Best Action</span>
           <h3>{d.nextAction.title}</h3>
           <p>{d.nextAction.description}</p>
@@ -129,13 +129,13 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
               <span key={t} className="dash-chip">{t}</span>
             ))}
           </div>
-          <button type="button" className="btn-pill" style={{ alignSelf: 'flex-start' }}>
+          <button type="button" className="btn-pill" style={{ alignSelf: 'flex-start' }} onClick={() => onNavigate && onNavigate('skill-assessment')}>
             Start Assessment →
           </button>
         </div>
       </div>
 
-      <div className="dash-stats-row">
+      <div className="dash-stats-row motion-stagger">
         <div className="dash-stat-card">
           <div className="dash-stat-top">
             <span className="dash-stat-icon">{StatIcon.folder}</span>
@@ -170,7 +170,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
         </div>
       </div>
 
-      <div className="dash-bottom-row">
+      <div className="dash-bottom-row motion-stagger">
         <div className="dash-panel">
           <div className="dash-panel-head">
             <h3>Top Skill Gaps</h3>

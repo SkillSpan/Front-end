@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import './SkillMatrix.css';
 import { TAXONOMY as FALLBACK_TAXONOMY, LEVELS, levelInfo } from './taxonomy';
 import { getSkillsMatrix, upsertSkillMatrix, updateSkillMatrixEntry, getSkillsTaxonomy, getStoredUser, resolveLearnerId } from '../../api';
+import AppLayout from '../dashboard/AppLayout';
+import { useAuth } from '../auth/AuthContext';
 
 // The taxonomy (categories/skill list on the left) now loads from the real
 // backend (GET /skills/taxonomy) instead of the local mock in taxonomy.js -
@@ -186,8 +188,9 @@ function Topbar({ skillCount, totalSkills, onNavigate }) {
   );
 }
 
-export default function SkillMatrix({ onNavigate }) {
-  const currentUser = getStoredUser();
+export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
+  const { authUser, logout } = useAuth();
+  const currentUser = authUser || getStoredUser();
   const learnerId = resolveLearnerId(currentUser);
   const [taxonomy, setTaxonomy] = useState(FALLBACK_TAXONOMY);
   const [taxonomySource, setTaxonomySource] = useState('loading'); // loading | live | fallback
@@ -200,7 +203,9 @@ export default function SkillMatrix({ onNavigate }) {
   const [loadError, setLoadError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  const [tab, setTab] = useState('all'); // all | assessment | self
+  const [tab, setTab] = useState(
+    initialTab === 'assessment' || initialTab === 'self' ? initialTab : 'all'
+  ); // all | assessment | self
   const [openCategories, setOpenCategories] = useState(() => new Set(FALLBACK_TAXONOMY.map((c) => c.key)));
   const [panelSkillId, setPanelSkillId] = useState(null);
   const [panelLevel, setPanelLevel] = useState(1);
@@ -386,14 +391,31 @@ export default function SkillMatrix({ onNavigate }) {
 
   if (loading) {
     return (
-      <div className="sm-shell">
-        <Topbar skillCount={0} totalSkills={0} onNavigate={onNavigate} />
-        <div className="sm-loading">Loading your skill matrix…</div>
-      </div>
+      <AppLayout
+        active="skill-matrix"
+        onNavigate={onNavigate}
+        user={currentUser}
+        onLogout={logout}
+        flushContent
+        contentClassName="skillmatrix-app-content"
+      >
+        <div className="sm-shell">
+          <Topbar skillCount={0} totalSkills={0} onNavigate={onNavigate} />
+          <div className="sm-loading">Loading your skill matrix…</div>
+        </div>
+      </AppLayout>
     );
   }
 
   return (
+    <AppLayout
+      active="skill-matrix"
+      onNavigate={onNavigate}
+      user={currentUser}
+      onLogout={logout}
+      flushContent
+      contentClassName="skillmatrix-app-content"
+    >
     <div className="sm-shell">
       {loadError && <div className="sm-load-error">{loadError}</div>}
       <Topbar skillCount={skillIds.length} totalSkills={totalSkillCountOf(taxonomy)} onNavigate={onNavigate} />
@@ -620,5 +642,6 @@ export default function SkillMatrix({ onNavigate }) {
         </div>
       )}
     </div>
+    </AppLayout>
   );
 }

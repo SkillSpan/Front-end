@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import './App.css'
 import Landing from './components/common/Landing'
 import Login from './components/auth/Login'
@@ -11,7 +11,10 @@ import SessionExpired from './components/auth/SessionExpired'
 import Dashboard from './components/dashboard/Dashboard'
 import SkillMatrix from './components/skillmatrix/SkillMatrix'
 import CareerRoles from './components/careerroles/CareerRoles'
+import LearnerWorkspace from './components/learner/LearnerWorkspace'
 import { AuthProvider, useAuth } from './components/auth/AuthContext'
+import { EvidenceProvider } from './components/evidence/EvidenceContext'
+import { EvidenceStatusPage, AddEvidencePage, EvidenceDetailPage, ReviewerPage } from './components/evidence/EvidencePages'
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -58,8 +61,16 @@ function CompanyForgotPasswordPage() {
 // don't have their own screens/APIs yet, so unmapped keys just stay put.
 const NAV_ROUTES = {
   dashboard: '/dashboard',
+  'career-journey': '/career-journey',
   'skill-matrix': '/skill-matrix',
+  'skill-assessment': '/skill-matrix?tab=assessment',
   roles: '/career-roles',
+  projects: '/projects',
+  assistant: '/assistant',
+  mentor: '/mentor',
+  talent: '/talent',
+  evidence: '/evidence',
+  record: '/record',
 }
 
 function DashboardPage() {
@@ -79,9 +90,28 @@ function DashboardPage() {
   )
 }
 
+function WorkspacePage({ view }) {
+  const navigate = useNavigate()
+  const { logout } = useAuth()
+  return (
+    <LearnerWorkspace
+      initialView={view}
+      onNavigate={(key) => {
+        if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key])
+      }}
+      onLogout={() => {
+        logout()
+        navigate('/')
+      }}
+    />
+  )
+}
+
 function SkillMatrixPage() {
   const navigate = useNavigate()
-  return <SkillMatrix onNavigate={(key) => { if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key]) }} />
+  const location = useLocation()
+  const tab = new URLSearchParams(location.search).get('tab')
+  return <SkillMatrix initialTab={tab} onNavigate={(key) => { if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key]) }} />
 }
 
 function CareerRolesPage() {
@@ -128,7 +158,8 @@ function AppRoutes() {
   }
 
   return (
-    <Routes>
+    <div className="route-transition" key={`${location.pathname}${location.search}`}>
+      <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register/*" element={<RegisterWizard />} />
@@ -144,6 +175,16 @@ function AppRoutes() {
           </RequireAuth>
         }
       />
+      <Route path="/career-journey" element={<RequireAuth><WorkspacePage view="career-journey" /></RequireAuth>} />
+      <Route path="/projects" element={<RequireAuth><WorkspacePage view="projects" /></RequireAuth>} />
+      <Route path="/assistant" element={<RequireAuth><WorkspacePage view="assistant" /></RequireAuth>} />
+      <Route path="/mentor" element={<RequireAuth><WorkspacePage view="mentor" /></RequireAuth>} />
+      <Route path="/talent" element={<RequireAuth><WorkspacePage view="talent" /></RequireAuth>} />
+      <Route path="/evidence" element={<RequireAuth><EvidenceProvider><EvidenceStatusPage /></EvidenceProvider></RequireAuth>} />
+      <Route path="/evidence/add" element={<RequireAuth><EvidenceProvider><AddEvidencePage /></EvidenceProvider></RequireAuth>} />
+      <Route path="/evidence/:id" element={<RequireAuth><EvidenceProvider><EvidenceDetailPage /></EvidenceProvider></RequireAuth>} />
+      <Route path="/review" element={<RequireAuth><EvidenceProvider><ReviewerPage /></EvidenceProvider></RequireAuth>} />
+      <Route path="/record" element={<RequireAuth><WorkspacePage view="record" /></RequireAuth>} />
       <Route
         path="/skill-matrix"
         element={
@@ -152,16 +193,10 @@ function AppRoutes() {
           </RequireAuth>
         }
       />
-      <Route
-        path="/career-roles"
-        element={
-          <RequireAuth>
-            <CareerRolesPage />
-          </RequireAuth>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      <Route path="/career-roles" element={<RequireAuth><WorkspacePage view="career-roles" /></RequireAuth>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
   )
 }
 
