@@ -135,8 +135,21 @@ function RequireAuth({ children }) {
   return children
 }
 
+// Key for the page-transition wrapper. It must stay the same while moving
+// between the steps of one wizard (/company/register/account -> company-info
+// -> ...), otherwise React remounts the whole wizard on every step, its
+// in-memory form data is wiped, and the step guards bounce the user back to
+// the first page. So we only key on the section ("/company/register",
+// "/register", "/dashboard", ...), not the full path.
+function transitionKey(pathname) {
+  const parts = pathname.split('/').filter(Boolean)
+  if (parts[0] === 'company') return `company/${parts[1] || ''}`
+  return parts[0] || 'home'
+}
+
 function AppRoutes() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { sessionExpired, dismissSessionExpired } = useAuth()
 
   // Full-page takeover, not a modal on top of whatever was open - a
@@ -158,7 +171,7 @@ function AppRoutes() {
   }
 
   return (
-    <div className="route-transition" key={`${location.pathname}${location.search}`}>
+    <div className="route-transition" key={transitionKey(location.pathname)}>
       <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<LoginPage />} />

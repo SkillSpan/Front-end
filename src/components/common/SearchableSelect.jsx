@@ -26,6 +26,9 @@ const SearchableSelect = ({
   hasError = false,
   allowClear = false,
   clearLabel = 'All',
+  // When true, picking the clear option ("All countries") resets the value
+  // but keeps the panel open so the full list is shown right away.
+  keepOpenOnClear = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -112,7 +115,14 @@ const SearchableSelect = ({
             {allowClear && !query.trim() && (
               <li
                 className={`searchable-select-option searchable-select-clear ${!value ? 'selected' : ''}`}
-                onClick={() => handleSelect('')}
+                onClick={() => {
+                  if (keepOpenOnClear) {
+                    onChange('');
+                    setQuery('');
+                  } else {
+                    handleSelect('');
+                  }
+                }}
               >
                 {clearLabel}
               </li>

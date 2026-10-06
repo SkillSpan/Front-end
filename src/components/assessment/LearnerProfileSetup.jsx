@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import './LearnerProfileSetup.css';
 import SearchableSelect from '../common/SearchableSelect';
+import { ALL_COUNTRIES, mergeCountries } from '../common/countries';
 import {
   createProfile,
   getProfile,
@@ -49,7 +50,7 @@ const FALLBACK_SPECIALIZATIONS = [
 // unreachable, so the Country field (and the University-by-country
 // filtering it drives) is always visible instead of silently disappearing
 // when the backend isn't reachable yet.
-const FALLBACK_COUNTRIES = ['Palestine'];
+const FALLBACK_COUNTRIES = ALL_COUNTRIES;
 
 // GET /api/v1/reference/{universities,specializations,countries} (see
 // api.js) return shapes aren't confirmed with the backend yet - this
@@ -183,7 +184,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
         const countryList = normalizeNameList(countryRes);
         if (uniList.length) setUniversities([...uniList, 'Other']);
         if (specList.length) setSpecializations([...specList, 'Other']);
-        if (countryList.length) setCountries(countryList);
+        if (countryList.length) setCountries(mergeCountries(countryList));
       } catch {
         // Reference endpoints unreachable - keep the fallback lists above.
       }
@@ -386,6 +387,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
                 searchPlaceholder="Search countries…"
                 allowClear
                 clearLabel="All countries"
+                keepOpenOnClear
               />
               <span style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'block' }}>
                 Pick a country to filter the University list below to that country only.
