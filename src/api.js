@@ -8,7 +8,10 @@ import { setCookie, getCookie, removeCookie } from './utils/cookies';
 // VITE_API_BASE_URL in your .env (see .env.example) to point at the
 // Laravel backend for local dev / staging / production. Trailing slashes
 // are stripped so `${API_BASE_URL}${path}` never ends up with `//`.
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://back-end-zdip.onrender.com').replace(/\/+$/, '');
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+// Keep the legacy Render host only for local development. Production builds must
+// explicitly configure the backend URL so they cannot silently call an old API.
+export const API_BASE_URL = (configuredApiBaseUrl || (import.meta.env.DEV ? 'https://back-end-zdip.onrender.com' : '')).replace(/\/+$/, '');
 
 const TOKEN_COOKIE = 'skillspan_token';
 const USER_COOKIE = 'skillspan_user';
@@ -99,6 +102,9 @@ async function request(
   path,
   { method = 'GET', body, isFormData = false, withAuth = false, timeoutMs = 0, signal } = {},
 ) {
+  if (!API_BASE_URL) {
+    throw { status: 0, configuration: true, message: 'VITE_API_BASE_URL is missing. Configure the SkillSpan API URL before building for production.', errors: {} };
+  }
   const headers = { Accept: 'application/json' };
   if (!isFormData) headers['Content-Type'] = 'application/json';
   if (withAuth) {
@@ -148,7 +154,7 @@ async function request(
     }
     throw {
       status: 0,
-      message: 'Unable to reach the server. Please check your internet connection and try again.',
+      message: 'Unable to reach the server. Check your internet connection, wait a few seconds (the server may be waking up) and try again.',
       errors: {},
       cause: networkError,
     };
@@ -179,10 +185,33 @@ async function request(
       status: response.status,
       message: data.message || 'Something went wrong. Please try again.',
       errors: data.errors || {},
+      // Machine-readable error code + extra context (e.g. ASSESSMENT_ALREADY_EXISTS
+      // carries the existing assessment id) - sent by the Laravel API.
+      code: data.code,
+      details: data.details,
     };
   }
 
   return data;
+}
+
+// Hosted backends on free tiers (e.g. Render) go to sleep when idle and need
+// 30-60s to wake up; the first request then fails as a plain network error.
+// This pings the Laravel health route (/up) and waits for it to answer.
+// `no-cors` makes the ping independent of CORS - it only needs to know the
+// server is up. Never throws.
+export async function wakeUpApi({ timeoutMs = 60000 } = {}) {
+  if (!API_BASE_URL) return false;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    await fetch(`${API_BASE_URL}/up`, { method: 'GET', mode: 'no-cors', cache: 'no-store', signal: controller.signal });
+    return true;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 // Paths that prove the user is currently signed in (logout, profile, etc).
@@ -233,14 +262,6 @@ export const loginWithGoogle = (credential, termsAccepted = false, privacyAccept
       terms_accepted: termsAccepted,
       privacy_accepted: privacyAccepted,
       ...extra,
-    },
-  });
-
-export const loginOrganizationWithGoogle = (credential) =>
-  request('/api/v1/auth/login/organization/google', {
-    method: 'POST',
-    body: {
-      credential,
     },
   });
 
@@ -328,8 +349,8 @@ export const updateProfile = (payload) =>
 // callers should treat the response shape defensively and keep a local
 // fallback (see assessmentStorage.js) until this is confirmed in writing.
 
-export const startBaselineAssessment = () =>
-  request('/api/v1/baseline-assessments', { method: 'POST', withAuth: true });
+export const startBaselineAssessment = (payload) =>
+  request('/api/v1/baseline-assessments', { method: 'POST', body: payload, withAuth: true });
 
 export const getBaselineAssessment = (assessmentId) =>
   request(`/api/v1/baseline-assessments/${assessmentId}`, { method: 'GET', withAuth: true });
@@ -343,8 +364,8 @@ export const autosaveBaselineAssessment = (assessmentId, payload) =>
   });
 
 // Final submit - locks the attempt in and triggers score calculation.
-export const submitBaselineAssessment = (assessmentId) =>
-  request(`/api/v1/baseline-assessments/${assessmentId}/submit`, { method: 'POST', withAuth: true });
+export const submitBaselineAssessment = (assessmentId, responses) =>
+  request(`/api/v1/baseline-assessments/${assessmentId}/submit`, { method: 'POST', body: { responses }, withAuth: true });
 
 // ---------------------------------------------------------------------------
 // Reference data / dropdowns (public - no token required)
@@ -469,6 +490,28 @@ export const applyToProject = (projectId, payload = {}) =>
   request(`/api/v1/projects/${projectId}/applications`, { method: 'POST', body: payload, withAuth: true });
 export const matchProject = (projectId, payload = {}) =>
   request(`/api/v1/projects/${projectId}/match`, { method: 'POST', body: payload, withAuth: true });
+
+// Talent Discovery returns discoverable students for approved company admins (GET /api/v1/talent)
+export const getTalentDiscovery = ({ page, perPage, search, career_role, min_readiness, sort } = {}) => {
+  const params = new URLSearchParams();
+  if (page) params.set('page', page);
+  if (perPage) params.set('per_page', perPage);
+  if (search) params.set('search', search);
+  if (career_role) params.set('career_role', career_role);
+  if (min_readiness !== undefined && min_readiness !== null && min_readiness !== '') {
+    params.set('min_readiness', min_readiness);
+  }
+  if (sort) params.set('sort', sort);
+  const qs = params.toString();
+  return request(`/api/v1/talent${qs ? `?${qs}` : ''}`, { method: 'GET', withAuth: true });
+};
+
+export const getTalentFilters = () => request('/api/v1/talent/filters', { method: 'GET', withAuth: true });
+
+export const getTalentStudent = (studentId) =>
+  request(`/api/v1/talent/${studentId}`, { method: 'GET', withAuth: true });
+
+
 export const getRecommendations = ({ page, perPage } = {}) => {
   const q = new URLSearchParams(); if (page) q.set('page', page); if (perPage) q.set('per_page', perPage);
   return request(`/api/v1/recommendations${q.toString() ? `?${q}` : ''}`, { withAuth: true });
@@ -484,6 +527,15 @@ export const askAssistant = (payload) =>
   request('/api/v1/assistant/ask', { method: 'POST', body: payload, withAuth: true });
 export const reportAssistantInteraction = (id, payload) =>
   request(`/api/v1/assistant/interactions/${id}/report`, { method: 'PUT', body: payload, withAuth: true });
+export const createSupportRequest = (payload = {}) =>
+  request('/api/v1/support/requests', { method: 'POST', body: payload, withAuth: true });
+export const getSupportRequests = ({ page, perPage } = {}) => {
+  const q = new URLSearchParams(); if (page) q.set('page', page); if (perPage) q.set('per_page', perPage);
+  return request(`/api/v1/support/requests${q.toString() ? `?${q}` : ''}`, { withAuth: true });
+};
+export const getSupportRequest = (id) => request(`/api/v1/support/requests/${id}`, { withAuth: true });
+export const sendSupportMessage = (id, body) =>
+  request(`/api/v1/support/requests/${id}/messages`, { method: 'POST', body: { body }, withAuth: true });
 export const getMentorConnections = ({ page, perPage } = {}) => {
   const q = new URLSearchParams(); if (page) q.set('page', page); if (perPage) q.set('per_page', perPage);
   return request(`/api/v1/mentor/connections${q.toString() ? `?${q}` : ''}`, { withAuth: true });

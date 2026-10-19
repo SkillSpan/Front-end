@@ -8,13 +8,13 @@ const ResetPassword = ({
   onBackToVerify,
   onSuccess,
 }) => {
-  // بيانات كلمة المرور الجديدة
+  // New password data
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // حالات الخطأ والتحميل
+  // Error and loading states
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -23,21 +23,21 @@ const ResetPassword = ({
 
     const newErrors = {};
 
-    // التحقق من وجود كلمة المرور
+    // Validate that a password is provided
     if (!password) {
       newErrors.password = 'Password is required';
     } else if (password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
     }
 
-    // التحقق من تطابق كلمتي المرور
+    // Validate that the passwords match
     if (!confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (confirmPassword !== password) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    // التأكد من وجود البيانات القادمة من صفحة التحقق
+    // Ensure verification-page data is available
     if (!email || !otp) {
       newErrors.general =
         'Reset session is missing. Please verify the code again.';
@@ -52,7 +52,7 @@ const ResetPassword = ({
     setIsSubmitting(true);
 
     try {
-      // إرسال بيانات إعادة تعيين كلمة المرور للـBackend
+      // Send password reset data to the backend
       await resetPassword({
         email,
         otp,
@@ -60,7 +60,7 @@ const ResetPassword = ({
         password_confirmation: confirmPassword,
       });
 
-      // الانتقال لشاشة النجاح بعد نجاح الـBackend فقط
+      // Navigate to the success screen only after backend confirmation
       if (typeof onSuccess === 'function') {
         onSuccess();
       }
@@ -82,7 +82,7 @@ const ResetPassword = ({
     <div className="reset-password-wrapper">
       <div className="reset-password-card">
 
-        {/* الشريط الجانبي */}
+        {/* Sidebar */}
         <div className="reset-sidebar">
           <div>
             <div className="reset-brand">
@@ -131,7 +131,7 @@ const ResetPassword = ({
           </div>
         </div>
 
-        {/* القسم الخاص بتغيير كلمة المرور */}
+        {/* Password change section */}
         <div className="reset-form-column">
           <div className="reset-form-inner">
             <div className="reset-icon" aria-hidden="true" />
@@ -140,7 +140,7 @@ const ResetPassword = ({
 
             <p className="reset-subtext">Enter your new password below.</p>
 
-            {/* رسالة الخطأ العامة */}
+            {/* General error message */}
             {errors.general && (
               <div className="reset-error">
                 <span className="reset-error-icon">!</span>
@@ -150,7 +150,7 @@ const ResetPassword = ({
 
             <form className="reset-form" onSubmit={handleSubmit} noValidate>
 
-              {/* كلمة المرور الجديدة - the design shows no visible label here */}
+              {/* New password — the design does not show a visible label here */}
               <div className="reset-input-group">
                 <label htmlFor="reset-new-password" className="reset-sr-only">New Password</label>
 
@@ -202,7 +202,7 @@ const ResetPassword = ({
                 )}
               </div>
 
-              {/* تأكيد كلمة المرور */}
+              {/* Confirm password */}
               <div className="reset-input-group">
                 <label htmlFor="reset-confirm-password">Confirm New Password</label>
 

@@ -19,8 +19,8 @@ export default function EvidenceShell({ children }) {
       user={authUser}
       onLogout={() => { logout(); navigate('/'); }}
       onNavigate={(key) => { if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key]); }}
-      readinessScore={67}
-      roleLabel="Software Engineer"
+      readinessScore={Number(authUser?.readiness_score ?? authUser?.readinessScore ?? 0) || 0}
+      roleLabel={authUser?.career_role?.title ?? authUser?.career_role_title ?? authUser?.role_title ?? ''}
     >
       <div className="evidence-scope">
         {source === 'preview' && (
@@ -28,7 +28,7 @@ export default function EvidenceShell({ children }) {
             <Info size={14} className="shrink-0 text-[#2f5bea]" />
             <span className="flex-1">
               {loadError ? `Couldn't load your evidence (${loadError}). ` : 'No evidence returned by the API yet. '}
-              Showing preview data — changes here stay on this page.
+              No preview records are shown. Changes require a successful server response.
             </span>
             <button type="button" onClick={reload} className="font-semibold text-[#2f5bea] hover:underline">Retry</button>
           </div>

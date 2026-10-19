@@ -1,32 +1,33 @@
 import { useState, useRef, useEffect } from "react";
-import { askAssistant, reportAssistantInteraction, unwrapApiData } from "../../api";
+import { askAssistant, reportAssistantInteraction, createSupportRequest, unwrapApiData } from "../../api";
 import { getTextDirection, getTextLanguage } from "../../utils/textDirection";
 // ═══════════════════════════════════════════════════════════════════════════════
-// MOCK DATA
+// Sample context is shown only when explicitly enabled for development.
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
 // ═══════════════════════════════════════════════════════════════════════════════
 const SUGGESTED = [
-  { label: "Why is my readiness 67?", scenario: "readiness", intent: "explain_readiness" },
+  { label: "Help me understand my readiness results", scenario: "readiness", intent: "explain_readiness" },
   { label: "What should I do next?", scenario: "roadmap", intent: "explain_next_best_action" },
   { label: "Explain my Python skill gap", scenario: "skill-gap", intent: "explain_skill_gap" },
-  { label: "Why was the REST API recommended?", scenario: "project-rec", intent: "explain_project_recommendation" },
+  { label: "Explain my project recommendations", scenario: "project-rec", intent: "explain_project_recommendation" },
 ];
 
 function inferAssistantIntent(question) {
   const q = question.toLowerCase();
-  if (/readiness|score|جاهزي|درجة/.test(q)) return "explain_readiness";
-  if (/skill gap|skill.?gap|missing skill|skills? .*missing|فجوة|مهار/.test(q)) return "explain_skill_gap";
-  if (/roadmap|career path|مسار|خطة/.test(q)) return "explain_roadmap";
-  if (/next|do next|should i do|التالي|الخطوة/.test(q)) return "explain_next_best_action";
-  if (/how do i (build|implement|fix|use)|implementation|build this|implement this|كيف (أبني|أنفذ|أصلح|أستخدم)|تنفيذ/.test(q)) return "project_bounded_help";
-  if (/project|recommended|recommendation|مشروع|موصى/.test(q)) return "explain_project_recommendation";
+  if (/readiness|score/.test(q)) return "explain_readiness";
+  if (/skill gap|skill.?gap|missing skill|skills? .*missing/.test(q)) return "explain_skill_gap";
+  if (/roadmap|career path/.test(q)) return "explain_roadmap";
+  if (/next|do next|should i do/.test(q)) return "explain_next_best_action";
+  if (/how do i (build|implement|fix|use)|implementation|build this|implement this/.test(q)) return "project_bounded_help";
+  if (/project|recommended|recommendation/.test(q)) return "explain_project_recommendation";
   return "explain_readiness";
 }
-const CONTEXT_PILLS = [
+const CONTEXT_PILLS = DEMO_MODE ? [
   { icon: "📊", label: "Readiness 67/100", color: "#3b8bff" },
   { icon: "🎯", label: "Software Engineer", color: "#7c3aed" },
   { icon: "🗺️", label: "Phase 3 Roadmap", color: "#059669" },
   { icon: "🔧", label: "3 projects matched", color: "#f59e0b" },
-];
+] : [];
 const CONVOS = {
   welcome: [],
   readiness: [
@@ -246,7 +247,7 @@ function ReadinessResponseCard({ p }) {
         </div>
         <div>
           <p className="font-['Inter:Bold',sans-serif] text-[14px] text-white leading-none">{band}</p>
-          <p className="text-[10px] text-[rgba(255,255,255,0.45)] mt-[2px]">Software Engineer v2.3</p>
+          <p className="text-[10px] text-[rgba(255,255,255,0.45)] mt-[2px]">{DEMO_MODE ? "Software Engineer v2.3" : "Live career context"}</p>
           <div className="flex items-center gap-[4px] mt-[6px]">
             <span className="w-[6px] h-[6px] rounded-full bg-[#f59e0b]" />
             <span className="text-[9px] text-[rgba(255,255,255,0.5)]">2 components below 65</span>
@@ -623,7 +624,7 @@ function ReportMenu({ onReport, onClose }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // MESSAGE BUBBLE
 // ═══════════════════════════════════════════════════════════════════════════════
-function MessageBubble({ msg, onReport }) {
+function MessageBubble({ msg, onReport, onHandoff }) {
   const [showReport, setShowReport] = useState(false);
   const isUser = msg.role === "user";
   const textDirection = getTextDirection(msg.text);
@@ -674,6 +675,10 @@ function MessageBubble({ msg, onReport }) {
               }}
             />
           )}
+          {msg.role === "assistant" && msg.handoffAvailable && !msg.handoffCreated && (
+            <button type="button" onClick={() => onHandoff(msg.id)} className="mt-[10px] rounded-[8px] border border-[rgba(59,139,255,0.35)] bg-[rgba(59,139,255,0.12)] px-[10px] py-[7px] text-[11px] text-[#a9c8ff] hover:bg-[rgba(59,139,255,0.2)]">Contact human support</button>
+          )}
+          {msg.handoffCreated && <p className="mt-[8px] text-[10px] text-[#a9c8ff]">Support request #{msg.supportRequestId} created ({msg.supportStatus || "pending"}).</p>}
           {msg.type === "readiness" && msg.payload && <ReadinessResponseCard p={msg.payload} />}
           {msg.type === "skill-gap" && msg.payload && <SkillGapResponseCard p={msg.payload} />}
           {msg.type === "roadmap" && msg.payload && <RoadmapResponseCard p={msg.payload} />}
@@ -772,7 +777,7 @@ function ContextPanel() {
         </div>
         <div className="flex items-center gap-[5px] mt-[8px]">
           <span className="w-[5px] h-[5px] rounded-full bg-[#34d399] pulse-glow shrink-0" />
-          <span className="text-[9px] text-[rgba(255,255,255,0.35)]">Context up to date · 9 Sep 2026</span>
+          <span className="text-[9px] text-[rgba(255,255,255,0.35)]">{DEMO_MODE ? "Context up to date · 9 Sep 2026" : "Context is based on available account data"}</span>
         </div>
       </div>
 
@@ -845,7 +850,7 @@ export default function AssistantView() {
   }, [messages, typing]);
   function loadScenario(key) {
     setScenario(key);
-    setMessages(CONVOS[key]);
+    setMessages(DEMO_MODE ? (CONVOS[key] || []) : []);
     setFresh(key === "welcome");
     setTyping(false);
   }
@@ -874,6 +879,8 @@ export default function AssistantView() {
       setMessages((prev) => [...prev, {
         id: payload.interaction_id ?? payload.id ?? `a${Date.now()}`,
         interactionId: payload.interaction_id ?? payload.id,
+        intent: selectedIntent,
+        handoffAvailable: payload.handoff_available === true,
         role: "assistant",
         type: "text",
         ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
@@ -903,10 +910,26 @@ export default function AssistantView() {
     }
   }
   async function handleReport(id, reason) {
-    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, reported: true, reportReason: reason } : m)));
-    const item = messages.find((m) => m.id === id);
-    if (item?.interactionId) {
-      try { await reportAssistantInteraction(item.interactionId, { reason }); } catch { /* reporting is best effort */ }
+    const item = messages.find((m) => String(m.id) === String(id));
+    if (!item?.interactionId) return;
+    try {
+      await reportAssistantInteraction(item.interactionId, { report_status: reason });
+      setMessages((prev) => prev.map((m) => (String(m.id) === String(id) ? { ...m, reported: true, reportReason: reason } : m)));
+    } catch (error) {
+      setMessages((prev) => [...prev, { id: `report-error-${Date.now()}`, role: "assistant", type: "text", ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), text: error?.message || "Could not submit the report. Please try again." }]);
+    }
+  }
+  async function handleHandoff(id) {
+    const item = messages.find((m) => String(m.id) === String(id));
+    if (!item?.handoffAvailable || !item.interactionId) return;
+    const transcript = messages.filter((m) => m.role === "user" || m.role === "assistant").slice(-40)
+      .map((m) => ({ role: m.role === "user" ? "learner" : "assistant", body: String(m.text || "").slice(0, 4000) }));
+    try {
+      const response = await createSupportRequest({ reason: "insufficient_context", source_interaction_id: Number(item.interactionId), transcript });
+      const request = unwrapApiData(response) || {};
+      setMessages((prev) => prev.map((m) => String(m.id) === String(id) ? { ...m, handoffCreated: true, supportRequestId: request.id, supportStatus: request.status } : m));
+    } catch (error) {
+      setMessages((prev) => [...prev, { id: `handoff-error-${Date.now()}`, role: "assistant", type: "text", ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), text: error?.message || "Could not contact support. Please try again." }]);
     }
   }
   return (
@@ -932,7 +955,7 @@ export default function AssistantView() {
             <div className="flex items-center gap-[5px] px-[10px] py-[5px] bg-[rgba(5,150,105,0.1)] border border-[rgba(5,150,105,0.2)] rounded-full">
               <span className="w-[5px] h-[5px] rounded-full bg-[#34d399] shrink-0 pulse-glow" />
               <span className="text-[9px] font-['Inter:Medium',sans-serif] text-[#34d399]">
-                Career context loaded — Software Engineer v2.3
+                Career context will appear when your profile data is available.
               </span>
             </div>
           </div>
@@ -987,7 +1010,7 @@ export default function AssistantView() {
             )}
 
             {messages.map((m) => (
-              <MessageBubble key={m.id} msg={m} onReport={handleReport} />
+              <MessageBubble key={m.id} msg={m} onReport={handleReport} onHandoff={handleHandoff} />
             ))}
             {typing && <Typing />}
             <div ref={bottomRef} />

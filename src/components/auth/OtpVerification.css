@@ -332,7 +332,8 @@
   color: #0b1c5c;
 }
 
-/* تصميم رسالة الخطأ الأنيقة تحت الزر */
+
+
 .elegant-error-msg {
   color: #dc2626;
   font-size: 0.88rem;
@@ -342,7 +343,8 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* إطار ولون خفيف لمربعات الإدخال عند حدوث خطأ */
+
+
 .otp-box-error {
   border-color: #ef4444 !important;
   background-color: #fef2f2 !important;

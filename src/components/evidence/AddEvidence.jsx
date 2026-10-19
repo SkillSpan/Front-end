@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 
 import {
-  SEED_EVIDENCE,
   TYPE_META,
   isHttpUrl,
   validateFile,
@@ -19,13 +18,13 @@ import {
 import { TypeIcon } from "./Shared";
 
 export default function AddEvidence({
-  skill = SEED_EVIDENCE[0],
+  skill = null,
   resubmitRecord = null,
   onCancel = () => {},
   onSubmit = () => {},
 }) {
   const isResubmit = Boolean(resubmitRecord);
-  const activeSkill = resubmitRecord || skill || SEED_EVIDENCE[0];
+  const activeSkill = resubmitRecord || skill || { skill: "", category: "", level: "" };
 
   const resubmitWasFile =
     isResubmit &&

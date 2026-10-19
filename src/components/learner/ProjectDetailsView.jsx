@@ -1,52 +1,55 @@
-import { useState } from "react";
-// ═══════════════════════════════════════════════════════════════════════════════
-// MOCK DATA
-// ═══════════════════════════════════════════════════════════════════════════════
-const PROJECT = {
-  id: "p1",
-  title: "Build a REST API with Python & PostgreSQL",
-  description:
-    "Design, implement, and document a production-grade REST API for a task-management service using FastAPI and PostgreSQL. Covers authentication, CRUD operations, pagination, rate limiting, and OpenAPI documentation. You will work independently with weekly async check-ins from a senior engineer at DataFlow Systems.",
-  type: "Practice Task",
-  typeEmoji: "🔧",
-  difficulty: "Intermediate",
-  matchScore: 91,
-  estimatedHours: "12–16 h",
-  estimatedDuration: "2–3 weeks",
-  startDate: "1 Oct 2026",
-  endDate: "21 Oct 2026",
-  workMode: "Async / Remote",
-  sponsor: "DataFlow Systems",
-  sponsorRole: "Senior Engineer",
-  openSpots: 4,
-  totalSpots: 6,
-  deadline: "29 Sep 2026",
-  objectives: [
-    "Design a normalized PostgreSQL schema for a task-management domain",
-    "Implement a FastAPI application with JWT authentication and RBAC",
-    "Build full CRUD endpoints with pagination, filtering, and sorting",
-    "Write an OpenAPI specification and integrate Swagger UI",
-    "Set up basic CI with GitHub Actions and containerize with Docker",
-  ],
-  requirements: [
-    { skillName: "Python", minLevel: 3, maxLevel: 5, yourLevel: 3, isCritical: false },
-    { skillName: "SQL", minLevel: 3, maxLevel: 5, yourLevel: 3, isCritical: false },
-    { skillName: "REST API Design", minLevel: 2, maxLevel: 5, yourLevel: 2, isCritical: false },
-    { skillName: "Git & CI/CD", minLevel: 2, maxLevel: 5, yourLevel: 2, isCritical: false },
-    { skillName: "System Design", minLevel: 2, maxLevel: 5, yourLevel: 2, isCritical: true },
-  ],
-  learningOutcomes: [
-    { skill: "Python", gain: "+1 Level (L3→L4)", impact: "High" },
-    { skill: "REST API Design", gain: "+1 Level (L2→L3)", impact: "High" },
-    { skill: "SQL", gain: "Verified Evidence", impact: "Medium" },
-    { skill: "Git & CI/CD", gain: "Verified Evidence", impact: "Low" },
-  ],
-  eligibilityNote:
-    "You meet all minimum skill requirements. Python (L3) and SQL (L3) satisfy the entry thresholds. System Design (L2) meets the minimum (L2) for this project.",
-  phase: 3,
-  phaseName: "Applied Practice",
-  tags: ["Python", "FastAPI", "PostgreSQL", "REST", "Docker", "CI/CD"],
+import { applyToProject, withdrawApplication, getProject, getRecommendations, submitRecommendationFeedback, unwrapApiData } from "../../api";
+import { useEffect, useMemo, useState } from "react";
+
+const TYPE_EMOJI = {
+  "Practice Task": "🔧", "Simulation Project": "🧪", "Real Project": "🚀",
+  Assessment: "📝", Capstone: "🎯",
 };
+
+function normalizeProject(raw) {
+  const p = unwrapApiData(raw) || raw || {};
+  const rawRequirements = p.required_skills ?? p.requiredSkills ?? p.requirements ?? [];
+  const requirements = (Array.isArray(rawRequirements) ? rawRequirements : []).map((item) => ({
+    skillName: item.skill_name ?? item.skill?.name ?? item.name ?? "Skill",
+    minLevel: Number(item.minimum_required_level ?? item.minimum_level ?? item.minLevel ?? 1),
+    maxLevel: 5,
+    yourLevel: Number(item.current_level ?? item.your_level ?? item.yourLevel ?? 0),
+    isCritical: Boolean(item.is_critical_entry ?? item.is_critical ?? item.isCritical),
+  }));
+  const rawOutcomes = p.learning_outcomes ?? p.learningOutcomes ?? [];
+  const outcomes = Array.isArray(rawOutcomes) ? rawOutcomes : [];
+  const dates = (value) => value ? new Date(value).toLocaleDateString() : "Not specified";
+  const startDate = dates(p.start_date ?? p.startDate);
+  const endDate = dates(p.end_date ?? p.endDate);
+  return {
+    ...p,
+    id: p.id ?? p.project_id ?? p.uuid ?? null,
+    title: p.title ?? p.name ?? "Untitled project",
+    description: p.description ?? "",
+    type: p.type ?? p.project_type ?? "Real Project",
+    typeEmoji: TYPE_EMOJI[p.type ?? p.project_type] ?? "📌",
+    difficulty: p.difficulty ?? "Not specified",
+    matchScore: Number(p.match_score ?? p.matchScore ?? 0),
+    estimatedHours: p.estimated_hours ?? p.estimatedHours ?? "Not specified",
+    estimatedDuration: p.estimated_duration ?? p.duration ?? (p.duration_days ? `${p.duration_days} days` : "Not specified"),
+    startDate, endDate,
+    workMode: p.work_mode ?? p.workMode ?? "Not specified",
+    sponsor: p.organization?.title ?? p.organization?.name ?? "Not specified",
+    sponsorRole: p.role ?? p.career_role?.title ?? "Not specified",
+    openSpots: p.capacity_state?.remaining ?? p.open_spots ?? null,
+    totalSpots: p.capacity ?? null,
+    deadline: dates(p.application_deadline ?? p.deadline),
+    objectives: Array.isArray(p.objectives) ? p.objectives : (typeof p.objectives === "string" ? p.objectives.split(/\r?\n/).filter(Boolean) : []),
+    requirements,
+    learningOutcomes: outcomes.map((o) => typeof o === "string" ? { skill: o, gain: "Not specified", impact: "Not specified" } : ({ skill: o.skill ?? o.name ?? o.title ?? "Learning outcome", gain: o.gain ?? o.outcome ?? "Not specified", impact: o.impact ?? "Not specified" })),
+    eligibilityNote: p.eligibility?.message ?? p.eligibility_reason ?? "Eligibility details were not provided by the server.",
+    phase: p.roadmap_phase ?? p.phase ?? "—",
+    phaseName: p.roadmap_phase_name ?? p.phase_name ?? "",
+    tags: p.tags ?? [],
+    application_id: p.application_id ?? p.application?.id ?? null,
+  };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATOMS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -143,7 +146,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
               <div>
                 <div className="flex items-center gap-[6px] mb-[4px]">
                   <span className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#3b8bff] bg-[rgba(59,139,255,0.1)] px-[7px] py-[1px] rounded-full">
-                    ⚡ Recommended #1
+                    Project details
                   </span>
                   <span className="text-[10px] font-['Inter:Medium',sans-serif] font-medium text-[#7c3aed] bg-[rgba(124,58,237,0.08)] px-[7px] py-[1px] rounded-full">
                     Phase {project.phase} · {project.phaseName}
@@ -652,7 +655,7 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
               Back
             </button>
             <button
-              onClick={valid ? onSubmit : undefined}
+              onClick={valid ? () => onSubmit({ motivation, availability: hours }) : undefined}
               className={`flex-1 py-[11px] rounded-[11px] text-[14px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white transition-all ${valid ? "shadow-[0_4px_16px_rgba(59,139,255,0.3)] hover:shadow-[0_6px_20px_rgba(59,139,255,0.4)]" : "opacity-40 cursor-not-allowed"}`}
               style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}
             >
@@ -667,17 +670,25 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // APPLY CONFIRMATION
 // ═══════════════════════════════════════════════════════════════════════════════
-function ApplyConfirmScreen({ project, onConfirm, onBack }) {
+function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
   const [submitting, setSubmitting] = useState(false);
-  function handleConfirm() {
+  const [submitError, setSubmitError] = useState("");
+  async function handleConfirm() {
+    if (!project?.id || submitting) return;
     setSubmitting(true);
-    setTimeout(() => {
+    setSubmitError("");
+    try {
+      const response = await applyToProject(project.id, { application_data: applicationData || {} });
+      onConfirm(unwrapApiData(response));
+    } catch (error) {
+      setSubmitError(error?.message || "Unable to submit the request to the server.");
+    } finally {
       setSubmitting(false);
-      onConfirm();
-    }, 1400);
+    }
   }
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      {submitError && <div role="alert" className="mx-8 mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{submitError}</div>}
       <div className="bg-white border-b border-[#e8eaf0] px-[32px] py-[16px] shrink-0">
         <button
           onClick={onBack}
@@ -1041,16 +1052,28 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
 function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
   const [reason, setReason] = useState("");
   const [confirming, setConfirming] = useState(false);
-  function handleConfirm() {
+  const [withdrawError, setWithdrawError] = useState("");
+  async function handleConfirm() {
+    const applicationId = project?.application_id ?? project?.applicationId;
+    if (!applicationId || confirming) {
+      setWithdrawError("The server did not provide the current application ID. No application was withdrawn.");
+      return;
+    }
     setConfirming(true);
-    setTimeout(() => {
-      setConfirming(false);
+    setWithdrawError("");
+    try {
+      await withdrawApplication(applicationId);
       onConfirm();
-    }, 1000);
+    } catch (error) {
+      setWithdrawError(error?.message || "Unable to withdraw the application from the server.");
+    } finally {
+      setConfirming(false);
+    }
   }
   return (
     <div className="flex flex-col h-full overflow-hidden items-center justify-center px-[32px] py-[32px]">
       <div className="max-w-[480px] w-full bg-white border border-[#e8eaf0] rounded-[20px] overflow-hidden">
+        {withdrawError && <div role="alert" className="m-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{withdrawError}</div>}
         <div className="h-[4px] bg-[#ef4444]" />
         <div className="p-[28px] flex flex-col gap-[18px]">
           <div className="flex items-start gap-[12px]">
@@ -1323,154 +1346,84 @@ function ExpiredFullScreen({ project, variant, onBack }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
-const DEMO_SCENARIOS = [
-  { key: "details", label: "Details" },
-  { key: "requirements", label: "Requirements" },
-  { key: "apply-form", label: "Apply Form" },
-  { key: "apply-confirm", label: "Confirm" },
-  { key: "app-status-submitted", label: "Status: Submitted" },
-  { key: "app-status-accepted", label: "Status: Accepted" },
-  { key: "app-status-rejected", label: "Status: Rejected" },
-  { key: "withdraw-confirm", label: "Withdraw" },
-  { key: "withdrawn", label: "Withdrawn" },
-  { key: "saved", label: "Saved Rec" },
-  { key: "hidden", label: "Hidden Rec" },
-  { key: "declined", label: "Declined Rec" },
-  { key: "ineligible", label: "Ineligible" },
-  { key: "duplicate", label: "Duplicate" },
-  { key: "expired", label: "Expired" },
-  { key: "full", label: "Full" },
-];
-export default function ProjectDetailsView({ onBack }) {
+
+export default function ProjectDetailsView({ projectId, onBack }) {
+  const [rawProject, setRawProject] = useState(null);
+  const [loadingProject, setLoadingProject] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const project = useMemo(() => rawProject ? normalizeProject(rawProject) : null, [rawProject]);
+  useEffect(() => {
+    let active = true;
+    if (!projectId) {
+      setLoadError("No project was selected for details.");
+      setLoadingProject(false);
+      return () => { active = false; };
+    }
+    setLoadingProject(true);
+    setLoadError("");
+    getProject(projectId).then((data) => {
+      if (active) setRawProject(data);
+    }).catch((error) => {
+      if (active) setLoadError(error?.message || "Unable to load project details from the server.");
+    }).finally(() => { if (active) setLoadingProject(false); });
+    return () => { active = false; };
+  }, [projectId]);
   const [screen, setScreen] = useState("details");
   const [appStatus, setAppStatus] = useState("Submitted");
+  const [applicationData, setApplicationData] = useState({});
+  const [activeApplicationId, setActiveApplicationId] = useState(null);
+  const [recommendationId, setRecommendationId] = useState(null);
   const [recState, setRecState] = useState("default");
-  const [projectState] = useState("open");
-  const [failureState, setFailureState] = useState("none");
-  const [demoScenario, setDemoScenario] = useState("details");
-  function applyScenario(s) {
-    setDemoScenario(s);
-    setScreen("details");
-    setRecState("default");
-    setFailureState("none");
-    switch (s) {
-      case "details":
-        setScreen("details");
-        break;
-      case "requirements":
-        setScreen("details");
-        break;
-      case "apply-form":
-        setScreen("apply-form");
-        break;
-      case "apply-confirm":
-        setScreen("apply-confirm");
-        break;
-      case "app-status-submitted":
-        setScreen("app-status");
-        setAppStatus("Submitted");
-        break;
-      case "app-status-accepted":
-        setScreen("app-status");
-        setAppStatus("Accepted");
-        break;
-      case "app-status-rejected":
-        setScreen("app-status");
-        setAppStatus("Rejected");
-        break;
-      case "withdraw-confirm":
-        setScreen("withdraw-confirm");
-        break;
-      case "withdrawn":
-        setScreen("withdrawn");
-        break;
-      case "saved":
-        setScreen("details");
-        setRecState("saved");
-        break;
-      case "hidden":
-        setScreen("details");
-        setRecState("hidden");
-        break;
-      case "declined":
-        setScreen("details");
-        setRecState("declined");
-        break;
-      case "ineligible":
-        setScreen("details");
-        setFailureState("ineligible");
-        break;
-      case "duplicate":
-        setScreen("details");
-        setFailureState("duplicate");
-        break;
-      case "expired":
-      case "full":
-        setScreen("details");
-        break;
-    }
-  }
+  const [feedbackError, setFeedbackError] = useState("");
+  useEffect(() => {
+    let active = true;
+    getRecommendations({ page: 1, perPage: 50 }).then((payload) => {
+      const value = unwrapApiData(payload);
+      const rows = Array.isArray(value) ? value : Array.isArray(value?.data) ? value.data : Array.isArray(value?.recommendations) ? value.recommendations : [];
+      const match = rows.find((row) => String(row.project_id ?? row.project?.id ?? row.project?.project_id ?? "") === String(projectId));
+      if (active && match) setRecommendationId(match.id ?? match.recommendation_id ?? null);
+    }).catch(() => { if (active) setRecommendationId(null); });
+    return () => { active = false; };
+  }, [projectId]);
+  const handleRecommendationAction = async (action) => {
+    if (action === "default") { setRecState("default"); return; }
+    if (!recommendationId) { setFeedbackError("No recommendation record exists for this project on the server. The change was not saved."); return; }
+    const eventType = action === "saved" ? "save" : action === "hidden" ? "hide" : "decline";
+    setFeedbackError("");
+    try {
+      await submitRecommendationFeedback(recommendationId, { event_type: eventType });
+      setRecState(action);
+    } catch (error) { setFeedbackError(error?.message || "Unable to save your recommendation feedback."); }
+  };
   const renderContent = () => {
-    // Failure states overlay the details
-    if (screen === "details" && failureState === "ineligible") {
-      return (
-        <IneligibleScreen
-          project={PROJECT}
-          onBack={() => {
-            setFailureState("none");
-            onBack();
-          }}
-        />
-      );
-    }
-    if (screen === "details" && failureState === "duplicate") {
-      return (
-        <DuplicateScreen
-          project={PROJECT}
-          onViewStatus={() => {
-            setFailureState("none");
-            setScreen("app-status");
-            setAppStatus("Under Review");
-          }}
-          onBack={() => setFailureState("none")}
-        />
-      );
-    }
-    if ((demoScenario === "expired" || demoScenario === "full") && screen === "details") {
-      return (
-        <ExpiredFullScreen
-          project={PROJECT}
-          variant={demoScenario === "expired" ? "expired" : "full"}
-          onBack={onBack}
-        />
-      );
-    }
     switch (screen) {
       case "details":
         return (
           <DetailsScreen
-            project={PROJECT}
+            project={project}
             onApply={() => setScreen("apply-form")}
             onBack={onBack}
             recState={recState}
-            onRecAction={setRecState}
+            onRecAction={handleRecommendationAction}
           />
         );
       case "apply-form":
         return (
           <ApplyFormScreen
-            project={PROJECT}
-            onSubmit={() => setScreen("apply-confirm")}
+            project={project}
+            onSubmit={(answers) => { setApplicationData(answers); setScreen("apply-confirm"); }}
             onBack={() => setScreen("details")}
           />
         );
       case "apply-confirm":
         return (
           <ApplyConfirmScreen
-            project={PROJECT}
-            onConfirm={() => {
+            project={project}
+            applicationData={applicationData}
+            onConfirm={(application) => {
+              setActiveApplicationId(application?.id ?? application?.application_id ?? application?.application?.id ?? null);
               setScreen("app-status");
-              setAppStatus("Submitted");
+              setAppStatus(application?.status ?? "Submitted");
             }}
             onBack={() => setScreen("apply-form")}
           />
@@ -1478,7 +1431,7 @@ export default function ProjectDetailsView({ onBack }) {
       case "app-status":
         return (
           <AppStatusScreen
-            project={PROJECT}
+            project={project}
             status={appStatus}
             onWithdraw={() => setScreen("withdraw-confirm")}
             onBack={() => setScreen("details")}
@@ -1487,19 +1440,22 @@ export default function ProjectDetailsView({ onBack }) {
       case "withdraw-confirm":
         return (
           <WithdrawConfirmScreen
-            project={PROJECT}
+            project={{ ...project, application_id: activeApplicationId ?? project.application_id }}
             onConfirm={() => setScreen("withdrawn")}
             onCancel={() => setScreen("app-status")}
           />
         );
       case "withdrawn":
-        return <WithdrawnScreen project={PROJECT} onBack={() => setScreen("details")} />;
+        return <WithdrawnScreen project={project} onBack={() => setScreen("details")} />;
       default:
         return null;
     }
   };
+  if (loadingProject) return <div role="status" className="p-8 text-sm text-slate-600">Loading project details…</div>;
+  if (loadError || !project) return <div className="p-8" role="alert"><p className="mb-3 text-sm text-red-700">{loadError || "The service did not return project details."}</p><button className="rounded-lg border px-4 py-2" onClick={onBack}>Back to Projects</button></div>;
   return (
     <div className="flex flex-col h-full overflow-hidden bg-[#f1f3fa]">
+      {feedbackError && <p role="alert" className="px-4 py-2 text-sm text-red-700 bg-red-50">{feedbackError}</p>}
       <div className="flex-1 overflow-hidden bg-[#f1f3fa]">{renderContent()}</div>
 
    </div>

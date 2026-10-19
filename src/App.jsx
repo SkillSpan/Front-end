@@ -57,21 +57,7 @@ function CompanyForgotPasswordPage() {
   return <CompanyForgotPassword onBackToLogin={() => navigate('/company/login')} />
 }
 
-// Simple in-app nav map for the dashboard sidebar - most of these targets
-// don't have their own screens/APIs yet, so unmapped keys just stay put.
-const NAV_ROUTES = {
-  dashboard: '/dashboard',
-  'career-journey': '/career-journey',
-  'skill-matrix': '/skill-matrix',
-  'skill-assessment': '/skill-matrix?tab=assessment',
-  roles: '/career-roles',
-  projects: '/projects',
-  assistant: '/assistant',
-  mentor: '/mentor',
-  talent: '/talent',
-  evidence: '/evidence',
-  record: '/record',
-}
+import { NAV_ROUTES } from './navRoutes'
 
 function DashboardPage() {
   const navigate = useNavigate()
@@ -95,6 +81,7 @@ function WorkspacePage({ view }) {
   const { logout } = useAuth()
   return (
     <LearnerWorkspace
+      key={view}
       initialView={view}
       onNavigate={(key) => {
         if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key])
@@ -135,8 +122,21 @@ function RequireAuth({ children }) {
   return children
 }
 
+// Key for the page-transition wrapper. It must stay the same while moving
+// between the steps of one wizard (/company/register/account -> company-info
+// -> ...), otherwise React remounts the whole wizard on every step, its
+// in-memory form data is wiped, and the step guards bounce the user back to
+// the first page. So we only key on the section ("/company/register",
+// "/register", "/dashboard", ...), not the full path.
+function transitionKey(pathname) {
+  const parts = pathname.split('/').filter(Boolean)
+  if (parts[0] === 'company') return `company/${parts[1] || ''}`
+  return parts[0] || 'home'
+}
+
 function AppRoutes() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { sessionExpired, dismissSessionExpired } = useAuth()
 
   // Full-page takeover, not a modal on top of whatever was open - a
@@ -158,7 +158,7 @@ function AppRoutes() {
   }
 
   return (
-    <div className="route-transition" key={`${location.pathname}${location.search}`}>
+    <div className="route-transition" key={transitionKey(location.pathname)}>
       <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<LoginPage />} />
@@ -175,16 +175,16 @@ function AppRoutes() {
           </RequireAuth>
         }
       />
-      <Route path="/career-journey" element={<RequireAuth><WorkspacePage view="career-journey" /></RequireAuth>} />
-      <Route path="/projects" element={<RequireAuth><WorkspacePage view="projects" /></RequireAuth>} />
-      <Route path="/assistant" element={<RequireAuth><WorkspacePage view="assistant" /></RequireAuth>} />
-      <Route path="/mentor" element={<RequireAuth><WorkspacePage view="mentor" /></RequireAuth>} />
-      <Route path="/talent" element={<RequireAuth><WorkspacePage view="talent" /></RequireAuth>} />
+      <Route path="/career-journey" element={<RequireAuth><WorkspacePage key="career-journey" view="career-journey" /></RequireAuth>} />
+      <Route path="/projects" element={<RequireAuth><WorkspacePage key="projects" view="projects" /></RequireAuth>} />
+      <Route path="/assistant" element={<RequireAuth><WorkspacePage key="assistant" view="assistant" /></RequireAuth>} />
+      <Route path="/mentor" element={<RequireAuth><WorkspacePage key="mentor" view="mentor" /></RequireAuth>} />
+      <Route path="/talent" element={<RequireAuth><WorkspacePage key="talent" view="talent" /></RequireAuth>} />
       <Route path="/evidence" element={<RequireAuth><EvidenceProvider><EvidenceStatusPage /></EvidenceProvider></RequireAuth>} />
       <Route path="/evidence/add" element={<RequireAuth><EvidenceProvider><AddEvidencePage /></EvidenceProvider></RequireAuth>} />
       <Route path="/evidence/:id" element={<RequireAuth><EvidenceProvider><EvidenceDetailPage /></EvidenceProvider></RequireAuth>} />
       <Route path="/review" element={<RequireAuth><EvidenceProvider><ReviewerPage /></EvidenceProvider></RequireAuth>} />
-      <Route path="/record" element={<RequireAuth><WorkspacePage view="record" /></RequireAuth>} />
+      <Route path="/record" element={<RequireAuth><EvidenceProvider><EvidenceStatusPage /></EvidenceProvider></RequireAuth>} />
       <Route
         path="/skill-matrix"
         element={
@@ -193,7 +193,7 @@ function AppRoutes() {
           </RequireAuth>
         }
       />
-      <Route path="/career-roles" element={<RequireAuth><WorkspacePage view="career-roles" /></RequireAuth>} />
+      <Route path="/career-roles" element={<RequireAuth><WorkspacePage key="career-roles" view="career-roles" /></RequireAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

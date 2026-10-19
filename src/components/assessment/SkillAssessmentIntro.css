@@ -506,3 +506,124 @@
     margin: 8px 0 0;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Career role picker - explicit colors so the control is always       */
+/* readable (the app-wide dark theme sets a white body text color,     */
+/* which made the select's text invisible on its white background).    */
+/* ------------------------------------------------------------------ */
+
+.assessment-career-role-picker {
+  margin: 8px 0 18px;
+  max-width: 460px;
+  color: #10132a;
+}
+
+.assessment-career-role-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #10132a;
+}
+
+.assessment-career-role-required {
+  color: #dc2626;
+}
+
+.assessment-career-role-select-wrap {
+  position: relative;
+}
+
+.assessment-career-role-select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 44px 14px 16px;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #6b7280;
+  background-color: #ffffff;
+  border: 2px solid #c7d0e4;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.assessment-career-role-select.has-value {
+  color: #10132a;
+  border-color: #4f6df5;
+}
+
+.assessment-career-role-select:hover {
+  border-color: #4f6df5;
+}
+
+.assessment-career-role-select:focus {
+  outline: none;
+  border-color: #4f6df5;
+  box-shadow: 0 0 0 4px rgba(79, 109, 245, 0.18);
+}
+
+.assessment-career-role-select[aria-invalid='true'] {
+  border-color: #dc2626;
+}
+
+.assessment-career-role-select option {
+  color: #10132a;
+  background-color: #ffffff;
+  font-weight: 500;
+}
+
+.assessment-career-role-select option[value=''] {
+  color: #6b7280;
+}
+
+.assessment-career-role-chevron {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 20px;
+  height: 20px;
+  transform: translateY(-50%);
+  color: #4f6df5;
+  pointer-events: none;
+}
+
+.assessment-career-role-chevron svg {
+  width: 100%;
+  height: 100%;
+}
+
+.assessment-career-role-hint {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: #5b6072;
+}
+
+.assessment-career-role-status {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: #92400e;
+  background: #fef3c7;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.assessment-career-role-error {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #b91c1c;
+  background: #fee2e2;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.assessment-intro-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}

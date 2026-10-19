@@ -1,392 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { applyToProject, matchProject, unwrapApiData } from "../../api";
 // ═══════════════════════════════════════════════════════════════════════════════
 // MOCK DATA
 // ═══════════════════════════════════════════════════════════════════════════════
-const PROJECTS = [
-  {
-    id: "p1",
-    title: "Build a REST API with Python & PostgreSQL",
-    description:
-      "Design, implement, and document a production-grade REST API for a task-management service using FastAPI and PostgreSQL. Covers authentication, CRUD operations, pagination, and OpenAPI documentation.",
-    type: "Practice Task",
-    difficulty: "Intermediate",
-    estimatedHours: "12–16 h",
-    estimatedDuration: "2–3 weeks",
-    matchScore: 91,
-    isRecommended: true,
-    recommendationRank: 1,
-    recommendationReason:
-      "Directly addresses your highest-priority skill gap (Python L3→L4) and aligns with your active roadmap action. Completing this project provides verified evidence for both Python and REST API Design.",
-    eligibility: "Eligible",
-    eligibilityReason: "Your Python (L3) and SQL (L3) skills meet the minimum entry requirements for this project.",
-    matchExplanation:
-      "This project targets your two largest skill gaps simultaneously — Python (your most critical gap) and REST API Design. It also builds Practical Experience evidence which improves your readiness score component at 20% weight. Completing it unlocks Phase 3 of your career roadmap.",
-    skillMatches: [
-      {
-        skillName: "Python",
-        category: "Programming",
-        yourLevel: 3,
-        requiredLevel: 3,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: true,
-      },
-      {
-        skillName: "SQL",
-        category: "Databases",
-        yourLevel: 3,
-        requiredLevel: 3,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: false,
-      },
-      {
-        skillName: "REST API Design",
-        category: "Backend",
-        yourLevel: 2,
-        requiredLevel: 2,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: true,
-      },
-      {
-        skillName: "Git & CI/CD",
-        category: "DevOps",
-        yourLevel: 2,
-        requiredLevel: 2,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: false,
-      },
-      {
-        skillName: "System Design",
-        category: "Architecture",
-        yourLevel: 2,
-        requiredLevel: 3,
-        maxLevel: 5,
-        gap: 1,
-        matched: false,
-        isGrowthTarget: false,
-      },
-    ],
-    learningValue: [
-      {
-        skillName: "Python",
-        gain: "+1 Level (L3→L4)",
-        impact: "High",
-        description: "Practical implementation produces verified evidence toward the Level 4 Python requirement.",
-      },
-      {
-        skillName: "REST API Design",
-        gain: "+1 Level (L2→L3)",
-        impact: "High",
-        description: "Full API lifecycle experience closes the REST API Design gap entirely.",
-      },
-      {
-        skillName: "SQL",
-        gain: "Verified Evidence",
-        impact: "Medium",
-        description: "Production database integration adds a verified evidence item for SQL.",
-      },
-    ],
-    tags: ["Python", "FastAPI", "PostgreSQL", "REST", "Authentication"],
-    roadmapPhase: 3,
-    alignsWithNBA: true,
-  },
-  {
-    id: "p2",
-    title: "Scalable Chat System — System Design Simulation",
-    description:
-      "Design and document a horizontally scalable real-time chat architecture supporting 100k concurrent users. Produce architecture diagrams, capacity estimates, data-flow documentation, and a written trade-off analysis.",
-    type: "Simulation Project",
-    difficulty: "Advanced",
-    estimatedHours: "10–14 h",
-    estimatedDuration: "2 weeks",
-    matchScore: 78,
-    isRecommended: true,
-    recommendationRank: 2,
-    recommendationReason:
-      "Addresses your System Design confidence gap (currently self-assessment only, Low confidence). This simulation produces the first verified System Design evidence in your profile.",
-    eligibility: "Conditionally Eligible",
-    eligibilityReason:
-      "Recommended after completing the REST API Practice Task (your active roadmap prerequisite). You can begin now, but results will carry higher weight after prerequisite completion.",
-    matchExplanation:
-      "System Design has Low confidence in your profile because only self-assessment evidence exists. This simulation creates verified evidence and raises confidence to Medium or High depending on evaluator score. It is a prerequisite gate for Phase 4.",
-    skillMatches: [
-      {
-        skillName: "System Design",
-        category: "Architecture",
-        yourLevel: 2,
-        requiredLevel: 3,
-        maxLevel: 5,
-        gap: 1,
-        matched: false,
-        isGrowthTarget: true,
-      },
-      {
-        skillName: "REST API Design",
-        category: "Backend",
-        yourLevel: 2,
-        requiredLevel: 2,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: false,
-      },
-      {
-        skillName: "SQL",
-        category: "Databases",
-        yourLevel: 3,
-        requiredLevel: 2,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: false,
-      },
-      {
-        skillName: "Python",
-        category: "Programming",
-        yourLevel: 3,
-        requiredLevel: 2,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: false,
-      },
-    ],
-    learningValue: [
-      {
-        skillName: "System Design",
-        gain: "First Verified Evidence",
-        impact: "High",
-        description: "Moves System Design confidence from Low (self-assessment) to Medium (evaluator-verified).",
-      },
-      {
-        skillName: "REST API Design",
-        gain: "Applied Reinforcement",
-        impact: "Medium",
-        description: "Architectural reasoning reinforces REST API knowledge in a system-level context.",
-      },
-    ],
-    tags: ["System Design", "Architecture", "Scalability", "WebSockets", "Redis"],
-    roadmapPhase: 3,
-  },
-  {
-    id: "p3",
-    title: "E-Commerce Frontend — React & TypeScript",
-    description:
-      "Build a complete e-commerce product catalogue, cart, and checkout flow using React 18 and TypeScript. Includes state management with Zustand, client-side routing, and integration with a mock REST API.",
-    type: "Practice Task",
-    difficulty: "Intermediate",
-    estimatedHours: "14–20 h",
-    estimatedDuration: "3 weeks",
-    matchScore: 72,
-    isRecommended: true,
-    recommendationRank: 3,
-    recommendationReason:
-      "Builds React proficiency — a critical skill gap in your profile (React L2, Required L3). Provides verified practical evidence for React before your React Intermediate Assessment.",
-    eligibility: "Eligible",
-    eligibilityReason: "Your current skill levels meet the entry requirements for this project.",
-    matchExplanation:
-      "React is a critical skill for Software Engineer with Medium confidence in your profile. Building a full application provides verified practical evidence that strengthens your assessment preparation and adds to Practical Experience.",
-    skillMatches: [
-      {
-        skillName: "React",
-        category: "Frontend",
-        yourLevel: 2,
-        requiredLevel: 2,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: true,
-      },
-      {
-        skillName: "Git & CI/CD",
-        category: "DevOps",
-        yourLevel: 2,
-        requiredLevel: 2,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: false,
-      },
-      {
-        skillName: "REST API Design",
-        category: "Backend",
-        yourLevel: 2,
-        requiredLevel: 2,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: false,
-      },
-      {
-        skillName: "SQL",
-        category: "Databases",
-        yourLevel: 3,
-        requiredLevel: 1,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: false,
-      },
-    ],
-    learningValue: [
-      {
-        skillName: "React",
-        gain: "+1 Level (L2→L3)",
-        impact: "High",
-        description: "Full-application React experience provides verified evidence toward the Level 3 requirement.",
-      },
-      {
-        skillName: "TypeScript",
-        gain: "New Evidence",
-        impact: "Medium",
-        description: "Typed React introduces TypeScript evidence, a valued adjacent skill for Software Engineer.",
-      },
-    ],
-    tags: ["React", "TypeScript", "Zustand", "E-Commerce", "Frontend"],
-    roadmapPhase: 3,
-  },
-  {
-    id: "p4",
-    title: "ML Pipeline Deployment — Real Project",
-    description:
-      "Work with an industry partner to containerize and deploy a machine-learning inference pipeline using Docker and Kubernetes. Includes CI/CD setup, monitoring, and production rollout documentation.",
-    type: "Real Project",
-    difficulty: "Expert",
-    estimatedHours: "40–60 h",
-    estimatedDuration: "6–8 weeks",
-    matchScore: 44,
-    isRecommended: false,
-    eligibility: "Not Eligible",
-    eligibilityReason:
-      "Requires System Design (L4) and Python (L5) — your current levels (L2, L3) are below the minimum entry threshold. Complete Phases 2 and 3 first.",
-    matchExplanation:
-      "This is a Phase 4 capstone project. Your current skill gaps are too large to meet the entry requirements. It becomes available after you close the Python and System Design gaps.",
-    skillMatches: [
-      {
-        skillName: "Python",
-        category: "Programming",
-        yourLevel: 3,
-        requiredLevel: 5,
-        maxLevel: 5,
-        gap: 2,
-        matched: false,
-        isGrowthTarget: false,
-      },
-      {
-        skillName: "System Design",
-        category: "Architecture",
-        yourLevel: 2,
-        requiredLevel: 4,
-        maxLevel: 5,
-        gap: 2,
-        matched: false,
-        isGrowthTarget: false,
-      },
-      {
-        skillName: "Git & CI/CD",
-        category: "DevOps",
-        yourLevel: 2,
-        requiredLevel: 3,
-        maxLevel: 5,
-        gap: 1,
-        matched: false,
-        isGrowthTarget: false,
-      },
-      {
-        skillName: "REST API Design",
-        category: "Backend",
-        yourLevel: 2,
-        requiredLevel: 3,
-        maxLevel: 5,
-        gap: 1,
-        matched: false,
-        isGrowthTarget: false,
-      },
-    ],
-    learningValue: [
-      {
-        skillName: "DevOps",
-        gain: "+2 Levels",
-        impact: "High",
-        description: "Production deployment experience across the full MLOps lifecycle.",
-      },
-      {
-        skillName: "Python",
-        gain: "+2 Levels",
-        impact: "High",
-        description: "Advanced Python in a production ML context.",
-      },
-    ],
-    tags: ["Docker", "Kubernetes", "MLOps", "CI/CD", "Python"],
-    sponsor: "DataFlow Systems",
-    openSpots: 3,
-    roadmapPhase: 4,
-  },
-  {
-    id: "p5",
-    title: "Database Optimization & Query Analysis",
-    description:
-      "Analyze and optimize slow-running SQL queries in a legacy e-commerce database. Produce an optimization report, implement index strategies, and measure before/after performance metrics.",
-    type: "Practice Task",
-    difficulty: "Beginner",
-    estimatedHours: "6–8 h",
-    estimatedDuration: "1 week",
-    matchScore: 85,
-    isRecommended: false,
-    eligibility: "Eligible",
-    eligibilityReason: "Your SQL (L3) comfortably exceeds the entry requirement (L2) for this project.",
-    matchExplanation:
-      "Although SQL is already a strength in your profile, this project adds a second verified evidence item for SQL and contributes to Practical Experience. A quick win that improves your Assessment Reliability component.",
-    skillMatches: [
-      {
-        skillName: "SQL",
-        category: "Databases",
-        yourLevel: 3,
-        requiredLevel: 2,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: false,
-      },
-      {
-        skillName: "Python",
-        category: "Programming",
-        yourLevel: 3,
-        requiredLevel: 2,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: false,
-      },
-      {
-        skillName: "Git & CI/CD",
-        category: "DevOps",
-        yourLevel: 2,
-        requiredLevel: 1,
-        maxLevel: 5,
-        gap: 0,
-        matched: true,
-        isGrowthTarget: false,
-      },
-    ],
-    learningValue: [
-      {
-        skillName: "SQL",
-        gain: "2nd Verified Evidence",
-        impact: "Medium",
-        description: "Adds a second verified evidence item, raising SQL confidence.",
-      },
-    ],
-    tags: ["SQL", "PostgreSQL", "Performance", "Indexing", "Optimization"],
-  },
-];
 // ═══════════════════════════════════════════════════════════════════════════════
 // DESIGN TOKENS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -520,7 +136,7 @@ function MatchRing({ score, size = 56 }) {
 }
 // Difficulty dots
 function DifficultyDots({ d }) {
-  const dm = DIFF_META[d];
+  const dm = DIFF_META[d] ?? { label: d || "Not specified", color: "#64748b", dots: 0 };
   return (
     <div className="flex items-center gap-[3px]">
       {[1, 2, 3, 4].map((i) => (
@@ -541,9 +157,9 @@ function DifficultyDots({ d }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function ProjectDetailPanel({ project, onClose }) {
   const [activeTab, setActiveTab] = useState("match");
-  const tm = TYPE_META[project.type];
-  const em = ELIG_META[project.eligibility];
-  const dm = DIFF_META[project.difficulty];
+  const tm = TYPE_META[project.type] ?? { emoji: "📌", label: project.type || "Not specified", color: "#64748b", bg: "rgba(100,116,139,0.08)", border: "rgba(100,116,139,0.2)" };
+  const em = ELIG_META[project.eligibility] ?? { text: "text-[#64748b]", bg: "bg-[rgba(100,116,139,0.08)]", border: "border-[rgba(100,116,139,0.2)]", dot: "bg-[#64748b]", icon: "?" };
+  const dm = DIFF_META[project.difficulty] ?? { label: project.difficulty || "Not specified", color: "#64748b", dots: 0 };
   const matchedCount = project.skillMatches.filter((s) => s.matched).length;
   const gapCount = project.skillMatches.filter((s) => !s.matched).length;
   return (
@@ -912,8 +528,8 @@ function ProjectDetailPanel({ project, onClose }) {
 // PROJECT CARD
 // ═══════════════════════════════════════════════════════════════════════════════
 function ProjectCard({ project, isSelected, onClick }) {
-  const tm = TYPE_META[project.type];
-  const em = ELIG_META[project.eligibility];
+  const tm = TYPE_META[project.type] ?? { emoji: "📌", label: project.type || "Not specified", color: "#64748b", bg: "rgba(100,116,139,0.08)", border: "rgba(100,116,139,0.2)" };
+  const em = ELIG_META[project.eligibility] ?? { text: "text-[#64748b]", bg: "bg-[rgba(100,116,139,0.08)]", border: "border-[rgba(100,116,139,0.2)]", dot: "bg-[#64748b]", icon: "?" };
   const matched = project.skillMatches.filter((s) => s.matched);
   const gaps = project.skillMatches.filter((s) => !s.matched);
   const topGain = project.learningValue[0];
@@ -1222,22 +838,58 @@ function NoProjectsState({ hasFilters, onClear }) {
 // MAIN VIEW
 // ═══════════════════════════════════════════════════════════════════════════════
 const ALL_TYPES = ["Practice Task", "Simulation Project", "Real Project", "Assessment", "Capstone"];
-const ALL_ELIGIBILITY = ["Eligible", "Conditionally Eligible", "Not Eligible", "Completed"];
-const DEMO_STATES = [
-  { key: "loaded", label: "Normal" },
-  { key: "loading", label: "Loading" },
-  { key: "error", label: "Error" },
-  { key: "no-projects", label: "No Projects" },
-];
-export default function ProjectsView({ onOpenDetails, initialProjects = null, onApply, onMatch }) {
-  const projectData = initialProjects?.length ? initialProjects : PROJECTS;
+const ALL_ELIGIBILITY = ["Eligible", "Conditionally Eligible", "Not Eligible", "Completed", "Not evaluated"];
+export default function ProjectsView({ onOpenDetails, initialProjects = null, onApply, onMatch, roleLabel = "" }) {
+  const projectData = useMemo(() => (initialProjects ?? []).map((raw) => {
+    const p = unwrapApiData(raw) || raw;
+    let mappedType = "Real Project";
+    if (p.type === "simulation") mappedType = "Simulation Project";
+    else if (p.type === "company_sponsored") mappedType = "Real Project";
+    else if (p.type) mappedType = p.type;
+
+    let mappedDiff = "Intermediate";
+    if (typeof p.difficulty === "number" || (!isNaN(Number(p.difficulty)) && p.difficulty !== null && p.difficulty !== "")) {
+      const dNum = Number(p.difficulty);
+      if (dNum <= 1) mappedDiff = "Beginner";
+      else if (dNum <= 3) mappedDiff = "Intermediate";
+      else if (dNum === 4) mappedDiff = "Advanced";
+      else mappedDiff = "Expert";
+    } else if (p.difficulty) {
+      mappedDiff = p.difficulty;
+    }
+
+    return {
+      ...p,
+      id: String(p.id ?? p.project_id ?? p.uuid ?? ""),
+      title: p.title ?? p.name ?? "Untitled project",
+      description: p.description ?? p.summary ?? "",
+      type: mappedType,
+      difficulty: mappedDiff,
+      estimatedHours: String(p.estimated_hours ?? p.estimatedHours ?? "—"),
+      estimatedDuration: p.estimated_duration ?? (p.duration_days ? `${Math.round(p.duration_days / 7)} weeks` : null) ?? p.duration ?? "Not specified",
+      matchScore: Number(p.match_score ?? p.matchScore ?? 0),
+      isRecommended: Boolean(p.is_recommended ?? p.isRecommended),
+      recommendationRank: p.recommendation_rank ?? p.recommendationRank ?? 0,
+      recommendationReason: p.recommendation_reason ?? p.recommendationReason ?? "",
+      eligibility: p.eligibility ?? "Not evaluated",
+      eligibilityReason: p.eligibility_reason ?? "",
+      matchExplanation: p.match_explanation ?? "",
+      skillMatches: p.skill_matches ?? p.skillMatches ?? [],
+      learningValue: p.learning_value ?? p.learningValue ?? [],
+      tags: p.tags ?? [],
+      roadmapPhase: p.roadmap_phase ?? p.roadmapPhase ?? null,
+      alignsWithNBA: Boolean(p.aligns_with_nba ?? p.alignsWithNBA),
+    };
+  }), [initialProjects]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [eligFilter, setEligFilter] = useState("all");
   const [showRec, setShowRec] = useState(true);
   const [sortBy, setSortBy] = useState("match");
-  const [selected, setSelected] = useState("p1");
-  const [demoState, setDemoState] = useState("loaded");
+  const [selected, setSelected] = useState("");
+  useEffect(() => { if (!projectData.some((p) => p.id === selected)) setSelected(projectData[0]?.id ?? ""); }, [projectData, selected]);
+  const [actionError, setActionError] = useState("");
+  const [actionBusy, setActionBusy] = useState(false);
   const recommended = projectData.filter((p) => p.isRecommended);
   const filtered = useMemo(() => {
     let list = [...projectData];
@@ -1245,7 +897,7 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
       list = list.filter(
         (p) =>
           p.title.toLowerCase().includes(search.toLowerCase()) ||
-          p.tags.some((t) => t.toLowerCase().includes(search.toLowerCase())),
+          (p.tags || []).some((t) => String(t).toLowerCase().includes(search.toLowerCase())),
       );
     if (typeFilter !== "all") list = list.filter((p) => p.type === typeFilter);
     if (eligFilter !== "all") list = list.filter((p) => p.eligibility === eligFilter);
@@ -1258,12 +910,16 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
       );
     if (sortBy === "effort") list.sort((a, b) => parseInt(a.estimatedHours) - parseInt(b.estimatedHours));
     return list;
-  }, [search, typeFilter, eligFilter, sortBy]);
+  }, [projectData, search, typeFilter, eligFilter, sortBy]);
   const selectedProject = projectData.find((p) => p.id === selected) ?? null;
   const hasActiveFilter = typeFilter !== "all" || eligFilter !== "all" || !!search;
-  const isLoaded = demoState === "loaded";
+  const isLoaded = true;
+  const handleApply = async (project) => { try { setActionBusy(true); setActionError(""); if (onApply) await onApply(project); else await applyToProject(project.id); } catch (error) { setActionError(error?.message || "Could not submit the application."); } finally { setActionBusy(false); } };
+  const handleMatch = async (project) => { try { setActionBusy(true); setActionError(""); if (onMatch) await onMatch(project); else await matchProject(project.id); } catch (error) { setActionError(error?.message || "Could not calculate the match."); } finally { setActionBusy(false); } };
   return (
     <div className="flex flex-col h-full overflow-hidden bg-[#f1f3fa]">
+      {projectData.length === 0 && <div role="status" className="mx-8 mt-5 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No projects are currently available from the server. Projects will appear here when data becomes available.</div>}
+      {actionError && <div role="alert" className="mx-8 mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div>}
       {/* Page header */}
       <div className="bg-[#f1f3fa] px-[32px] pt-[24px] pb-[14px] shrink-0 border-b border-[#e8eaf0]">
         <div className="flex items-start justify-between">
@@ -1274,7 +930,7 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
             <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#64748b] mt-[3px]">
               Matched to{" "}
               <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">
-                Software Engineer v2.3
+                {roleLabel || "your selected career role"}
               </span>
               {isLoaded && (
                 <>
@@ -1386,9 +1042,9 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
         <div
           className={`overflow-y-auto px-[32px] py-[20px] flex flex-col gap-[16px] transition-all ${selectedProject && isLoaded ? "w-[520px] shrink-0" : "flex-1"}`}
         >
-          {demoState === "loading" && <LoadingState />}
-          {demoState === "error" && <ErrorState />}
-          {demoState === "no-projects" && (
+          
+          
+          {projectData.length === 0 && (
             <NoProjectsState
               hasFilters={hasActiveFilter}
               onClear={() => {
@@ -1416,7 +1072,7 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
                         (p) =>
                           (!search ||
                             p.title.toLowerCase().includes(search.toLowerCase()) ||
-                            p.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()))) &&
+                            (p.tags || []).some((t) => String(t).toLowerCase().includes(search.toLowerCase()))) &&
                           (typeFilter === "all" || p.type === typeFilter) &&
                           (eligFilter === "all" || p.eligibility === eligFilter),
                       )
@@ -1479,6 +1135,10 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
                 View Full Details & Apply →
               </button>
             )}
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" disabled={actionBusy} onClick={() => handleMatch(selectedProject)} className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 disabled:opacity-50">{actionBusy ? "Working…" : "Check match"}</button>
+              <button type="button" disabled={actionBusy} onClick={() => handleApply(selectedProject)} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{actionBusy ? "Working…" : "Apply"}</button>
+            </div>
             <ProjectDetailPanel project={selectedProject} onClose={() => setSelected(null)} />
           </div>
         )}

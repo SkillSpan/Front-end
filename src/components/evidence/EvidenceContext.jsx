@@ -1,6 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { SEED_EVIDENCE } from "./lib/evidenceMeta";
 import { fetchEvidence, sendEvidence, sendReview, toUiError } from "./lib/evidenceApi";
 
 const EvidenceContext = createContext(null);
@@ -55,12 +54,12 @@ export function EvidenceProvider({ children }) {
         setEvidence(list);
         setSource("api");
       } else {
-        setEvidence(SEED_EVIDENCE);
-        setSource("preview");
+        setEvidence([]);
+        setSource("api");
       }
     } catch (err) {
       if (!alive.current) return;
-      setEvidence(SEED_EVIDENCE);
+      setEvidence([]);
       setLoadError((err && err.message) || "Network error");
       setSource("preview");
     }
@@ -89,9 +88,10 @@ export function EvidenceProvider({ children }) {
 
   const addEvidence = useCallback(
     async (data) => {
+      if (source !== "api") throw new Error("The server is unavailable. Evidence was not saved. Please try again when the connection is restored.");
       const local = buildLocalItem(data);
       let item = local;
-      if (source === "api") {
+      {
         try {
           const created = await sendEvidence({
             skillId: data.skillId,
@@ -118,8 +118,9 @@ export function EvidenceProvider({ children }) {
 
   const reviewEvidence = useCallback(
     async (id, status, reviewNote = "", reviewer = "Reviewer") => {
+      if (source !== "api") throw new Error("The server is unavailable. The evidence status was not changed.");
       let changes = { status, reviewNote, reviewer, reviewedAt: today() };
-      if (source === "api") {
+      {
         try {
           const updated = await sendReview(id, status, reviewNote);
           changes = { ...changes, ...definedOnly(updated), status };

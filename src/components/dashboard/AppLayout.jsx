@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './Dashboard.css';
+import { markAllNotificationsRead, markNotificationRead } from '../../api';
 
 const Icon = {
   grid: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
@@ -45,9 +46,71 @@ export default function AppLayout({
   contentClassName = '',
   flushContent = false,
   notificationCount = 0,
+  notifications = [],
+  onRefreshNotifications,
 }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [localNotifications, setLocalNotifications] = useState(notifications);
+  const [unreadCount, setUnreadCount] = useState(notificationCount);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Keep in sync with incoming props
+  if (notifications !== localNotifications && notifications.length > 0 && localNotifications.length === 0) {
+    setLocalNotifications(notifications);
+  }
+  if (notificationCount !== unreadCount && notificationCount > 0 && unreadCount === 0) {
+    setUnreadCount(notificationCount);
+  }
+
   const go = (key) => onNavigate?.(key);
+
+  const handleSearchSubmit = (e) => {
+    if (e.key === 'Enter' && searchTerm.trim()) {
+      go(`projects?search=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsRead();
+      setUnreadCount(0);
+      setLocalNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      onRefreshNotifications?.();
+    } catch {
+      // Swallowed safely
+    }
+  };
+
+  const handleNotificationClick = async (notif) => {
+    try {
+      if (!notif.is_read) {
+        await markNotificationRead(notif.id);
+        setUnreadCount((c) => Math.max(0, c - 1));
+        setLocalNotifications((prev) => prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n)));
+      }
+    } catch {
+      // Ignore network error on read mark
+    }
+    setNotificationsOpen(false);
+    if (notif.link) {
+      if (notif.link.startsWith('/')) {
+        const cleanKey = notif.link.replace(/^\//, '').split('?')[0];
+        go(cleanKey);
+      } else {
+        window.location.href = notif.link;
+      }
+    } else {
+      go('record');
+    }
+  };
+
+  const isItemActive = (itemKey) => {
+    if (active === itemKey) return true;
+    if ((active === 'career-roles' || active === 'roles') && (itemKey === 'roles' || itemKey === 'career-roles')) return true;
+    if (active === 'evidence' && itemKey === 'evidence') return true;
+    if (active === 'record' && itemKey === 'record') return true;
+    return false;
+  };
 
   return (
     <div className="app-shell">
@@ -62,7 +125,7 @@ export default function AppLayout({
             <button
               key={item.key}
               type="button"
-              className={`app-nav-item${active === item.key ? ' active' : ''}`}
+              className={`app-nav-item${isItemActive(item.key) ? ' active' : ''}`}
               onClick={() => go(item.key)}
             >
               <span className="nav-icon">{item.icon}</span>
@@ -71,7 +134,7 @@ export default function AppLayout({
           ))}
         </nav>
 
-        <div className="app-sidebar-footer">
+        <div className="app-sidebar-footer" onClick={() => go('career-journey')} style={{ cursor: 'pointer' }}>
           <div className="footer-label">Readiness Score</div>
           <div className="footer-score">{readinessScore}/100</div>
           <div className="footer-role">{roleLabel || 'Career profile'}</div>
@@ -82,26 +145,70 @@ export default function AppLayout({
         <header className="app-topbar">
           <div className="app-search">
             {Icon.search}
-            <input aria-label="Search" placeholder="Search skills, projects, resources..." />
+            <input
+              aria-label="Search"
+              placeholder="Search skills, projects, resources..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={handleSearchSubmit}
+            />
           </div>
           <div className="app-topbar-right">
             <div className="app-notification-wrap">
-              <button type="button" className="app-bell" aria-label="Notifications" onClick={() => setNotificationsOpen((v) => !v)}>
+              <button
+                type="button"
+                className="app-bell"
+                aria-label="Notifications"
+                onClick={() => setNotificationsOpen((v) => !v)}
+              >
                 {Icon.bell}
-                {notificationCount > 0 && <span className="badge">{notificationCount > 9 ? '9+' : notificationCount}</span>}
+                {unreadCount > 0 && <span className="badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
               </button>
               {notificationsOpen && (
-                <div className="app-notification-popover">
-                  <strong>Notifications</strong>
-                  <p>No new notifications to review.</p>
-                  <button type="button" onClick={() => { setNotificationsOpen(false); go('record'); }}>Open My Record</button>
+                <div className="app-notification-popover" role="dialog" aria-label="Notifications list">
+                  <div className="notif-header">
+                    <strong>Notifications ({unreadCount})</strong>
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleMarkAllRead}
+                        style={{ background: 'transparent', border: 'none', color: '#4f46e5', fontSize: '0.72rem', cursor: 'pointer', padding: 0 }}
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+                  {localNotifications && localNotifications.length > 0 ? (
+                    <div className="notif-list" style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                      {localNotifications.slice(0, 6).map((n) => (
+                        <div
+                          key={n.id}
+                          className={`notif-item${!n.is_read ? ' unread' : ''}`}
+                          onClick={() => handleNotificationClick(n)}
+                        >
+                          <div className="notif-title">{n.title || 'Notification'}</div>
+                          <div className="notif-body">{n.body || ''}</div>
+                          {n.created_at && (
+                            <div className="notif-time">{new Date(n.created_at).toLocaleDateString()}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin: '8px 0', color: '#64748b', fontSize: '0.8rem' }}>No new notifications to review.</p>
+                  )}
+                  <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #f1f2f9', display: 'flex', justifyContent: 'space-between' }}>
+                    <button type="button" onClick={() => { setNotificationsOpen(false); go('record'); }}>
+                      Open My Record →
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
             <button type="button" className="app-assistant-top" onClick={() => go('assistant')}>
               {Icon.bolt}<span>Assistant</span>
             </button>
-            <div className="app-user">
+            <div className="app-user" onClick={() => go('career-journey')} title="View profile & journey">
               <span className="app-user-avatar">{initials(user?.name || user?.full_name)}</span>
               <span className="app-user-name">{user?.name || user?.full_name || 'Learner'}</span>
             </div>

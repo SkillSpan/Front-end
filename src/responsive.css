@@ -282,3 +282,633 @@ body {
 img {
   max-width: 100%;
 }
+
+
+/* ==========================================================================
+   Responsive Hardening Layer
+   --------------------------------------------------------------------------
+   Final cross-page mobile/tablet rules. These rules intentionally live in one
+   file so shared layouts remain consistent even when individual component
+   styles are imported in a different order.
+   ========================================================================== */
+
+*, *::before, *::after {
+  min-width: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  max-width: 100%;
+}
+
+svg,
+canvas,
+video {
+  max-width: 100%;
+}
+
+table {
+  max-width: 100%;
+}
+
+/* ---------- Auth / split-screen pages ----------------------------------- */
+@media (max-width: 900px) {
+  :is(
+    .login-card,
+    .register-card,
+    .forgot-card,
+    .verify-card,
+    .cl-card,
+    .cfp-card,
+    .reset-password-card,
+    .company-step1-card,
+    .company-step3-card,
+    .company-step4-card,
+    .company-step5-card
+  ) {
+    width: min(100%, 720px) !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-inline: auto;
+  }
+
+  :is(
+    .login-card .sidebar-left,
+    .register-card .sidebar-left,
+    .forgot-card .sidebar-left,
+    .verify-card .sidebar-left,
+    .cl-sidebar,
+    .cfp-sidebar,
+    .reset-sidebar,
+    .company-step1-sidebar,
+    .company-step3-sidebar,
+    .company-step4-sidebar,
+    .company-step5-sidebar
+  ) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  :is(
+    .login-card .form-right,
+    .register-card .form-right,
+    .forgot-card .form-right,
+    .verify-card .form-right-verify,
+    .cl-form-col,
+    .cfp-form-col,
+    .reset-form-col,
+    .company-step1-form-sec,
+    .company-step3-form-sec,
+    .company-step4-form-sec,
+    .company-step5-form-sec
+  ) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  :is(
+    .login-card,
+    .register-card,
+    .forgot-card,
+    .verify-card,
+    .cl-card,
+    .cfp-card,
+    .reset-password-card,
+    .company-step1-card,
+    .company-step3-card,
+    .company-step4-card,
+    .company-step5-card
+  ) :is(input, textarea, select) {
+    min-width: 0 !important;
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  :is(
+    .login-card,
+    .register-card,
+    .forgot-card,
+    .verify-card,
+    .cl-card,
+    .cfp-card,
+    .reset-password-card,
+    .company-step1-card,
+    .company-step3-card,
+    .company-step4-card,
+    .company-step5-card
+  ) {
+    border-radius: 14px !important;
+  }
+
+  :is(
+    .login-card .sidebar-left,
+    .register-card .sidebar-left,
+    .forgot-card .sidebar-left,
+    .verify-card .sidebar-left,
+    .cl-sidebar,
+    .cfp-sidebar,
+    .reset-sidebar,
+    .company-step1-sidebar,
+    .company-step3-sidebar,
+    .company-step4-sidebar,
+    .company-step5-sidebar
+  ) {
+    padding: 22px 18px !important;
+  }
+
+  :is(
+    .login-card .form-right,
+    .register-card .form-right,
+    .forgot-card .form-right,
+    .verify-card .form-right-verify,
+    .cl-form-inner,
+    .cfp-form-inner,
+    .reset-form-inner,
+    .company-step1-form-sec,
+    .company-step3-form-sec,
+    .company-step4-form-sec,
+    .company-step5-form-sec
+  ) {
+    padding: 22px 18px 28px !important;
+  }
+
+  :is(
+    .login-heading,
+    .forgot-heading,
+    .verify-heading,
+    .form-heading h1,
+    .otp-heading,
+    .verification-title,
+    .cl-heading,
+    .cfp-heading,
+    .reset-heading
+  ) {
+    font-size: clamp(1.25rem, 6vw, 1.6rem) !important;
+    line-height: 1.25;
+  }
+
+  :is(.otp-inputs-container, .otp-inputs-row) {
+    width: 100%;
+    justify-content: center;
+    gap: clamp(4px, 2vw, 8px) !important;
+  }
+
+  :is(.otp-input-box, .otp-box) {
+    width: clamp(36px, 11vw, 44px) !important;
+    min-width: 0 !important;
+    height: 46px !important;
+  }
+
+  :is(.c-actions, .company-step1-actions, .company-step3-actions, .company-step4-actions, .company-step5-actions) {
+    flex-wrap: wrap;
+  }
+
+  :is(.c-actions > *, .company-step1-actions > *, .company-step3-actions > *, .company-step4-actions > *, .company-step5-actions > *) {
+    min-width: 0;
+  }
+}
+
+/* ---------- Auth page outer wrappers ------------------------------------ */
+@media (max-width: 480px) {
+  :is(
+    .login-wrapper,
+    .register-wrapper,
+    .forgot-wrapper,
+    .verify-wrapper,
+    .reset-password-wrapper,
+    .cl-wrapper,
+    .cfp-wrapper,
+    .company-step1-container,
+    .company-step3-container,
+    .company-step4-container,
+    .company-step5-container
+  ) {
+    width: 100%;
+    min-width: 0;
+  }
+
+  :is(
+    .login-card,
+    .register-card,
+    .forgot-card,
+    .verify-card,
+    .cl-card,
+    .cfp-card,
+    .reset-password-card,
+    .company-step1-card,
+    .company-step3-card,
+    .company-step4-card,
+    .company-step5-card
+  ) {
+    min-height: 100vh;
+  }
+
+  :is(.cl-sidebar-content h2, .cfp-sidebar-content h2, .reset-sidebar-content h2, .sidebar-content h2) {
+    font-size: 1.3rem !important;
+    line-height: 1.3;
+  }
+
+  :is(.cl-features, .cfp-features, .reset-features, .features-list) {
+    gap: 14px;
+  }
+
+  :is(.cl-features li, .cfp-features li, .reset-features li, .features-list li) {
+    white-space: normal !important;
+  }
+}
+
+/* ---------- Dashboard / authenticated shell ---------------------------- */
+@media (max-width: 820px) {
+  .app-shell {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .app-main {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .app-content {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .dash-top-row,
+  .dash-stats-row,
+  .dash-bottom-row {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dash-panel,
+  .dash-card,
+  .dash-stat-card {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .dash-title {
+    font-size: clamp(1.35rem, 4vw, 1.7rem);
+  }
+}
+
+@media (max-width: 560px) {
+  .app-content {
+    padding: 12px !important;
+  }
+
+  .app-topbar {
+    min-width: 0;
+  }
+
+  .app-topbar-right {
+    min-width: 0;
+  }
+
+  .app-notification-popover {
+    max-width: calc(100vw - 82px);
+  }
+
+  .dash-card,
+  .dash-panel,
+  .dash-stat-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .dash-action-card p {
+    max-width: none;
+  }
+
+  .dash-panel-head,
+  .detail-head,
+  .compare-head-row {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------- Skill Matrix ------------------------------------------------- */
+@media (max-width: 820px) {
+  .skillmatrix-app-content .sm-shell,
+  .skillmatrix-app-content .sm-body,
+  .skillmatrix-app-content .sm-main,
+  .skillmatrix-app-content .sm-grid,
+  .skillmatrix-app-content .sm-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .skillmatrix-app-content .sm-card {
+    overflow: hidden;
+  }
+
+  .skillmatrix-app-content .sm-table,
+  .skillmatrix-app-content .sm-grid-table {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .skillmatrix-app-content .sm-topbar {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .skillmatrix-app-content .sm-head-actions {
+    width: 100%;
+  }
+
+  .skillmatrix-app-content .sm-head-actions > * {
+    width: 100%;
+  }
+
+  .skillmatrix-app-content .sm-panel {
+    left: 64px !important;
+    max-width: calc(100vw - 64px);
+  }
+}
+
+/* ---------- Career Roles: tables become cards/scroll areas ---------------- */
+@media (max-width: 900px) {
+  .cr-grid,
+  .detail-stats-row,
+  .compare-ring-grid,
+  .skill-expand {
+    min-width: 0;
+  }
+
+  .career-roles-page,
+  .cr-shell,
+  .cr-main,
+  .detail-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .skill-table-head,
+  .skill-row-main,
+  .gap-row {
+    min-width: 680px;
+  }
+
+  .skill-table-head,
+  .skill-row-main,
+  .gap-row {
+    overflow-wrap: normal;
+  }
+
+  .skill-table-head,
+  .skill-row-main {
+    overflow-x: visible;
+  }
+
+  .skill-table-head,
+  .skill-row-main,
+  .gap-table {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .detail-card {
+    padding: 16px !important;
+  }
+
+  .detail-title {
+    font-size: 1.25rem;
+  }
+
+  .skill-expand {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .compare-ring-box {
+    padding: 16px;
+  }
+}
+
+/* ---------- Learner workspace (many views use inline/fixed grids) ------- */
+@media (max-width: 820px) {
+  .learner-content {
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Inline grid-template-columns used by several learner views. */
+  .learner-content [style*="grid-template-columns"],
+  .learner-content [style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Fixed-width side panels in Mentor / detail views. */
+  .learner-content [class*="w-[240px]"],
+  .learner-content [class*="w-[260px]"],
+  .learner-content [class*="w-[230px]"],
+  .learner-content [class*="w-[280px]"] {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .learner-content [class*="min-w-[150px]"],
+  .learner-content [class*="min-w-[180px]"] {
+    min-width: 0 !important;
+  }
+
+  .learner-content [class*="overflow-x-auto"] {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .learner-content [class*="px-[32px]"],
+  .learner-content [class*="px-[26px]"],
+  .learner-content [class*="px-[24px]"] {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .learner-content [class*="w-[388px]"],
+  .learner-content [class*="w-[520px]"],
+  .learner-content [class*="w-[540px]"],
+  .learner-content [class*="w-[598px]"],
+  .learner-content [class*="w-[895px]"] {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .learner-api-note {
+    left: 74px !important;
+    right: 8px !important;
+    max-width: none !important;
+  }
+}
+
+/* ---------- Assessment screens ------------------------------------------ */
+@media (max-width: 1080px) {
+  :is(
+    .assessment-intro-page,
+    .assessment-resume-page,
+    .assessment-results-page,
+    .assessment-starting-page,
+    .assessment-submitting-page,
+    .skill-assessment-page
+  ) {
+    min-height: 100vh;
+    height: auto !important;
+    overflow: visible !important;
+  }
+}
+
+@media (max-width: 780px) {
+  :is(
+    .assessment-intro-card,
+    .assessment-resume-card,
+    .assessment-results-card,
+    .profile-setup-card
+  ) {
+    width: min(100%, 620px) !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .assessment-results-score-row {
+    flex-wrap: wrap;
+  }
+
+  .assessment-results-grid {
+    min-width: 0;
+  }
+
+  .assessment-resume-body,
+  .assessment-results-body {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  :is(
+    .assessment-intro-page,
+    .assessment-resume-page,
+    .assessment-results-page,
+    .assessment-starting-page,
+    .assessment-submitting-page,
+    .skill-assessment-page
+  ) {
+    padding-inline: 12px !important;
+  }
+
+  :is(
+    .assessment-resume-body,
+    .assessment-results-body
+  ) {
+    padding: 22px 14px 32px !important;
+  }
+
+  .assessment-results-score-row {
+    gap: 14px;
+  }
+}
+
+/* ---------- Evidence screens -------------------------------------------- */
+@media (max-width: 900px) {
+  .evidence-scope {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .evidence-scope .figma-card,
+  .evidence-scope .figma-page {
+    max-width: 100%;
+  }
+
+  .evidence-scope :is(.grid, [class*="grid-cols-"]) {
+    min-width: 0;
+  }
+
+  .evidence-scope :is(table, [role="table"]) {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .evidence-scope .figma-header {
+    align-items: stretch;
+  }
+
+  .evidence-scope .figma-header > * {
+    max-width: 100%;
+  }
+
+  .evidence-scope .figma-btn-primary,
+  .evidence-scope .figma-btn-secondary {
+    width: 100%;
+  }
+
+  .evidence-scope .figma-card {
+    border-radius: 8px;
+  }
+}
+
+/* ---------- Universal narrow-phone typography / controls ---------------- */
+@media (max-width: 420px) {
+  :is(
+    .app-content,
+    .cl-form-inner,
+    .cfp-form-inner,
+    .reset-form-inner,
+    .login-card .form-right,
+    .register-card .form-right,
+    .forgot-card .form-right,
+    .verify-card .form-right-verify
+  ) {
+    overflow-wrap: anywhere;
+  }
+
+  :is(button, .btn, input, textarea, select) {
+    max-width: 100%;
+  }
+
+  :is(.app-topbar, .navbar) {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 900px) {
+  .detail-card:has(.skill-table-head),
+  .detail-card:has(.gap-table) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cr-main,
+  .cr-grid,
+  .sm-shell,
+  .sm-main {
+    overflow-x: hidden;
+  }
+}
+
+@media (max-width: 560px) {
+  .detail-card:has(.skill-table-head),
+  .detail-card:has(.gap-table) {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .sm-modal {
+    width: calc(100vw - 88px) !important;
+    max-width: calc(100vw - 88px) !important;
+    padding: 20px 16px !important;
+  }
+}

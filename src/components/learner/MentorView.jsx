@@ -1,246 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import { getMentorStudents, getConversations, getConversationMessages, sendConversationMessage, createMentorConnection, unwrapApiData } from "../../api";
 // ── Mock data ─────────────────────────────────────────────────────────────────
-const STUDENTS = [
-  {
-    id: "s1",
-    name: "Lena Kim",
-    initials: "LK",
-    track: "Software Engineer",
-    readiness: 73,
-    phase: "Phase 2 — Applied",
-    lastActive: "2 hours ago",
-    unread: 0,
-    status: "on-track",
-    skills: [
-      { name: "System Design", level: 2, required: 4, gap: 2, critical: true },
-      { name: "Algorithms", level: 3, required: 4, gap: 1, critical: true },
-      { name: "Cloud Deployment", level: 1, required: 3, gap: 2, critical: false },
-      { name: "TypeScript", level: 4, required: 4, gap: 0, critical: false },
-    ],
-    projects: [
-      { title: "Microservices Architecture Prototype", match: 84, eligible: true },
-      { title: "Cloud-Native API Gateway", match: 76, eligible: false },
-    ],
-    roadmapAction: "Complete System Design module — 3 units remaining",
-  },
-  {
-    id: "s2",
-    name: "Omar Hassan",
-    initials: "OH",
-    track: "Data Scientist",
-    readiness: 58,
-    phase: "Phase 1 — Foundation",
-    lastActive: "1 day ago",
-    unread: 3,
-    status: "at-risk",
-    skills: [
-      { name: "ML Fundamentals", level: 1, required: 4, gap: 3, critical: true },
-      { name: "Python", level: 3, required: 4, gap: 1, critical: false },
-      { name: "Statistics", level: 2, required: 4, gap: 2, critical: true },
-      { name: "Data Visualization", level: 3, required: 3, gap: 0, critical: false },
-    ],
-    projects: [
-      { title: "Predictive Analytics Dashboard", match: 69, eligible: false },
-      { title: "NLP Sentiment Pipeline", match: 55, eligible: false },
-    ],
-    roadmapAction: "Start ML Fundamentals — 8 units required",
-  },
-  {
-    id: "s3",
-    name: "Priya Sharma",
-    initials: "PS",
-    track: "UX Designer",
-    readiness: 81,
-    phase: "Phase 3 — Specialized",
-    lastActive: "30 minutes ago",
-    unread: 0,
-    status: "on-track",
-    skills: [
-      { name: "Figma Prototyping", level: 4, required: 4, gap: 0, critical: false },
-      { name: "User Research", level: 3, required: 4, gap: 1, critical: true },
-      { name: "Motion Design", level: 1, required: 3, gap: 2, critical: false },
-      { name: "Design Systems", level: 4, required: 4, gap: 0, critical: false },
-    ],
-    projects: [
-      { title: "Design System Accessibility Audit", match: 91, eligible: true },
-      { title: "Onboarding Flow Redesign", match: 88, eligible: true },
-    ],
-    roadmapAction: "Submit User Research project — deadline in 5 days",
-  },
-  {
-    id: "s4",
-    name: "Ethan Park",
-    initials: "EP",
-    track: "Product Manager",
-    readiness: 45,
-    phase: "Phase 1 — Foundation",
-    lastActive: "3 days ago",
-    unread: 0,
-    status: "behind",
-    skills: [
-      { name: "Roadmap Planning", level: 1, required: 4, gap: 3, critical: true },
-      { name: "Stakeholder Mgmt", level: 2, required: 3, gap: 1, critical: true },
-      { name: "Agile / Scrum", level: 2, required: 3, gap: 1, critical: false },
-      { name: "Data Analysis", level: 1, required: 3, gap: 2, critical: false },
-    ],
-    projects: [{ title: "Product Discovery Sprint", match: 72, eligible: false }],
-    roadmapAction: "Complete Roadmap Planning fundamentals — 12 units",
-  },
-  {
-    id: "s5",
-    name: "Aisha Mohammed",
-    initials: "AM",
-    track: "DevOps Engineer",
-    readiness: 62,
-    phase: "Phase 2 — Applied",
-    lastActive: "5 hours ago",
-    unread: 1,
-    status: "at-risk",
-    skills: [
-      { name: "Kubernetes", level: 1, required: 4, gap: 3, critical: true },
-      { name: "CI/CD Pipelines", level: 3, required: 4, gap: 1, critical: false },
-      { name: "Infrastructure as Code", level: 2, required: 4, gap: 2, critical: true },
-      { name: "Linux Administration", level: 3, required: 3, gap: 0, critical: false },
-    ],
-    projects: [
-      { title: "Kubernetes Cluster Deployment", match: 78, eligible: false },
-      { title: "CI/CD Automation Pipeline", match: 85, eligible: true },
-    ],
-    roadmapAction: "Enroll in Kubernetes Fundamentals — next cohort open",
-  },
-];
-const CHAT_MSGS = {
-  s1: [
-    { id: "1", role: "system", text: "Conversation started · Nov 14, 2025", time: "" },
-    {
-      id: "2",
-      role: "mentor",
-      text: "Hi Lena! I reviewed your latest skill assessment. Great progress on TypeScript — you've hit the required level. Let's focus on System Design next.",
-      time: "2:15 PM",
-    },
-    {
-      id: "3",
-      role: "student",
-      text: "Thank you Dr. Chen! I've been practicing but system design still feels abstract. Where should I start?",
-      time: "2:18 PM",
-      status: "read",
-    },
-    {
-      id: "4",
-      role: "mentor",
-      text: "I'd suggest starting with the Microservices Architecture Prototype project — it will give you hands-on experience and counts toward your Phase 2 milestone.",
-      time: "2:21 PM",
-    },
-    {
-      id: "5",
-      role: "student",
-      text: "That sounds good. Is it on SkillSpan? How do I apply?",
-      time: "2:22 PM",
-      status: "read",
-    },
-    {
-      id: "6",
-      role: "mentor",
-      text: "Yes, I've flagged it as a recommended project for you. You're fully eligible — 84% match. Apply through the Projects section and I can write a support note.",
-      time: "2:24 PM",
-    },
-    {
-      id: "7",
-      role: "student",
-      text: "Perfect, I'll apply today. Should I finish the System Design module first or start the project simultaneously?",
-      time: "2:26 PM",
-      status: "delivered",
-    },
-  ],
-  s2: [
-    { id: "1", role: "system", text: "Conversation started · Nov 10, 2025", time: "" },
-    {
-      id: "2",
-      role: "mentor",
-      text: "Omar, I noticed you haven't started the ML Fundamentals module yet. It's a critical blocker for your Data Scientist track. Can we talk about what's holding you back?",
-      time: "Yesterday, 3:00 PM",
-    },
-    {
-      id: "3",
-      role: "student",
-      text: "Hi Dr. Chen. Honestly, the math prerequisites are intimidating. I'm not sure I have a strong enough statistics background.",
-      time: "Yesterday, 3:45 PM",
-      status: "read",
-    },
-    {
-      id: "4",
-      role: "mentor",
-      text: "That's very honest. Your Statistics level is 2/4 — there's a gap, but it's bridgeable. Have you tried the Statistics refresher course in your roadmap?",
-      time: "Yesterday, 4:00 PM",
-    },
-    {
-      id: "5",
-      role: "student",
-      text: "Not yet. Should I finish Statistics before attempting ML Fundamentals?",
-      time: "Yesterday, 4:12 PM",
-      status: "read",
-    },
-    {
-      id: "6",
-      role: "mentor",
-      text: "Yes — complete the Statistics refresher first. It usually takes 2–3 weeks. Then we can revisit ML Fundamentals together. I'll check in next Monday.",
-      time: "Yesterday, 4:15 PM",
-    },
-  ],
-  s3: [
-    { id: "1", role: "system", text: "Conversation started · Nov 15, 2025", time: "" },
-    {
-      id: "2",
-      role: "student",
-      text: "Dr. Chen, I wanted to share my progress on the Design System Accessibility Audit! I've completed the initial audit and the report draft is ready for review.",
-      time: "10:30 AM",
-      status: "read",
-    },
-    {
-      id: "3",
-      role: "mentor",
-      text: "Excellent work, Priya! That's ahead of schedule. Please share the draft through the project submission channel so the project sponsor can review it formally.",
-      time: "10:45 AM",
-    },
-    {
-      id: "4",
-      role: "student",
-      text: "Will do! Is there a project that combines both design systems and motion?",
-      time: "10:47 AM",
-      status: "read",
-    },
-    {
-      id: "5",
-      role: "mentor",
-      text: "Great initiative. I don't have a direct match right now but I'll check upcoming projects next week. Keep the Motion Design work going — you only need 2 more levels.",
-      time: "10:52 AM",
-    },
-  ],
-  s4: [],
-  s5: [
-    { id: "1", role: "system", text: "Conversation started · Nov 12, 2025", time: "" },
-    {
-      id: "2",
-      role: "student",
-      text: "Hi, the Kubernetes project requires Level 4 but I'm at Level 1. Can the mentor override the eligibility?",
-      time: "5 hours ago",
-      status: "read",
-    },
-    {
-      id: "3",
-      role: "mentor",
-      text: "Hi Aisha. I understand the frustration. However, mentor connections cannot bypass the platform's eligibility rules. The gap needs to be closed through the approved learning path first.",
-      time: "4 hours ago",
-    },
-    {
-      id: "4",
-      role: "student",
-      text: "That makes sense. What do you recommend then?",
-      time: "4 hours ago",
-      status: "delivered",
-    },
-  ],
-};
 // ── Atoms ─────────────────────────────────────────────────────────────────────
 function Sk({ w, h, r = 6 }) {
   return <div className="shimmer" style={{ width: w, height: h, borderRadius: r, flexShrink: 0 }} />;
@@ -603,15 +363,22 @@ function ProjectConnectionModal({ student, onClose, scene, setScene }) {
   const [connecting, setConnecting] = useState(false);
   const isIneligible = scene === "connect-ineligible";
   const isSuccess = scene === "connect-success";
-  const eligible = student.projects.filter((p) => p.eligible);
-  const ineligible = student.projects.filter((p) => !p.eligible);
-  const handleConnect = () => {
+  const studentProjects = Array.isArray(student.projects) ? student.projects : [];
+  const eligible = studentProjects.filter((p) => p.eligible);
+  const ineligible = studentProjects.filter((p) => !p.eligible);
+  const [connectError, setConnectError] = useState("");
+  const handleConnect = async () => {
     if (!selectedProject || connecting) return;
     setConnecting(true);
-    setTimeout(() => {
-      setConnecting(false);
+    setConnectError("");
+    try {
+      await createMentorConnection({ student_id: student.id, project_id: selectedProject.id });
       setScene("connect-success");
-    }, 1600);
+    } catch (error) {
+      setConnectError(error?.message || "Unable to create the connection on the server.");
+    } finally {
+      setConnecting(false);
+    }
   };
   return (
     <div
@@ -619,6 +386,7 @@ function ProjectConnectionModal({ student, onClose, scene, setScene }) {
       style={{ backdropFilter: "blur(2px)" }}
     >
       <div className="bg-white rounded-[16px] w-[500px] max-h-[80vh] flex flex-col shadow-2xl overflow-hidden">
+        {connectError && <div role="alert" className="m-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{connectError}</div>}
         {/* Header */}
         <div className="flex items-center justify-between px-[22px] py-[16px] border-b border-[#e8eaf0]">
           <div>
@@ -1018,68 +786,56 @@ function ChatPanel({ student, msgs, loading, empty, unauthorized, sending, onSen
 }
 // ── Main MentorView ───────────────────────────────────────────────────────────
 export default function MentorView() {
-  const [selectedStudentId, setSelectedStudentId] = useState("s1");
+  const [students, setStudents] = useState([]);
+  const [studentsLoading, setStudentsLoading] = useState(true);
+  const [studentsError, setStudentsError] = useState("");
+  const [conversations, setConversations] = useState([]);
+  const [activeConversationId, setActiveConversationId] = useState(null);
+  useEffect(() => {
+    let active = true;
+    Promise.all([getMentorStudents(), getConversations({ page: 1, perPage: 100 })]).then(([payload, conversationPayload]) => {
+      if (!active) return;
+      const value = unwrapApiData(payload);
+      const rows = Array.isArray(value) ? value : Array.isArray(value?.data) ? value.data : Array.isArray(value?.students) ? value.students : [];
+      setStudents(rows.map((row) => ({ ...row, id: String(row.id ?? row.user_id ?? row.learner_id ?? ""), name: row.name ?? row.full_name ?? row.student?.name ?? "Student", initials: (row.name ?? row.full_name ?? "S").split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase(), track: row.track ?? row.career_role?.title ?? row.role_title ?? "Not specified", readiness: Number(row.readiness ?? row.readiness_score ?? 0) || 0, email: row.email ?? row.student?.email ?? "", avatar: row.avatar ?? row.profile_photo_url ?? "" })).filter((row) => row.id));
+      const conversationsValue = unwrapApiData(conversationPayload);
+      setConversations(Array.isArray(conversationsValue) ? conversationsValue : Array.isArray(conversationsValue?.data) ? conversationsValue.data : Array.isArray(conversationsValue?.conversations) ? conversationsValue.conversations : []);
+    }).catch((error) => { if (active) setStudentsError(error?.message || "Unable to load mentor students."); }).finally(() => { if (active) setStudentsLoading(false); });
+    return () => { active = false; };
+  }, []);
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [scene, setScene] = useState("normal");
-  const [msgs, setMsgs] = useState(CHAT_MSGS.s1);
-  const selectedStudent = STUDENTS.find((s) => s.id === selectedStudentId) ?? null;
-  const handleSelectStudent = (id) => {
+  const [msgs, setMsgs] = useState([]);
+  const selectedStudent = students.find((s) => s.id === selectedStudentId) ?? null;
+  const handleSelectStudent = async (id) => {
     setSelectedStudentId(id);
-    setScene("normal");
-    setMsgs(CHAT_MSGS[id] ?? []);
-  };
-  const handleSend = (text) => {
-    const newMsg = { id: Date.now().toString(), role: "mentor", text, time: "Now", status: "sending" };
-    setMsgs((prev) => [...prev, newMsg]);
-    setScene("sending");
-    setTimeout(() => {
-      setMsgs((prev) => prev.map((m) => (m.id === newMsg.id ? { ...m, status: "delivered" } : m)));
+    setScene("loading-chat");
+    setMsgs([]);
+    const conversation = conversations.find((item) => String(item.student_id ?? item.learner_id ?? item.participant_id ?? item.student?.id ?? item.learner?.id ?? "") === String(id));
+    const conversationId = conversation?.id ?? conversation?.conversation_id;
+    setActiveConversationId(conversationId ?? null);
+    if (!conversationId) { setScene("empty-chat"); return; }
+    try {
+      const payload = await getConversationMessages(conversationId, { page: 1, perPage: 100 });
+      const value = unwrapApiData(payload);
+      const rows = Array.isArray(value) ? value : Array.isArray(value?.data) ? value.data : Array.isArray(value?.messages) ? value.messages : [];
+      setMsgs(rows.map((message) => ({ id: String(message.id), role: message.sender_type === "mentor" || message.sender?.role === "mentor" ? "mentor" : "student", text: message.body ?? message.message ?? message.content ?? "", time: message.created_at ?? "", status: "delivered" })));
       setScene("normal");
-    }, 1600);
+    } catch (error) { setStudentsError(error?.message || "Unable to load conversation messages."); setScene("error-chat"); }
   };
-  const applyScene = (s) => {
-    setScene(s);
-    if (s === "loading-students") {
-      setSelectedStudentId(null);
-      setMsgs([]);
-    } else if (s === "loading-chat") {
-      setSelectedStudentId("s1");
-      setMsgs([]);
-    } else if (s === "empty-chat") {
-      setSelectedStudentId("s4");
-      setMsgs([]);
-    } else if (s === "notification") {
-      setSelectedStudentId("s2");
-      setMsgs(CHAT_MSGS.s2);
-    } else if (s === "unauthorized") {
-      setSelectedStudentId("s3");
-      setMsgs([]);
-    } else if (s === "error-chat") {
-      setSelectedStudentId("s1");
-      setMsgs([]);
-    } else if (s === "connect-project" || s === "connect-success" || s === "connect-ineligible") {
-      setSelectedStudentId("s1");
-      setMsgs(CHAT_MSGS.s1);
-    } else if (s === "sending") {
-      setSelectedStudentId("s1");
-      setMsgs(CHAT_MSGS.s1);
-    } else {
-      setSelectedStudentId("s1");
-      setMsgs(CHAT_MSGS.s1);
-    }
+  const handleSend = async (text) => {
+    if (!activeConversationId) { setStudentsError("There is no conversation associated with this student yet."); return; }
+    try {
+      setScene("sending");
+      const payload = await sendConversationMessage(activeConversationId, { message: text, body: text });
+      const value = unwrapApiData(payload);
+      const message = value?.message ?? value;
+      setMsgs((prev) => [...prev, { id: String(message?.id ?? Date.now()), role: "mentor", text: message?.body ?? message?.message ?? text, time: message?.created_at ?? new Date().toISOString(), status: "delivered" }]);
+      setScene("normal");
+    } catch (error) { setStudentsError(error?.message || "Unable to send the message to the server."); setScene("error-chat"); }
   };
+  const applyScene = () => { setStudentsError(""); if (selectedStudentId) handleSelectStudent(selectedStudentId); };
   const showModal = scene === "connect-project" || scene === "connect-success" || scene === "connect-ineligible";
-  const DEMO_BUTTONS = [
-    { label: "Normal", s: "normal" },
-    { label: "Loading Students", s: "loading-students" },
-    { label: "Loading Chat", s: "loading-chat" },
-    { label: "Empty Chat", s: "empty-chat" },
-    { label: "Unauthorized", s: "unauthorized" },
-    { label: "Sending", s: "sending" },
-    { label: "Notification", s: "notification" },
-    { label: "Connect Project", s: "connect-project" },
-    { label: "Connect Ineligible", s: "connect-ineligible" },
-    { label: "Error", s: "error-chat" },
-  ];
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* View header */}
@@ -1087,7 +843,7 @@ export default function MentorView() {
         <div>
           <h1 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#0a0b14]">Mentor Dashboard</h1>
           <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[2px]">
-            Dr. Sarah Chen · Software Engineering · {STUDENTS.length} permitted students
+            Mentor workspace · {studentsLoading ? "Loading…" : `${students.length} students`}{studentsError ? ` — ${studentsError}` : ""}
           </p>
         </div>
         <div className="flex items-center gap-[8px]">
@@ -1103,7 +859,7 @@ export default function MentorView() {
       {/* 3-column body */}
       <div className="flex flex-1 overflow-hidden relative">
         <StudentListPanel
-          students={STUDENTS}
+          students={students}
           selectedId={selectedStudentId}
           onSelect={handleSelectStudent}
           loading={scene === "loading-students"}
@@ -1133,7 +889,7 @@ export default function MentorView() {
                   There was a problem retrieving the student profile.
                 </p>
                 <button
-                  onClick={() => applyScene("normal")}
+                  onClick={applyScene}
                   className="px-[16px] py-[8px] rounded-[9px] text-[12px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white"
                   style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}
                 >

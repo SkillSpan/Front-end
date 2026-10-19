@@ -1,31 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './LearnerProfileSetup.css';
 import SearchableSelect from '../common/SearchableSelect';
+import { ALL_COUNTRIES, mergeCountries } from '../common/countries';
 import {
   createProfile,
   getProfile,
-  getUniversities,
   getSpecializations,
   getCountries,
   getUniversitiesByCountry,
 } from '../../api';
 import { buildProfilePayload } from '../../utils/payloadMapping';
 
-// Fallback reference universities for the West Bank / Palestine region,
-// since that's who this build is currently serving. Used only if
-// GET /api/v1/reference/universities is unreachable (offline, backend not
-// deployed yet, etc.) - see the reference-data effect below. "Other" always lets
-// someone type their own so this never blocks a real submission either way.
-const FALLBACK_UNIVERSITIES = [
-  'The Islamic University',
-  'An-Najah National University',
-  'Birzeit University',
-  'Al-Quds University',
-  'Palestine Polytechnic University',
-  'Hebron University',
-  'Islamic University of Gaza',
-  'Other',
-];
+// Fallback lists below are used only if the reference endpoints are
+// unreachable. "Other" always lets someone type their own value.
 
 const FALLBACK_SPECIALIZATIONS = [
   'Computer Science',
@@ -49,7 +36,7 @@ const FALLBACK_SPECIALIZATIONS = [
 // unreachable, so the Country field (and the University-by-country
 // filtering it drives) is always visible instead of silently disappearing
 // when the backend isn't reachable yet.
-const FALLBACK_COUNTRIES = ['Palestine'];
+const FALLBACK_COUNTRIES = ALL_COUNTRIES;
 
 // GET /api/v1/reference/{universities,specializations,countries} (see
 // api.js) return shapes aren't confirmed with the backend yet - this
@@ -140,7 +127,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
   const [universityOther, setUniversityOther] = useState('');
   // The learner's own university/student ID number (their matriculation
   // number), typed in directly - separate from the university's name.
-  const [universityIdNumber, setUniversityIdNumber] = useState('');
+  const [studentId, setStudentId] = useState('');
   const [specialization, setSpecialization] = useState('');
   const [specializationOther, setSpecializationOther] = useState('');
   const [academicLevel, setAcademicLevel] = useState('');
@@ -156,9 +143,16 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
   // Reference data (GET /api/v1/reference/*, see api.js) - public, no
   // token required. Falls back to the static lists above if the backend
   // is unreachable, so this screen never gets stuck with empty dropdowns.
-  const [universities, setUniversities] = useState(FALLBACK_UNIVERSITIES);
+  // Universities are listed ONLY after a country is chosen (scoped to it).
+  const [universities, setUniversities] = useState([]);
+  const [universitiesError, setUniversitiesError] = useState('');
+  const universitiesRequest = useRef(0);
   const [specializations, setSpecializations] = useState(FALLBACK_SPECIALIZATIONS);
   const [countries, setCountries] = useState(FALLBACK_COUNTRIES);
+  // name (lower-cased) -> { id, iso2 } from GET /reference/countries. The
+  // universities endpoint is keyed by the country's id, so the name picked
+  // in the dropdown has to be translated to it before calling the API.
+  const countryKeys = useRef(new Map());
   // Country -> University coupling: picking a country re-fetches the
   // University dropdown scoped to it via
   // GET /api/v1/reference/countries/{country}/universities (see api.js).
@@ -172,18 +166,21 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
     let cancelled = false;
     (async () => {
       try {
-        const [uniRes, specRes, countryRes] = await Promise.all([
-          getUniversities(),
+        const [specRes, countryRes] = await Promise.all([
           getSpecializations(),
           getCountries(),
         ]);
         if (cancelled) return;
-        const uniList = normalizeNameList(uniRes);
         const specList = normalizeNameList(specRes);
         const countryList = normalizeNameList(countryRes);
-        if (uniList.length) setUniversities([...uniList, 'Other']);
         if (specList.length) setSpecializations([...specList, 'Other']);
-        if (countryList.length) setCountries(countryList);
+        if (countryList.length) setCountries(mergeCountries(countryList));
+        const rawCountries = Array.isArray(countryRes?.data) ? countryRes.data : Array.isArray(countryRes) ? countryRes : [];
+        const keys = new Map();
+        rawCountries.forEach((c) => {
+          if (c && typeof c === 'object' && c.name) keys.set(String(c.name).trim().toLowerCase(), { id: c.id, iso2: c.iso2 });
+        });
+        countryKeys.current = keys;
       } catch {
         // Reference endpoints unreachable - keep the fallback lists above.
       }
@@ -200,36 +197,30 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
   // current (unfiltered) list in place instead of blocking the field.
   const handleCountryChange = async (value) => {
     setCountry(value);
+    setUniversitiesError('');
+    // A different country means a different list: clear the old choice.
+    setUniversity('');
+    setUniversityOther('');
+    setUniversities([]);
+    if (!value) return;
 
-    if (!value) {
-      try {
-        const res = await getUniversities();
-        const list = normalizeNameList(res);
-        if (list.length) setUniversities([...list, 'Other']);
-      } catch {
-        // Keep whatever university list is already showing.
-      }
-      return;
-    }
-
+    const requestId = ++universitiesRequest.current;
     setUniversitiesLoading(true);
     try {
-      const res = await getUniversitiesByCountry(value);
+      // Prefer the numeric id (what the backend route binds on); fall back
+      // to the ISO code, then to the plain name for countries that only
+      // exist in the static fallback list.
+      const known = countryKeys.current.get(String(value).trim().toLowerCase());
+      const res = await getUniversitiesByCountry(known?.id ?? known?.iso2 ?? value);
+      if (requestId !== universitiesRequest.current) return; // stale response
       const list = normalizeNameList(res);
-      if (list.length) {
-        const nextUniversities = [...list, 'Other'];
-        setUniversities(nextUniversities);
-        setUniversity((prev) => (nextUniversities.includes(prev) ? prev : ''));
-      } else {
-        // No universities returned for this country - don't leave the
-        // learner stuck with a stale list from a different country.
-        setUniversities(['Other']);
-        setUniversity((prev) => (prev === 'Other' ? prev : ''));
-      }
+      setUniversities([...list, 'Other']);
     } catch {
-      // Keep whatever university list is already showing.
+      if (requestId !== universitiesRequest.current) return;
+      setUniversities(['Other']);
+      setUniversitiesError('Could not load universities for this country. Choose "Other" to type yours.');
     } finally {
-      setUniversitiesLoading(false);
+      if (requestId === universitiesRequest.current) setUniversitiesLoading(false);
     }
   };
 
@@ -244,8 +235,8 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
         const res = await getProfile();
         const data = res?.data || res || {};
         if (cancelled || !data) return;
-        if (data.university_name) setUniversity(data.university_name);
-        if (data.student_university_number) setUniversityIdNumber(String(data.student_university_number));
+        if (data.university_name) { setUniversity(data.university_name); setUniversities((prev) => (prev.length ? prev : [data.university_name, 'Other'])); }
+        if (data.student_university_number) setStudentId(String(data.student_university_number));
         if (data.specialization) setSpecialization(data.specialization);
         if (data.academic_level) setAcademicLevel(data.academic_level);
         if (data.expected_graduation) setExpectedGraduation(String(data.expected_graduation));
@@ -266,7 +257,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
 
   const requiredFields = [
     resolvedUniversity,
-    universityIdNumber.trim(),
+    studentId.trim(),
     resolvedSpecialization,
     academicLevel,
     expectedGraduation,
@@ -285,7 +276,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
   const buildPayload = () =>
     buildProfilePayload({
       university: resolvedUniversity,
-      universityId: universityIdNumber.trim(),
+      studentId: studentId.trim(),
       specialization: resolvedSpecialization,
       academicLevel,
       expectedGraduation,
@@ -377,18 +368,16 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
 
           <form onSubmit={handleSubmit}>
             <div className="profile-setup-field">
-              <label>Country</label>
+              <label>Country<span className="required-star">*</span></label>
               <SearchableSelect
                 options={countries}
                 value={country}
                 onChange={handleCountryChange}
-                placeholder="All countries"
+                placeholder="Select your country"
                 searchPlaceholder="Search countries…"
-                allowClear
-                clearLabel="All countries"
               />
               <span style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                Pick a country to filter the University list below to that country only.
+                Choose your country first - the University list shows only universities in that country.
               </span>
             </div>
 
@@ -403,11 +392,17 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
                   setUniversity(value);
                   markTouched();
                 }}
-                placeholder="Select your university"
+                placeholder={country || university ? 'Select your university' : 'Select a country first'}
                 searchPlaceholder="Search universities…"
+                disabled={!country && !university}
                 loading={universitiesLoading}
                 hasError={touched && !resolvedUniversity}
               />
+              {universitiesError && (
+                <span role="alert" style={{ fontSize: '12px', color: '#b91c1c', marginTop: '4px', display: 'block' }}>
+                  {universitiesError}
+                </span>
+              )}
               {university === 'Other' && (
                 <input
                   type="text"
@@ -419,16 +414,16 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
               )}
             </div>
 
-            <div className={`profile-setup-field ${touched && !universityIdNumber.trim() ? 'field-error' : ''}`}>
+            <div className={`profile-setup-field ${touched && !studentId.trim() ? 'field-error' : ''}`}>
               <label>
-                University ID Number<span className="required-star">*</span>
+                Student ID<span className="required-star">*</span>
               </label>
               <input
                 type="text"
-                placeholder="Enter your student/university ID number"
-                value={universityIdNumber}
+                placeholder="Enter your student ID number"
+                value={studentId}
                 onChange={(e) => {
-                  setUniversityIdNumber(e.target.value);
+                  setStudentId(e.target.value);
                   markTouched();
                 }}
               />

@@ -12,7 +12,7 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData, initialE
   const [errors, setErrors] = useState(initialErrors || {});
   const [showPassword, setShowPassword] = useState(false);
 
-  // دالة لتوليد كلمة مرور قوية
+  // Generate a strong password
   const generatePassword = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let generated = '';

@@ -35,7 +35,7 @@ const DocumentIcon = () => (
 );
 
 /** `onDone` fires once automatically, ~3s after mount. */
-const SkillAssessmentSubmitting = ({ onDone }) => {
+const SkillAssessmentSubmitting = ({ onDone, status = 'done', error = '', onRetry, onBack }) => {
   const [completedCount, setCompletedCount] = useState(0);
   const [progress, setProgress] = useState(0);
 
@@ -49,16 +49,22 @@ const SkillAssessmentSubmitting = ({ onDone }) => {
       setProgress(Math.min(100, ((Date.now() - start) / TOTAL_DURATION) * 100));
     }, 30);
 
-    const finishTimer = setTimeout(() => {
-      if (typeof onDone === 'function') onDone();
-    }, TOTAL_DURATION);
-
     return () => {
       timers.forEach(clearTimeout);
       clearInterval(tick);
-      clearTimeout(finishTimer);
     };
-  }, [onDone]);
+  }, []);
+
+  // Move on only when BOTH the short progress animation has played and the
+  // server has really scored the answers (status === 'done').
+  const [animationDone, setAnimationDone] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setAnimationDone(true), TOTAL_DURATION);
+    return () => clearTimeout(t);
+  }, []);
+  useEffect(() => {
+    if (animationDone && status === 'done' && typeof onDone === 'function') onDone();
+  }, [animationDone, status, onDone]);
 
   return (
     <div className="assessment-submitting-page">
@@ -85,7 +91,18 @@ const SkillAssessmentSubmitting = ({ onDone }) => {
         </div>
 
         <h1 className="assessment-submitting-title">Submitting Assessment</h1>
-        <p className="assessment-submitting-subtitle">Processing your responses...</p>
+        <p className="assessment-submitting-subtitle">
+          {status === 'error' ? 'We could not score your assessment.' : 'Processing your responses...'}
+        </p>
+        {status === 'error' && (
+          <div role="alert" style={{ margin: '12px 0 20px', textAlign: 'center' }}>
+            <p style={{ color: '#fca5a5', margin: '0 0 14px' }}>{error}</p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button type="button" className="assessment-completion-cta" style={{ width: 'auto', padding: '10px 22px' }} onClick={onRetry}>Try again</button>
+              <button type="button" className="assessment-resume-restart" style={{ width: 'auto', padding: '10px 22px' }} onClick={onBack}>Back to questions</button>
+            </div>
+          </div>
+        )}
 
         <div className="assessment-submitting-checklist">
           {STEPS.map((step, index) => {

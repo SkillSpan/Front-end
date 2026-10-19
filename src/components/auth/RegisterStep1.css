@@ -64,7 +64,8 @@
   margin-bottom: 40px;
 }
 
-/* تعريف واحد فقط لقائمة المزايا - تم حذف التكرار القديم */
+
+
 .features-list {
   list-style: none;
   padding: 0;
@@ -333,7 +334,8 @@
 /* ===== Desktop override: responsive.css / Login.css also style .sidebar-left
    (width 30% !important, max 330px, space-between). This higher-specificity
    rule makes RegisterStep1's sidebar win on desktop only. ===== */
-/* الخلفية على كل الصفحات وكل عروض الشاشة */
+
+
 :is(
   .register-wrapper .register-card,
   .login-wrapper .login-card,
@@ -363,30 +365,25 @@
   }
 }
 
-/* ==========================================================================
-   تنسيق موحّد لكل واجهات Login / Register / Forgot password
-   (مجمّعة هون بدل ملف منفصل):
-     1) السايد بار (نفس تصميم Register) وطوله يغطي الصفحة كاملة.
-     2) الأزرار الرئيسية كلها على نفس المستوى (نفس البعد عن أسفل الصفحة).
-   للتعديل: غيّر المتغيرات تحت وبتتغير كل الصفحات مع بعض.
-   ========================================================================== */
+
+
 :root {
-  /* خلفية السايد بار: التدرج الخطي + 3 توهّجات خفيفة (نفس التصميم) */
+  
+
   --auth-sidebar-bg:
     radial-gradient(circle 75px at 21% 11%, rgba(107, 98, 255, 0.20), rgba(107, 98, 255, 0)),
     radial-gradient(circle 60px at 65% 48%, rgba(168, 85, 247, 0.10), rgba(168, 85, 247, 0)),
     radial-gradient(circle 88px at 62% 80%, rgba(59, 130, 246, 0.155), rgba(59, 130, 246, 0)),
     linear-gradient(145deg, #0D0F24 6.17%, #111230 41.23%, #0E1128 93.83%);
   --auth-sidebar-width: 380px;
-  --auth-btn-bottom: 72px;   /* بعد الزر الرئيسي عن أسفل الصفحة */
-  --auth-link-bottom: 26px;  /* بعد روابط (Back / Resend) عن أسفل الصفحة */
+  --auth-btn-bottom: 72px;   
+
+  --auth-link-bottom: 26px;  
+
 }
 
-/* ==========================================================================
-   أيقونات السايد بار: صورتين (roadmap / record) الكانفس تبعهم أكبر من الرمز
-   نفسه، فبنعرضهم بنفس مقياس أيقونتين readiness / projects عشان الأربعة
-   يطلعوا بنفس الحجم.
-   ========================================================================== */
+
+
 .sidebar-left .features-list .icon img[src*="icon-roadmap"],
 .sidebar-left .features-list .icon img[src*="icon-record"] {
   width: 38px !important;
@@ -397,7 +394,8 @@
 
 @media (min-width: 901px) {
 
-  /* ---------- 1) السايد بار: العرض + الطول الكامل (كل الصفحات) ---------- */
+  
+
   :is(
     .register-wrapper .register-card,
     .login-wrapper .login-card,
@@ -415,7 +413,8 @@
     align-self: stretch !important;
   }
 
-  /* ---------- نفس شكل السايد بار (Register) على كل الصفحات ---------- */
+  
+
   :is(
     .register-wrapper .register-card,
     .login-wrapper .login-card,
@@ -534,7 +533,8 @@
     height: 28px;
   }
 
-  /* ---------- نفس الشي لسايد بار Reset Password (كلاسات reset-*) ---------- */
+  
+
   .reset-password-wrapper .reset-password-card .reset-brand {
     font-size: 1.85rem;
     font-weight: 800;
@@ -586,12 +586,8 @@
     height: 28px;
   }
 
-  /* ======================================================================
-     2) الأزرار: نفس المستوى في كل الصفحات
-        - الزر الرئيسي: أسفله بالضبط var(--auth-btn-bottom) من نهاية الصفحة
-        - أي رابط تحته (Back / Resend...) ينحط بمكان ثابت أسفل الزر
-        (Step 2 و Step 3 أصلاً على 72px فما بحتاجوا تعديل)
-     ====================================================================== */
+  
+
 
   /* Login */
   .login-wrapper .login-card .form-right {
@@ -601,7 +597,8 @@
     margin-bottom: 0 !important;
   }
 
-  /* Forgot password (طلب الكود + Check your email) */
+  
+
   .forgot-wrapper .forgot-card .form-right-forgot {
     padding-bottom: var(--auth-btn-bottom) !important;
   }
@@ -632,7 +629,8 @@
     white-space: nowrap;
   }
 
-  /* Reset your password (كلمة السر الجديدة) */
+  
+
   .reset-password-wrapper .reset-password-card .reset-form-inner {
     padding-bottom: var(--auth-btn-bottom) !important;
   }
@@ -648,7 +646,8 @@
     white-space: nowrap;
   }
 
-  /* Check your email (التسجيل) */
+  
+
   .register-card .form-right.verification-container {
     position: relative;
     padding-bottom: var(--auth-btn-bottom) !important;
@@ -664,7 +663,8 @@
     text-align: center;
   }
 
-  /* OTP + Email verified (التسجيل) */
+  
+
   .register-card .form-right:is(.otp-container, .verified-container) {
     position: relative;
     padding-bottom: var(--auth-btn-bottom) !important;
@@ -683,7 +683,8 @@
     text-align: center;
   }
 
-  /* Register Step 1: زر Next أسفل الصفحة + رابط "log in" تحته */
+  
+
   .register-card .form-right:has(.btn-next) {
     position: relative;
     justify-content: flex-start;

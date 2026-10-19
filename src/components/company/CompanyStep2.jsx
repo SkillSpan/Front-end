@@ -1,6 +1,6 @@
 import { ORGANIZATION_TYPES } from '../../config';
 import { useState } from 'react';
-import './CompanyRegister.css'; // نفس ملف التنسيق الخاص بالشركات
+import './CompanyRegister.css'; // Shared company styles file
 import { ShieldCheckIcon } from './CompanyIcons';
 
 const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin, initialData }) => {

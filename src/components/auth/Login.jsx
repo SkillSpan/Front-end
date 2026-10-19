@@ -55,21 +55,21 @@ const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, o
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    // إزالة رسالة الخطأ فور بدء الكتابة
+    // Clear the error message as soon as the user starts typing
     setErrors({ ...errors, [e.target.name]: '', general: '' });
   };
 
   const validate = () => {
     const newErrors = {};
 
-    // التحقق من البريد الإلكتروني
+    // Validate the email address
     if (!formData.email.trim()) {
       newErrors.email = 'Email address is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    // التحقق من كلمة المرور
+    // Validate the password
     if (!formData.password) {
       newErrors.password = 'Password is required';
     }
@@ -114,7 +114,7 @@ const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, o
   return (
     <div className="login-wrapper">
       <div className="login-card">
-        {/* الشريط الجانبي الموحد */}
+        {/* Shared sidebar */}
         <div className="sidebar-left">
           <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">

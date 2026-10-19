@@ -127,7 +127,7 @@ export function buildOrganizationFormData(companyData) {
  *
  * Confirmed contract with the backend (learner-profile task):
  *   `university`                 -> university_name         (free text)
- *   `universityId` (student ID)  -> student_university_number
+ *   `studentId`  -> student_university_number
  *   `specialization`             -> specialization          (free text)
  *   `academicLevel`              -> academic_level
  *   `expectedGraduation`         -> expected_graduation     (YYYY-MM-DD)
@@ -136,7 +136,7 @@ export function buildOrganizationFormData(companyData) {
  */
 export function buildProfilePayload({
   university,
-  universityId,
+  studentId,
   specialization,
   academicLevel,
   expectedGraduation,
@@ -145,7 +145,7 @@ export function buildProfilePayload({
 } = {}) {
   return {
     university_name: university || '',
-    student_university_number: universityId || '',
+    student_university_number: studentId || '',
     specialization: specialization || '',
     academic_level: academicLevel || '',
     expected_graduation: expectedGraduation || '',

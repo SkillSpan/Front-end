@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import './RegisterStep3.css';
-import { registerUser, loginWithGoogle } from '../../api';
+import { registerUser, loginWithGoogle, wakeUpApi } from '../../api';
 import { buildRegisterPayload } from '../../utils/payloadMapping';
 
-// لو الخطأ القادم من الباك إند معناه "الإيميل مستخدم/غلط" بنرجّع رسالته
-// عشان تنعرض في Step 1 (حقل الإيميل) مش هون.
+// If the backend error means the email is already in use or invalid, return its message
+// so it can be displayed in Step 1 under the email field, not here.
 const getEmailError = (err) => {
   const fieldMsg = err?.errors?.email;
   if (fieldMsg) return Array.isArray(fieldMsg) ? fieldMsg[0] : fieldMsg;
@@ -42,6 +42,9 @@ const RegisterStep3 = ({ onNextSuccess, onBack, onEmailError, registerData, goog
     setIsSubmitting(true);
     setError('');
     try {
+      // Wake the backend first if it was sleeping, so the real request
+      // below doesn't fail as a network error on a cold start.
+      await wakeUpApi();
       let res;
       if (googleCredential) {
         // Finalizing a Google sign-up (Login.jsx redirected here because
@@ -70,7 +73,7 @@ const RegisterStep3 = ({ onNextSuccess, onBack, onEmailError, registerData, goog
       }
     } catch (err) {
       setIsSubmitting(false);
-      // خطأ الإيميل (مثلاً مستخدم من قبل) بيظهر بخطوة Step 1 عند حقل الإيميل
+      // Email errors (for example, an address already in use) appear beside the email field in Step 1
       const emailError = !googleCredential ? getEmailError(err) : '';
       if (emailError && typeof onEmailError === 'function') {
         onEmailError(emailError);

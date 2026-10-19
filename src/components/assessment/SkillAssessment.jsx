@@ -5,9 +5,10 @@ import { autosaveBaselineAssessment } from '../../api';
 import {
   RATING_LEVELS,
   LEVEL_ACCENT,
-  SECTIONS,
-  ALL_QUESTIONS,
-  TOTAL_QUESTIONS,
+  getQuestionBank,
+  computeProgress,
+  toResponses,
+  isAnswered,
   firstUnansweredIndex,
 } from './assessmentQuestions';
 
@@ -70,8 +71,14 @@ const BulbIcon = () => (
  * sessionStorage only.
  */
 const SkillAssessment = ({ assessmentId, onComplete, onExit }) => {
+  // Role-specific questions returned by the API when the assessment started.
+  const bank = useMemo(() => getQuestionBank(), []);
+  const SECTIONS = bank.sections;
+  const ALL_QUESTIONS = bank.questions;
+  const TOTAL_QUESTIONS = bank.total;
+
   const [answers, setAnswers] = useState(loadSavedAnswers);
-  const [currentIndex, setCurrentIndex] = useState(() => firstUnansweredIndex(loadSavedAnswers()));
+  const [currentIndex, setCurrentIndex] = useState(() => firstUnansweredIndex(loadSavedAnswers(), bank.questions));
   const [submitting, setSubmitting] = useState(false);
   const autosaveTimer = useRef(null);
 
@@ -81,7 +88,11 @@ const SkillAssessment = ({ assessmentId, onComplete, onExit }) => {
     if (!assessmentId) return undefined;
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     autosaveTimer.current = setTimeout(() => {
-      autosaveBaselineAssessment(assessmentId, { answers }).catch(() => {
+      const { answered, total, percent } = computeProgress(answers, ALL_QUESTIONS);
+      autosaveBaselineAssessment(assessmentId, {
+        progress: { answered, total, percent },
+        responses: toResponses(answers, ALL_QUESTIONS),
+      }).catch(() => {
         // Best effort - sessionStorage above already has the source of
         // truth for resuming locally; a missed autosave call just means
         // the final submit (see AssessmentWizard.jsx) sends the full
@@ -90,19 +101,19 @@ const SkillAssessment = ({ assessmentId, onComplete, onExit }) => {
     }, 500);
 
     return () => clearTimeout(autosaveTimer.current);
-  }, [answers, assessmentId]);
+  }, [answers, assessmentId, ALL_QUESTIONS]);
 
   const question = ALL_QUESTIONS[currentIndex];
   const section = SECTIONS.find((s) => s.key === question.sectionKey);
   const questionNumber = currentIndex + 1;
-  const overallPct = Math.round((questionNumber / TOTAL_QUESTIONS) * 100);
-  const answeredCount = Object.keys(answers).filter((id) => answers[id] !== undefined && answers[id] !== '')
-    .length;
+  // Progress = how many of THIS role's questions have actually been answered
+  // (same helper the Resume/Completion screens use, so the % always matches).
+  const { answered: answeredCount, percent: overallPct } = computeProgress(answers, ALL_QUESTIONS);
 
   const sectionQuestionIndex = section.questions.findIndex((q) => q.id === question.id);
 
   const currentAnswer = answers[question.id];
-  const hasAnswer = currentAnswer !== undefined && currentAnswer !== '';
+  const hasAnswer = isAnswered(answers, question.id);
   const isLastQuestion = currentIndex === TOTAL_QUESTIONS - 1;
 
   const setAnswer = (value) => {
@@ -133,12 +144,10 @@ const SkillAssessment = ({ assessmentId, onComplete, onExit }) => {
   const sectionsWithProgress = useMemo(
     () =>
       SECTIONS.map((s) => {
-        const answeredInSection = s.questions.filter(
-          (q) => answers[q.id] !== undefined && answers[q.id] !== ''
-        ).length;
+        const answeredInSection = s.questions.filter((q) => isAnswered(answers, q.id)).length;
         return { ...s, answeredInSection };
       }),
-    [answers]
+    [answers, SECTIONS]
   );
 
   return (
@@ -185,7 +194,7 @@ const SkillAssessment = ({ assessmentId, onComplete, onExit }) => {
                 </div>
                 <ul className="sa-sidebar-skill-list">
                   {s.questions.map((q) => {
-                    const answered = answers[q.id] !== undefined && answers[q.id] !== '';
+                    const answered = isAnswered(answers, q.id);
                     const isCurrent = q.id === question.id;
                     return (
                       <li
@@ -332,12 +341,12 @@ const SkillAssessment = ({ assessmentId, onComplete, onExit }) => {
 
             <div className="sa-nav-dots">
               {ALL_QUESTIONS.map((q, i) => {
-                const isAnswered = answers[q.id] !== undefined && answers[q.id] !== '';
+                const isDone = isAnswered(answers, q.id);
                 const isCurrent = i === currentIndex;
                 return (
                   <span
                     key={q.id}
-                    className={`sa-nav-dot ${isAnswered ? 'answered' : ''} ${isCurrent ? 'current' : ''}`}
+                    className={`sa-nav-dot ${isDone ? 'answered' : ''} ${isCurrent ? 'current' : ''}`}
                   />
                 );
               })}
@@ -357,10 +366,10 @@ const SkillAssessment = ({ assessmentId, onComplete, onExit }) => {
             <strong>{question.skill}</strong>
             <p>
               {question.type === 'rating'
-                ? 'Rate your current proficiency level honestly. There are no wrong answers — this helps us calibrate your roadmap accurately.'
+                ? 'Rate your current proficiency level honestly — this helps us calibrate your roadmap accurately.'
                 : question.type === 'text'
-                ? 'Type in your own words - there is no fixed list, and you can always update this later from your profile.'
-                : 'Pick whichever option best matches your current experience. There are no wrong answers here.'}
+                ? 'Type your answer in your own words.'
+                : 'Choose the option you believe is correct. Your score is calculated from your answers across all pages.'}
             </p>
           </div>
 
@@ -387,7 +396,7 @@ const SkillAssessment = ({ assessmentId, onComplete, onExit }) => {
             <div className="sa-context-title">{section.label}</div>
             <ul className="sa-context-skill-list">
               {section.questions.map((q) => {
-                const answered = answers[q.id] !== undefined && answers[q.id] !== '';
+                const answered = isAnswered(answers, q.id);
                 const isCurrent = q.id === question.id;
                 return (
                   <li key={q.id} className={`${answered ? 'answered' : ''} ${isCurrent ? 'current' : ''}`}>
@@ -404,8 +413,8 @@ const SkillAssessment = ({ assessmentId, onComplete, onExit }) => {
             <div>
               <strong>Tip</strong>
               <p>
-                Be honest with your self-assessment. Overestimating slows your growth — accurate
-                answers lead to a better-fit roadmap.
+                Answer based on what you actually know — accurate answers lead to a
+                better-fit roadmap. If unsure, pick the closest option.
               </p>
             </div>
           </div>

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { askAssistant, unwrapApiData } from "../../api";
+import { askAssistant, reportAssistantInteraction, createSupportRequest, unwrapApiData } from "../../api";
 // ═══════════════════════════════════════════════════════════════════════════════
-// MOCK CONVERSATIONS
+// Sample conversations are available only when explicitly enabled for development.
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
 // ═══════════════════════════════════════════════════════════════════════════════
 const PRIVACY_MSG = {
   id: "privacy",
@@ -16,7 +17,7 @@ const WELCOME_MSGS = [
     role: "assistant",
     type: "text",
     timestamp: "14:30",
-    text: "Hi Ahmed! I'm your SkillSpan assistant. I can help you understand your readiness score, skill gaps, career roadmap, and project recommendations — all based on your verified profile data.\n\nWhat would you like to explore today?",
+    text: "Hi! I'm your SkillSpan assistant. I can help you understand your readiness score, skill gaps, career roadmap, and project recommendations — all based on your verified profile data.\n\nWhat would you like to explore today?",
   },
 ];
 const READINESS_MSGS = [
@@ -204,7 +205,7 @@ const UNAVAILABLE_MSGS = [
     },
   },
 ];
-const SCENARIOS = [
+const SCENARIOS = DEMO_MODE ? [
   { key: "welcome", label: "Welcome", messages: WELCOME_MSGS },
   { key: "readiness", label: "Readiness", messages: [...WELCOME_MSGS, ...READINESS_MSGS] },
   { key: "skill-gap", label: "Skill Gap", messages: [...WELCOME_MSGS, ...SKILL_GAP_MSGS] },
@@ -212,11 +213,11 @@ const SCENARIOS = [
   { key: "project-rec", label: "Project Rec", messages: [...WELCOME_MSGS, ...PROJECT_MSGS] },
   { key: "uncertainty", label: "Uncertainty", messages: [...WELCOME_MSGS, ...UNCERTAINTY_MSGS] },
   { key: "unavailable", label: "Service Unavailable", messages: [...WELCOME_MSGS, ...UNAVAILABLE_MSGS] },
-];
+] : [];
 const SUGGESTED_QUESTIONS = [
-  { text: "Why is my readiness score 67?", intent: "explain_readiness" },
+  { text: "Help me understand my readiness results", intent: "explain_readiness" },
   { text: "What should I do next on my roadmap?", intent: "explain_next_best_action" },
-  { text: "Why was the REST API project recommended to me?", intent: "explain_project_recommendation" },
+  { text: "Explain my project recommendations", intent: "explain_project_recommendation" },
   { text: "What skills am I missing for Software Engineer?", intent: "explain_skill_gap" },
   { text: "Explain my System Design skill gap", intent: "explain_skill_gap" },
   { text: "How do I improve my Practical Experience score?", intent: "explain_readiness" },
@@ -224,12 +225,12 @@ const SUGGESTED_QUESTIONS = [
 
 function inferAssistantIntent(question) {
   const q = question.toLowerCase();
-  if (/readiness|score|جاهزي|درجة/.test(q)) return "explain_readiness";
-  if (/skill gap|skill.?gap|missing skill|skills? .*missing|فجوة|مهار/.test(q)) return "explain_skill_gap";
-  if (/roadmap|career path|مسار|خطة/.test(q)) return "explain_roadmap";
-  if (/next|do next|should i do|التالي|الخطوة/.test(q)) return "explain_next_best_action";
-  if (/how do i (build|implement|fix|use)|implementation|build this|implement this|كيف (أبني|أنفذ|أصلح|أستخدم)|تنفيذ/.test(q)) return "project_bounded_help";
-  if (/project|recommended|recommendation|مشروع|موصى/.test(q)) return "explain_project_recommendation";
+  if (/readiness|score/.test(q)) return "explain_readiness";
+  if (/skill gap|skill.?gap|missing skill|skills? .*missing/.test(q)) return "explain_skill_gap";
+  if (/roadmap|career path/.test(q)) return "explain_roadmap";
+  if (/next|do next|should i do/.test(q)) return "explain_next_best_action";
+  if (/how do i (build|implement|fix|use)|implementation|build this|implement this/.test(q)) return "project_bounded_help";
+  if (/project|recommended|recommendation/.test(q)) return "explain_project_recommendation";
   return "explain_readiness";
 }
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -675,7 +676,7 @@ function PrivacyBanner() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // SINGLE MESSAGE
 // ═══════════════════════════════════════════════════════════════════════════════
-function ChatMessage({ msg, onReport }) {
+function ChatMessage({ msg, onReport, onHandoff }) {
   const [showReport, setShowReport] = useState(false);
   if (msg.type === "privacy") return <PrivacyBanner />;
   if (msg.role === "system") return null;
@@ -707,6 +708,16 @@ function ChatMessage({ msg, onReport }) {
             }}
           />
 
+          {msg.role === "assistant" && msg.handoffAvailable && !msg.handoffCreated && (
+            <button
+              type="button"
+              onClick={() => onHandoff(msg.id)}
+              className="mt-[10px] rounded-[8px] border border-[rgba(59,139,255,0.35)] bg-[rgba(59,139,255,0.12)] px-[10px] py-[7px] text-[11px] text-[#a9c8ff] hover:bg-[rgba(59,139,255,0.2)]"
+            >Contact human support</button>
+          )}
+          {msg.handoffCreated && (
+            <p className="mt-[8px] text-[10px] text-[#a9c8ff]">Support request #{msg.supportRequestId} created ({msg.supportStatus || "pending"}).</p>
+          )}
           {/* Structured payload cards */}
           {msg.type === "readiness" && msg.payload && <ReadinessCard payload={msg.payload} />}
           {msg.type === "skill-gap" && msg.payload && <SkillGapCard payload={msg.payload} />}
@@ -798,10 +809,10 @@ function ContextBadge() {
 // MAIN ASSISTANT PANEL
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function AssistantPanel({ onClose }) {
-  const [messages, setMessages] = useState([PRIVACY_MSG, ...WELCOME_MSGS]);
+  const [messages, setMessages] = useState([PRIVACY_MSG, ...(DEMO_MODE ? WELCOME_MSGS : [])]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [scenario, setScenario] = useState("welcome");
+  const [scenario, setScenario] = useState(DEMO_MODE ? "welcome" : "live");
   const [showSuggested, setShowSuggested] = useState(true);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
@@ -838,6 +849,8 @@ export default function AssistantPanel({ onClose }) {
       setMessages((prev) => [...prev, {
         id: payload.interaction_id ?? payload.id ?? `a-${Date.now()}`,
         interactionId: payload.interaction_id ?? payload.id,
+        intent: selectedIntent,
+        handoffAvailable: payload.handoff_available === true,
         role: "assistant",
         type: "text",
         timestamp: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
@@ -857,8 +870,44 @@ export default function AssistantPanel({ onClose }) {
       setIsTyping(false);
     }
   }
-  function handleReport(id, reason) {
-    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, reported: true, reportReason: reason } : m)));
+  async function handleReport(id, reason) {
+    const item = messages.find((m) => String(m.id) === String(id));
+    if (!item?.interactionId) return;
+    try {
+      await reportAssistantInteraction(item.interactionId, { report_status: reason });
+      setMessages((prev) => prev.map((m) => (String(m.id) === String(id) ? { ...m, reported: true, reportReason: reason } : m)));
+    } catch (error) {
+      setMessages((prev) => [...prev, {
+        id: `report-error-${Date.now()}`, role: "assistant", type: "text",
+        timestamp: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+        text: error?.message || "Could not submit the report. Please try again.",
+      }]);
+    }
+  }
+  async function handleHandoff(id) {
+    const item = messages.find((m) => String(m.id) === String(id));
+    if (!item?.handoffAvailable || !item.interactionId) return;
+    const transcript = messages
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .slice(-40)
+      .map((m) => ({ role: m.role === "user" ? "learner" : "assistant", body: String(m.text || "").slice(0, 4000) }));
+    try {
+      const response = await createSupportRequest({
+        reason: "insufficient_context",
+        source_interaction_id: Number(item.interactionId),
+        transcript,
+      });
+      const request = unwrapApiData(response) || {};
+      setMessages((prev) => prev.map((m) => String(m.id) === String(id)
+        ? { ...m, handoffCreated: true, supportRequestId: request.id, supportStatus: request.status }
+        : m));
+    } catch (error) {
+      setMessages((prev) => [...prev, {
+        id: `handoff-error-${Date.now()}`, role: "assistant", type: "text",
+        timestamp: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+        text: error?.message || "Could not contact support. Please try again.",
+      }]);
+    }
   }
   function handleKeyDown(e) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -907,7 +956,7 @@ export default function AssistantPanel({ onClose }) {
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto py-[8px]">
         {messages.map((msg) => (
-          <ChatMessage key={msg.id} msg={msg} onReport={handleReport} />
+          <ChatMessage key={msg.id} msg={msg} onReport={handleReport} onHandoff={handleHandoff} />
         ))}
         {isTyping && <TypingIndicator />}
 

@@ -12,10 +12,9 @@ const ONBOARDING_STEPS = [
 // Mirrors the question set in SkillAssessment.jsx - kept as a small summary
 // here so the intro screen and the actual quiz never drift apart on counts.
 const CATEGORY_PREVIEW = [
-  { label: 'Programming Skills', detail: 'Python, JS, SQL, TypeScript' },
-  { label: 'Web Development', detail: 'React, REST APIs' },
-  { label: 'Data & Analytics', detail: 'Python data tools, Visualization' },
-  { label: 'Career Goals', detail: 'Target role and timeline' },
+  { label: 'Role-specific skills', detail: 'Questions match the career role you pick' },
+  { label: 'Core concepts', detail: 'Short questions on each required skill' },
+  { label: 'Instant scoring', detail: 'Your readiness % reflects your answers' },
 ];
 
 const CheckIcon = () => (
@@ -59,9 +58,9 @@ const ChevronRightIcon = () => (
 );
 
 const EXPECTATIONS = [
-  'Rate your proficiency in programming and development skills on a 0–4 scale',
-  'Share your experience with data tools, team collaboration, and presentations',
-  'Tell us your career target role and how soon you want to land it',
+  'Choose the career role you are aiming for',
+  'Answer questions on the skills that role requires',
+  'See your readiness percentage based on how you answered',
   'Your results immediately initialize your Skill Matrix and unlock your roadmap',
   'Progress is auto-saved — exit any time and continue from where you left off',
 ];
@@ -72,7 +71,7 @@ const EXPECTATIONS = [
  * (see AssessmentWizard.jsx). Purely informational; `onStart` moves on to
  * the actual questions.
  */
-const SkillAssessmentIntro = ({ onStart }) => {
+const SkillAssessmentIntro = ({ onStart, careerRoles = [], careerRoleId = '', onCareerRoleChange, startError = '', starting = false }) => {
   return (
     <div className="assessment-intro-page">
       <header className="assessment-topbar">
@@ -102,11 +101,11 @@ const SkillAssessmentIntro = ({ onStart }) => {
       <div className="assessment-intro-body">
         <aside className="assessment-intro-sidebar">
           <div className="assessment-intro-icon-wrap">
-            <span className="assessment-intro-icon-tag">12 Questions</span>
+            <span className="assessment-intro-icon-tag">Role-based</span>
             <div className="assessment-intro-icon-box">
               <StarIcon />
             </div>
-            <span className="assessment-intro-icon-time">~8 minutes</span>
+            <span className="assessment-intro-icon-time">~10 minutes</span>
           </div>
 
           <h2 className="assessment-intro-heading">Baseline Skill Assessment</h2>
@@ -154,13 +153,13 @@ const SkillAssessmentIntro = ({ onStart }) => {
           <div className="assessment-intro-stats">
             <div className="assessment-intro-stat">
               <ClockIcon />
-              <strong>~8 min</strong>
+              <strong>~10 min</strong>
               <span>Estimated time</span>
             </div>
             <div className="assessment-intro-stat">
               <ClipboardIcon />
-              <strong>12</strong>
-              <span>Questions across 4 areas</span>
+              <strong>Tailored</strong>
+              <span>Questions for your chosen role</span>
             </div>
             <div className="assessment-intro-stat">
               <LockIcon />
@@ -181,9 +180,51 @@ const SkillAssessmentIntro = ({ onStart }) => {
             </ul>
           </div>
 
-          <button type="button" className="assessment-intro-start" onClick={onStart}>
-            Start Assessment
-            <ChevronRightIcon />
+          <div className="assessment-career-role-picker">
+            <label htmlFor="assessment-career-role" className="assessment-career-role-label">
+              Career role <span className="assessment-career-role-required">*</span>
+            </label>
+            <div className="assessment-career-role-select-wrap">
+              <select
+                id="assessment-career-role"
+                className={`assessment-career-role-select ${careerRoleId ? 'has-value' : ''}`}
+                value={careerRoleId}
+                onChange={(event) => onCareerRoleChange?.(event.target.value)}
+                aria-invalid={!!startError}
+              >
+                <option value="">Select your career role</option>
+                {careerRoles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.title ?? role.name ?? role.role_title ?? `Role ${role.id}`}
+                  </option>
+                ))}
+              </select>
+              <span className="assessment-career-role-chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+            </div>
+            <p className="assessment-career-role-hint">
+              Your questions are tailored to the role you choose.
+            </p>
+            {careerRoles.length === 0 && (
+              <p role="status" className="assessment-career-role-status">
+                No career roles loaded. Check your login and API connection.
+              </p>
+            )}
+            {startError && (
+              <p role="alert" className="assessment-career-role-error">{startError}</p>
+            )}
+          </div>
+          <button
+            type="button"
+            className="assessment-intro-start"
+            onClick={onStart}
+            disabled={starting || !careerRoleId}
+          >
+            {starting ? 'Preparing your questions...' : 'Start Assessment'}
+            {!starting && <ChevronRightIcon />}
           </button>
           <p className="assessment-intro-autosave">
             Your progress is saved automatically — you can exit and resume at any time

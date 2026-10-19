@@ -5,7 +5,8 @@
   margin: 25px 0;
 }
 
-/* بطاقات الشروط والخصوصية مع إضافة تأثيرات التفاعل والارتفاع عند تحريك الماوس */
+
+
 .checkbox-card {
   display: flex;
   align-items: center;
@@ -20,7 +21,8 @@
   position: relative;
 }
 
-/* تفاعل الماوس عند التمرير على البطاقات */
+
+
 .checkbox-card:hover {
   background-color: #182e5d;
   border-color: #3b82f6;
@@ -28,14 +30,16 @@
   box-shadow: 0 6px 18px rgba(18, 34, 71, 0.6);
 }
 
-/* عند تحديد الخيار */
+
+
 .checkbox-card.checked {
   background-color: #152957;
   border: 1px solid #2b4c8c;
   box-shadow: 0 0 12px rgba(43, 76, 140, 0.4);
 }
 
-/* مربع التحديد المخصص */
+
+
 .custom-checkbox {
   width: 22px;
   height: 22px;
@@ -77,7 +81,8 @@
   text-decoration: underline;
 }
 
-/* --- تصميم رسالة الخطأ المميز والبارز --- */
+
+
 .error-banner {
   display: flex;
   align-items: center;
@@ -90,7 +95,8 @@
   font-weight: 600;
   border: 1px solid #ef4444;
   box-shadow: 0 4px 16px rgba(220, 38, 38, 0.45);
-  /* انيميشن الظهور مع الاهتزاز الخفيف لجذب الانتباه */
+  
+
   animation: shakeFadeIn 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
@@ -160,12 +166,11 @@
   }
 }
 
-/* ==========================================================================
-   Terms & Privacy (Step 3) - تصميم جديد
-   كل القواعد مقيّدة بـ :has(.terms-box) حتى لا تتأثر باقي الصفحات
-   ========================================================================== */
 
-/* ---------- تخطيط الجانب الأيمن + نفس مسافة الخطوة 2 ---------- */
+
+
+
+
 .form-right:has(.terms-box) {
   --step3-side-gap: 10.5%;
   justify-content: flex-start;
@@ -190,7 +195,8 @@
   }
 }
 
-/* ---------- الهيدر + شريط التقدم (3 مقاطع مكتملة) ---------- */
+
+
 .form-right:has(.terms-box) .step-header {
   font-size: 1.5rem;
   font-weight: 700;
@@ -221,7 +227,8 @@
   background-color: #f5a623;
 }
 
-/* ---------- العنوان ---------- */
+
+
 .form-right:has(.terms-box) .form-heading {
   margin-bottom: 30px;
 }
@@ -241,7 +248,8 @@
   margin: 0;
 }
 
-/* ---------- صندوق الشروط ---------- */
+
+
 .terms-box {
   border: 1px solid #e6e9f2;
   border-radius: 12px;
@@ -297,7 +305,8 @@
   line-height: 1.6;
 }
 
-/* ---------- مربع الموافقة ---------- */
+
+
 .terms-agreement {
   margin-top: 32px;
   display: flex;
@@ -358,7 +367,8 @@
   text-decoration: underline;
 }
 
-/* ---------- شاشات صغيرة ---------- */
+
+
 @media (max-width: 850px) {
   .form-right:has(.terms-box) {
     padding: 30px 24px;

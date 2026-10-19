@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './RegisterStep2.css';
 
 const RegisterStep2 = ({ onNextSuccess, onBack, introText }) => {
-  // تم ضبط القيمة الافتراضية إلى null لتجنب تحديد خيار الطالب تلقائياً
+  // The default value is null to avoid selecting the learner option automatically
   const [academicStatus, setAcademicStatus] = useState(null); 
   const [error, setError] = useState('');
 

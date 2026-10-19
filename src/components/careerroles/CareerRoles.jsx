@@ -632,8 +632,8 @@ export default function CareerRoles({ user, onLogout, onNavigate }) {
       onNavigate={(key) => (NAV_ROUTES[key] ? onNavigate(key) : null)}
       user={user}
       onLogout={onLogout}
-      readinessScore={67}
-      roleLabel="Software Engineer"
+      readinessScore={Number(user?.readiness_score ?? user?.readinessScore ?? 0) || 0}
+      roleLabel={user?.career_role?.title ?? user?.career_role_title ?? user?.role_title ?? ''}
     >
       <h1 className="cr-title">Career Roles</h1>
       <p className="cr-subtitle">Explore roles, understand requirements, and track your readiness.</p>

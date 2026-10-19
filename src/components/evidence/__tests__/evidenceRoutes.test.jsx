@@ -7,6 +7,8 @@ vi.mock('../../../api', () => ({
   getMyEvidence: vi.fn(),
   submitEvidence: vi.fn(),
   reviewEvidence: vi.fn(),
+  markAllNotificationsRead: vi.fn(),
+  markNotificationRead: vi.fn(),
 }));
 vi.mock('../../auth/AuthContext', () => ({
   useAuth: () => ({ authUser: { name: 'Ahmed Mazen' }, logout: vi.fn() }),
@@ -34,15 +36,14 @@ function renderAt(path) {
 beforeEach(() => vi.clearAllMocks());
 
 describe('evidence screens inside the app shell', () => {
-  it('renders Evidence Status inside the dashboard layout with preview data when API is empty', async () => {
+  it('renders Evidence Status inside the dashboard layout with empty state when API is empty', async () => {
     getMyEvidence.mockResolvedValue({ data: [] });
     renderAt('/evidence');
     expect(await screen.findByText('Evidence Status')).toBeTruthy();
     // dashboard shell is present (sidebar + top bar)
     expect(screen.getByText('My Skill Matrix')).toBeTruthy();
     expect(screen.getByText('Ahmed Mazen')).toBeTruthy();
-    expect(screen.getByText(/Showing preview data/)).toBeTruthy();
-    expect(screen.getAllByText('Python').length).toBeGreaterThan(0);
+    expect(screen.getByText(/No evidence submitted yet/)).toBeTruthy();
   });
 
   it('shows real records from the API (mapped) without the preview banner', async () => {
@@ -63,7 +64,7 @@ describe('evidence screens inside the app shell', () => {
   });
 
   it('opens the detail page and the add form', async () => {
-    getMyEvidence.mockResolvedValue({ data: [] });
+    getMyEvidence.mockResolvedValue({ data: [{ id: 'ev-react', skill: { id: 1, name: 'React' }, verification_status: 'pending' }] });
     renderAt('/evidence/ev-react');
     expect(await screen.findByText('Evidence review')).toBeTruthy();
   });
@@ -79,7 +80,7 @@ describe('evidence screens inside the app shell', () => {
   });
 
   it('reviewer dashboard renders the queue', async () => {
-    getMyEvidence.mockResolvedValue({ data: [] });
+    getMyEvidence.mockResolvedValue({ data: [{ id: 'ev-1', skill: { id: 1, name: 'React' }, verification_status: 'pending' }] });
     renderAt('/review');
     await waitFor(() => expect(screen.getByText('Review queue')).toBeTruthy());
   });

@@ -23,7 +23,8 @@
   position: relative;
 }
 
-/* القسم الأيمن لتأكيد الكود */
+
+
 .form-right-verify {
   flex: 1;
   padding: 40px 50px 50px 50px;
@@ -41,7 +42,8 @@
   text-align: center;
 }
 
-/* أيقونة الرسالة العلوية - صندوق داكن مطابق لتصميم Email Verification */
+
+
 .verify-mail-icon-box {
   width: 84px;
   height: 84px;
@@ -63,7 +65,8 @@
   stroke-width: 1.4;
 }
 
-/* وسم EMAIL VERIFICATION */
+
+
 .verify-subtag {
   color: #1d72b8;
   font-size: 0.8rem;
@@ -81,7 +84,8 @@
   font-weight: 700;
 }
 
-/* حقل الإيميل القابل للتعديل */
+
+
 .verify-email-field {
   text-align: left;
   margin-bottom: 16px;
@@ -116,7 +120,8 @@
   background-color: #ffffff;
 }
 
-/* مربعات إدخال كود الـ OTP */
+
+
 .otp-inputs-container {
   display: flex;
   justify-content: center;
@@ -145,7 +150,8 @@
   transform: translateY(-2px);
 }
 
-/* مؤقت انتهاء صلاحية الكود */
+
+
 .verify-timer-info {
   display: flex;
   align-items: center;
@@ -176,7 +182,8 @@
   display: block;
 }
 
-/* زر Verify code - نفس تصميم الزر الدائري في صفحة Email Verification */
+
+
 .btn-verify-code {
   width: 100%;
   padding: 16px;
@@ -200,7 +207,8 @@
   transform: scale(0.98);
 }
 
-/* تذييل الصفحة: إعادة الإرسال + Back، أسفل الصفحة تمامًا */
+
+
 .verify-footer {
   max-width: 420px;
   margin: 24px auto 0 auto;

@@ -6,8 +6,8 @@ const VerifyCode = ({ email, onBack, onSuccess }) => {
   const [emailInput, setEmailInput] = useState(email || '');
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
-  const [timeLeft, setTimeLeft] = useState(480); // مؤقت انتهاء صلاحية الكود (8 دقائق)
-  const [resendTimer, setResendTimer] = useState(60); // مؤقت السماح بإعادة الإرسال
+  const [timeLeft, setTimeLeft] = useState(480); // Code expiration timer (8 minutes)
+  const [resendTimer, setResendTimer] = useState(60); // Resend cooldown timer
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const inputRefs = useRef([]);

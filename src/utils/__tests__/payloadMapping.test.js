@@ -108,7 +108,7 @@ describe('buildProfilePayload', () => {
   it('maps the Profile Setup form fields to the API contract', () => {
     const payload = buildProfilePayload({
       university: 'The Islamic University',
-      universityId: '2021900123',
+      studentId: '2021900123',
       specialization: 'Marketing',
       academicLevel: 'second_year',
       expectedGraduation: '2027',

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Plus, RotateCcw, Search } from "lucide-react";
-import { SEED_EVIDENCE, fmt, truncate } from "./lib/evidenceMeta";
+import { fmt, truncate } from "./lib/evidenceMeta";
 import { SkillIcon, StatusBadge, TypeBadge } from "./Shared";
 
 const TABS = [
@@ -11,7 +11,7 @@ const TABS = [
   { key: "revision", label: "Revision" },
 ];
 
-export default function EvidenceStatus({ evidence = SEED_EVIDENCE, onAdd = () => {}, onOpen = () => {} }) {
+export default function EvidenceStatus({ evidence = [], onAdd = () => {}, onOpen = () => {} }) {
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
   const records = Array.isArray(evidence) ? evidence : [];

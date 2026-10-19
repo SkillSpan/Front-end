@@ -2,388 +2,6 @@ import { useState } from "react";
 // ═══════════════════════════════════════════════════════════════════════════════
 // MOCK DATA
 // ═══════════════════════════════════════════════════════════════════════════════
-const READINESS = {
-  score: 67,
-  band: "Progressing",
-  roleTitle: "Software Engineer",
-  roleVersion: "v2.3",
-  algorithmVersion: "v1.4.2",
-  configVersion: "v2.1",
-  calculatedAt: "2026-09-09T14:32:00Z",
-  decisionVersion: "dec-2026090914",
-  explanation:
-    "Your readiness is driven by a strong Skill Match (74%), but limited Practical Experience (52%) and a critical Python deficiency are the main limiters. Closing the Python gap is the highest-leverage move — it removes the critical flag, unlocks Phase 3, and adds an estimated +8 pts to your score.",
-  warning: {
-    skillName: "Python",
-    currentLevel: 3,
-    requiredLevel: 4,
-    capApplied: 75,
-    uncappedScore: 73,
-    explanation:
-      "Python is a critical skill for Software Engineer (Level 4 required, you have Level 3). A cap of 75 is configured — your score of 67 is currently below the cap so it is not yet restricting you, but it will apply if your overall score reaches 75 before this gap is resolved.",
-  },
-  components: [
-    {
-      key: "skillMatch",
-      label: "Skill Match",
-      abbr: "SM",
-      score: 74,
-      weight: 0.65,
-      contribution: 48.1,
-      color: "#3b8bff",
-      icon: "◈",
-      explanation:
-        "Your validated skill levels vs. the required levels. Python and React are the two largest gaps reducing this component. Each level gained in a high-importance skill has an outsized effect here.",
-    },
-    {
-      key: "practicalExp",
-      label: "Practical Experience",
-      abbr: "PE",
-      score: 52,
-      weight: 0.2,
-      contribution: 10.4,
-      color: "#7c3aed",
-      icon: "◉",
-      explanation:
-        "Verified project and applied-experience evidence relevant to this role. 2 active projects count; no completed SkillSpan simulations yet. Completing one simulation adds significant points here.",
-    },
-    {
-      key: "assessmentRel",
-      label: "Assessment Reliability",
-      abbr: "AR",
-      score: 68,
-      weight: 0.1,
-      contribution: 6.8,
-      color: "#f59e0b",
-      icon: "◑",
-      explanation:
-        "How well-verified your skill levels are across the required set. Most skills have at least one verified source; Python and React have pending verification items that would raise this score.",
-    },
-    {
-      key: "profileComp",
-      label: "Profile Completeness",
-      abbr: "PC",
-      score: 80,
-      weight: 0.05,
-      contribution: 4.0,
-      color: "#059669",
-      icon: "◐",
-      explanation:
-        "Whether your profile contains the information needed for a reliable calculation. Adding detailed work-experience history will push this to 100%.",
-    },
-  ],
-};
-const GAPS = [
-  {
-    skillId: "s1",
-    skillName: "Python",
-    category: "Programming",
-    currentLevel: 3,
-    requiredLevel: 4,
-    maxLevel: 5,
-    gap: 1,
-    match: 75,
-    importance: 0.9,
-    isCritical: true,
-    confidence: 0.82,
-    confidenceLabel: "High",
-    evidenceSummary: "2 assessments (verified) · 1 project (verified)",
-    explanation:
-      "Highest-weight critical skill. 1 level away from the requirement. Complete the Python Intermediate Assessment to close this gap and remove the critical deficiency flag.",
-    bucket: "priority-gap",
-  },
-  {
-    skillId: "s2",
-    skillName: "React",
-    category: "Frontend",
-    currentLevel: 2,
-    requiredLevel: 3,
-    maxLevel: 5,
-    gap: 1,
-    match: 67,
-    importance: 0.8,
-    isCritical: true,
-    confidence: 0.61,
-    confidenceLabel: "Medium",
-    evidenceSummary: "1 self-assessment · 1 project (pending verification)",
-    explanation:
-      "Critical skill with medium confidence. A verified assessment would improve level accuracy and roadmap reliability for this skill.",
-    bucket: "priority-gap",
-  },
-  {
-    skillId: "s3",
-    skillName: "System Design",
-    category: "Architecture",
-    currentLevel: 2,
-    requiredLevel: 3,
-    maxLevel: 5,
-    gap: 1,
-    match: 67,
-    importance: 0.75,
-    isCritical: false,
-    confidence: 0.4,
-    confidenceLabel: "Low",
-    evidenceSummary: "1 self-assessment only — no verified evidence",
-    explanation:
-      "Low confidence: self-assessment only. Complete a practice task or simulation to produce verified evidence and raise roadmap accuracy.",
-    bucket: "developing",
-  },
-  {
-    skillId: "s4",
-    skillName: "REST API Design",
-    category: "Backend",
-    currentLevel: 2,
-    requiredLevel: 3,
-    maxLevel: 5,
-    gap: 1,
-    match: 67,
-    importance: 0.65,
-    isCritical: false,
-    confidence: 0.55,
-    confidenceLabel: "Medium",
-    evidenceSummary: "1 project submission (verified)",
-    explanation:
-      "Partially verified through the E-commerce REST API project. A second project raises confidence to High.",
-    bucket: "developing",
-  },
-  {
-    skillId: "s5",
-    skillName: "SQL",
-    category: "Databases",
-    currentLevel: 3,
-    requiredLevel: 3,
-    maxLevel: 5,
-    gap: 0,
-    match: 100,
-    importance: 0.7,
-    isCritical: false,
-    confidence: 0.91,
-    confidenceLabel: "High",
-    evidenceSummary: "3 assessments (verified) · 2 projects (verified)",
-    explanation: "Requirement met with high confidence. No action needed.",
-    bucket: "strength",
-  },
-  {
-    skillId: "s6",
-    skillName: "Git & CI/CD",
-    category: "DevOps",
-    currentLevel: 2,
-    requiredLevel: 2,
-    maxLevel: 5,
-    gap: 0,
-    match: 100,
-    importance: 0.6,
-    isCritical: false,
-    confidence: 0.78,
-    confidenceLabel: "High",
-    evidenceSummary: "2 projects (verified)",
-    explanation: "Requirement met. Practical use confirmed via project submissions.",
-    bucket: "strength",
-  },
-];
-const MILESTONES = [
-  {
-    phase: 1,
-    title: "Foundations Cleared",
-    badge: "🏁",
-    description: "Core baseline knowledge verified. Phase 2 actions are unlocked.",
-    criteria: ["CS Fundamentals Assessment ≥ 70%", "At least one baseline skill level confirmed"],
-    status: "Achieved",
-    achievedDate: "15 Aug 2026",
-    unlocksPhase: 2,
-  },
-  {
-    phase: 2,
-    title: "Core Skills Verified",
-    badge: "⚡",
-    description: "All critical skill gaps resolved to required level. Practical tracks unlock.",
-    criteria: [
-      "Python: Level 4 (Assessment ≥ 80%)",
-      "React: Level 3 (Assessment ≥ 75%)",
-      "Both critical skills marked Verified",
-    ],
-    status: "In Progress",
-    unlocksPhase: 3,
-  },
-  {
-    phase: 3,
-    title: "Applied Practice Complete",
-    badge: "🔬",
-    description: "Practical experience verified through projects and simulations.",
-    criteria: [
-      "≥1 verified Simulation Project evaluated",
-      "REST API practice task submitted",
-      "System Design verified evidence collected",
-    ],
-    status: "Locked",
-    unlocksPhase: 4,
-  },
-  {
-    phase: 4,
-    title: "Career Ready",
-    badge: "🎯",
-    description: "Final readiness score reaches the Ready band. Eligible for talent-matching.",
-    criteria: [
-      "Final Readiness Score ≥ 85 (Ready band)",
-      "≥1 Real Project submitted and evaluated",
-      "All critical skills at Required level",
-    ],
-    status: "Locked",
-  },
-];
-const ACTIONS = [
-  {
-    id: "a0",
-    type: "Assessment",
-    phase: 1,
-    phaseName: "Foundations",
-    objective: "Verify baseline CS proficiency",
-    targetSkill: "CS Fundamentals",
-    priority: 0,
-    currentLevel: 3,
-    requiredLevel: 3,
-    gap: 0,
-    isCritical: false,
-    importance: 0.5,
-    prerequisites: [],
-    completionCriteria: "Score ≥ 70% on CS Fundamentals Baseline Assessment",
-    status: "Completed",
-    estimatedEffort: "2 h",
-    estimatedDuration: "3 days",
-    explanation: "Confirmed your baseline knowledge. Contributed to Assessment Reliability.",
-    unlocksWhat: "Achieved Phase 1 Milestone",
-  },
-  {
-    id: "a1",
-    type: "Assessment",
-    phase: 2,
-    phaseName: "Core Skills",
-    objective: "Assess and validate Python intermediate proficiency",
-    targetSkill: "Python",
-    priority: 1,
-    currentLevel: 3,
-    requiredLevel: 4,
-    gap: 1,
-    isCritical: true,
-    importance: 0.9,
-    prerequisites: [],
-    completionCriteria: "Score ≥ 80% on the Python Intermediate Assessment",
-    status: "Not Started",
-    estimatedEffort: "4 h study + 1.5 h assessment",
-    estimatedDuration: "1–2 weeks",
-    explanation:
-      "Highest-weight critical skill with no prerequisites — you can start immediately. Closing this gap has the largest single impact on your readiness.",
-    isNBA: true,
-    unlocksWhat: "Removes critical Python flag · Unlocks Phase 3 · +8 pts est. readiness",
-  },
-  {
-    id: "a2",
-    type: "Learning Resource",
-    phase: 2,
-    phaseName: "Core Skills",
-    objective: "Complete React Fundamentals → Intermediate learning path",
-    targetSkill: "React",
-    priority: 2,
-    currentLevel: 2,
-    requiredLevel: 3,
-    gap: 1,
-    isCritical: true,
-    importance: 0.8,
-    prerequisites: ["JavaScript ES6+ (Level 2+)"],
-    completionCriteria: "Complete all modules and pass the integrated quiz ≥ 75%",
-    status: "Not Started",
-    estimatedEffort: "12 h",
-    estimatedDuration: "2–3 weeks",
-    explanation: "Building the React knowledge base before the assessment produces a more reliable result.",
-    unlocksWhat: "Unlocks React Intermediate Assessment",
-  },
-  {
-    id: "a3",
-    type: "Assessment",
-    phase: 2,
-    phaseName: "Core Skills",
-    objective: "Assess React intermediate proficiency",
-    targetSkill: "React",
-    priority: 3,
-    currentLevel: 2,
-    requiredLevel: 3,
-    gap: 1,
-    isCritical: true,
-    importance: 0.8,
-    prerequisites: ["a2 — React Learning Resource"],
-    completionCriteria: "Score ≥ 75% on the React Intermediate Assessment",
-    status: "Not Started",
-    estimatedEffort: "2 h",
-    estimatedDuration: "1 week",
-    explanation: "Validates your React level and removes the low-confidence flag from this critical skill.",
-    unlocksWhat: "Closes React gap · +6 pts est. readiness",
-  },
-  {
-    id: "a4",
-    type: "Practice Task",
-    phase: 3,
-    phaseName: "Applied Practice",
-    objective: "Build a REST API using Python with SQL integration",
-    targetSkill: "REST API Design",
-    priority: 4,
-    currentLevel: 2,
-    requiredLevel: 3,
-    gap: 1,
-    isCritical: false,
-    importance: 0.65,
-    prerequisites: ["a1 — Python Assessment"],
-    completionCriteria: "Submit working API with documented endpoints, passing test suite, peer review ≥ 3/5",
-    status: "Not Started",
-    estimatedEffort: "10–15 h",
-    estimatedDuration: "2 weeks",
-    explanation:
-      "Applies Python in a practical context and closes the REST API Design gap. Improves Practical Experience component.",
-    unlocksWhat: "Closes REST API gap · Improves Practical Experience",
-  },
-  {
-    id: "a5",
-    type: "Simulation Project",
-    phase: 3,
-    phaseName: "Applied Practice",
-    objective: "System Design Simulation: Scalable Chat Architecture",
-    targetSkill: "System Design",
-    priority: 5,
-    currentLevel: 2,
-    requiredLevel: 3,
-    gap: 1,
-    isCritical: false,
-    importance: 0.75,
-    prerequisites: ["a4 — REST API Practice Task"],
-    completionCriteria: "Submit design document and receive evaluator score ≥ 3.5/5",
-    status: "Blocked",
-    estimatedEffort: "8–12 h",
-    estimatedDuration: "2 weeks",
-    explanation:
-      "System Design confidence is currently low (self-assessment only). The simulation creates the first verified evidence for this skill.",
-    unlocksWhat: "First verified System Design evidence · Unlocks Phase 4",
-  },
-  {
-    id: "a6",
-    type: "Real Project",
-    phase: 4,
-    phaseName: "Career Readiness",
-    objective: "Complete a full-stack real-world Software Engineering project",
-    targetSkill: "Full-Stack Dev",
-    priority: 6,
-    currentLevel: 2,
-    requiredLevel: 4,
-    gap: 2,
-    isCritical: false,
-    importance: 0.85,
-    prerequisites: ["a3", "a4", "a5"],
-    completionCriteria: "Deliver a production-grade feature with code review and evaluator sign-off",
-    status: "Not Started",
-    estimatedEffort: "40–60 h",
-    estimatedDuration: "6–8 weeks",
-    explanation: "Capstone milestone combining Python, React, and API skills in a deployed production context.",
-    unlocksWhat: "Achieves Ready band (85%+) · Qualifies for talent-matching",
-  },
-];
 // ═══════════════════════════════════════════════════════════════════════════════
 // DESIGN TOKENS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1202,7 +820,7 @@ function SkillGapTab({ gaps }) {
                                 <span className="text-[11px] text-[#ef4444]">⚑</span>
                                 <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#ef4444]">
                                   Critical skill — a severe deficiency can trigger a readiness cap (currently:{" "}
-                                  {READINESS.warning?.capApplied})
+                                  {data?.warning?.capApplied})
                                 </p>
                               </div>
                             )}
@@ -1243,12 +861,6 @@ function SkillGapTab({ gaps }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROADMAP TAB — phases + milestones + actions
 // ═══════════════════════════════════════════════════════════════════════════════
-const PHASES_META = [
-  { id: 1, name: "Foundations", focus: "Baseline knowledge · Prerequisites · Initial assessments" },
-  { id: 2, name: "Core Skills", focus: "Critical gaps · Required proficiency improvements" },
-  { id: 3, name: "Applied Practice", focus: "Practice tasks · Simulations · Practical projects" },
-  { id: 4, name: "Career Readiness", focus: "Real projects · Career preparation · Final milestones" },
-];
 // ── Milestone card ────────────────────────────────────────────────────────────
 function MilestoneCard({ m }) {
   const ms = MS[m.status];
@@ -1482,6 +1094,9 @@ function ActionCard({ action }) {
 function RoadmapTab({ actions, milestones }) {
   const [filterPhase, setFilterPhase] = useState("all");
   const [showMilestones, setShowMilestones] = useState(true);
+  const phases = [...new Set([...actions.map((a) => a.phase), ...milestones.map((m) => m.phase)].filter((phase) => phase !== null && phase !== undefined))]
+    .sort((a, b) => Number(a) - Number(b))
+    .map((id) => ({ id, name: actions.find((a) => a.phase === id)?.phase_name ?? milestones.find((m) => m.phase === id)?.phase_name ?? `Phase ${id}` }));
   const done = actions.filter((a) => a.status === "Completed").length;
   const curPhase = actions.find((a) => a.status !== "Completed")?.phase ?? 4;
   const displayActions = (filterPhase === "all" ? actions : actions.filter((a) => a.phase === filterPhase))
@@ -1495,16 +1110,16 @@ function RoadmapTab({ actions, milestones }) {
         <div className="flex items-center justify-between mb-[14px]">
           <div>
             <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#0a0b14]">
-              Career Roadmap — Software Engineer v2.3
+              Career Roadmap
             </h3>
             <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[2px]">
-              Phase {curPhase}: {PHASES_META.find((p) => p.id === curPhase)?.name} · {done}/{actions.length} actions
+              Phase {curPhase}: {phases.find((p) => String(p.id) === String(curPhase))?.name} · {done}/{actions.length} actions
               complete
             </p>
           </div>
           <div className="text-right">
             <p className="font-['Inter:Bold',sans-serif] font-bold text-[24px] text-[#0a0b14] leading-none">
-              {Math.round((done / actions.length) * 100)}%
+              {Math.round((done / Math.max(actions.length, 1)) * 100)}%
             </p>
             <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">overall progress</p>
           </div>
@@ -1513,13 +1128,13 @@ function RoadmapTab({ actions, milestones }) {
         <div className="w-full bg-[#f1f3fa] rounded-full h-[8px] mb-[16px]">
           <div
             className="h-[8px] rounded-full transition-all"
-            style={{ width: `${(done / actions.length) * 100}%`, background: "linear-gradient(90deg,#3b8bff,#7c3aed)" }}
+            style={{ width: `${(done / Math.max(actions.length, 1)) * 100}%`, background: "linear-gradient(90deg,#3b8bff,#7c3aed)" }}
           />
         </div>
 
         {/* 4 phase cards */}
         <div className="grid grid-cols-4 gap-[10px]">
-          {PHASES_META.map((p) => {
+          {phases.map((p) => {
             const pt2 = PT[p.id];
             const pa = actions.filter((a) => a.phase === p.id);
             const pd = pa.filter((a) => a.status === "Completed").length;
@@ -1612,7 +1227,7 @@ function RoadmapTab({ actions, milestones }) {
                     : undefined
                 }
               >
-                {f === "all" ? "All actions" : `Phase ${f} — ${PHASES_META.find((p) => p.id === f)?.name}`}
+                {f === "all" ? "All actions" : `Phase ${f} — ${phases.find((p) => String(p.id) === String(f))?.name}`}
               </button>
             );
           })}
@@ -2279,27 +1894,20 @@ function HistoricalState({ onViewLatest }) {
 
       {/* Historical readiness content — read-only */}
       <div className="opacity-65 pointer-events-none select-none">
-        <ReadinessTab data={readiness || READINESS} />
+        {readiness ? <ReadinessTab data={readiness} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No saved readiness result is available for this account yet. Complete the assessment and try again to load a real result from the server.</div>}
       </div>
     </div>
   );
 }
-const DEMO_STATES = [
-  { key: "loaded", label: "Normal" },
-  { key: "loading", label: "Loading" },
-  { key: "empty", label: "Empty" },
-  { key: "incomplete", label: "Incomplete" },
-  { key: "no-evidence", label: "No Evidence" },
-  { key: "invalid-config", label: "Invalid Config" },
-  { key: "unavailable", label: "Unavailable" },
-  { key: "timeout", label: "Timeout" },
-  { key: "error", label: "Error" },
-  { key: "historical", label: "Historical" },
-];
-export default function CareerJourneyView({ readiness = null }) {
+
+export default function CareerJourneyView({ readiness = null, intelligence = null }) {
+  const roadmap = intelligence?.roadmap ?? intelligence?.data?.roadmap ?? null;
+  const skillGaps = intelligence?.skill_gaps ?? intelligence?.skillGaps ?? intelligence?.data?.skill_gaps ?? null;
+  const nextBestAction = roadmap?.next_best_action ?? roadmap?.nextBestAction ?? intelligence?.next_best_action ?? intelligence?.nextBestAction ?? null;
+  const roadmapActions = roadmap?.actions ?? roadmap?.items ?? null;
+  const roadmapMilestones = roadmap?.milestones ?? roadmap?.phases ?? null;
   const [tab, setTab] = useState("readiness");
   const [demoState, setDemoState] = useState("loaded");
-  const nba = ACTIONS.find((a) => a.isNBA);
   const isLoaded = demoState === "loaded";
   const TABS = [
     { key: "readiness", label: "Readiness Score" },
@@ -2321,9 +1929,9 @@ export default function CareerJourneyView({ readiness = null }) {
             <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#64748b] mt-[3px]">
               Readiness · Skill Gaps · Roadmap for{" "}
               <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">
-                Software Engineer
+                {readiness?.role_title ?? readiness?.roleTitle ?? "No career role selected"}
               </span>{" "}
-              <span className="text-[#94a3b8]">v2.3</span>
+              {readiness?.role_version ? <span className="text-[#94a3b8]">v{readiness.role_version}</span> : null}
             </p>
           </div>
           {demoState === "historical" && (
@@ -2365,12 +1973,12 @@ export default function CareerJourneyView({ readiness = null }) {
           <>
             {tab === "readiness" && (
               <>
-                <NBABanner action={nba} />
-                <ReadinessTab data={readiness || READINESS} />
+                {nextBestAction ? <NBABanner action={nextBestAction} /> : null}
+                {readiness ? <ReadinessTab data={readiness} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No saved readiness result is available for this account yet. Complete the assessment and try again to load a real result from the server.</div>}
               </>
             )}
-            {tab === "skill-gap" && <SkillGapTab gaps={GAPS} />}
-            {tab === "roadmap" && <RoadmapTab actions={ACTIONS} milestones={MILESTONES} />}
+            {tab === "skill-gap" && (skillGaps ? <SkillGapTab gaps={skillGaps} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Skill gap data is not available from the server yet.</div>)}
+            {tab === "roadmap" && (Array.isArray(roadmapActions) && Array.isArray(roadmapMilestones) ? <RoadmapTab actions={roadmapActions} milestones={roadmapMilestones} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No saved roadmap is available from the server yet.</div>)}
           </>
         )}
       </div>

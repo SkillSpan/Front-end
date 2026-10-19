@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { loadSavedAnswers, countAnswered } from './assessmentStorage';
-import { SECTIONS, ALL_QUESTIONS, TOTAL_QUESTIONS, firstUnansweredIndex, countAnsweredInSection } from './assessmentQuestions';
+import { loadSavedAnswers } from './assessmentStorage';
+import { getQuestionBank, computeProgress, firstUnansweredIndex, countAnsweredInSection } from './assessmentQuestions';
 import './SkillAssessmentResume.css';
 
 // ---------------------------------------------------------------------------
@@ -29,12 +29,13 @@ const ChevronRightIcon = () => (
 const SkillAssessmentResume = ({ onContinue, onStartOver }) => {
   const answers = useMemo(() => loadSavedAnswers(), []);
 
-  const answeredCount = countAnswered(answers);
-  const remaining = TOTAL_QUESTIONS - answeredCount;
-  const percent = Math.round((answeredCount / TOTAL_QUESTIONS) * 100);
+  const bank = useMemo(() => getQuestionBank(), []);
+  const SECTIONS = bank.sections;
+  const TOTAL_QUESTIONS = bank.total;
+  const { answered: answeredCount, remaining, percent } = computeProgress(answers, bank.questions);
 
-  const nextIndex = firstUnansweredIndex(answers);
-  const nextQuestion = ALL_QUESTIONS[nextIndex];
+  const nextIndex = firstUnansweredIndex(answers, bank.questions);
+  const nextQuestion = bank.questions[nextIndex];
 
   const sectionsWithProgress = useMemo(
     () =>
@@ -42,7 +43,7 @@ const SkillAssessmentResume = ({ onContinue, onStartOver }) => {
         const answeredInSection = countAnsweredInSection(s, answers);
         return { ...s, answeredInSection, complete: answeredInSection === s.questions.length };
       }),
-    [answers]
+    [answers, SECTIONS]
   );
 
   return (

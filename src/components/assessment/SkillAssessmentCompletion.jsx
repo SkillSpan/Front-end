@@ -1,6 +1,8 @@
 import AssessmentCompleteTopbar from './AssessmentCompleteTopbar';
 import { useAuth } from '../auth/AuthContext';
-import { SECTIONS, RATED_QUESTIONS, TOTAL_QUESTIONS } from './assessmentQuestions';
+import { getQuestionBank, computeProgress } from './assessmentQuestions';
+import { loadSavedAnswers } from './assessmentStorage';
+import { getAssessmentResult } from './assessmentResult';
 import './SkillAssessmentCompletion.css';
 
 // ---------------------------------------------------------------------------
@@ -93,13 +95,19 @@ const UNLOCKS = [
   },
 ];
 
-const SECTIONS_COMPLETE = `${SECTIONS.length}/${SECTIONS.length}`;
-const SKILLS_MAPPED = RATED_QUESTIONS.length;
 
 /** `onViewProfile` moves on to the Results screen. */
 const SkillAssessmentCompletion = ({ onViewProfile }) => {
   const { authUser } = useAuth();
   const firstName = authUser?.name?.trim().split(/\s+/)[0] || 'there';
+
+  // Everything below comes from what the learner actually answered / what the
+  // server scored - same helpers the quiz and Results screens use.
+  const bank = getQuestionBank();
+  const { answered, total } = computeProgress(loadSavedAnswers(), bank.questions);
+  const result = getAssessmentResult();
+  const skillsMapped = result?.skills.length ?? bank.sections.length;
+  const sectionsComplete = `${bank.sections.length}/${bank.sections.length}`;
 
   return (
     <div className="assessment-completion-page">
@@ -128,7 +136,7 @@ const SkillAssessmentCompletion = ({ onViewProfile }) => {
                 <CheckIcon />
               </span>
               <strong>
-                {TOTAL_QUESTIONS}/{TOTAL_QUESTIONS}
+                {answered}/{total}
               </strong>
               <span>Questions</span>
             </div>
@@ -136,16 +144,25 @@ const SkillAssessmentCompletion = ({ onViewProfile }) => {
               <span className="assessment-completion-stat-icon">
                 <StarIcon />
               </span>
-              <strong>{SKILLS_MAPPED}</strong>
+              <strong>{skillsMapped}</strong>
               <span>Skills Mapped</span>
             </div>
             <div className="assessment-completion-stat">
               <span className="assessment-completion-stat-icon">
                 <FlagIcon />
               </span>
-              <strong>{SECTIONS_COMPLETE}</strong>
+              <strong>{sectionsComplete}</strong>
               <span>Sections</span>
             </div>
+            {result?.score != null && (
+              <div className="assessment-completion-stat">
+                <span className="assessment-completion-stat-icon">
+                  <ChartIcon />
+                </span>
+                <strong>{result.score}%</strong>
+                <span>Readiness</span>
+              </div>
+            )}
           </div>
 
           <button type="button" className="assessment-completion-cta" onClick={onViewProfile}>

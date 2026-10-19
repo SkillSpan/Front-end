@@ -1,16 +1,23 @@
 // assessmentQuestions.js
-// The Baseline Skill Assessment's question bank + rating scale - shared by
-// every screen that needs to know what was asked (the quiz itself, the
-// Resume screen's "next question" preview, and the Completion/Results
-// screens' stats), so they can never drift out of sync with each other.
+// The Baseline Skill Assessment's question model.
 //
-// 12 questions across 4 skill areas, matching the count promised on the
-// intro screen (SkillAssessmentIntro.jsx). Three question shapes are used:
-//  - "rating": the 0-4 proficiency scale (No Experience -> Advanced)
-//  - "choice": a short list of plain-language options, for things that
-//    don't map cleanly onto a proficiency number (REST API exposure,
-//    teamwork, communication, timeline)
-//  - "text": a single free-text answer (target role)
+// The questions are NOT hardcoded any more: they depend on the career role
+// the learner picks on the intro screen. POST /api/v1/baseline-assessments
+// returns the role-specific question set (career role -> required skills ->
+// questions mapped to those skills); AssessmentWizard caches that payload in
+// sessionStorage (assessmentStorage.js) and every screen reads it back
+// through getQuestionBank() below, so the quiz, the Resume screen, the
+// Completion screen and the Results screen can never drift apart.
+//
+// Question shapes (UI side):
+//  - "choice": pick one of `options` (server item_type single_choice/scale)
+//  - "rating": 0-4 proficiency scale (only when a scale item has no options)
+//  - "text":   free-text answer
+//
+// The answer sent back to the API is the option text itself (that is what
+// the backend validates against), keyed by the question's `item_id`.
+
+import { loadQuestionBankRaw } from './assessmentStorage';
 
 export const RATING_LEVELS = [
   { value: 0, label: 'No Experience', desc: "Haven't worked with this yet" },
@@ -22,149 +29,112 @@ export const RATING_LEVELS = [
 
 export const LEVEL_ACCENT = ['#64748b', '#f59e0b', '#fb923c', '#3b82f6', '#8b5cf6'];
 
-export const SECTIONS = [
-  {
-    key: 'programming',
-    label: 'Programming',
-    questions: [
-      {
-        id: 'python',
-        skill: 'Python',
-        type: 'rating',
-        prompt: 'How would you rate your Python programming proficiency?',
-      },
-      {
-        id: 'javascript',
-        skill: 'JavaScript',
-        type: 'rating',
-        prompt: 'How would you rate your JavaScript proficiency?',
-      },
-      {
-        id: 'sql',
-        skill: 'SQL',
-        type: 'rating',
-        prompt: 'How would you rate your SQL and database querying skills?',
-      },
-      {
-        id: 'typescript',
-        skill: 'TypeScript',
-        type: 'rating',
-        prompt: 'How would you rate your TypeScript proficiency?',
-      },
-    ],
-  },
-  {
-    key: 'web',
-    label: 'Web Development',
-    questions: [
-      {
-        id: 'react',
-        skill: 'React',
-        type: 'rating',
-        prompt: 'How would you rate your experience with React or similar frontend frameworks?',
-      },
-      {
-        id: 'restApis',
-        skill: 'REST APIs',
-        type: 'choice',
-        prompt: 'Which best describes your REST API experience?',
-        options: [
-          "Haven't worked with REST APIs yet",
-          'Followed tutorials to consume APIs',
-          'Built REST APIs in personal projects',
-          'Built REST APIs in team or real-world projects',
-        ],
-      },
-    ],
-  },
-  {
-    key: 'data',
-    label: 'Data & Analytics',
-    questions: [
-      {
-        id: 'pythonData',
-        skill: 'Python Data',
-        type: 'rating',
-        prompt: 'How would you rate your experience with data tools like Pandas and NumPy?',
-      },
-      {
-        id: 'visualization',
-        skill: 'Visualization',
-        type: 'rating',
-        prompt: 'How would you rate your ability to build charts and data visualizations?',
-      },
-    ],
-  },
-  {
-    key: 'background',
-    label: 'Background',
-    questions: [
-      {
-        id: 'collaboration',
-        skill: 'Collaboration',
-        type: 'choice',
-        prompt: 'How would you describe your experience working in a team?',
-        options: [
-          'Mostly worked solo so far',
-          'Some group work in coursework',
-          'Regular collaboration on team projects',
-          'Led or coordinated a team before',
-        ],
-      },
-      {
-        id: 'communication',
-        skill: 'Communication',
-        type: 'choice',
-        prompt: 'How comfortable are you presenting or explaining technical work?',
-        options: [
-          'Prefer not to present',
-          'Can present with preparation',
-          'Comfortable presenting to peers',
-          'Confident presenting to any audience',
-        ],
-      },
-    ],
-  },
-  {
-    key: 'career',
-    label: 'Career Goals',
-    questions: [
-      {
-        id: 'targetRole',
-        skill: 'Target Role',
-        type: 'text',
-        prompt: "What's your target role after graduation?",
-        placeholder: 'e.g. Frontend Developer, Data Analyst, QA Engineer...',
-      },
-      {
-        id: 'timeline',
-        skill: 'Timeline',
-        type: 'choice',
-        prompt: 'How soon are you aiming to land this role?',
-        options: ['Within 3 months', '3–6 months', '6–12 months', 'More than a year'],
-      },
-    ],
-  },
-];
+// Backend skill levels run 0..5 (see BaselineAssessmentService::normalizedSkills).
+export const MAX_SKILL_LEVEL = 5;
 
-export const ALL_QUESTIONS = SECTIONS.flatMap((section) =>
-  section.questions.map((q) => ({ ...q, sectionKey: section.key, sectionLabel: section.label }))
-);
-export const TOTAL_QUESTIONS = ALL_QUESTIONS.length;
+const prettifySlug = (slug) =>
+  String(slug || 'General')
+    .split('-')
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(' ');
 
-// Only "rating" questions produce a 0-4 proficiency level for the Skill
-// Matrix / Results screen - "choice" and "text" answers feed the roadmap
-// and profile instead, so they're excluded from the "skills mapped" count.
-export const RATED_QUESTIONS = ALL_QUESTIONS.filter((q) => q.type === 'rating');
+const toUiType = (question) => {
+  if (question.item_type === 'text') return 'text';
+  const options = Array.isArray(question.options) ? question.options : [];
+  if (options.length === 0) return question.item_type === 'scale' ? 'rating' : 'text';
+  return 'choice';
+};
+
+/**
+ * Turns the raw assessment payload from the API into the structures the
+ * screens use. Pure function - safe to unit test.
+ */
+export const buildQuestionBank = (assessment) => {
+  const rawQuestions = Array.isArray(assessment?.questions) ? assessment.questions : [];
+  const coverageSkills = Array.isArray(assessment?.skill_coverage?.skills) ? assessment.skill_coverage.skills : [];
+  const skillNameById = new Map(coverageSkills.map((s) => [Number(s.skill_id), s.skill_name]));
+
+  const sectionMap = new Map();
+  const questions = [];
+
+  rawQuestions.forEach((raw) => {
+    const skillName =
+      skillNameById.get(Number(raw.skill_id)) || prettifySlug(raw.skill_slug) || 'General';
+    const sectionKey = String(raw.skill_id ?? raw.skill_slug ?? skillName);
+    const question = {
+      id: String(raw.item_id),
+      skill: skillName,
+      skillId: raw.skill_id,
+      type: toUiType(raw),
+      prompt: raw.question_text || `Tell us about your ${skillName} experience.`,
+      options: Array.isArray(raw.options) ? raw.options.map(String) : [],
+      placeholder: 'Type your answer here...',
+      isCritical: !!raw.is_critical,
+      sectionKey,
+      sectionLabel: skillName,
+    };
+    if (!sectionMap.has(sectionKey)) sectionMap.set(sectionKey, { key: sectionKey, label: skillName, questions: [] });
+    sectionMap.get(sectionKey).questions.push(question);
+  });
+
+  // Keep questions of the same skill together (the API sorts by item id).
+  const sections = Array.from(sectionMap.values());
+  sections.forEach((s) => s.questions.forEach((q) => questions.push(q)));
+
+  return {
+    assessmentId: assessment?.id ?? null,
+    careerRoleId: assessment?.career_role_id ?? assessment?.career_role?.id ?? null,
+    careerRoleTitle: assessment?.career_role?.title ?? assessment?.snapshot_metadata?.career_role_title ?? '',
+    sections,
+    questions,
+    total: questions.length,
+  };
+};
+
+const EMPTY_BANK = buildQuestionBank(null);
+let cachedRaw;
+let cachedBank = EMPTY_BANK;
+
+/** The question set for the learner's chosen career role (empty until started). */
+export const getQuestionBank = () => {
+  const raw = loadQuestionBankRaw();
+  const key = raw ? JSON.stringify(raw) : '';
+  if (key !== cachedRaw) {
+    cachedRaw = key;
+    cachedBank = raw ? buildQuestionBank(raw) : EMPTY_BANK;
+  }
+  return cachedBank;
+};
+
+export const isAnswered = (answers, id) => {
+  const v = answers?.[id];
+  return v !== undefined && v !== null && String(v).trim() !== '';
+};
 
 // Resuming mid-assessment (e.g. after "Save & Exit") should land the
-// learner on the first question they haven't answered yet, not back at
-// Q1 - used by SkillAssessment.jsx on mount and by
-// SkillAssessmentResume.jsx's "Continue Assessment" preview.
-export const firstUnansweredIndex = (answers) => {
-  const idx = ALL_QUESTIONS.findIndex((q) => answers[q.id] === undefined || answers[q.id] === '');
-  return idx === -1 ? TOTAL_QUESTIONS - 1 : idx;
+// learner on the first question they haven't answered yet, not back at Q1.
+export const firstUnansweredIndex = (answers, questions = getQuestionBank().questions) => {
+  const idx = questions.findIndex((q) => !isAnswered(answers, q.id));
+  return idx === -1 ? Math.max(questions.length - 1, 0) : idx;
 };
 
 export const countAnsweredInSection = (section, answers) =>
-  section.questions.filter((q) => answers[q.id] !== undefined && answers[q.id] !== '').length;
+  section.questions.filter((q) => isAnswered(answers, q.id)).length;
+
+/**
+ * ONE definition of "how far along are you", used by every screen (quiz top
+ * bar, sidebar, Resume, Completion) so the percentage always matches what the
+ * learner actually answered - only questions that belong to the current role
+ * are counted.
+ */
+export const computeProgress = (answers, questions = getQuestionBank().questions) => {
+  const total = questions.length;
+  const answered = questions.filter((q) => isAnswered(answers, q.id)).length;
+  return { answered, total, remaining: total - answered, percent: total ? Math.round((answered / total) * 100) : 0 };
+};
+
+/** Shape the backend expects for PATCH/submit: [{ question_id, answer }]. */
+export const toResponses = (answers, questions = getQuestionBank().questions) =>
+  questions
+    .filter((q) => isAnswered(answers, q.id))
+    .map((q) => ({ question_id: q.id, answer: typeof answers[q.id] === 'string' ? answers[q.id].trim() : answers[q.id] }));
