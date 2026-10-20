@@ -1,0 +1,18 @@
+export const NAV_ROUTES = {
+  dashboard: '/dashboard',
+  'career-journey': '/career-journey',
+  'career-roles': '/career-roles',
+  roles: '/career-roles',
+  'skill-matrix': '/skill-matrix',
+  'skill-assessment': '/skill-matrix?tab=assessment',
+  projects: '/projects',
+  assistant: '/assistant',
+  support: '/support',
+  mentor: '/mentor',
+  talent: '/talent',
+  evidence: '/evidence',
+  'add-evidence': '/evidence/add',
+  record: '/record',
+  profile: '/profile',
+  settings: '/settings',
+};

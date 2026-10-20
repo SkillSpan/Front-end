@@ -1,0 +1,1 @@
+var e=[{value:`company`,label:`Company`},{value:`university`,label:`University`},{value:`training_partner`,label:`Training Partner`}];export{e as t};
