@@ -21,6 +21,10 @@ const Dashboard = lazy(() => import('./components/dashboard/Dashboard'))
 const SkillMatrix = lazy(() => import('./components/skillmatrix/SkillMatrix'))
 const CareerRoles = lazy(() => import('./components/careerroles/CareerRoles'))
 const LearnerWorkspace = lazy(() => import('./components/learner/LearnerWorkspace'))
+const CompanyLayout = lazy(() => import('./components/company/CompanyLayout'))
+const CompanyDashboard = lazy(() => import('./components/company/CompanyDashboard'))
+const CompanyTalent = lazy(() => import('./components/company/CompanyTalent'))
+const CompanyProfile = lazy(() => import('./components/company/CompanyProfile'))
 
 // One module, four screens: lazy() needs a default export, so each named
 // export is adapted rather than splitting the file into four.
@@ -59,7 +63,7 @@ function CompanyLoginPage() {
       onForgotPassword={() => navigate('/company/forgot-password')}
       onLoginSuccess={({ user }) => {
         login(user)
-        navigate('/dashboard')
+        navigate('/company/dashboard')
       }}
     />
   )
@@ -135,6 +139,44 @@ function RequireAuth({ children }) {
   return children
 }
 
+// Company accounts live under /company/* with their own shell. A learner who
+// wanders in has no organization, so they are sent back to the learner
+// dashboard instead of seeing a page full of 403s from the company endpoints.
+function RequireCompanyAuth({ children }) {
+  const { authUser } = useAuth()
+  if (!authUser) return <Navigate to="/company/login" replace />
+  const hasOrganization = Array.isArray(authUser.organizations) && authUser.organizations.length > 0
+  if (!hasOrganization) return <Navigate to="/dashboard" replace />
+  return children
+}
+
+function CompanyPage({ view }) {
+  const navigate = useNavigate()
+  const { authUser, logout } = useAuth()
+  const organization = authUser?.organizations?.[0] || null
+
+  const renderView = () => {
+    if (view === 'talent') return <CompanyTalent />
+    if (view === 'profile') return <CompanyProfile user={authUser} />
+    return <CompanyDashboard user={authUser} onNavigate={navigate} />
+  }
+
+  return (
+    <CompanyLayout
+      active={view}
+      onNavigate={navigate}
+      user={authUser}
+      organization={organization}
+      onLogout={() => {
+        logout()
+        navigate('/company/login')
+      }}
+    >
+      {renderView()}
+    </CompanyLayout>
+  )
+}
+
 // Key for the page-transition wrapper. It must stay the same while moving
 // between the steps of one wizard (/company/register/account -> company-info
 // -> ...), otherwise React remounts the whole wizard on every step, its
@@ -200,6 +242,18 @@ function AppRoutes() {
       <Route path="/company/login" element={<CompanyLoginPage />} />
       <Route path="/company/register/*" element={<CompanyWizard />} />
       <Route path="/company/forgot-password" element={<CompanyForgotPasswordPage />} />
+      <Route
+        path="/company/dashboard"
+        element={<RequireCompanyAuth><CompanyPage key="dashboard" view="dashboard" /></RequireCompanyAuth>}
+      />
+      <Route
+        path="/company/talent"
+        element={<RequireCompanyAuth><CompanyPage key="talent" view="talent" /></RequireCompanyAuth>}
+      />
+      <Route
+        path="/company/profile"
+        element={<RequireCompanyAuth><CompanyPage key="profile" view="profile" /></RequireCompanyAuth>}
+      />
       <Route
         path="/dashboard"
         element={
