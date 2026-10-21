@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 .env
 .env.local
+# Build verification output (never commit)
+.build-check*
+.build-verify
+vitest.config.js.timestamp-*
