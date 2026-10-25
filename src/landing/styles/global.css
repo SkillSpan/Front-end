@@ -49,8 +49,12 @@ html:has(.landing-root) { scroll-behavior: smooth; scroll-padding-top: 72px; }
 :where(.landing-root) :focus-visible { outline: 2px solid var(--blue-400); outline-offset: 3px; border-radius: 6px; }
 :where(.landing-root) ::selection { background: rgba(41, 168, 255, 0.3); }
 
-:where(.landing-root) .container { width: min(100% - 2.5rem, var(--container)); margin-inline: auto; }
-@media (min-width: 768px) { :where(.landing-root) .container { width: min(100% - 4rem, var(--container)); } }
+/* NOT `:where()` here: the app loads Tailwind through a CDN <script>, whose
+   injected `.container { width: 100% }` lands after this stylesheet and wins
+   every tie. The landing would then have no side gutter at all — text flush
+   against the viewport edge. Two classes beat it. */
+.landing-root .container { width: min(100% - 2.5rem, var(--container)); max-width: none; margin-inline: auto; }
+@media (min-width: 768px) { .landing-root .container { width: min(100% - 4rem, var(--container)); } }
 
 :where(.landing-root) .section { position: relative; padding-block: var(--section-y); isolation: isolate; }
 :where(.landing-root) .section--lavender { background: var(--lavender); }
@@ -116,7 +120,7 @@ html:has(.landing-root) { scroll-behavior: smooth; scroll-padding-top: 72px; }
   html:has(.landing-root) { scroll-behavior: auto; }
 }
 
-:where(.landing-root) .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.landing-root .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 :where(.landing-root) .skip { position: absolute; inset-inline-start: 1rem; top: -60px; z-index: 100; background: #fff; color: var(--ink); padding: 0.6rem 1rem; border-radius: 8px; }
 :where(.landing-root) .skip:focus { top: 1rem; }
 

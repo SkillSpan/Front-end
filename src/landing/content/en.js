@@ -23,7 +23,7 @@ export default {
     title2a: 'to ',
     title2b: 'Real Careers',
     sub: 'Measure your real readiness, follow a roadmap built around your gaps, and prove your skills on real company projects, so the right companies can find you.',
-    primary: 'Register and start your assessment',
+    primary: 'Start your assessment',
     secondary: 'Register your company',
     perks: ['Skill assessment', 'Verified record', 'Real company projects'],
   },
