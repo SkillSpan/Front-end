@@ -1,0 +1,72 @@
+.nav {
+  position: fixed; inset: 0 0 auto; z-index: 50; height: var(--nav-h);
+  display: flex; align-items: center;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+}
+.solid { background: rgba(11, 20, 64, 0.86); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08); }
+.inner { display: flex; align-items: center; gap: 2rem; }
+.brand { flex: none; }
+.links { display: flex; align-items: center; gap: 0.25rem; margin-inline: auto; }
+.links a {
+  display: block; padding: 0.5rem 0.8rem; border-radius: 8px;
+  font-size: 0.9375rem; font-weight: 500; color: rgba(255, 255, 255, 0.78);
+  /* Three auth buttons sit next to these links; without nowrap the two-word
+     labels break onto a second line on a 1440px screen. */
+  white-space: nowrap;
+  transition: color 0.2s, background-color 0.2s;
+}
+.links a:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+.links a.current { color: #fff; }
+.mobileOnly { display: none; }
+.actions { display: flex; align-items: center; gap: 0.75rem; flex: none; }
+.lang {
+  height: 30px; padding: 0 0.6rem; border-radius: 8px; cursor: pointer;
+  background: transparent; border: 1px solid rgba(255, 255, 255, 0.22);
+  font-size: 0.8125rem; font-weight: 500; color: rgba(255, 255, 255, 0.8);
+}
+.lang:hover { border-color: rgba(255, 255, 255, 0.5); color: #fff; }
+.login { font-size: 0.9375rem; font-weight: 500; color: #fff; padding: 0.5rem 0.4rem; }
+.login:hover { color: var(--blue-400); }
+/* Partner entry point: outline, so it reads as "not a learner" without competing
+   with the primary student CTA. */
+.company {
+  height: 42px; display: inline-flex; align-items: center; padding: 0 0.95rem;
+  border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.28);
+  font-size: 0.9rem; font-weight: 500; color: #fff; white-space: nowrap;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.company:hover { border-color: rgba(255, 255, 255, 0.6); background: rgba(255, 255, 255, 0.06); }
+.cta { height: 42px; padding: 0 1.15rem; font-size: 0.9rem; border-radius: 10px; }
+.burger { display: none; width: 42px; height: 42px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.2); background: transparent; cursor: pointer; position: relative; }
+.burger i { position: absolute; left: 12px; right: 12px; height: 2px; border-radius: 2px; background: #fff; transition: transform 0.3s var(--ease-out); }
+.burger i:first-of-type { top: 16px; }
+.burger i:last-of-type { top: 24px; }
+.burger[aria-expanded='true'] i:first-of-type { transform: translateY(4px) rotate(45deg); }
+.burger[aria-expanded='true'] i:last-of-type { transform: translateY(-4px) rotate(-45deg); }
+
+@media (max-width: 1180px) {
+  .links a { padding: 0.5rem 0.55rem; font-size: 0.875rem; }
+  .inner { gap: 1.25rem; }
+  /* Three buttons plus six links no longer fit; the company link moves into
+     the mobile menu below 1180px instead of squeezing the primary CTA. */
+  .company { display: none; }
+}
+@media (max-width: 1023px) {
+  .burger { display: block; }
+  .login { display: none; }
+  .links {
+    position: absolute; top: var(--nav-h); inset-inline: 0; margin: 0;
+    flex-direction: column; align-items: stretch; gap: 0.15rem;
+    padding: 0.75rem 1.25rem 1.25rem; background: rgba(11, 20, 64, 0.97);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    opacity: 0; visibility: hidden; transform: translateY(-8px);
+    transition: opacity 0.25s ease, transform 0.25s var(--ease-out), visibility 0.25s;
+  }
+  .links.open { opacity: 1; visibility: visible; transform: none; }
+  .links a { padding: 0.8rem 0.75rem; font-size: 1rem; }
+  .mobileOnly { display: block; }
+  .actions { margin-inline-start: auto; }
+}
+@media (max-width: 520px) {
+  .cta { display: none; }
+}

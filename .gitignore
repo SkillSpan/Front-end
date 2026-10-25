@@ -28,3 +28,7 @@ dist-ssr
 .build-check*
 .build-verify
 vitest.config.js.timestamp-*
+
+# Local scratch: archived dead code and generated lint reports
+_archive/
+lint-report.json

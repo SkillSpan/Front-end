@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import './App.css'
-import Landing from './components/common/Landing'
+import Landing from './landing/LandingPage'
 import { AuthProvider, useAuth } from './components/auth/AuthContext'
 import { EvidenceProvider } from './components/evidence/EvidenceContext'
 
@@ -232,7 +232,10 @@ function AppRoutes() {
   }
 
   return (
-    <div className="route-transition" key={transitionKey(location.pathname)}>
+    <div
+      className={`route-transition${location.pathname === '/' ? ' route-transition--landing' : ''}`}
+      key={transitionKey(location.pathname)}
+    >
       <Suspense fallback={<RouteFallback />}>
       <Routes>
       <Route path="/" element={<Landing />} />

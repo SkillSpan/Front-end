@@ -24,7 +24,9 @@ describe('company registration flow', () => {
 
     // Step 1 — the registration wizard is loaded on demand now, so the first
     // assertion waits for the chunk instead of assuming a synchronous render.
-    expect(await screen.findByText('Welcome to Registration')).toBeInTheDocument()
+    // The wizard chunk pulls in five step screens; on a cold vitest run the
+    // transform alone can take longer than the 1 s default of findBy*.
+    expect(await screen.findByText('Welcome to Registration', undefined, { timeout: 15000 })).toBeInTheDocument()
     type(container, 'name', 'Alex Smith')
     type(container, 'email', 'alex@example.com')
     type(container, 'phone', '+1-555-0199')

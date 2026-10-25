@@ -1,0 +1,151 @@
+/* SkillSpan landing — global styles, scoped to `.landing-root`.
+   The standalone site owned `html`/`body`; inside the app it is one route among
+   many, so every selector is prefixed. Without this, `h1..p {margin:0}`,
+   `ul{list-style:none}`, `a{color:inherit}` and the white body background would
+   have restyled the login, dashboard and company screens.
+
+   Why `:where()`: the prefix must scope the rule without adding specificity.
+   `.landing-root a { color: inherit }` (0,1,1) beats every single-class
+   component rule and repainted the nav links in the dark ink colour — invisible
+   on the navy header. `:where(.landing-root) a` is (0,0,1), so component CSS
+   modules keep the last word, exactly as they did on the standalone site. */
+
+:where(.landing-root) *,
+:where(.landing-root) *::before,
+:where(.landing-root) *::after { box-sizing: border-box; }
+
+/* Smooth in-page anchors need the document scroller, not the wrapper. */
+html:has(.landing-root) { scroll-behavior: smooth; scroll-padding-top: 72px; }
+
+.landing-root {
+  margin: 0;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font-en);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+.landing-root[dir='rtl'] { font-family: var(--font-ar); }
+
+:where(.landing-root) img { max-width: 100%; display: block; }
+:where(.landing-root) a { color: inherit; text-decoration: none; }
+:where(.landing-root) button,
+:where(.landing-root) input { font: inherit; color: inherit; }
+:where(.landing-root) h1,
+:where(.landing-root) h2,
+:where(.landing-root) h3,
+:where(.landing-root) h4,
+:where(.landing-root) p { margin: 0; }
+:where(.landing-root) h1,
+:where(.landing-root) h2,
+:where(.landing-root) h3 { letter-spacing: -0.02em; line-height: 1.15; font-weight: 600; }
+:where(.landing-root[dir='rtl']) h1,
+:where(.landing-root[dir='rtl']) h2,
+:where(.landing-root[dir='rtl']) h3 { letter-spacing: 0; line-height: 1.35; }
+:where(.landing-root) ul { margin: 0; padding: 0; list-style: none; }
+:where(.landing-root) :focus-visible { outline: 2px solid var(--blue-400); outline-offset: 3px; border-radius: 6px; }
+:where(.landing-root) ::selection { background: rgba(41, 168, 255, 0.3); }
+
+:where(.landing-root) .container { width: min(100% - 2.5rem, var(--container)); margin-inline: auto; }
+@media (min-width: 768px) { :where(.landing-root) .container { width: min(100% - 4rem, var(--container)); } }
+
+:where(.landing-root) .section { position: relative; padding-block: var(--section-y); isolation: isolate; }
+:where(.landing-root) .section--lavender { background: var(--lavender); }
+:where(.landing-root) .section--white { background: var(--white); }
+:where(.landing-root) .section--dark { background: linear-gradient(180deg, #0f1850 0%, #182168 100%); color: var(--text); }
+
+/* Section head */
+:where(.landing-root) .head { max-width: 680px; margin: 0 auto 3.25rem; text-align: center; display: grid; gap: 0.9rem; justify-items: center; }
+:where(.landing-root) .head--start { margin-inline: 0; text-align: start; justify-items: start; }
+:where(.landing-root) .eyebrow {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--blue-600);
+}
+:where(.landing-root[dir='rtl']) .eyebrow { letter-spacing: 0; font-size: var(--fs-small); }
+:where(.landing-root) .eyebrow::before { content: ''; width: 18px; height: 2px; border-radius: 2px; background: var(--grad-brand); }
+:where(.landing-root) .section--dark .eyebrow { color: var(--blue-400); }
+:where(.landing-root) .h2 { font-size: var(--fs-h2); color: var(--ink); text-wrap: balance; }
+:where(.landing-root) .section--dark .h2 { color: #fff; }
+:where(.landing-root) .lead { font-size: var(--fs-lead); color: var(--ink-2); line-height: 1.65; text-wrap: pretty; }
+:where(.landing-root) .head .lead { text-wrap: balance; }
+:where(.landing-root) .section--dark .lead { color: var(--text-dim); }
+:where(.landing-root) .grad-text {
+  background: var(--grad-brand); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* Buttons */
+:where(.landing-root) .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
+  height: 52px; padding: 0 1.5rem; border-radius: 12px; border: 0; cursor: pointer;
+  font-size: 0.975rem; font-weight: 600; white-space: nowrap;
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), background-color 0.25s, border-color 0.25s;
+}
+:where(.landing-root) .btn-primary { background: var(--grad-cta); color: #fff; box-shadow: 0 10px 28px -10px rgba(94, 107, 255, 0.75); }
+:where(.landing-root) .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -12px rgba(94, 107, 255, 0.9); }
+:where(.landing-root) .btn-outline { background: rgba(255, 255, 255, 0.04); color: #fff; border: 1px solid rgba(255, 255, 255, 0.28); }
+:where(.landing-root) .btn-outline:hover { border-color: rgba(255, 255, 255, 0.6); background: rgba(255, 255, 255, 0.08); }
+:where(.landing-root) .btn-light { background: #fff; color: var(--ink); border: 1px solid var(--line-light); }
+:where(.landing-root) .btn-light:hover { border-color: #c9cfe6; transform: translateY(-2px); }
+:where(.landing-root) .btn .arrow { transition: transform 0.25s var(--ease-out); }
+:where(.landing-root) .btn:hover .arrow { transform: translateX(3px); }
+:where(.landing-root[dir='rtl']) .btn .arrow { transform: scaleX(-1); }
+:where(.landing-root[dir='rtl']) .btn:hover .arrow { transform: scaleX(-1) translateX(3px); }
+
+:where(.landing-root) .tag-placeholder {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.2rem 0.55rem; border-radius: 999px;
+  font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: #9a5b00; background: #fff4dc; border: 1px dashed #f3b54a;
+}
+
+/* Reveal-once: opacity + small rise. Images use data-reveal="fade" (opacity only). */
+:where(.landing-root) [data-reveal] { opacity: 0; transform: translate3d(0, 14px, 0); transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out); transition-delay: var(--d, 0ms); }
+:where(.landing-root) [data-reveal='fade'] { transform: none; transition: opacity 1s ease; transition-delay: var(--d, 0ms); }
+:where(.landing-root) [data-reveal].is-in { opacity: 1; transform: none; }
+
+/* Static / reduced motion: everything shown, every loop paused at its finished frame */
+:where(.landing-root.is-static) [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
+:where(.landing-root.is-static) *,
+:where(.landing-root.is-static) *::before,
+:where(.landing-root.is-static) *::after { animation-play-state: paused !important; }
+@media (prefers-reduced-motion: reduce) {
+  html:has(.landing-root) { scroll-behavior: auto; }
+}
+
+:where(.landing-root) .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:where(.landing-root) .skip { position: absolute; inset-inline-start: 1rem; top: -60px; z-index: 100; background: #fff; color: var(--ink); padding: 0.6rem 1rem; border-radius: 8px; }
+:where(.landing-root) .skip:focus { top: 1rem; }
+
+/* soft-sound toggle (off by default) */
+:where(.landing-root) .sound-toggle { position: fixed; z-index: 60; bottom: 20px; inset-inline-start: 20px; display: inline-flex; align-items: center; gap: 6px;
+  height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(22,103,224,0.18); cursor: pointer;
+  color: #1667E0; background: rgba(255,255,255,0.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px -12px rgba(5,16,61,0.35); transition: transform 0.25s ease, box-shadow 0.25s ease; }
+:where(.landing-root) .sound-toggle:hover { transform: translateY(-2px); box-shadow: 0 14px 34px -12px rgba(5,16,61,0.45); }
+:where(.landing-root) .sound-toggle .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
+:where(.landing-root) .sound-toggle .bars i { width: 3px; height: 4px; border-radius: 2px; background: currentColor; opacity: 0.35; }
+:where(.landing-root) .sound-toggle.is-on .bars i { opacity: 1; animation: eq 1s ease-in-out infinite; }
+:where(.landing-root) .sound-toggle.is-on .bars i:nth-child(2) { animation-delay: 0.2s; }
+:where(.landing-root) .sound-toggle.is-on .bars i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes eq { 0%,100% { height: 4px; } 50% { height: 14px; } }
+
+/* back-to-top arrow */
+:where(.landing-root) .to-top { position: fixed; z-index: 60; bottom: 20px; inset-inline-end: 20px; width: 48px; height: 48px; border-radius: 50%; border: 0; cursor: pointer;
+  display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #29A8FF, #1667E0);
+  box-shadow: 0 12px 28px -10px rgba(22,103,224,0.7); opacity: 0; transform: translateY(16px) scale(0.85); pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.4,0.64,1), box-shadow 0.25s ease; }
+:where(.landing-root) .to-top.is-shown { opacity: 1; transform: none; pointer-events: auto; }
+:where(.landing-root) .to-top:hover { transform: translateY(-3px); box-shadow: 0 16px 34px -10px rgba(22,103,224,0.85); }
+:where(.landing-root) .to-top:hover svg { animation: nudge 0.8s ease-in-out infinite; }
+@keyframes nudge { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+/* The app's page-transition wrapper keeps `transform: translateY(0)` after its
+   animation (fill-mode: both), which makes it a containing block — every
+   `position: fixed` descendant (this page's nav and back-to-top button) would
+   scroll away with the document instead of sticking to the viewport. The
+   landing brings its own motion, so the wrapper's page-in is dropped here. */
+.route-transition--landing { animation: none; transform: none; }
