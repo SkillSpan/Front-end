@@ -1,12 +1,16 @@
 import { useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useLang } from '../lib/i18n.jsx'
+import RegisterButton from '../../components/register/RegisterButton.jsx'
+import { COPY } from '../../components/register/registerCopy.js'
+import { REGISTER_ROUTES } from '../../components/register/routes.js'
 import useReveal from '../lib/useReveal'
 import Scene3D from './Scene3D.jsx'
 import s from './Hero.module.css'
 
 export default function Hero() {
-  const { t } = useLang()
+  const { t, lang } = useLang()
+  const navigate = useNavigate()
   const h = t.hero
   const root = useRef(null)
   useReveal(root, [t])
@@ -32,8 +36,9 @@ export default function Hero() {
           </h1>
           <p className={s.sub} data-reveal style={{ '--d': '160ms' }}>{h.sub}</p>
           <div className={s.ctas} data-reveal style={{ '--d': '240ms' }}>
-            <Link to="/register/account" className="btn btn-primary">{h.primary} <span className="arrow" aria-hidden="true">→</span></Link>
-            <Link to="/company/register/account" className="btn btn-outline">{h.secondary}</Link>
+            <RegisterButton className="btn btn-primary" lang={lang} navigate={navigate} {...REGISTER_ROUTES}>
+              {(COPY[lang] || COPY.en).startJourney} <span className="arrow" aria-hidden="true">→</span>
+            </RegisterButton>
           </div>
           <ul className={s.perks} data-reveal style={{ '--d': '320ms' }}>
             {h.perks.map((p) => <li key={p}><span aria-hidden="true">✓</span>{p}</li>)}

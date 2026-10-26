@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { PreferencesProvider } from '../preferences/PreferencesContext'
 import LandingPage from '../landing/LandingPage'
@@ -63,10 +63,20 @@ describe('landing page', () => {
     expect(screen.queryByText(/waitlist/i)).toBeNull()
   })
 
-  it('labels the three entry points in the header', () => {
+  it('has Log in + Register in the header and a "Start your journey now" hero button that opens the chooser', () => {
     renderLanding()
-    expect(screen.getAllByRole('link', { name: 'Student login' }).length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('link', { name: 'Company sign up' }).length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('link', { name: 'Create account' }).length).toBeGreaterThan(0)
+    const buttons = screen.getAllByRole('button', { name: /^Register/ })
+    expect(buttons.length).toBe(1) // header only; the hero says "Start your journey now"
+    expect(screen.getAllByRole('button', { name: /^Start your journey now/ }).length).toBe(1)
+    expect(screen.getAllByRole('button', { name: /^Log in$/ }).length).toBe(1)
+    const header = document.querySelector('header')
+    expect(within(header).queryByRole('link', { name: 'Student login' })).toBeNull()
+    expect(within(header).queryByRole('link', { name: 'Company sign up' })).toBeNull()
+
+    fireEvent.click(buttons[0])
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('button', { name: 'Continue as student' })).toBeTruthy()
+    expect(within(dialog).getByRole('button', { name: 'Continue as company' })).toBeTruthy()
+    expect(within(dialog).queryByText(/Already have an account/)).toBeNull()
   })
 })

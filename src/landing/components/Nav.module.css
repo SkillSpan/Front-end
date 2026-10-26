@@ -68,5 +68,30 @@
   .actions { margin-inline-start: auto; }
 }
 @media (max-width: 520px) {
-  .cta { display: none; }
+  /* The single Register button is the only auth entry point now, so it stays
+     visible on phones (it used to live in the burger menu). */
+  .cta { height: 38px; padding: 0 0.9rem; }
+}
+
+/* Log in sits beside Register */
+.loginBtn { white-space: nowrap; }
+@media (max-width: 520px) {
+  .loginBtn { padding: 0 0.7rem; }
+  .actions { gap: 0.45rem; }
+}
+@media (max-width: 380px) {
+  .lang { display: none; }
+}
+
+@media (max-width: 520px) {
+  .inner { gap: 0.5rem; }
+  .cta { height: 36px; padding: 0 0.7rem; font-size: 0.8125rem; }
+  .loginBtn { padding: 0 0.6rem; }
+  .lang { padding: 0 0.55rem; height: 36px; }
+  .burger { width: 36px; height: 36px; }
+  .burger i:first-of-type { top: 13px; } .burger i:last-of-type { top: 21px; } .burger i { left: 10px; right: 10px; }
+  .actions { gap: 0.35rem; }
+}
+@media (max-width: 400px) {
+  .brand :global(svg), .brand img { max-width: 112px; }
 }

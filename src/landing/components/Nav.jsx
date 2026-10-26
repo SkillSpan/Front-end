@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useLang } from '../lib/i18n.jsx'
+import RegisterButton from '../../components/register/RegisterButton.jsx'
+import { REGISTER_ROUTES } from '../../components/register/routes.js'
+import { COPY } from '../../components/register/registerCopy.js'
 import Logo from './Logo.jsx'
 import s from './Nav.module.css'
 
 /**
- * Landing header. The only three things that leave this page are the three
- * auth entry points — student login, student registration and company
- * registration — so they are the only links here that are not in-page anchors.
+ * Landing header. One "Register" button opens the chooser (student / company,
+ * plus the student and company login links), replacing the three separate
+ * auth buttons that used to sit here.
  */
 export default function Nav() {
   const { t, lang, setLang } = useLang()
   const [solid, setSolid] = useState(false)
   const [open, setOpen] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 24)
@@ -35,24 +39,16 @@ export default function Nav() {
               <a href={`#${l.id}`} className={i === 0 ? s.current : undefined} onClick={close}>{l.label}</a>
             </li>
           ))}
-          <li className={s.mobileOnly}>
-            <Link to="/login" onClick={close}>{t.nav.login}</Link>
-          </li>
-          <li className={s.mobileOnly}>
-            <Link to="/register/account" onClick={close}>{t.nav.register}</Link>
-          </li>
-          <li className={s.mobileOnly}>
-            <Link to="/company/register/account" onClick={close}>{t.nav.company}</Link>
-          </li>
         </ul>
 
         <div className={s.actions}>
           <button type="button" className={s.lang} onClick={toggleLang} aria-label={`Switch to ${t.langName}`} lang={lang === 'en' ? 'ar' : 'en'}>
             {t.langLabel}
           </button>
-          <Link to="/login" className={s.login}>{t.nav.login}</Link>
-          <Link to="/company/register/account" className={s.company}>{t.nav.company}</Link>
-          <Link to="/register/account" className={`btn btn-primary ${s.cta}`}>{t.nav.register}</Link>
+          <button type="button" className={`btn btn-outline ${s.cta} ${s.loginBtn}`} onClick={() => navigate(REGISTER_ROUTES.loginUrl)}>
+            {(COPY[lang] || COPY.en).logIn}
+          </button>
+          <RegisterButton className={`btn btn-primary ${s.cta}`} lang={lang} navigate={navigate} {...REGISTER_ROUTES} />
           <button type="button" className={s.burger} aria-expanded={open} aria-controls="nav-menu" onClick={() => setOpen((o) => !o)}>
             <span className="sr-only">{t.nav.menu}</span>
             <i /><i />
