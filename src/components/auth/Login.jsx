@@ -1,26 +1,58 @@
 import { useState } from 'react';
 import './Login.css';
-import { loginUser, loginWithGoogle, saveSession } from '../../api';
+import './LoginRoles.css';
+import { loginUser, loginOrganization, loginWithGoogle, saveSession } from '../../api';
 import { GOOGLE_LOGIN_ENABLED } from '../../config';
 import { isTermsRequiredError } from '../../utils/googleAuth';
 import { useGoogleSignIn } from './useGoogleSignIn';
 
-// --- Google Sign-In (individual accounts) -----------------------------
+// One screen, two accounts.
 //
-// Backend contract (google_login_frontend_guide.pdf): POST
-// /api/auth/login/google with { credential, terms_accepted, privacy_accepted }.
+// A student and a company log in with different endpoints
+// (/auth/login vs /auth/login/organization) and land on different dashboards,
+// so the role is part of the form rather than a separate page. /login opens on
+// "student" and /company/login opens on "company" - both render this component,
+// so old links and bookmarks keep working.
 //
-// Flow: click Google -> get credential -> try loginWithGoogle(credential).
-//   - Existing account: succeeds immediately -> normal login -> landing page.
-//   - No account yet: fails in a way that looks like "new account" (see
-//     utils/googleAuth.js) -> we hand the credential off to
-//     onNewGoogleUser, which sends the user into the registration wizard
-//     starting at the academic-status step (RegisterStep2). They finish
-//     that + the existing Terms/Privacy step (RegisterStep3 already has
-//     it - no need to collect it again here), and THAT is what actually
-//     creates the account (see RegisterStep3.jsx).
+// Google sign-in is individual-only (there is no company Google flow on the
+// backend), so that block is hidden in the company role.
 
-const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, onNewGoogleUser }) => {
+const ROLES = {
+  student: {
+    id: 'student',
+    label: 'Student',
+    heading: <>Start Your<br />Career&nbsp;Journey</>,
+    desc: 'From education to your first opportunity in clear, verified steps',
+    features: [
+      { icon: '/image/icon-readiness.png', text: 'Assess your real readiness' },
+      { icon: '/image/icon-roadmap.png', text: 'A roadmap built for you' },
+      { icon: '/image/icon-projects.png', text: 'Real projects from companies' },
+      { icon: '/image/icon-record.png', text: 'A verified professional record' },
+    ],
+  },
+  company: {
+    id: 'company',
+    label: 'Company',
+    heading: <>Hire Verified<br />Talent</>,
+    desc: 'Post real projects and follow every application in one place',
+    features: [
+      { icon: '/image/icon-readiness.png', text: 'Access top talent' },
+      { icon: '/image/icon-projects.png', text: 'Post real projects' },
+      { icon: '/image/icon-roadmap.png', text: 'Track progress as it happens' },
+      { icon: '/image/icon-record.png', text: 'Decide on real evidence' },
+    ],
+  },
+};
+
+const Login = ({
+  initialRole = 'student',
+  onSwitchToRegister,
+  onBack,
+  onForgotPassword,
+  onLoginSuccess,
+  onNewGoogleUser,
+}) => {
+  const [role, setRole] = useState(ROLES[initialRole] ? initialRole : 'student');
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,6 +60,15 @@ const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, o
 
   // Google Sign-In state
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+
+  const copy = ROLES[role];
+
+  const handleRoleChange = (next) => {
+    if (next === role) return;
+    setRole(next);
+    // "Invalid credentials" belongs to the account type that was selected.
+    setErrors({});
+  };
 
   const handleGoogleCredential = async (credential) => {
     setGoogleError('');
@@ -37,7 +78,7 @@ const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, o
       const { user, organizations, token } = res.data || res;
       saveSession({ token, user, organizations });
       setIsGoogleSubmitting(false);
-      if (onLoginSuccess) onLoginSuccess({ user, organizations, token });
+      if (onLoginSuccess) onLoginSuccess({ user, organizations, token, role: 'student' });
     } catch (err) {
       setIsGoogleSubmitting(false);
       if (isTermsRequiredError(err)) {
@@ -88,13 +129,18 @@ const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, o
     setIsSubmitting(true);
     setErrors({});
     try {
-      const res = await loginUser(formData.email.trim(), formData.password);
+      // Company accounts go through the organization endpoint: it answers with
+      // its own message for a pending or rejected organization, so its errors
+      // must be surfaced as-is rather than replaced by a generic one.
+      const res = role === 'company'
+        ? await loginOrganization(formData.email.trim(), formData.password)
+        : await loginUser(formData.email.trim(), formData.password);
       const { user, organizations, token } = res.data || res;
 
       saveSession({ token, user, organizations });
 
       setIsSubmitting(false);
-      if (onLoginSuccess) onLoginSuccess({ user, organizations, token });
+      if (onLoginSuccess) onLoginSuccess({ user, organizations, token, role });
     } catch (err) {
       setIsSubmitting(false);
       // Surface Laravel's field-level validation errors (422) when present,
@@ -112,34 +158,27 @@ const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, o
   };
 
   return (
-    <div className="login-wrapper">
-      <div className="login-card">
-        {/* Shared sidebar */}
+    <div className="login-wrapper" data-role={role}>
+      <div className="login-card" data-role={role}>
+        {/* Shared sidebar - copy and accent follow the selected role */}
         <div className="sidebar-left">
-          <div className="sidebar-brand">SkillSpan</div>
+          <div className="sidebar-brand">
+            <span className="brand-logo" aria-hidden="true">
+              <img src="/image/logo.png" alt="" />
+            </span>
+            <span>SkillSpan</span>
+          </div>
           <div className="sidebar-content">
-            <h2>Start Your<br />Career&nbsp;Journey</h2>
-            <p className="sidebar-desc">
-              From education to your first opportunity in clear, verified steps
-            </p>
+            <h2>{copy.heading}</h2>
+            <p className="sidebar-desc">{copy.desc}</p>
 
             <ul className="features-list">
-              <li>
-                <span className="icon"><img src="/image/icon-readiness.png" alt="Readiness" /></span>
-                <span>Assess your real readiness</span>
-              </li>
-              <li>
-                <span className="icon"><img src="/image/icon-roadmap.png" alt="Roadmap" /></span>
-                <span>A roadmap built for you</span>
-              </li>
-              <li>
-                <span className="icon"><img src="/image/icon-projects.png" alt="Projects" /></span>
-                <span>Real projects from companies</span>
-              </li>
-              <li>
-                <span className="icon"><img src="/image/icon-record.png" alt="Record" /></span>
-                <span>A verified professional record</span>
-              </li>
+              {copy.features.map((feature) => (
+                <li key={feature.text}>
+                  <span className="icon"><img src={feature.icon} alt="" /></span>
+                  <span>{feature.text}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -150,6 +189,21 @@ const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, o
           )}
 
           <div className="login-icon-box" aria-hidden="true" />
+
+          <div className="role-switch" role="tablist" aria-label="Account type">
+            {Object.values(ROLES).map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                role="tab"
+                aria-selected={role === option.id}
+                className={`role-switch-btn${role === option.id ? ' is-active' : ''}`}
+                onClick={() => handleRoleChange(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
 
           <h1 className="login-heading">Log in to your account</h1>
           <p className="new-here-text">
@@ -211,12 +265,15 @@ const Login = ({ onSwitchToRegister, onBack, onForgotPassword, onLoginSuccess, o
 
             <div className="forgot-container">
               Forgot password?{' '}
-              <span className="link-action reset-link" onClick={onForgotPassword}>
+              <span
+                className="link-action reset-link"
+                onClick={() => onForgotPassword && onForgotPassword(role)}
+              >
                 Reset password
               </span>
             </div>
 
-            {GOOGLE_LOGIN_ENABLED && (
+            {role === 'student' && GOOGLE_LOGIN_ENABLED && (
               <div ref={googleWrapRef} className="google-wrap">
                 <button type="button" className="btn-google" tabIndex={-1} aria-hidden="true">
                   <svg className="google-logo" viewBox="0 0 48 48" aria-hidden="true">

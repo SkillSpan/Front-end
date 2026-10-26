@@ -11,9 +11,9 @@ import { EvidenceProvider } from './components/evidence/EvidenceContext'
 // anything. The marketing page and the auth context stay eager — they are the
 // first paint.
 const Login = lazy(() => import('./components/auth/Login'))
-const CompanyLogin = lazy(() => import('./components/company/CompanyLogin'))
 const CompanyForgotPassword = lazy(() => import('./components/company/CompanyForgotPassword'))
 const RegisterWizard = lazy(() => import('./components/auth/RegisterWizard'))
+const RoleChoice = lazy(() => import('./components/auth/RoleChoice'))
 const ForgotPasswordWizard = lazy(() => import('./components/auth/ForgotPasswordWizard'))
 const CompanyWizard = lazy(() => import('./components/company/CompanyWizard'))
 const SessionExpired = lazy(() => import('./components/auth/SessionExpired'))
@@ -33,38 +33,24 @@ const AddEvidencePage = lazy(() => import('./components/evidence/EvidencePages')
 const EvidenceDetailPage = lazy(() => import('./components/evidence/EvidencePages').then((m) => ({ default: m.EvidenceDetailPage })))
 const ReviewerPage = lazy(() => import('./components/evidence/EvidencePages').then((m) => ({ default: m.ReviewerPage })))
 
-function LoginPage() {
+function LoginPage({ initialRole = 'student' }) {
   const navigate = useNavigate()
   const { login } = useAuth()
   return (
     <Login
-      onSwitchToRegister={() => navigate('/register')}
+      initialRole={initialRole}
+      onSwitchToRegister={() => navigate('/get-started')}
       onBack={() => navigate('/')}
-      onForgotPassword={() => navigate('/forgot-password')}
-      onLoginSuccess={({ user }) => {
+      onForgotPassword={(role) =>
+        navigate(role === 'company' ? '/company/forgot-password' : '/forgot-password')
+      }
+      onLoginSuccess={({ user, role }) => {
         login(user)
-        navigate('/dashboard')
+        navigate(role === 'company' ? '/company/dashboard' : '/dashboard')
       }}
       onNewGoogleUser={(credential) =>
         navigate('/register/status', { state: { googleCredential: credential } })
       }
-    />
-  )
-}
-
-function CompanyLoginPage() {
-  const navigate = useNavigate()
-  const { login } = useAuth()
-  return (
-    <CompanyLogin
-      onBack={() => navigate('/')}
-      onSwitchToRegister={() => navigate('/company/register')}
-      onSwitchToStudentLogin={() => navigate('/login')}
-      onForgotPassword={() => navigate('/company/forgot-password')}
-      onLoginSuccess={({ user }) => {
-        login(user)
-        navigate('/company/dashboard')
-      }}
     />
   )
 }
@@ -240,9 +226,10 @@ function AppRoutes() {
       <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/get-started" element={<RoleChoice />} />
       <Route path="/register/*" element={<RegisterWizard />} />
       <Route path="/forgot-password/*" element={<ForgotPasswordWizard />} />
-      <Route path="/company/login" element={<CompanyLoginPage />} />
+      <Route path="/company/login" element={<LoginPage initialRole="company" />} />
       <Route path="/company/register/*" element={<CompanyWizard />} />
       <Route path="/company/forgot-password" element={<CompanyForgotPasswordPage />} />
       <Route
