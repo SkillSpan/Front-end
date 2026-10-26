@@ -44,8 +44,11 @@ function LoginPage({ initialRole = 'student' }) {
       onForgotPassword={(role) =>
         navigate(role === 'company' ? '/company/forgot-password' : '/forgot-password')
       }
-      onLoginSuccess={({ user, role }) => {
-        login(user)
+      onLoginSuccess={({ user, organizations, role }) => {
+        // `organizations` is kept on the in-memory user as well, not just in the
+        // cookie: HomeRoute reads it to decide which dashboard a signed-in
+        // visitor belongs to (see below).
+        login({ ...user, organizations: organizations || [] })
         navigate(role === 'company' ? '/company/dashboard' : '/dashboard')
       }}
       onNewGoogleUser={(credential) =>
@@ -136,6 +139,25 @@ function RequireCompanyAuth({ children }) {
   return children
 }
 
+// The site root is also the app's front door. A visitor who still has a session
+// belongs in their own dashboard: sending them to the marketing page made
+// returning users think they had to sign up again ("it keeps asking me to
+// register"). AuthContext restores the session synchronously on first render,
+// so there is no flash of the landing page before the redirect.
+//
+// `?site=1` is the deliberate way back for anyone who wants to read the landing
+// page while signed in (demos, screenshots, the "view site" link).
+function HomeRoute() {
+  const { authUser } = useAuth()
+  const { search } = useLocation()
+  const wantsSite = new URLSearchParams(search).has('site')
+  if (authUser && !wantsSite) {
+    const isCompany = Array.isArray(authUser.organizations) && authUser.organizations.length > 0
+    return <Navigate to={isCompany ? '/company/dashboard' : '/dashboard'} replace />
+  }
+  return <Landing />
+}
+
 function CompanyPage({ view }) {
   const navigate = useNavigate()
   const { authUser, logout } = useAuth()
@@ -224,7 +246,7 @@ function AppRoutes() {
     >
       <Suspense fallback={<RouteFallback />}>
       <Routes>
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<HomeRoute />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/get-started" element={<RoleChoice />} />
       <Route path="/register/*" element={<RegisterWizard />} />
