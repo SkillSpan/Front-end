@@ -469,3 +469,47 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------------------------------------------------------------------- */
+/* Desktop: full-screen split layout (same as the login / register steps)  */
+/* The sidebar stays put; only the form panel on the right scrolls.        */
+/* ---------------------------------------------------------------------- */
+
+@media (min-width: 781px) {
+  .profile-setup-wrapper {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .profile-setup-card {
+    max-width: none;
+    height: 100vh;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .profile-setup-sidebar {
+    /* same fixed width as the login / register sidebar (380px) */
+    width: 380px;
+    min-width: 380px;
+    max-width: 380px;
+    flex: 0 0 380px;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+
+  .profile-setup-form-panel {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    max-height: none;
+    box-sizing: border-box;
+    /* keep the form a comfortable width on very wide screens */
+    --ps-sidebar-w: 380px;
+    padding-left: max(48px, calc((100vw - var(--ps-sidebar-w) - 760px) / 2));
+    padding-right: max(48px, calc((100vw - var(--ps-sidebar-w) - 760px) / 2));
+  }
+}

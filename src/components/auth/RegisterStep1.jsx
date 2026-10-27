@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { checkEmail, EMAIL_ALREADY_REGISTERED_MESSAGE } from '../../api';
 import './RegisterStep1.css';
 
 const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData, initialErrors }) => {
@@ -11,6 +12,7 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData, initialE
 
   const [errors, setErrors] = useState(initialErrors || {});
   const [showPassword, setShowPassword] = useState(false);
+  const [checking, setChecking] = useState(false);
 
   // Generate a strong password
   const generatePassword = () => {
@@ -35,12 +37,11 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData, initialE
     if (errors[name]) setErrors({ ...errors, [name]: '' });
   };
 
-  // Client-side validation only. This step never talks to the backend by
-  // itself - the actual POST /api/auth/register call happens once at the
-  // end of the wizard (RegisterStep3), after terms/privacy are accepted,
-  // using the full accumulated payload. That's the only point at which we
-  // find out whether the email is already registered etc. (via Laravel's
-  // 422 response), so we deliberately don't try to guess that here.
+  // Client-side validation first, then a server check that the email is not
+  // already registered (POST /api/v1/auth/check-email) so the user sees the
+  // error here on step 1. If that check itself can't be completed (network
+  // down, endpoint unavailable) we don't block sign-up: the final register
+  // request in step 3 still rejects duplicates and sends the user back here.
   const validateClientSide = () => {
     const newErrors = {};
     if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required.';
@@ -62,14 +63,30 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData, initialE
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (checking) return;
     const clientErrors = validateClientSide();
     if (Object.keys(clientErrors).length > 0) {
       setErrors(clientErrors);
       return;
     }
-    if (onNextSuccess) onNextSuccess(formData);
+
+    const email = formData.email.trim();
+    setChecking(true);
+    try {
+      const { exists, message } = await checkEmail(email);
+      if (exists) {
+        setErrors({ email: message || EMAIL_ALREADY_REGISTERED_MESSAGE });
+        document.getElementById('email')?.focus();
+        return;
+      }
+    } catch {
+      // Could not verify - fall through and let the final step validate.
+    } finally {
+      setChecking(false);
+    }
+    if (onNextSuccess) onNextSuccess({ ...formData, email });
   };
 
   return (
@@ -207,8 +224,13 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData, initialE
               )}
             </div>
 
-            <button type="submit" className="btn-next">
-              Next →
+            <button
+              type="submit"
+              className="btn-next"
+              disabled={checking}
+              style={checking ? { opacity: 0.7, cursor: 'not-allowed' } : undefined}
+            >
+              {checking ? 'Checking…' : 'Next →'}
             </button>
           </form>
 

@@ -706,3 +706,37 @@
     margin: 0;
   }
 }
+
+/* ===== Pinned sidebar (desktop): the dark sidebar stays in place on every
+   auth screen while the page scrolls; only the form area moves. =====
+   position: sticky only works when no ancestor is a scroll container, so
+   the global `overflow-x: hidden` on <html> and the cards' `overflow: hidden`
+   are relaxed on these pages. */
+@media (min-width: 901px) {
+  html:has(.register-wrapper, .login-wrapper, .forgot-wrapper, .verify-wrapper, .reset-password-wrapper) {
+    overflow-x: visible;
+  }
+
+  .register-wrapper .register-card,
+  .login-wrapper .login-card,
+  .forgot-wrapper .forgot-card,
+  .verify-wrapper .verify-card,
+  .reset-password-wrapper .reset-password-card {
+    overflow: clip !important;
+  }
+
+  :root :is(
+    .register-wrapper .register-card,
+    .login-wrapper .login-card,
+    .forgot-wrapper .forgot-card,
+    .verify-wrapper .verify-card
+  ) > .sidebar-left,
+  :root .reset-password-wrapper .reset-password-card > .reset-sidebar {
+    position: sticky !important;
+    top: 0;
+    align-self: flex-start !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    overflow-y: auto;
+  }
+}

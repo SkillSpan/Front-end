@@ -190,7 +190,6 @@ function SuggestedPanel({ roles, onViewDetails }) {
   return (
     <div className="cr-suggested">
       <div className="cr-suggested-head">
-        <span className="cr-suggested-star">{Icon.star}</span>
         <div>
           <h3>Suggested for You</h3>
           <p>Based on your current skill matrix — you choose, we explain</p>
