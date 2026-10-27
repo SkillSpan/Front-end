@@ -236,9 +236,9 @@ export const registerUser = (payload) =>
 // Resolves to { exists: boolean, message?: string }.
 //
 // Contract assumed (POST /api/v1/auth/check-email, body { email }):
-//   - 200 with a flag such as { exists: true } / { available: false } /
-//     { data: { exists: true } }, or
-//   - 409 / 422 (optionally with errors.email) when the email is taken.
+//  - 200 with a flag such as { exists: true } / { available: false } /
+//    { data: { exists: true } }, or
+//  - 409 / 422 (optionally with errors.email) when the email is taken.
 // Anything else (network error, timeout, 404, 5xx) is rethrown so the caller
 // can decide to fail open - the final register request still validates it.
 export const EMAIL_ALREADY_REGISTERED_MESSAGE =
@@ -415,14 +415,14 @@ export const fetchProfileAvatarUrl = async () => {
 // api_endpoints_render.md - these routes come straight from routes/api.php
 // and are not documented anywhere else). Drives the Baseline Skill
 // Assessment flow in AssessmentWizard.jsx / SkillAssessment.jsx:
-//   1. startBaselineAssessment()               - POST, begins a new attempt,
-//                                                 returns { assessment id }
-//   2. getBaselineAssessment(id)                - GET,  fetch one attempt
-//   3. autosaveBaselineAssessment(id, payload)  - PATCH, save progress
-//                                                 before final submission
-//   4. submitBaselineAssessment(id)             - POST, final submit +
-//                                                 server-side score/skill
-//                                                 calculation
+//  1. startBaselineAssessment()                - POST, begins a new attempt,
+//                                                returns { assessment id }
+//  2. getBaselineAssessment(id)                - GET,  fetch one attempt
+//  3. autosaveBaselineAssessment(id, payload)  - PATCH, save progress
+//                                                before final submission
+//  4. submitBaselineAssessment(id)             - POST, final submit +
+//                                                server-side score/skill
+//                                                calculation
 // ⚠️ Exact response/request field names are NOT confirmed with the backend
 // team yet (the PDF only lists method+path+description, no schemas) -
 // callers should treat the response shape defensively and keep a local
@@ -480,6 +480,10 @@ export const addSkillToMatrix = (payload) =>
 
 export const updateSkillMatrixEntry = (id, payload) =>
   request(`/api/v1/skills/matrix/${id}`, { method: 'PUT', body: payload, withAuth: true });
+
+// الدالة التي تم إضافتها لحل مشكلة الـ Build
+export const deleteSkillMatrixEntry = (id) =>
+  request(`/api/v1/skills/matrix/${id}`, { method: 'DELETE', withAuth: true });
 
 // Alias for addSkillToMatrix - same endpoint, kept under this name because
 // it's what SkillMatrix.jsx / careerRolesApi.js (merged in from the
