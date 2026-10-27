@@ -232,7 +232,13 @@ const RegisterStep3 = ({ onNextSuccess, onBack, onEmailError, registerData, goog
               <svg className="btn-arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12H3M10 5l-7 7 7 7" /></svg>
               Back
             </button>
-            <button type="button" className="btn-next-step" onClick={handleSubmit} disabled={isSubmitting}>
+            <button
+              type="button"
+              className="btn-next-step"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              style={isSubmitting ? { fontSize: '0.9rem', whiteSpace: 'nowrap', padding: '0 16px', width: 'auto', minWidth: 168, maxWidth: 'none' } : undefined}
+            >
               {isSubmitting ? (
                 'Creating account...'
               ) : (

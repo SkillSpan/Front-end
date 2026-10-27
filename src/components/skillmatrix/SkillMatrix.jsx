@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import './SkillMatrix.css';
 import { TAXONOMY as FALLBACK_TAXONOMY, LEVELS, levelInfo } from './taxonomy';
-import { getSkillsMatrix, upsertSkillMatrix, updateSkillMatrixEntry, getSkillsTaxonomy, getStoredUser, resolveLearnerId } from '../../api';
+import { getSkillsMatrix, upsertSkillMatrix, updateSkillMatrixEntry, deleteSkillMatrixEntry, getSkillsTaxonomy, getStoredUser, resolveLearnerId, getProfile } from '../../api';
 import AppLayout from '../dashboard/AppLayout';
 import { useAuth } from '../auth/AuthContext';
 
@@ -124,10 +124,6 @@ function findSkillInTaxonomy(taxonomy, id) {
 // undefined values).
 
 
-function totalSkillCountOf(taxonomy) {
-  return taxonomy.reduce((sum, c) => sum + c.skills.length, 0);
-}
-
 function pickFirstUnowned(taxonomy, skills) {
   for (const cat of taxonomy) {
     for (const s of cat.skills) {
@@ -158,34 +154,56 @@ function barColor(level) {
   return '#f59e0b';
 }
 
-// Simple brand/progress bar - no more onboarding step breadcrumbs (Account
-// → Profile → Assessment → Skill Matrix → Dashboard); matches the plainer
-// topbar style used elsewhere (brand on the left, a slim progress
-// indicator on the right).
-function Topbar({ skillCount, totalSkills, onNavigate }) {
-  const pct = totalSkills ? Math.min(100, (skillCount / totalSkills) * 100) : 0;
-  return (
-    <div className="sm-topbar">
-      <div
-        className="sm-topbar-brand"
-        onClick={() => onNavigate && onNavigate('dashboard')}
-        style={{ cursor: onNavigate ? 'pointer' : 'default' }}
-      >
-        <img className="brand-icon" src="/image/logo.png" alt="SkillSpan logo" />
-        <span><span className="brand-white">Skill</span><span className="brand-accent">Span</span></span>
-      </div>
+// The learner picks a specialization (e.g. "Computer Science", "Marketing")
+// during profile setup. The skill taxonomy is a general list, so we narrow the
+// categories on the left (and the skills inside them) to the ones relevant to
+// that specialization. Each rule: if the specialization text matches `spec`,
+// categories whose label/key matches `cats` are kept. Soft/general categories
+// are always kept. If nothing matches at all we show everything, so a learner
+// with an unusual specialization never ends up with an empty list.
+const ALWAYS_SHOWN = /soft|general|professional|communication|leadership|interpersonal/i;
+const SPECIALIZATION_RULES = [
+  {
+    spec: /computer|software|information tech|informatics|programming|cyber|network|\bit\b|\bai\b|artificial|web|mobile|app/i,
+    cats: /program|language|web|develop|software|data|analytic|cloud|devops|security|mobile|database|machine|\bai\b|engineer|frontend|backend/i,
+  },
+  {
+    spec: /data|statistic|math|analytic/i,
+    cats: /data|analytic|machine|\bai\b|statistic|program|language|database/i,
+  },
+  {
+    spec: /business|management|marketing|financ|account|econom|commerce|administration/i,
+    cats: /business|market|financ|account|econom|management|analytic|data|project|sales/i,
+  },
+  {
+    spec: /design|graphic|art|ui|ux|media/i,
+    cats: /design|ui|ux|graphic|creative|media|web|frontend/i,
+  },
+  {
+    spec: /engineering|mechanical|electrical|civil/i,
+    cats: /engineer|cad|design|project|math|program|data/i,
+  },
+];
 
-      <div className="sm-topbar-right">
-        <div className="sm-progress-track">
-          <div className="sm-progress-fill" style={{ width: `${pct}%` }} />
-        </div>
-        <div className="sm-count-block">
-          <div className="sm-count">{skillCount}</div>
-          <div className="sm-count-label">skills</div>
-        </div>
-      </div>
-    </div>
-  );
+function filterTaxonomyBySpecialization(taxonomy, specialization) {
+  const spec = (specialization || '').trim();
+  if (!spec) return taxonomy;
+
+  const text = (cat) => `${cat.label} ${cat.key}`;
+  const words = spec.toLowerCase().split(/[^a-z0-9+#]+/).filter((w) => w.length >= 4);
+
+  const matched = taxonomy.filter((cat) => {
+    const t = text(cat);
+    if (ALWAYS_SHOWN.test(t)) return false; // handled below
+    if (words.some((w) => t.toLowerCase().includes(w))) return true;
+    return SPECIALIZATION_RULES.some((r) => r.spec.test(spec) && r.cats.test(t));
+  });
+
+  // Nothing relevant found -> don't hide anything.
+  if (!matched.length) return taxonomy;
+
+  const always = taxonomy.filter((cat) => ALWAYS_SHOWN.test(text(cat)));
+  return taxonomy.filter((cat) => matched.includes(cat) || always.includes(cat));
 }
 
 export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
@@ -210,7 +228,28 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   const [panelSkillId, setPanelSkillId] = useState(null);
   const [panelLevel, setPanelLevel] = useState(1);
   const [duplicateSkillId, setDuplicateSkillId] = useState(null);
-  const loading = loadingMatrix || taxonomySource === 'loading';
+  const [specialization, setSpecialization] = useState('');
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [showAllSpecs, setShowAllSpecs] = useState(false);
+  const loading = loadingMatrix || taxonomySource === 'loading' || !profileLoaded;
+
+  // The learner's chosen specialization (set during profile setup).
+  useEffect(() => {
+    let cancelled = false;
+    getProfile()
+      .then((res) => {
+        if (cancelled) return;
+        const data = res?.data || res || {};
+        setSpecialization(data.specialization || '');
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setProfileLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -297,13 +336,21 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
     ? (skillIds.reduce((sum, id) => sum + skills[id].level, 0) / skillIds.length).toFixed(1)
     : '0.0';
 
+  // Categories/skills shown in the left rail, narrowed to the learner's
+  // specialization (full taxonomy is still used to resolve owned skills).
+  const visibleTaxonomy = useMemo(
+    () => (showAllSpecs ? taxonomy : filterTaxonomyBySpecialization(taxonomy, specialization)),
+    [taxonomy, specialization, showAllSpecs]
+  );
+  const isFiltered = visibleTaxonomy.length !== taxonomy.length;
+
   const coverage = useMemo(
     () =>
-      taxonomy.map((cat) => {
+      visibleTaxonomy.map((cat) => {
         const have = cat.skills.filter((s) => skills[s.id]).length;
         return { key: cat.key, label: cat.label, pct: cat.skills.length ? Math.round((have / cat.skills.length) * 100) : 0 };
       }),
-    [skills, taxonomy]
+    [skills, visibleTaxonomy]
   );
 
   const cards = useMemo(() => {
@@ -376,6 +423,33 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
     }
   };
 
+  const removeSkill = async () => {
+    if (!panelSkillId) return;
+    const rowId = rowIds[panelSkillId];
+    if (!rowId) return;
+    if (!window.confirm('Remove this skill from your Skill Matrix?')) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await deleteSkillMatrixEntry(rowId);
+      setSkills((prev) => {
+        const next = { ...prev };
+        delete next[panelSkillId];
+        return next;
+      });
+      setRowIds((prev) => {
+        const next = { ...prev };
+        delete next[panelSkillId];
+        return next;
+      });
+      closePanel();
+    } catch (err) {
+      setSaveError(err.message || 'Could not remove this skill. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const goEditExisting = () => {
     const id = duplicateSkillId;
     setDuplicateSkillId(null);
@@ -400,7 +474,6 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
         contentClassName="skillmatrix-app-content"
       >
         <div className="sm-shell">
-          <Topbar skillCount={0} totalSkills={0} onNavigate={onNavigate} />
           <div className="sm-loading">Loading your skill matrix…</div>
         </div>
       </AppLayout>
@@ -418,7 +491,6 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
     >
     <div className="sm-shell">
       {loadError && <div className="sm-load-error">{loadError}</div>}
-      <Topbar skillCount={skillIds.length} totalSkills={totalSkillCountOf(taxonomy)} onNavigate={onNavigate} />
 
       {taxonomyError && <div className="sm-load-error">{taxonomyError}</div>}
 
@@ -433,7 +505,20 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
             <input placeholder="Search skills..." />
           </div>
 
-          {taxonomy.map((cat) => {
+          {(isFiltered || showAllSpecs) && specialization && (
+            <div style={{ fontSize: 12, color: '#6b7280', margin: '0 0 10px' }}>
+              {showAllSpecs ? 'Showing all specializations' : `Filtered for ${specialization}`}{' · '}
+              <button
+                type="button"
+                onClick={() => setShowAllSpecs((v) => !v)}
+                style={{ background: 'none', border: 'none', padding: 0, color: '#4f46e5', cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}
+              >
+                {showAllSpecs ? 'Filter by mine' : 'Show all'}
+              </button>
+            </div>
+          )}
+
+          {visibleTaxonomy.map((cat) => {
             const isOpen = openCategories.has(cat.key);
             const haveCount = cat.skills.filter((s) => skills[s.id]).length;
             return (
@@ -491,7 +576,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
                 <button type="button" className={`sm-tab${tab === 'assessment' ? ' active' : ''}`} onClick={() => setTab('assessment')}>Assessment</button>
                 <button type="button" className={`sm-tab${tab === 'self' ? ' active' : ''}`} onClick={() => setTab('self')}>Self-Assessed</button>
               </div>
-              <button type="button" className="btn-add-skill" onClick={() => openAddSkill(pickFirstUnowned(taxonomy, skills))}>
+              <button type="button" className="btn-add-skill" onClick={() => openAddSkill(pickFirstUnowned(visibleTaxonomy, skills))}>
                 + Add Skill
               </button>
             </div>
@@ -546,7 +631,6 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
           </div>
 
           <div className="sm-info-banner">
-            <span>ℹ️</span>
             <span>
               <b>AC-09 — Assessment Initialization:</b> These skills were automatically initialized from your baseline
               assessment results (US-ASM-01). Assessment-derived skills carry a higher confidence score than
@@ -623,6 +707,17 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
               {saving ? 'Saving…' : 'Save Skill'}
             </button>
             <button type="button" className="btn-cancel-skill" onClick={closePanel} disabled={saving}>Cancel</button>
+            {isEditingExisting && rowIds[panelSkillId] && (
+              <button
+                type="button"
+                className="btn-cancel-skill"
+                onClick={removeSkill}
+                disabled={saving}
+                style={{ color: '#dc2626', borderColor: '#fecaca', background: '#fef2f2' }}
+              >
+                Delete Skill
+              </button>
+            )}
           </aside>
         )}
       </div>
@@ -630,7 +725,6 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
       {duplicateSkillId && duplicateMeta && (
         <div className="sm-modal-overlay" onClick={() => setDuplicateSkillId(null)}>
           <div className="sm-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="sm-modal-icon">⚠️</div>
             <h3>Skill already exists</h3>
             <p><b>{duplicateMeta.name}</b> is already in your Skill Matrix. Duplicate active skill records are not permitted (BR-09 / AC-07).</p>
             <div className="sm-modal-note">To change the level, click the existing skill card to edit it.</div>

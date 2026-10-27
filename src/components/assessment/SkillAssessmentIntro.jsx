@@ -1,14 +1,5 @@
 import './SkillAssessmentIntro.css';
 
-// Same 4-step onboarding stepper used elsewhere in the wizard (Account,
-// Profile, Assessment, Dashboard) - Assessment is the active step here.
-const ONBOARDING_STEPS = [
-  { label: 'Account', status: 'done' },
-  { label: 'Profile', status: 'done' },
-  { label: 'Assessment', status: 'active' },
-  { label: 'Dashboard', status: 'upcoming' },
-];
-
 // Mirrors the question set in SkillAssessment.jsx - kept as a small summary
 // here so the intro screen and the actual quiz never drift apart on counts.
 const CATEGORY_PREVIEW = [
@@ -84,18 +75,7 @@ const SkillAssessmentIntro = ({ onStart, careerRoles = [], careerRoleId = '', on
           <span className="assessment-topbar-title">Skill Assessment</span>
         </div>
 
-        <ol className="assessment-topbar-steps">
-          {ONBOARDING_STEPS.map((step, index) => (
-            <li key={step.label} className={`assessment-topbar-step ${step.status}`}>
-              <span className="assessment-topbar-step-marker">
-                {step.status === 'done' ? <CheckIcon /> : index + 1}
-              </span>
-              <span>{step.label}</span>
-            </li>
-          ))}
-        </ol>
-
-        <span className="assessment-topbar-meta">Step 3 of 4: Assessment</span>
+        <span className="assessment-topbar-meta" style={{ marginLeft: 'auto' }}>Step 3 of 4: Assessment</span>
       </header>
 
       <div className="assessment-intro-body">
@@ -112,18 +92,6 @@ const SkillAssessmentIntro = ({ onStart, careerRoles = [], careerRoleId = '', on
           <p className="assessment-intro-subtext">
             Your responses build the foundation of a personalized career roadmap and Skill Matrix.
           </p>
-
-          <div className="assessment-intro-progress-label">Onboarding Progress</div>
-          <ol className="assessment-intro-onboarding">
-            {ONBOARDING_STEPS.map((step, index) => (
-              <li key={step.label} className={`assessment-intro-onboarding-step ${step.status}`}>
-                <span className="assessment-intro-onboarding-marker">
-                  {step.status === 'done' ? <CheckIcon /> : index + 1}
-                </span>
-                <span className="assessment-intro-onboarding-label">{step.label}</span>
-              </li>
-            ))}
-          </ol>
 
           <ul className="assessment-intro-categories">
             {CATEGORY_PREVIEW.map((cat) => (

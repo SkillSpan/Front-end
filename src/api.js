@@ -11,7 +11,7 @@ import { setCookie, getCookie, removeCookie } from './utils/cookies';
 const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 // Keep the legacy Render host only for local development. Production builds must
 // explicitly configure the backend URL so they cannot silently call an old API.
-export const API_BASE_URL = (configuredApiBaseUrl || (import.meta.env.DEV ? 'https://back-end-zdip.onrender.com' : '')).replace(/\/+$/, '');
+export const API_BASE_URL = (configuredApiBaseUrl || (import.meta.env.DEV ? 'https://skillspan.alwaysdata.net' : '')).replace(/\/+$/, '');
 
 const TOKEN_COOKIE = 'skillspan_token';
 const USER_COOKIE = 'skillspan_user';
@@ -230,6 +230,49 @@ function isAuthEndpointRequiringSession(path) {
 
 export const registerUser = (payload) =>
   request('/api/v1/auth/register', { method: 'POST', body: payload });
+
+// Pre-flight duplicate-email check used by register step 1, so the user finds
+// out right away (instead of at the very last step) that the email is taken.
+// Resolves to { exists: boolean, message?: string }.
+//
+// Contract assumed (POST /api/v1/auth/check-email, body { email }):
+//   - 200 with a flag such as { exists: true } / { available: false } /
+//     { data: { exists: true } }, or
+//   - 409 / 422 (optionally with errors.email) when the email is taken.
+// Anything else (network error, timeout, 404, 5xx) is rethrown so the caller
+// can decide to fail open - the final register request still validates it.
+export const EMAIL_ALREADY_REGISTERED_MESSAGE =
+  'This email is already registered. Please log in or use a different email.';
+
+export async function checkEmail(email, { signal } = {}) {
+  const firstString = (v) => (Array.isArray(v) ? v.find((x) => typeof x === 'string') : typeof v === 'string' ? v : undefined);
+  try {
+    const res = await request('/api/v1/auth/check-email', {
+      method: 'POST',
+      body: { email },
+      timeoutMs: 20000,
+      signal,
+    });
+    const d = (res && typeof res.data === 'object' && res.data) || res || {};
+    const exists =
+      d.exists === true ||
+      d.taken === true ||
+      d.registered === true ||
+      d.is_registered === true ||
+      d.email_exists === true ||
+      d.available === false ||
+      d.is_available === false;
+    return { exists, message: exists ? firstString(d.message) || EMAIL_ALREADY_REGISTERED_MESSAGE : undefined };
+  } catch (err) {
+    if (err && (err.status === 409 || err.status === 422)) {
+      return {
+        exists: true,
+        message: firstString(err.errors?.email) || err.message || EMAIL_ALREADY_REGISTERED_MESSAGE,
+      };
+    }
+    throw err;
+  }
+}
 
 // Registration uploads documents (multipart) and may hit a sleeping backend,
 // so it gets a generous timeout and can be cancelled through `signal`.
