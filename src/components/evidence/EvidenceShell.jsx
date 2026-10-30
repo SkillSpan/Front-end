@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, Info } from 'lucide-react';
 import AppLayout from '../dashboard/AppLayout';
 import { useAuth } from '../auth/AuthContext';
+import { signOutToLanding } from '../auth/signOut';
 import { NAV_ROUTES } from '../../navRoutes';
 import { useEvidence } from './EvidenceContext';
 import './evidence.css';
@@ -17,7 +18,7 @@ export default function EvidenceShell({ children }) {
     <AppLayout
       active="evidence"
       user={authUser}
-      onLogout={() => { logout(); navigate('/'); }}
+      onLogout={() => signOutToLanding(navigate, logout)}
       onNavigate={(key) => { if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key]); }}
       readinessScore={Number(authUser?.readiness_score ?? authUser?.readinessScore ?? 0) || 0}
       roleLabel={authUser?.career_role?.title ?? authUser?.career_role_title ?? authUser?.role_title ?? ''}

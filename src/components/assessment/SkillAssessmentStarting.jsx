@@ -66,7 +66,7 @@ const SkillAssessmentStarting = ({ onDone, onExit }) => {
       <header className="assessment-starting-topbar">
         <div className="assessment-topbar-brand">
           <span className="assessment-brand-badge">
-            <CheckIcon />
+            <img src="/image/logo.png" alt="" />
           </span>
           SkillSpan
           <span className="assessment-topbar-divider" />

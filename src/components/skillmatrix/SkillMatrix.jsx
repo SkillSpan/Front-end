@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './SkillMatrix.css';
 import { TAXONOMY as FALLBACK_TAXONOMY, LEVELS, levelInfo } from './taxonomy';
-import { getSkillsMatrix, upsertSkillMatrix, updateSkillMatrixEntry, deleteSkillMatrixEntry, getSkillsTaxonomy, getStoredUser, resolveLearnerId, getProfile } from '../../api';
+import { getSkillsMatrix, upsertSkillMatrix, updateSkillMatrixEntry, deleteLearnerSkill, getSkillsTaxonomy, getStoredUser, resolveLearnerId, getProfile } from '../../api';
 import AppLayout from '../dashboard/AppLayout';
 import { useAuth } from '../auth/AuthContext';
+import { signOutToLanding } from '../auth/signOut';
 
 // The taxonomy (categories/skill list on the left) now loads from the real
 // backend (GET /skills/taxonomy) instead of the local mock in taxonomy.js -
@@ -208,6 +210,7 @@ function filterTaxonomyBySpecialization(taxonomy, specialization) {
 
 export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   const { authUser, logout } = useAuth();
+  const navigate = useNavigate();
   const currentUser = authUser || getStoredUser();
   const learnerId = resolveLearnerId(currentUser);
   const [taxonomy, setTaxonomy] = useState(FALLBACK_TAXONOMY);
@@ -231,6 +234,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   const [specialization, setSpecialization] = useState('');
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [showAllSpecs, setShowAllSpecs] = useState(false);
+  const [query, setQuery] = useState('');
   const loading = loadingMatrix || taxonomySource === 'loading' || !profileLoaded;
 
   // The learner's chosen specialization (set during profile setup).
@@ -344,6 +348,22 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   );
   const isFiltered = visibleTaxonomy.length !== taxonomy.length;
 
+  // Search box: narrows the left list (within the specialization filter) and
+  // the skill cards by skill name; a category-name match keeps all its skills.
+  const q = query.trim().toLowerCase();
+  const searchedTaxonomy = useMemo(() => {
+    if (!q) return visibleTaxonomy;
+    return visibleTaxonomy
+      .map((cat) => {
+        const catMatches = String(cat.label || '').toLowerCase().includes(q);
+        const matched = catMatches
+          ? cat.skills
+          : cat.skills.filter((sk) => String(sk.name || '').toLowerCase().includes(q));
+        return { ...cat, skills: matched };
+      })
+      .filter((cat) => cat.skills.length > 0);
+  }, [visibleTaxonomy, q]);
+
   const coverage = useMemo(
     () =>
       visibleTaxonomy.map((cat) => {
@@ -360,8 +380,14 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
         const meta = findSkillInTaxonomy(taxonomy, id);
         return meta ? { id, ...meta, ...skills[id] } : null;
       })
-      .filter(Boolean);
-  }, [skillIds, skills, tab, taxonomy]);
+      .filter(Boolean)
+      .filter(
+        (card) =>
+          !q ||
+          String(card.name || '').toLowerCase().includes(q) ||
+          String(card.categoryLabel || '').toLowerCase().includes(q)
+      );
+  }, [skillIds, skills, tab, taxonomy, q]);
 
   const toggleCategory = (key) => {
     setOpenCategories((prev) => {
@@ -425,13 +451,14 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
 
   const removeSkill = async () => {
     if (!panelSkillId) return;
-    const rowId = rowIds[panelSkillId];
-    if (!rowId) return;
+    // Only skills already in the matrix can be removed. The endpoint takes the
+    // skill's id from the skills table (panelSkillId), not the matrix row id.
+    if (!rowIds[panelSkillId]) return;
     if (!window.confirm('Remove this skill from your Skill Matrix?')) return;
     setSaving(true);
     setSaveError(null);
     try {
-      await deleteSkillMatrixEntry(rowId);
+      await deleteLearnerSkill(panelSkillId);
       setSkills((prev) => {
         const next = { ...prev };
         delete next[panelSkillId];
@@ -469,7 +496,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
         active="skill-matrix"
         onNavigate={onNavigate}
         user={currentUser}
-        onLogout={logout}
+        onLogout={() => signOutToLanding(navigate, logout)}
         flushContent
         contentClassName="skillmatrix-app-content"
       >
@@ -485,7 +512,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
       active="skill-matrix"
       onNavigate={onNavigate}
       user={currentUser}
-      onLogout={logout}
+      onLogout={() => signOutToLanding(navigate, logout)}
       flushContent
       contentClassName="skillmatrix-app-content"
     >
@@ -502,7 +529,13 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
             </svg>
-            <input placeholder="Search skills..." />
+            <input
+              type="text"
+              placeholder="Search skills..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Escape') setQuery(''); }}
+            />
           </div>
 
           {(isFiltered || showAllSpecs) && specialization && (
@@ -518,8 +551,16 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
             </div>
           )}
 
-          {visibleTaxonomy.map((cat) => {
-            const isOpen = openCategories.has(cat.key);
+          {q && searchedTaxonomy.length === 0 && (
+            <div style={{ padding: '12px 4px', fontSize: 13, opacity: 0.7 }}>
+              No skills match “{query.trim()}”.
+              {isFiltered && !showAllSpecs && ' Try “Show all” above to search every specialization.'}
+            </div>
+          )}
+
+          {searchedTaxonomy.map((cat) => {
+            // While searching, show every matching category expanded.
+            const isOpen = q ? true : openCategories.has(cat.key);
             const haveCount = cat.skills.filter((s) => skills[s.id]).length;
             return (
               <div className="sm-category" key={cat.key}>
@@ -587,6 +628,12 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
             <span className="sm-summary-chip"><b>{selfCount}</b>&nbsp;Self-assessed</span>
             <span className="sm-summary-chip avg"><b>{avgProficiency}/5</b>&nbsp;Avg proficiency</span>
           </div>
+
+          {q && cards.length === 0 && (
+            <div style={{ padding: '24px 4px', fontSize: 14, opacity: 0.7 }}>
+              No skills match “{query.trim()}”.
+            </div>
+          )}
 
           <div className="sm-grid">
             {cards.map((card, index) => {

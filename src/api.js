@@ -428,6 +428,9 @@ export const fetchProfileAvatarUrl = async () => {
 // callers should treat the response shape defensively and keep a local
 // fallback (see assessmentStorage.js) until this is confirmed in writing.
 
+// payload: { specialization_id, career_role_id } - the backend picks the
+// questions itself (career_role_skills -> baseline_assessment_items), the
+// frontend never queries the question bank directly.
 export const startBaselineAssessment = (payload) =>
   request('/api/v1/baseline-assessments', { method: 'POST', body: payload, withAuth: true });
 
@@ -481,9 +484,14 @@ export const addSkillToMatrix = (payload) =>
 export const updateSkillMatrixEntry = (id, payload) =>
   request(`/api/v1/skills/matrix/${id}`, { method: 'PUT', body: payload, withAuth: true });
 
-// الدالة التي تم إضافتها لحل مشكلة الـ Build
-export const deleteSkillMatrixEntry = (id) =>
-  request(`/api/v1/skills/matrix/${id}`, { method: 'DELETE', withAuth: true });
+// Removes a skill from the signed-in learner's matrix.
+//   DELETE /api/v1/learner/skills/{skill_id}
+// `skillId` is the id from the `skills` table (e.g. 20 for Python), NOT the
+// learner_skills row id. The learner comes from the token, so no learner_id is
+// sent. Only the learner<->skill link is removed, never the skill itself.
+// (DELETE /api/v1/skills/matrix/{id} is not supported by the backend - PUT only.)
+export const deleteLearnerSkill = (skillId) =>
+  request(`/api/v1/learner/skills/${skillId}`, { method: 'DELETE', withAuth: true });
 
 // Alias for addSkillToMatrix - same endpoint, kept under this name because
 // it's what SkillMatrix.jsx / careerRolesApi.js (merged in from the
@@ -532,8 +540,11 @@ export const reviewEvidence = (id, verificationStatus, reviewerNotes) =>
 // those surface in the UI.
 
 // page/perPage are optional - only sent when provided.
-export const getCareerRoles = ({ page, perPage } = {}) => {
+export const getCareerRoles = ({ page, perPage, specializationId } = {}) => {
   const params = new URLSearchParams();
+  // GET /api/v1/career-roles?specialization_id=5 - only the roles linked to
+  // that specialization (career_role_specialization).
+  if (specializationId) params.set('specialization_id', specializationId);
   if (page) params.set('page', page);
   if (perPage) params.set('per_page', perPage);
   const qs = params.toString();

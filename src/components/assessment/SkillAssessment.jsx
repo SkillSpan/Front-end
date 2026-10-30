@@ -155,7 +155,7 @@ const SkillAssessment = ({ assessmentId, onComplete, onExit }) => {
       <header className="sa-topbar">
         <div className="sa-topbar-brand">
           <span className="assessment-brand-badge">
-            <CheckIcon />
+            <img src="/image/logo.png" alt="" />
           </span>
           SkillSpan
           <span className="sa-topbar-divider" />

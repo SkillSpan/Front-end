@@ -1,8 +1,9 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import './App.css'
 import Landing from './landing/LandingPage'
 import { AuthProvider, useAuth } from './components/auth/AuthContext'
+import { signOutToLanding, isDeliberateSignOut, clearDeliberateSignOut } from './components/auth/signOut'
 import { EvidenceProvider } from './components/evidence/EvidenceContext'
 
 // Everything behind the login form loads on demand. The app used to ship as a
@@ -72,8 +73,7 @@ function DashboardPage() {
     <Dashboard
       user={authUser}
       onLogout={() => {
-        logout()
-        navigate('/')
+        signOutToLanding(navigate, logout)
       }}
       onNavigate={(key) => {
         if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key])
@@ -93,8 +93,7 @@ function WorkspacePage({ view }) {
         if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key])
       }}
       onLogout={() => {
-        logout()
-        navigate('/')
+        signOutToLanding(navigate, logout)
       }}
     />
   )
@@ -114,8 +113,7 @@ function CareerRolesPage() {
     <CareerRoles
       user={authUser}
       onLogout={() => {
-        logout()
-        navigate('/')
+        signOutToLanding(navigate, logout)
       }}
       onNavigate={(key) => { if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key]) }}
     />
@@ -124,7 +122,10 @@ function CareerRolesPage() {
 
 function RequireAuth({ children }) {
   const { authUser } = useAuth()
-  if (!authUser) return <Navigate to="/login" replace />
+  if (!authUser) {
+    if (isDeliberateSignOut()) return <Navigate to="/" replace state={{ loggedOut: true }} />
+    return <Navigate to="/login" replace />
+  }
   return children
 }
 
@@ -133,7 +134,10 @@ function RequireAuth({ children }) {
 // dashboard instead of seeing a page full of 403s from the company endpoints.
 function RequireCompanyAuth({ children }) {
   const { authUser } = useAuth()
-  if (!authUser) return <Navigate to="/company/login" replace />
+  if (!authUser) {
+    if (isDeliberateSignOut()) return <Navigate to="/" replace state={{ loggedOut: true }} />
+    return <Navigate to="/company/login" replace />
+  }
   const hasOrganization = Array.isArray(authUser.organizations) && authUser.organizations.length > 0
   if (!hasOrganization) return <Navigate to="/dashboard" replace />
   return children
@@ -149,8 +153,12 @@ function RequireCompanyAuth({ children }) {
 // page while signed in (demos, screenshots, the "view site" link).
 function HomeRoute() {
   const { authUser } = useAuth()
-  const { search } = useLocation()
-  const wantsSite = new URLSearchParams(search).has('site')
+  const { search, state } = useLocation()
+  const wantsSite = new URLSearchParams(search).has('site') || state?.loggedOut === true
+  // The deliberate-logout hand-over is done once the landing page is showing.
+  useEffect(() => {
+    clearDeliberateSignOut()
+  }, [])
   if (authUser && !wantsSite) {
     const isCompany = Array.isArray(authUser.organizations) && authUser.organizations.length > 0
     return <Navigate to={isCompany ? '/company/dashboard' : '/dashboard'} replace />
@@ -176,8 +184,7 @@ function CompanyPage({ view }) {
       user={authUser}
       organization={organization}
       onLogout={() => {
-        logout()
-        navigate('/company/login')
+        signOutToLanding(navigate, logout)
       }}
     >
       {renderView()}
