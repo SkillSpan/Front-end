@@ -47,6 +47,16 @@ export default function LandingPage() {
     window.scrollTo(0, 0)
   }, [])
 
+  // The app hides the page scrollbar everywhere (App.css) because the signed-in
+  // shell scrolls its own panels instead. The landing is one long read, so it
+  // gets a visible, on-brand scrollbar back for as long as it is mounted — see
+  // the `html.landing-scrollbar` rules at the end of styles/global.css.
+  useEffect(() => {
+    const root = document.documentElement
+    root.classList.add('landing-scrollbar')
+    return () => root.classList.remove('landing-scrollbar')
+  }, [])
+
   const t = dictionaries[lang] || dictionaries.en
   const value = useMemo(() => ({ lang, t, setLang }), [lang, t, setLang])
 

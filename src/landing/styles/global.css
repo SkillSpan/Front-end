@@ -153,3 +153,30 @@ html:has(.landing-root) { scroll-behavior: smooth; scroll-padding-top: 72px; }
    scroll away with the document instead of sticking to the viewport. The
    landing brings its own motion, so the wrapper's page-in is dropped here. */
 .route-transition--landing { animation: none; transform: none; }
+
+/* A visible page scrollbar, only while the landing is mounted.
+   App.css hides the html/body/#root scrollbars for the signed-in shell; these
+   rules out-rank them (a class on <html> beats the bare element selector) and
+   the class is removed again on unmount. Firefox reads scrollbar-width/color,
+   WebKit and Blink read the ::-webkit-scrollbar pseudo-elements. */
+/* `scrollbar-width: auto` undoes App.css's `scrollbar-width: none` — without it
+   Chrome hides the scrollbar outright and the ::-webkit-scrollbar rules below
+   never get a chance to run. */
+html.landing-scrollbar { scrollbar-width: auto; }
+html.landing-scrollbar::-webkit-scrollbar { width: 12px; height: 12px; display: block; }
+html.landing-scrollbar::-webkit-scrollbar-track { background: #0b1440; }
+html.landing-scrollbar::-webkit-scrollbar-thumb {
+  border: 3px solid #0b1440;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #29a8ff 0%, #6c7cff 55%, #9e51fa 100%);
+}
+html.landing-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #4db8ff 0%, #8b98ff 55%, #b07bff 100%);
+}
+html.landing-scrollbar::-webkit-scrollbar-corner { background: #0b1440; }
+
+/* Firefox only: Chrome ignores the ::-webkit-scrollbar rules above as soon as
+   `scrollbar-width` is set, so this must not apply there. */
+@supports not selector(::-webkit-scrollbar) {
+  html.landing-scrollbar { scrollbar-width: thin; scrollbar-color: #2f7bff #0b1440; }
+}
