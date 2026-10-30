@@ -39,3 +39,52 @@
 :root[data-theme='dark'] .app-shell {
   background: #0b1020;
 }
+
+/* Same reason: the sidebar and the topbar are part of the shell, not of the
+   settings screen. Kept in sync with profile-settings.css. */
+:root[data-theme='dark'] .app-content.workspace-content {
+  background: #0b1020;
+}
+
+:root[data-theme='dark'] .app-sidebar {
+  background: #101731;
+  border-right-color: #24304d;
+  color: #e8ecf8;
+}
+
+:root[data-theme='dark'] .app-sidebar-brand .white {
+  color: #e8ecf8;
+}
+
+:root[data-theme='dark'] .app-nav-item {
+  color: #9fb0d0;
+}
+
+:root[data-theme='dark'] .app-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+:root[data-theme='dark'] .app-nav-item.active {
+  background: var(--accent-soft);
+  color: color-mix(in srgb, var(--accent) 70%, #ffffff);
+}
+
+:root[data-theme='dark'] .app-topbar {
+  background: #101731;
+  border-bottom-color: #24304d;
+  color: #e8ecf8;
+}
+
+:root[data-theme='dark'] .app-topbar .app-user-name {
+  color: #e8ecf8;
+}
+
+:root[dir='rtl'] .app-sidebar {
+  border-right: 0;
+  border-left: 1px solid #e8eaf0;
+}
+
+:root[data-theme='dark'][dir='rtl'] .app-sidebar {
+  border-left-color: #24304d;
+}

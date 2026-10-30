@@ -282,6 +282,16 @@
   margin: 0 0 24px;
 }
 
+/* The greeting keeps its light-mode ink (#12172c) on the dark shell, which made
+   "Welcome back" almost disappear. Give it the same ink as the panel headings. */
+:root[data-theme="dark"] .dash-title {
+  color: #eef2fb;
+}
+
+:root[data-theme="dark"] .dash-subtitle {
+  color: #9fb0d0;
+}
+
 .dash-top-row {
   display: grid;
   grid-template-columns: 340px 1fr;
@@ -832,4 +842,122 @@
 :root[data-theme="dark"] .pill-orange {
   background: rgba(245, 158, 11, 0.18);
   color: #fcd34d;
+}
+
+/* ==========================================
+   Panels, support mark and topbar search — dark glass
+   The two bottom panels (Top Skill Gaps / Recommended Projects) were still
+   solid #fff, so they read as holes punched in the dark shell. Same material
+   as .dash-stat-card above, so every surface on the page matches.
+========================================== */
+
+:root[data-theme="dark"] .dash-panel {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+:root[data-theme="dark"] .dash-panel-head h3 {
+  color: #eef2fb;
+}
+
+:root[data-theme="dark"] .dash-panel-head a {
+  color: #a5b4fc;
+}
+
+:root[data-theme="dark"] .gap-row {
+  border-radius: 8px;
+}
+
+:root[data-theme="dark"] .gap-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme="dark"] .gap-row-top .name {
+  color: #dfe6f5;
+}
+
+:root[data-theme="dark"] .gap-row-top .lv {
+  color: #8b95ad;
+}
+
+:root[data-theme="dark"] .gap-bar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] .proj-row {
+  border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme="dark"] .proj-info .p-title {
+  color: #e6ebf7;
+}
+
+:root[data-theme="dark"] .proj-info .p-sub {
+  color: #8b95ad;
+}
+
+:root[data-theme="dark"] .proj-match {
+  color: #a5b4fc;
+}
+
+:root[data-theme="dark"] .dash-empty-state {
+  color: #8b95ad;
+}
+
+:root[data-theme="dark"] .dash-empty-btn {
+  background: rgba(99, 102, 241, 0.2);
+  color: #c7d2fe;
+}
+
+:root[data-theme="dark"] .dash-empty-btn:hover {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+/* Support mark: keep the accent tint, drop the near-white wash. */
+:root[data-theme="dark"] .dash-support-banner {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 139, 255, 0.13) 0%,
+    rgba(139, 92, 246, 0.1) 100%
+  );
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] .dash-support-text strong {
+  color: #eef2fb;
+}
+
+:root[data-theme="dark"] .dash-support-text span {
+  color: #9aa6c0;
+}
+
+:root[data-theme="dark"] .dash-support-banner.is-waiting {
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.14) 0%,
+    rgba(236, 72, 153, 0.1) 100%
+  );
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+:root[data-theme="dark"] .dash-loading {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #8b95ad;
+}
+
+/* Topbar search field. */
+:root[data-theme="dark"] .app-search {
+  background: rgba(255, 255, 255, 0.06);
+  color: #8b95ad;
+}
+
+:root[data-theme="dark"] .app-search input {
+  color: #e8ecf8;
+}
+
+:root[data-theme="dark"] .app-search input::placeholder {
+  color: #7b8aa8;
 }
