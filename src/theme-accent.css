@@ -88,3 +88,46 @@
 :root[data-theme='dark'][dir='rtl'] .app-sidebar {
   border-left-color: #24304d;
 }
+
+/* Alert / notice boxes. Several in-app views use the Tailwind semantic colours
+   (bg-amber-50, bg-red-50, ...) for inline notices; on the dark canvas those
+   pastel fills turn into bright blocks. Same hue, dark tint. */
+:root[data-theme='dark'] .app-content .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.14) !important;
+}
+:root[data-theme='dark'] .app-content .border-amber-200 {
+  border-color: rgba(245, 158, 11, 0.32) !important;
+}
+:root[data-theme='dark'] .app-content .text-amber-900 {
+  color: #fcd34d !important;
+}
+:root[data-theme='dark'] .app-content .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.13) !important;
+}
+:root[data-theme='dark'] .app-content .border-red-200 {
+  border-color: rgba(239, 68, 68, 0.32) !important;
+}
+:root[data-theme='dark'] .app-content .text-red-900,
+:root[data-theme='dark'] .app-content .text-red-800 {
+  color: #fca5a5 !important;
+}
+:root[data-theme='dark'] .app-content .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.13) !important;
+}
+:root[data-theme='dark'] .app-content .border-emerald-200 {
+  border-color: rgba(16, 185, 129, 0.32) !important;
+}
+:root[data-theme='dark'] .app-content .text-emerald-900,
+:root[data-theme='dark'] .app-content .text-emerald-800 {
+  color: #6ee7b7 !important;
+}
+:root[data-theme='dark'] .app-content .bg-blue-50 {
+  background-color: rgba(59, 139, 255, 0.13) !important;
+}
+:root[data-theme='dark'] .app-content .border-blue-200 {
+  border-color: rgba(59, 139, 255, 0.3) !important;
+}
+:root[data-theme='dark'] .app-content .text-blue-900,
+:root[data-theme='dark'] .app-content .text-blue-800 {
+  color: #93c5fd !important;
+}

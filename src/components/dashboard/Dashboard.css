@@ -961,3 +961,23 @@
 :root[data-theme="dark"] .app-search input::placeholder {
   color: #7b8aa8;
 }
+
+/* Notification popover — white card in the topbar. */
+:root[data-theme="dark"] .app-notification-popover {
+  background: #151d33;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme="dark"] .app-notification-popover strong {
+  color: #eef2fb;
+}
+
+:root[data-theme="dark"] .app-notification-popover p {
+  color: #9aa6c0;
+}
+
+:root[data-theme="dark"] .app-notification-popover button {
+  background: rgba(99, 102, 241, 0.2);
+  color: #c7d2fe;
+}

@@ -183,3 +183,167 @@
     }
 }
 
+
+/* =========================================================
+   Dark theme
+   The palette lives in the .evidence-scope custom properties, so most of the
+   screen follows for free; the remaining hard-coded Tailwind utilities
+   (bg-white and friends) are remapped here. They need !important because
+   tailwind.config.js sets `important: '.evidence-scope'` on every utility.
+========================================================= */
+
+:root[data-theme="dark"] .evidence-scope {
+    color: #e8ecf8;
+    --ink: #e8ecf8;
+    --muted: #9fb0d0;
+    --soft: #7b8aa8;
+    --line: rgba(255, 255, 255, 0.1);
+    --surface: rgba(255, 255, 255, 0.055);
+    --canvas: #0b1020;
+    --blue-soft: rgba(47, 91, 234, 0.18);
+}
+
+:root[data-theme="dark"] .evidence-scope .bg-white {
+    background-color: rgba(255, 255, 255, 0.055) !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .hover\:bg-white:hover {
+    background-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .bg-\[\#f9fbff\],
+:root[data-theme="dark"] .evidence-scope .bg-\[\#f7f8fb\],
+:root[data-theme="dark"] .evidence-scope .bg-\[\#f2f4f7\],
+:root[data-theme="dark"] .evidence-scope .bg-\[\#f0f1f3\] {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .border-\[\#e4e7ec\],
+:root[data-theme="dark"] .evidence-scope .border-\[\#f0f2f5\],
+:root[data-theme="dark"] .evidence-scope .border-\[\#e7e8eb\],
+:root[data-theme="dark"] .evidence-scope .border-\[\#dedfe3\],
+:root[data-theme="dark"] .evidence-scope .border-\[\#d7dbe2\] {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .text-\[\#101828\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#111827\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#344054\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#272932\] {
+    color: #e8ecf8 !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .text-\[\#667085\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#626772\] {
+    color: #9fb0d0 !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .text-\[\#98a2b3\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#8b8f98\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#a4a7ae\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#a1a4ac\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#a1a5ad\] {
+    color: #7b8aa8 !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .text-\[\#b42318\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#d92d20\] {
+    color: #fda4af !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .text-\[\#087443\] {
+    color: #6ee7b7 !important;
+}
+
+:root[data-theme="dark"] .evidence-scope input::placeholder {
+    color: #7b8aa8 !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .bg-\[\#f5f8ff\],
+:root[data-theme="dark"] .evidence-scope .bg-\[\#fcfcfd\],
+:root[data-theme="dark"] .evidence-scope .bg-\[\#eef3ff\] {
+    background-color: rgba(47, 91, 234, 0.12) !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .bg-\[\#fef3f2\],
+:root[data-theme="dark"] .evidence-scope .bg-\[\#fff5f5\] {
+    background-color: rgba(240, 68, 56, 0.12) !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .border-\[\#d9e5ff\],
+:root[data-theme="dark"] .evidence-scope .border-\[\#cfd4dc\],
+:root[data-theme="dark"] .evidence-scope .border-\[\#d0d5dd\] {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .border-\[\#fecdca\],
+:root[data-theme="dark"] .evidence-scope .border-\[\#f04438\] {
+    border-color: rgba(240, 68, 56, 0.4) !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .figma-input,
+:root[data-theme="dark"] .evidence-scope textarea,
+:root[data-theme="dark"] .evidence-scope select {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: #e8ecf8;
+}
+
+:root[data-theme="dark"] .evidence-scope .figma-card {
+    box-shadow: none;
+}
+
+/* Belt and braces: the .figma-* classes read var(--ink)/var(--muted), but
+   state them explicitly so the heading can never inherit the light palette. */
+:root[data-theme="dark"] .evidence-scope .figma-title {
+    color: #eef2fb;
+}
+
+:root[data-theme="dark"] .evidence-scope .figma-subtitle {
+    color: #9aa6c0;
+}
+
+:root[data-theme="dark"] .evidence-scope .figma-eyebrow {
+    color: #8b95ad;
+}
+
+/* Complete ink ramp for the evidence screens. The screens use a handful of
+   hard-coded near-black greys (#18191f, #16181d, ...) that are invisible on
+   the dark canvas, so every one of them is remapped here rather than guessed
+   one at a time. */
+:root[data-theme="dark"] .evidence-scope .text-\[\#16181d\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#17181d\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#18191f\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#272932\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#343740\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#101828\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#111827\] {
+    color: #eef2fb !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .text-\[\#344054\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#4b5563\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#4c5059\] {
+    color: #c3cfe6 !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .text-\[\#667085\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#626772\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#777b84\] {
+    color: #9fb0d0 !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .text-\[\#878b94\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#969aa2\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#9a9da5\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#98a2b3\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#8b8f98\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#a4a7ae\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#a1a4ac\],
+:root[data-theme="dark"] .evidence-scope .text-\[\#a1a5ad\] {
+    color: #7b8aa8 !important;
+}
+
+:root[data-theme="dark"] .evidence-scope .text-\[\#f2f4f7\] {
+    color: #e8ecf8 !important;
+}
