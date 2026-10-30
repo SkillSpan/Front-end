@@ -258,3 +258,81 @@
     border-radius: 20px;
   }
 }
+
+/* ---------- Light theme ----------
+   The card was drawn as a navy slab, so on a white page it looked like a piece
+   of another product dropped on top. Same geometry and same gradient CTA, light
+   material. Scoped to [data-theme="light"] because the base rules above are the
+   dark design. */
+:root[data-theme="light"] .logout-modal-overlay {
+  background: rgba(15, 23, 42, 0.38);
+}
+
+:root[data-theme="light"] .logout-modal-card {
+  background: #ffffff;
+  border-color: #e6e9f2;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.02),
+    0 24px 60px rgba(15, 23, 42, 0.18);
+}
+
+:root[data-theme="light"] .logout-modal-icon-box {
+  background: linear-gradient(135deg, #eef2ff 0%, #e7e9ff 100%);
+  border-color: rgba(99, 102, 241, 0.24);
+  box-shadow: none;
+}
+
+:root[data-theme="light"] .logout-modal-title {
+  color: #12172c;
+}
+
+:root[data-theme="light"] .logout-modal-subtitle {
+  color: #6a7093;
+}
+
+:root[data-theme="light"] .logout-modal-footnote {
+  color: #8b93ab;
+}
+
+:root[data-theme="light"] .logout-modal-btn-secondary {
+  background: #f4f6fb;
+  border-color: #e5e7f0;
+  color: #334155;
+}
+
+:root[data-theme="light"] .logout-modal-btn-secondary:hover:not(:disabled) {
+  background: #eaeef7;
+}
+
+:root[data-theme="light"] .logout-modal-error {
+  background: rgba(239, 68, 68, 0.07);
+  border-color: rgba(239, 68, 68, 0.22);
+  color: #b91c1c;
+}
+
+:root[data-theme="light"] .logout-modal-danger {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.18);
+}
+
+:root[data-theme="light"] .logout-modal-danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.09);
+}
+
+:root[data-theme="light"] .logout-modal-danger.is-confirming {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.32);
+}
+
+:root[data-theme="light"] .logout-modal-danger-icon {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+:root[data-theme="light"] .logout-modal-danger-title,
+:root[data-theme="light"] .logout-modal-danger-chevron {
+  color: #dc2626;
+}
+
+:root[data-theme="light"] .logout-modal-danger-subtitle {
+  color: #6a7093;
+}

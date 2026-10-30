@@ -1048,3 +1048,16 @@
     border-bottom-color: rgba(255, 255, 255, 0.08);
   }
 }
+
+/* Loading + inline error banners. The loading text sat on the light #f5f7fb
+   canvas, so on the dark shell it was dark grey on near-white. */
+:root[data-theme="dark"] .sm-loading {
+  color: #8b95ad;
+}
+
+:root[data-theme="dark"] .sm-load-error,
+:root[data-theme="dark"] .sm-save-error {
+  background: rgba(239, 68, 68, 0.13);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.32);
+}

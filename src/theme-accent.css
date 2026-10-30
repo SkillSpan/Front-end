@@ -46,10 +46,23 @@
   background: #0b1020;
 }
 
+/* The rail used to be a lighter slab (#101731) against the #0b1020 canvas, so
+   the app read as three stacked surfaces. It now shares the page ink and is
+   separated only by a hairline rule. */
 :root[data-theme='dark'] .app-sidebar {
-  background: #101731;
-  border-right-color: #24304d;
+  background: #0b1020;
+  border-right-color: rgba(255, 255, 255, 0.07);
   color: #e8ecf8;
+}
+
+/* The rail scrolls on short screens; the default scrollbar is a bright white
+   strip on the dark shell. */
+:root[data-theme='dark'] .app-nav {
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+
+:root[data-theme='dark'] .app-content {
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 
 :root[data-theme='dark'] .app-sidebar-brand .white {
@@ -70,9 +83,11 @@
   color: color-mix(in srgb, var(--accent) 70%, #ffffff);
 }
 
+/* Same as the rail: the topbar sat on its own lighter shade, so the header read
+   as a band pasted over the page. One ink, one hairline. */
 :root[data-theme='dark'] .app-topbar {
-  background: #101731;
-  border-bottom-color: #24304d;
+  background: #0b1020;
+  border-bottom-color: rgba(255, 255, 255, 0.07);
   color: #e8ecf8;
 }
 
@@ -86,7 +101,7 @@
 }
 
 :root[data-theme='dark'][dir='rtl'] .app-sidebar {
-  border-left-color: #24304d;
+  border-left-color: rgba(255, 255, 255, 0.07);
 }
 
 /* Alert / notice boxes. Several in-app views use the Tailwind semantic colours

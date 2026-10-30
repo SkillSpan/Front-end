@@ -39,7 +39,7 @@
 }
 
 .app-sidebar-brand .white { color: #0a0b14; }
-.app-sidebar-brand .blue { color: #3b8bff; }
+.app-sidebar-brand .blue { color: var(--accent, #3b8bff); }
 
 .app-nav {
   list-style: none;
@@ -73,9 +73,11 @@
   color: #0a0b14;
 }
 
+/* Accent-aware: the rail used to hardcode blue here, so picking violet / green /
+   amber in Settings changed the tokens and nothing else. */
 .app-nav-item.active {
-  background: rgba(59, 139, 255, 0.10);
-  color: #1d4ed8;
+  background: var(--accent-soft, rgba(59, 139, 255, 0.10));
+  color: var(--accent-strong, #1d4ed8);
   font-weight: 600;
 }
 
@@ -213,6 +215,19 @@
 :root[data-theme="dark"] .app-icon-btn { color: #9fb0d0; }
 :root[data-theme="dark"] .app-icon-btn:hover { background: rgba(255,255,255,.06); color: #fff; border-color: #24304d; }
 :root[data-theme="dark"] .app-bell { background: #0f1628; color: #c3cfe6; }
+
+/* The Assistant pill kept its light chip (#f4f6fb) on the dark topbar, so it
+   was the brightest thing on the page. Same glass as the bell next to it. */
+:root[data-theme="dark"] .app-assistant-top {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #c7d2fe;
+}
+
+:root[data-theme="dark"] .app-assistant-top:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
 
 .app-bell .badge {
   position: absolute;
@@ -567,7 +582,7 @@
 /* Unified authenticated shell */
 .app-sidebar-brand{border:0;background:transparent;cursor:pointer;text-align:left;width:100%;}
 .app-sidebar-brand:focus-visible,.app-nav-item:focus-visible,.app-bell:focus-visible,.app-assistant-top:focus-visible,.app-logout:focus-visible{outline:2px solid #7ca8ff;outline-offset:2px}
-.app-nav{overflow-y:auto;scrollbar-width:thin}
+.app-nav{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin}
 .app-nav-item{font-family:inherit}
 .app-assistant-top{display:inline-flex;align-items:center;gap:7px;border:1px solid #e5e7f0;background:#f4f6fb;color:#4f46e5;border-radius:9px;padding:8px 11px;font-size:.8rem;font-weight:700;cursor:pointer}
 .app-notification-wrap{position:relative}
@@ -640,6 +655,12 @@
 }
 .proj-row:hover {
   background: #f8fafc;
+}
+
+/* Hover used the light tint above, so pointing at a project turned the row
+   into a white block on the dark panel. */
+:root[data-theme="dark"] .proj-row:hover {
+  background: rgba(255, 255, 255, 0.045);
 }
 
 .gap-row {
