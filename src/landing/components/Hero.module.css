@@ -51,3 +51,13 @@
   .g1 { width: 380px; height: 380px; }
   .g2 { width: 320px; height: 320px; }
 }
+
+/* Stacked layout (tablet/mobile): centred copy; the 3D visual is hidden on phones. Desktop keeps text beside the visual. */
+@media (max-width: 960px) {
+  .copy { justify-items: center; text-align: center; margin-inline: auto; }
+  .sub { margin-inline: auto; }
+  .ctas, .perks { justify-content: center; }
+}
+@media (max-width: 720px) {
+  .visual { display: none; }
+}

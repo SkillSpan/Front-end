@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useLang } from '../lib/i18n.jsx'
 import useReveal from '../lib/useReveal'
-import Scene3D from './Scene3D.jsx'
+import CTAOrbit from './CTAOrbit.jsx'
 import s from './CTA.module.css'
 
 /**
@@ -61,7 +61,7 @@ export default function CTA() {
         </div>
 
         <div className={s.visual} data-reveal="fade" style={{ '--d': '200ms' }} aria-hidden="true">
-          <Scene3D compact />
+          <CTAOrbit />
         </div>
       </div>
     </section>

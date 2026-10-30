@@ -84,3 +84,8 @@
 }
 
 :global(.landing-root.is-static) .cta * { animation: none !important; }
+
+/* Mobile: hide the orbit visual (same as hero) */
+@media (max-width: 720px) {
+  .visual { display: none !important; }
+}
