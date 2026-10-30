@@ -1,0 +1,41 @@
+/* Global theme tokens.
+   The accent variables used to live only in profile-settings.css, which is a
+   lazily-loaded chunk - so on the dashboard (a different chunk) `var(--accent)`
+   resolved to nothing. They are declared here, on the entry, so every screen
+   can use them. Values match ACCENT_SWATCHES in preferences/constants.js. */
+
+:root {
+  --accent: #3b8bff;
+  --accent-strong: #2563eb;
+  --accent-soft: rgba(59, 139, 255, 0.12);
+}
+
+:root[data-accent='blue'] {
+  --accent: #3b8bff;
+  --accent-strong: #2563eb;
+  --accent-soft: rgba(59, 139, 255, 0.12);
+}
+
+:root[data-accent='violet'] {
+  --accent: #7c3aed;
+  --accent-strong: #6d28d9;
+  --accent-soft: rgba(124, 58, 237, 0.12);
+}
+
+:root[data-accent='emerald'] {
+  --accent: #059669;
+  --accent-strong: #047857;
+  --accent-soft: rgba(5, 150, 105, 0.12);
+}
+
+:root[data-accent='amber'] {
+  --accent: #f59e0b;
+  --accent-strong: #d97706;
+  --accent-soft: rgba(245, 158, 11, 0.14);
+}
+
+/* Dark shell. Was also defined inside profile-settings.css, which meant the
+   dashboard only looked dark after that chunk had been loaded once. */
+:root[data-theme='dark'] .app-shell {
+  background: #0b1020;
+}

@@ -776,3 +776,60 @@
 }
 
 :root[dir="rtl"] .dash-support-banner { text-align: right; }
+
+/* ==========================================
+   Stat cards - "dark glass"
+   The shell is dark in dark mode, so a pure white card read as a hole in the
+   page. These use the same translucent material as the readiness panel, and
+   the icon picks up the accent the user chose in Settings -> Accent colour.
+========================================== */
+
+.dash-stat-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft, rgba(59, 139, 255, 0.12));
+  color: var(--accent, #3b8bff);
+}
+
+:root[data-theme="dark"] .dash-stat-card {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+:root[data-theme="dark"] .dash-stat-card:hover {
+  background: rgba(255, 255, 255, 0.078);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="dark"] .dash-stat-icon {
+  background: color-mix(in srgb, var(--accent, #3b8bff) 22%, transparent);
+}
+
+:root[data-theme="dark"] .dash-stat-num {
+  color: #eef2fb;
+}
+
+:root[data-theme="dark"] .dash-stat-label {
+  color: #8b95ad;
+}
+
+:root[data-theme="dark"] .pill-blue {
+  background: rgba(59, 139, 255, 0.18);
+  color: #93c5fd;
+}
+
+:root[data-theme="dark"] .pill-green {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+}
+
+:root[data-theme="dark"] .pill-orange {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+}
