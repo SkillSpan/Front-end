@@ -483,12 +483,6 @@ function ReadinessTab({ data }) {
             {/* Header row */}
             <div className="flex items-start justify-between gap-[8px]">
               <div className="flex items-center gap-[8px]">
-                <div
-                  className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center text-[15px] shrink-0"
-                  style={{ background: `${c.color}15` }}
-                >
-                  {c.icon}
-                </div>
                 <div>
                   <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14] leading-tight">
                     {c.label}
