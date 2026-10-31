@@ -580,8 +580,9 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
           confidence_score: labelToConfidence(confidence),
           source_type: 'self',
         });
-        if (created?.id) {
-          setRowIds((prev) => ({ ...prev, [panelSkillId]: created.id }));
+        const createdId = created?.id ?? created?.data?.id;
+        if (createdId) {
+          setRowIds((prev) => ({ ...prev, [panelSkillId]: createdId }));
         }
       }
       setSkills((prev) => ({
@@ -599,8 +600,9 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   const removeSkill = async () => {
     if (!panelSkillId) return;
     // Only skills already in the matrix can be removed. The endpoint takes the
-    // skill's id from the skills table (panelSkillId), not the matrix row id.
-    if (!rowIds[panelSkillId]) return;
+    // skill's id from the skills table (panelSkillId), not the matrix row id,
+    // so the row id (which may be missing right after adding) is not needed.
+    if (!skills[panelSkillId]) return;
     if (!window.confirm('Remove this skill from your Skill Matrix?')) return;
     setSaving(true);
     setSaveError(null);
@@ -912,7 +914,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
               </button>
               <div className="sm-panel-actions-row">
                 <button type="button" className="btn-cancel-skill" onClick={closePanel} disabled={saving}>Cancel</button>
-                {isEditingExisting && rowIds[panelSkillId] && (
+                {isEditingExisting && (
                   <button
                     type="button"
                     className="btn-cancel-skill"
