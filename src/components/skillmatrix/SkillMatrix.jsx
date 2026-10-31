@@ -904,21 +904,27 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
             </div>
 
             {saveError && <div className="sm-save-error">{saveError}</div>}
-            <button type="button" className="btn-save-skill" onClick={saveSkill} disabled={saving}>
-              {saving ? 'Saving…' : 'Save Skill'}
-            </button>
-            <button type="button" className="btn-cancel-skill" onClick={closePanel} disabled={saving}>Cancel</button>
-            {isEditingExisting && rowIds[panelSkillId] && (
-              <button
-                type="button"
-                className="btn-cancel-skill"
-                onClick={removeSkill}
-                disabled={saving}
-                style={{ color: '#dc2626', borderColor: '#fecaca', background: '#fef2f2' }}
-              >
-                Delete Skill
+            {/* Pinned to the bottom of the panel so Save / Cancel / Delete are
+                always visible without scrolling the panel. */}
+            <div className="sm-panel-actions">
+              <button type="button" className="btn-save-skill" onClick={saveSkill} disabled={saving}>
+                {saving ? 'Saving…' : 'Save Skill'}
               </button>
-            )}
+              <div className="sm-panel-actions-row">
+                <button type="button" className="btn-cancel-skill" onClick={closePanel} disabled={saving}>Cancel</button>
+                {isEditingExisting && rowIds[panelSkillId] && (
+                  <button
+                    type="button"
+                    className="btn-cancel-skill"
+                    onClick={removeSkill}
+                    disabled={saving}
+                    style={{ color: '#dc2626', borderColor: '#fecaca', background: '#fef2f2' }}
+                  >
+                    Delete Skill
+                  </button>
+                )}
+              </div>
+            </div>
           </aside>
         )}
       </div>
