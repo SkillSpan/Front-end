@@ -36,19 +36,22 @@
 }
 
 .assessment-brand-badge {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-.assessment-brand-badge svg {
-  width: 14px;
-  height: 14px;
-  color: #fff;
+.assessment-brand-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .assessment-topbar-divider {
@@ -626,4 +629,44 @@
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Desktop: app-style layout                                            */
+/* The page itself never scrolls (so there is no bounce): the top bar   */
+/* and the dark sidebar stay put and only the right column scrolls.     */
+/* Below 1081px the page stacks and scrolls normally (see responsive.css) */
+/* ------------------------------------------------------------------ */
+@media (min-width: 1081px) {
+  .assessment-intro-page {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .assessment-intro-page .assessment-intro-body {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .assessment-intro-page .assessment-intro-body > .assessment-intro-sidebar {
+    position: static;
+    align-self: stretch;
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* The right column is the scroller, so it spans the full remaining width
+     (scrollbar at the window edge) and the 900px content column is centred
+     with padding instead of max-width/margin. */
+  .assessment-intro-page .assessment-intro-main {
+    max-width: none;
+    margin: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-left: max(64px, calc((100vw - 380px - 772px) / 2));
+    padding-right: max(64px, calc((100vw - 380px - 772px) / 2));
+  }
 }

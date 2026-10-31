@@ -8,12 +8,6 @@ const CATEGORY_PREVIEW = [
   { label: 'Instant scoring', detail: 'Your readiness % reflects your answers' },
 ];
 
-const CheckIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-    <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
-
 const StarIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 2.5l2.9 6.5 7.1.7-5.4 4.7 1.7 7-6.3-3.9-6.3 3.9 1.7-7L2 9.7l7.1-.7z" />
@@ -62,13 +56,29 @@ const EXPECTATIONS = [
  * (see AssessmentWizard.jsx). Purely informational; `onStart` moves on to
  * the actual questions.
  */
-const SkillAssessmentIntro = ({ onStart, careerRoles = [], careerRoleId = '', onCareerRoleChange, startError = '', starting = false }) => {
+const SkillAssessmentIntro = ({
+  onStart,
+  specializations = [],
+  specializationsProblem = '',
+  specializationId = '',
+  onSpecializationChange,
+  rolesLoading = false,
+  careerRoles = [],
+  careerRoleId = '',
+  onCareerRoleChange,
+  startError = '',
+  starting = false,
+}) => {
+  // When the specializations list is unavailable the picker is hidden and
+  // the career role list is the unfiltered one (see AssessmentWizard.jsx).
+  const hasSpecializations = specializations.length > 0;
+  const needsSpecialization = hasSpecializations && !specializationId;
   return (
     <div className="assessment-intro-page">
       <header className="assessment-topbar">
         <div className="assessment-topbar-brand">
           <span className="assessment-brand-badge">
-            <CheckIcon />
+            <img src="/image/logo.png" alt="" />
           </span>
           SkillSpan
           <span className="assessment-topbar-divider" />
@@ -148,6 +158,40 @@ const SkillAssessmentIntro = ({ onStart, careerRoles = [], careerRoleId = '', on
             </ul>
           </div>
 
+          {!hasSpecializations && specializationsProblem && (
+            <p role="status" className="assessment-career-role-status">
+              {specializationsProblem} Showing all career roles instead.
+            </p>
+          )}
+
+          {hasSpecializations && (
+            <div className="assessment-career-role-picker">
+              <label htmlFor="assessment-specialization" className="assessment-career-role-label">
+                Specialization <span className="assessment-career-role-required">*</span>
+              </label>
+              <div className="assessment-career-role-select-wrap">
+                <select
+                  id="assessment-specialization"
+                  className={`assessment-career-role-select ${specializationId ? 'has-value' : ''}`}
+                  value={specializationId}
+                  onChange={(event) => onSpecializationChange?.(event.target.value)}
+                >
+                  <option value="">Select your specialization</option>
+                  {specializations.map((spec) => (
+                    <option key={spec.id} value={spec.id}>
+                      {spec.name ?? spec.title ?? `Specialization ${spec.id}`}
+                    </option>
+                  ))}
+                </select>
+                <span className="assessment-career-role-chevron" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          )}
+
           <div className="assessment-career-role-picker">
             <label htmlFor="assessment-career-role" className="assessment-career-role-label">
               Career role <span className="assessment-career-role-required">*</span>
@@ -159,8 +203,11 @@ const SkillAssessmentIntro = ({ onStart, careerRoles = [], careerRoleId = '', on
                 value={careerRoleId}
                 onChange={(event) => onCareerRoleChange?.(event.target.value)}
                 aria-invalid={!!startError}
+                disabled={needsSpecialization || rolesLoading}
               >
-                <option value="">Select your career role</option>
+                <option value="">
+                  {needsSpecialization ? 'Select a specialization first' : rolesLoading ? 'Loading career roles…' : 'Select your career role'}
+                </option>
                 {careerRoles.map((role) => (
                   <option key={role.id} value={role.id}>
                     {role.title ?? role.name ?? role.role_title ?? `Role ${role.id}`}
@@ -176,9 +223,11 @@ const SkillAssessmentIntro = ({ onStart, careerRoles = [], careerRoleId = '', on
             <p className="assessment-career-role-hint">
               Your questions are tailored to the role you choose.
             </p>
-            {careerRoles.length === 0 && (
+            {!needsSpecialization && !rolesLoading && careerRoles.length === 0 && (
               <p role="status" className="assessment-career-role-status">
-                No career roles loaded. Check your login and API connection.
+                {hasSpecializations
+                  ? 'No career roles are available for this specialization yet.'
+                  : 'No career roles loaded. Check your login and API connection.'}
               </p>
             )}
             {startError && (
@@ -189,7 +238,7 @@ const SkillAssessmentIntro = ({ onStart, careerRoles = [], careerRoleId = '', on
             type="button"
             className="assessment-intro-start"
             onClick={onStart}
-            disabled={starting || !careerRoleId}
+            disabled={starting || needsSpecialization || !careerRoleId}
           >
             {starting ? 'Preparing your questions...' : 'Start Assessment'}
             {!starting && <ChevronRightIcon />}

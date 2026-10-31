@@ -51,7 +51,7 @@ const SkillAssessmentResume = ({ onContinue, onStartOver }) => {
       <header className="assessment-topbar">
         <div className="assessment-topbar-brand">
           <span className="assessment-brand-badge">
-            <ClockIcon />
+            <img src="/image/logo.png" alt="" />
           </span>
           SkillSpan
           <span className="assessment-topbar-divider" />

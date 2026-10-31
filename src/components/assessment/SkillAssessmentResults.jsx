@@ -139,7 +139,7 @@ const SkillAssessmentResults = ({ onFinish }) => {
         </div>
 
         <button type="button" className="assessment-results-cta" onClick={onFinish}>
-          Skill Matrix
+          Dashboard
         </button>
       </div>
     </div>

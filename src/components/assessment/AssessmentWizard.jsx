@@ -27,6 +27,8 @@ import {
   submitBaselineAssessment,
   calculateIntelligence,
   getCareerRoles,
+  getSpecializations,
+  getProfile,
   unwrapApiData,
 } from '../../api';
 
@@ -63,6 +65,34 @@ const describeSubmitError = (error) => {
   return extra ? `${base} (${extra})` : base;
 };
 
+// Safety net: the backend is expected to filter by ?specialization_id= itself.
+// If it ever returns the full list instead, and the roles carry their linked
+// specialization ids, keep only the ones that match. Roles without any
+// specialization info are left alone (we trust the server in that case).
+function onlyRolesOfSpecialization(roles, specializationId) {
+  const wanted = String(specializationId);
+  const idsOf = (role) => {
+    const found = [];
+    const add = (v) => {
+      if (v == null || v === '') return;
+      if (typeof v === 'object') add(v.id ?? v.specialization_id);
+      else found.push(String(v));
+    };
+    add(role.specialization_id);
+    add(role.specialization);
+    [role.specialization_ids, role.specializations].forEach((list) => {
+      if (Array.isArray(list)) list.forEach(add);
+    });
+    return found;
+  };
+  const withInfo = roles.filter((role) => idsOf(role).length > 0);
+  if (withInfo.length === 0) return roles;
+  return roles.filter((role) => {
+    const ids = idsOf(role);
+    return ids.length === 0 || ids.includes(wanted);
+  });
+}
+
 function AssessmentWizard({ onFinish }) {
   const navigate = useNavigate();
 
@@ -74,22 +104,106 @@ function AssessmentWizard({ onFinish }) {
   // without an id, and the quiz keeps working purely off sessionStorage as
   // it did before this endpoint existed).
   const [assessmentId, setAssessmentId] = useState(loadAssessmentId);
+  const [specializations, setSpecializations] = useState([]);
+  const [specializationId, setSpecializationId] = useState('');
+  // false until GET /reference/specializations has answered (either way).
+  const [specializationsLoaded, setSpecializationsLoaded] = useState(false);
+  // Why the specialization picker is missing (shown to the learner) - '' when fine.
+  const [specializationsProblem, setSpecializationsProblem] = useState('');
   const [careerRoles, setCareerRoles] = useState([]);
+  const [rolesLoading, setRolesLoading] = useState(false);
   const [careerRoleId, setCareerRoleId] = useState('');
   const [startError, setStartError] = useState('');
   const [starting, setStarting] = useState(false);
   // 'idle' | 'pending' | 'done' | 'error' - drives the Submitting screen so the
   // learner only reaches Results once the server has really scored the answers.
   const [submission, setSubmission] = useState({ status: 'idle', error: '' });
+
+  const toRows = (payload) => {
+    const value = unwrapApiData(payload);
+    return Array.isArray(value) ? value : Array.isArray(value?.data) ? value.data : [];
+  };
+
+  // Step 1 of the flow: Select Specialization
+  //   GET /api/v1/reference/specializations (public)
+  // The specialization picked in Profile Setup (saved as a name) is
+  // pre-selected when it matches one of the returned specializations.
   useEffect(() => {
     let active = true;
-    getCareerRoles({ page: 1, perPage: 100 }).then((payload) => {
-      const value = unwrapApiData(payload);
-      const rows = Array.isArray(value) ? value : Array.isArray(value?.data) ? value.data : Array.isArray(value?.career_roles) ? value.career_roles : [];
-      if (active) setCareerRoles(rows.filter((role) => role?.id != null && (!role.status || String(role.status).toLowerCase() === 'approved')));
-    }).catch(() => { if (active) setCareerRoles([]); });
+    (async () => {
+      let problem = '';
+      const rows = await getSpecializations()
+        .then((res) => {
+          const raw = toRows(res);
+          const usable = raw
+            .map((row) => (row && typeof row === 'object'
+              ? { id: row.id ?? row.specialization_id, name: row.name ?? row.title ?? row.specialization_name }
+              : null))
+            .filter((row) => row && row.id != null && row.name);
+          if (!usable.length) {
+            problem = raw.length
+              ? 'The specializations list came back without ids.'
+              : 'The specializations list is empty.';
+            console.warn('[assessment] specializations unusable:', raw);
+          }
+          return usable;
+        })
+        .catch((error) => {
+          problem = 'Specializations could not be loaded.';
+          console.warn('[assessment] GET /reference/specializations failed:', error);
+          return [];
+        });
+      if (!active) return;
+      setSpecializations(rows);
+      setSpecializationsProblem(problem);
+      setSpecializationsLoaded(true);
+      if (!rows.length) return;
+      try {
+        const res = await getProfile();
+        const profile = res?.data || res || {};
+        const saved = String(profile.specialization ?? '').trim().toLowerCase();
+        const match = rows.find((row) => String(row.id) === String(profile.specialization_id ?? '')) ||
+          (saved && rows.find((row) => String(row.name ?? row.title).trim().toLowerCase() === saved));
+        if (active && match) setSpecializationId((current) => current || String(match.id));
+      } catch {
+        // No profile / unreachable - the learner just picks one.
+      }
+    })();
     return () => { active = false; };
   }, []);
+
+  // Step 2: Select Career Role
+  //   GET /api/v1/career-roles?specialization_id={id}   (needs the token)
+  // If the specializations list could not be loaded at all we fall back to
+  // the unfiltered role list so the learner is never blocked.
+  const useSpecializationFlow = specializations.length > 0;
+  useEffect(() => {
+    if (!specializationsLoaded) return undefined;
+    if (useSpecializationFlow && !specializationId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCareerRoles([]);
+      return undefined;
+    }
+    let active = true;
+    setRolesLoading(true);
+    getCareerRoles({ page: 1, perPage: 100, specializationId: useSpecializationFlow ? Number(specializationId) : undefined })
+      .then((payload) => {
+        if (!active) return;
+        const rows = toRows(payload).filter((role) => role?.id != null && (!role.status || String(role.status).toLowerCase() === 'approved'));
+        setCareerRoles(useSpecializationFlow ? onlyRolesOfSpecialization(rows, specializationId) : rows);
+      })
+      .catch(() => { if (active) setCareerRoles([]); })
+      .finally(() => { if (active) setRolesLoading(false); });
+    return () => { active = false; };
+  }, [specializationsLoaded, useSpecializationFlow, specializationId]);
+
+  const handleSpecializationChange = (value) => {
+    setSpecializationId(value);
+    // A different specialization means a different role list.
+    setCareerRoleId('');
+    setCareerRoles([]);
+    setStartError('');
+  };
 
   const finish = () => {
     if (typeof onFinish === 'function') onFinish();
@@ -126,6 +240,7 @@ function AssessmentWizard({ onFinish }) {
   // sessionStorage as it always has, just without server-side autosave.
   const startAssessment = async () => {
     setStartError('');
+    if (useSpecializationFlow && !specializationId) { setStartError('Select your specialization before starting the assessment.'); return; }
     if (!careerRoleId) { setStartError('Select a career role before starting the assessment.'); return; }
     if (starting) return;
     setStarting(true);
@@ -145,7 +260,12 @@ function AssessmentWizard({ onFinish }) {
         clearAssessmentId();
         setAssessmentId(null);
         try {
-          const res = await startBaselineAssessment({ career_role_id: Number(careerRoleId) });
+          // Step 3: POST /api/v1/baseline-assessments
+          //   { specialization_id, career_role_id } -> questions picked by the backend
+          const res = await startBaselineAssessment({
+            ...(useSpecializationFlow ? { specialization_id: Number(specializationId) } : {}),
+            career_role_id: Number(careerRoleId),
+          });
           assessment = res?.data || res || null;
         } catch (error) {
           // 409 = this learner already has an attempt for this role.
@@ -251,7 +371,7 @@ function AssessmentWizard({ onFinish }) {
               onStartOver={startOver}
             />
           ) : (
-            <SkillAssessmentIntro onStart={startAssessment} careerRoles={careerRoles} careerRoleId={careerRoleId} onCareerRoleChange={(v) => { setCareerRoleId(v); setStartError(''); }} startError={startError} starting={starting} />
+            <SkillAssessmentIntro onStart={startAssessment} specializationsProblem={specializationsProblem} specializations={specializations} specializationId={specializationId} onSpecializationChange={handleSpecializationChange} rolesLoading={rolesLoading} careerRoles={careerRoles} careerRoleId={careerRoleId} onCareerRoleChange={(v) => { setCareerRoleId(v); setStartError(''); }} startError={startError} starting={starting} />
           )
         }
       />
