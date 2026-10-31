@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SkillMatrix.css';
 import { TAXONOMY as FALLBACK_TAXONOMY, LEVELS, levelInfo } from './taxonomy';
-import { getSkillsMatrix, upsertSkillMatrix, updateSkillMatrixEntry, deleteLearnerSkill, getSkillsTaxonomy, getStoredUser, resolveLearnerId, getProfile } from '../../api';
+import { getSkillsMatrix, upsertSkillMatrix, updateSkillMatrixEntry, deleteLearnerSkill, getSkillsTaxonomy, getStoredUser, resolveLearnerId, getProfile, getSpecializations, getCareerRoles, getCareerRoleSkills } from '../../api';
 import AppLayout from '../dashboard/AppLayout';
 import { useAuth } from '../auth/AuthContext';
 import { signOutToLanding } from '../auth/signOut';
@@ -208,6 +208,34 @@ function filterTaxonomyBySpecialization(taxonomy, specialization) {
   return taxonomy.filter((cat) => matched.includes(cat) || always.includes(cat));
 }
 
+// GET /career-roles/{id}/skills is documented as "one decision snapshot", so
+// depending on the backend the skills may come as a bare array, under `data`,
+// or nested under a key such as `skills` / `required_skills`. Find the list
+// wherever it is and read each row's skill id (and name, as a second way to
+// match the taxonomy in case an id is a pivot-row id).
+function roleSkillRefs(res) {
+  const isRow = (v) => v && typeof v === 'object' && !Array.isArray(v);
+  const pickList = (node, depth = 0) => {
+    if (Array.isArray(node)) return node;
+    if (!isRow(node) || depth > 3) return null;
+    for (const key of ['skills', 'required_skills', 'role_skills', 'items', 'data']) {
+      const found = pickList(node[key], depth + 1);
+      if (found) return found;
+    }
+    return null;
+  };
+  const rows = (pickList(res) || []).filter(isRow);
+  const ids = [];
+  const names = [];
+  rows.forEach((row) => {
+    const id = row.skill_id ?? row.skill?.id ?? row.skill?.skill_id;
+    if (id != null) ids.push(String(id));
+    const name = row.skill_name ?? row.skill?.name ?? row.name;
+    if (typeof name === 'string' && name.trim()) names.push(name.trim().toLowerCase());
+  });
+  return { rowCount: rows.length, ids, names };
+}
+
 export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   const { authUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -234,6 +262,14 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   const [specialization, setSpecialization] = useState('');
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [showAllSpecs, setShowAllSpecs] = useState(false);
+  // Skill ids that belong to the learner's specialization, resolved through the
+  // backend links: specialization -> career roles -> required skills. null =
+  // not resolved (yet / failed), in which case the name-based fallback is used.
+  const [profileSpecId, setProfileSpecId] = useState(null);
+  const [specSkillIds, setSpecSkillIds] = useState(null);
+  const [specSkillNames, setSpecSkillNames] = useState(null);
+  // Why the specialization filter could not be applied (shown to the learner).
+  const [specFilterNote, setSpecFilterNote] = useState('');
   const [query, setQuery] = useState('');
   const loading = loadingMatrix || taxonomySource === 'loading' || !profileLoaded;
 
@@ -245,6 +281,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
         if (cancelled) return;
         const data = res?.data || res || {};
         setSpecialization(data.specialization || '');
+        setProfileSpecId(data.specialization_id ?? null);
       })
       .catch(() => {})
       .finally(() => {
@@ -254,6 +291,105 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
       cancelled = true;
     };
   }, []);
+
+  // Resolve which skills belong to the learner's specialization:
+  //   specialization -> GET /career-roles?specialization_id=X
+  //                  -> GET /career-roles/{id}/skills for each role
+  // The skill taxonomy itself has no specialization info, so this is what makes
+  // "show skills by my specialization" work with the real data. Every step that
+  // can fail sets `specFilterNote`, so the learner (and we) can see why the
+  // list is not narrowed instead of silently getting all skills.
+  useEffect(() => {
+    if (!profileLoaded) return undefined;
+    let cancelled = false;
+    const finish = (ids, note) => {
+      if (cancelled) return;
+      setSpecSkillIds(ids);
+      setSpecFilterNote(note);
+      if (note) console.warn('[skill-matrix] specialization filter:', note);
+    };
+    const rowsOf = (res) => {
+      const v = res?.data ?? res;
+      return Array.isArray(v) ? v : Array.isArray(v?.data) ? v.data : [];
+    };
+    // If the backend ever returns every role instead of only the ones for this
+    // specialization, and the roles say which specializations they belong to,
+    // keep only the matching ones. Roles without that info are trusted as-is.
+    const specIdsOfRole = (role) => {
+      const out = [];
+      const add = (v) => {
+        if (v == null || v === '') return;
+        if (typeof v === 'object') add(v.id ?? v.specialization_id);
+        else out.push(String(v));
+      };
+      add(role.specialization_id);
+      add(role.specialization);
+      [role.specialization_ids, role.specializations].forEach((list) => Array.isArray(list) && list.forEach(add));
+      return out;
+    };
+    (async () => {
+      try {
+        const label = String(specialization || '').trim();
+        let specId = profileSpecId;
+        if (specId == null) {
+          if (!label) return finish(null, 'No specialization is saved in your profile, so all skills are shown.');
+          const wanted = label.toLowerCase();
+          const list = rowsOf(await getSpecializations());
+          const nameOf = (row) => String(row?.name ?? row?.title ?? '').trim().toLowerCase();
+          const match =
+            list.find((row) => nameOf(row) === wanted) ||
+            list.find((row) => nameOf(row) && (nameOf(row).includes(wanted) || wanted.includes(nameOf(row))));
+          specId = match?.id ?? null;
+          if (specId == null) return finish(null, `Couldn't match “${label}” to a specialization, so all skills are shown.`);
+        }
+        let roles = rowsOf(await getCareerRoles({ specializationId: specId, perPage: 50 })).filter((r) => r?.id != null);
+        if (roles.some((r) => specIdsOfRole(r).length > 0)) {
+          roles = roles.filter((r) => {
+            const ids = specIdsOfRole(r);
+            return ids.length === 0 || ids.includes(String(specId));
+          });
+        }
+        if (!roles.length) return finish(null, `No career roles are linked to “${label || 'your specialization'}” yet, so all skills are shown.`);
+        const settled = await Promise.allSettled(roles.map((r) => getCareerRoleSkills(r.id)));
+        const ids = new Set();
+        const names = new Set();
+        let parsedRows = 0;
+        let failed = 0;
+        let firstError = '';
+        settled.forEach((result, index) => {
+          if (result.status !== 'fulfilled') {
+            failed += 1;
+            firstError = firstError || result.reason?.message || 'request failed';
+            return;
+          }
+          const refs = roleSkillRefs(result.value);
+          parsedRows += refs.rowCount;
+          refs.ids.forEach((id) => ids.add(id));
+          refs.names.forEach((name) => names.add(name));
+          if (index === 0 && refs.rowCount === 0) {
+            console.warn('[skill-matrix] sample /career-roles/{id}/skills response (no skills found in it):', result.value);
+          }
+        });
+        if (!ids.size && !names.size) {
+          const who = `“${label || 'your specialization'}”`;
+          if (failed === settled.length) {
+            return finish(null, `Couldn't load the skills of the career roles of ${who} (${firstError}), so all skills are shown.`);
+          }
+          return finish(null, parsedRows
+            ? `The skills of the career roles of ${who} could not be read, so all skills are shown.`
+            : `The career roles of ${who} have no skills linked yet (${roles.length} role${roles.length === 1 ? '' : 's'} checked), so all skills are shown.`);
+        }
+        if (!cancelled) setSpecSkillNames(names);
+        finish(ids, '');
+      } catch (err) {
+        finish(null, 'Could not load the skills for your specialization, so all skills are shown.');
+        console.warn('[skill-matrix] specialization lookup failed:', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [profileLoaded, profileSpecId, specialization]);
 
   useEffect(() => {
     let cancelled = false;
@@ -337,16 +473,27 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   const assessmentCount = skillIds.filter((id) => skills[id].source === 'assessment').length;
   const selfCount = skillIds.filter((id) => skills[id].source === 'self').length;
   const avgProficiency = skillIds.length
-    ? (skillIds.reduce((sum, id) => sum + skills[id].level, 0) / skillIds.length).toFixed(1)
+    ? (skillIds.reduce((sum, id) => sum + (Number(skills[id].level) || 0), 0) / skillIds.length).toFixed(1)
     : '0.0';
 
   // Categories/skills shown in the left rail, narrowed to the learner's
   // specialization (full taxonomy is still used to resolve owned skills).
-  const visibleTaxonomy = useMemo(
-    () => (showAllSpecs ? taxonomy : filterTaxonomyBySpecialization(taxonomy, specialization)),
-    [taxonomy, specialization, showAllSpecs]
-  );
-  const isFiltered = visibleTaxonomy.length !== taxonomy.length;
+  const visibleTaxonomy = useMemo(() => {
+    if (showAllSpecs) return taxonomy;
+    // Preferred: only the skills linked to the learner's specialization (plus
+    // anything they already have in their matrix, so owned skills never vanish).
+    if (specSkillIds) {
+      const narrowed = taxonomy
+        .map((cat) => ({ ...cat, skills: cat.skills.filter((sk) => specSkillIds.has(String(sk.id)) || (specSkillNames && specSkillNames.has(String(sk.name || '').trim().toLowerCase())) || skills[sk.id]) }))
+        .filter((cat) => cat.skills.length > 0);
+      if (narrowed.length) return narrowed;
+    }
+    // Fallback: guess from category names.
+    return filterTaxonomyBySpecialization(taxonomy, specialization);
+  }, [taxonomy, specialization, showAllSpecs, specSkillIds, specSkillNames, skills]);
+  const countSkills = (list) => list.reduce((n, cat) => n + cat.skills.length, 0);
+  const isFiltered =
+    visibleTaxonomy.length !== taxonomy.length || countSkills(visibleTaxonomy) !== countSkills(taxonomy);
 
   // Search box: narrows the left list (within the specialization filter) and
   // the skill cards by skill name; a category-name match keeps all its skills.
@@ -537,6 +684,13 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
               onKeyDown={(e) => { if (e.key === 'Escape') setQuery(''); }}
             />
           </div>
+
+          {!showAllSpecs && !isFiltered && profileLoaded && (specFilterNote || (specSkillIds && specialization)) && (
+            <div style={{ fontSize: 12, color: '#92400e', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: '6px 10px', margin: '0 0 10px' }}>
+              {specFilterNote ||
+                `Every skill in the list is linked to the career roles of “${specialization}”, so nothing could be hidden. If that looks wrong, the specialization-to-role links in the backend may need a check.`}
+            </div>
+          )}
 
           {(isFiltered || showAllSpecs) && specialization && (
             <div style={{ fontSize: 12, color: '#6b7280', margin: '0 0 10px' }}>
