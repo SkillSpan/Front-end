@@ -763,235 +763,6 @@
   .sm-grid { grid-template-columns: 1fr; }
 }
 
-/* =========================================================
-   Dark theme
-   This screen is its own light island: taxonomy rail, cards, chips and the
-   add-skill panel were all solid #fff, so on the dark shell it read as a
-   white page dropped into a dark app. Everything here uses the same glass
-   material as the dashboard cards (rgba(255,255,255,.055) + .09 border).
-========================================================= */
-
-:root[data-theme="dark"] .skillmatrix-app-content {
-  background: #0b1020;
-}
-
-:root[data-theme="dark"] .sm-shell {
-  background: transparent;
-}
-
-:root[data-theme="dark"] .sm-taxonomy {
-  background: rgba(255, 255, 255, 0.045);
-  border-right-color: rgba(255, 255, 255, 0.08);
-}
-
-:root[data-theme="dark"] .sm-taxonomy-label {
-  color: #7b8aa8;
-}
-
-:root[data-theme="dark"] .sm-search {
-  background: rgba(255, 255, 255, 0.06);
-  color: #8b95ad;
-}
-
-:root[data-theme="dark"] .sm-search input {
-  color: #e8ecf8;
-}
-
-:root[data-theme="dark"] .sm-search input::placeholder {
-  color: #7b8aa8;
-}
-
-:root[data-theme="dark"] .sm-category-head:hover,
-:root[data-theme="dark"] .sm-skill-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-:root[data-theme="dark"] .sm-category-title {
-  color: #dfe6f5;
-}
-
-:root[data-theme="dark"] .sm-category-count,
-:root[data-theme="dark"] .sm-category-chevron {
-  color: #7b8aa8;
-}
-
-:root[data-theme="dark"] .sm-category-check,
-:root[data-theme="dark"] .sm-skill-check {
-  border-color: rgba(255, 255, 255, 0.24);
-}
-
-:root[data-theme="dark"] .sm-category-badge {
-  background: rgba(99, 102, 241, 0.2);
-  color: #c7d2fe;
-}
-
-:root[data-theme="dark"] .sm-skill-item {
-  color: #b6c2da;
-}
-
-:root[data-theme="dark"] .sm-main-head h1 {
-  color: #eef2fb;
-}
-
-:root[data-theme="dark"] .sm-main-head p {
-  color: #8b95ad;
-}
-
-:root[data-theme="dark"] .sm-tabs {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-:root[data-theme="dark"] .sm-tab {
-  color: #9aa6c0;
-}
-
-:root[data-theme="dark"] .sm-tab.active {
-  background: var(--accent, #3b8bff);
-  color: #fff;
-}
-
-:root[data-theme="dark"] .sm-summary-chip {
-  background: rgba(255, 255, 255, 0.055);
-  border-color: rgba(255, 255, 255, 0.09);
-  color: #b6c2da;
-}
-
-:root[data-theme="dark"] .sm-summary-chip b {
-  color: #eef2fb;
-}
-
-:root[data-theme="dark"] .sm-summary-chip.avg {
-  background: rgba(16, 185, 129, 0.14);
-  border-color: rgba(16, 185, 129, 0.28);
-  color: #6ee7b7;
-}
-
-:root[data-theme="dark"] .sm-card {
-  background: rgba(255, 255, 255, 0.055);
-  border-color: rgba(255, 255, 255, 0.09);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-:root[data-theme="dark"] .sm-card:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
-}
-
-:root[data-theme="dark"] .sm-card-top .sname {
-  color: #eef2fb;
-}
-
-:root[data-theme="dark"] .sm-card-desc {
-  color: #8b95ad;
-}
-
-:root[data-theme="dark"] .sm-level-badge {
-  color: #9aa6c0;
-}
-
-:root[data-theme="dark"] .sm-dot,
-:root[data-theme="dark"] .sm-bar-track,
-:root[data-theme="dark"] .sm-scale-dots .d,
-:root[data-theme="dark"] .sm-coverage-track {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-:root[data-theme="dark"] .sm-info-banner {
-  background: rgba(59, 139, 255, 0.12);
-  border-color: rgba(59, 139, 255, 0.24);
-  color: #c3d6f7;
-}
-
-:root[data-theme="dark"] .sm-info-banner b {
-  color: #dbe7fb;
-}
-
-/* Category + source pills: keep the hue, drop the pastel fill. */
-:root[data-theme="dark"] .cat-Programming { background: rgba(99, 102, 241, 0.18); color: #c7d2fe; }
-:root[data-theme="dark"] .cat-Web { background: rgba(124, 58, 237, 0.18); color: #ddd6fe; }
-:root[data-theme="dark"] .cat-Data { background: rgba(5, 150, 105, 0.18); color: #6ee7b7; }
-:root[data-theme="dark"] .cat-Cloud { background: rgba(234, 88, 12, 0.18); color: #fdba74; }
-:root[data-theme="dark"] .cat-Soft { background: rgba(225, 29, 72, 0.18); color: #fda4af; }
-:root[data-theme="dark"] .src-assessment { background: rgba(37, 99, 235, 0.18); color: #93c5fd; }
-:root[data-theme="dark"] .src-self { background: rgba(124, 58, 237, 0.18); color: #ddd6fe; }
-
-/* Add-skill side panel */
-:root[data-theme="dark"] .sm-panel {
-  background: rgba(255, 255, 255, 0.045);
-  border-left-color: rgba(255, 255, 255, 0.08);
-}
-
-:root[data-theme="dark"] .sm-level-btn {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-:root[data-theme="dark"] .sm-level-btn .lnum {
-  color: #eef2fb;
-}
-
-:root[data-theme="dark"] .sm-level-btn .llabel {
-  color: #8b95ad;
-}
-
-:root[data-theme="dark"] .sm-level-btn.selected {
-  background: rgba(124, 58, 237, 0.2);
-  border-color: #a78bfa;
-}
-
-:root[data-theme="dark"] .sm-level-btn.selected .lnum,
-:root[data-theme="dark"] .sm-level-btn.selected .llabel {
-  color: #ddd6fe;
-}
-
-:root[data-theme="dark"] .sm-level-desc {
-  background: rgba(124, 58, 237, 0.14);
-}
-
-:root[data-theme="dark"] .sm-level-desc .ld-title {
-  color: #ddd6fe;
-}
-
-:root[data-theme="dark"] .sm-level-desc .ld-sub {
-  color: #c4b5fd;
-}
-
-:root[data-theme="dark"] .sm-source-option {
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-:root[data-theme="dark"] .sm-source-option.selected {
-  background: rgba(124, 58, 237, 0.16);
-  border-color: #a78bfa;
-}
-
-/* Modal (portaled, so it cannot be scoped under .app-content) */
-:root[data-theme="dark"] .sm-modal {
-  background: #151d33;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-:root[data-theme="dark"] .sm-modal h3 {
-  color: #eef2fb;
-}
-
-:root[data-theme="dark"] .sm-modal p {
-  color: #9aa6c0;
-}
-
-:root[data-theme="dark"] .sm-modal-note {
-  background: rgba(245, 158, 11, 0.14);
-  border-color: rgba(245, 158, 11, 0.3);
-  color: #fcd34d;
-}
-
-:root[data-theme="dark"] .sm-modal-actions .btn-dismiss {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.14);
-  color: #c3cfe6;
-}
-
 .sm-loading {
   display: flex;
   align-items: center;
@@ -1041,23 +812,29 @@
   .skillmatrix-app-content .sm-panel{position:fixed;inset:auto 0 0 64px;width:auto;max-height:82vh;overflow:auto;z-index:250}
 }
 
-/* The narrow layouts put the taxonomy on top and repaint the shell, so the
-   dark background has to follow them too. */
-@media (max-width: 820px) {
-  :root[data-theme="dark"] .skillmatrix-app-content .sm-taxonomy {
-    border-bottom-color: rgba(255, 255, 255, 0.08);
-  }
+/* Edit-skill panel: keep Save / Cancel / Delete pinned to the bottom of the
+   panel so they are visible on short screens without scrolling the panel. */
+.sm-panel-actions {
+  position: sticky;
+  bottom: -22px; /* cancels the panel's bottom padding so it sits flush */
+  margin: 12px -22px -22px;
+  padding: 10px 22px 16px;
+  background: #fff;
+  border-top: 1px solid #eceffa;
+  z-index: 2;
 }
 
-/* Loading + inline error banners. The loading text sat on the light #f5f7fb
-   canvas, so on the dark shell it was dark grey on near-white. */
-:root[data-theme="dark"] .sm-loading {
-  color: #8b95ad;
+.sm-panel-actions .btn-save-skill {
+  margin-top: 0;
 }
 
-:root[data-theme="dark"] .sm-load-error,
-:root[data-theme="dark"] .sm-save-error {
-  background: rgba(239, 68, 68, 0.13);
-  color: #fca5a5;
-  border-color: rgba(239, 68, 68, 0.32);
+.sm-panel-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.sm-panel-actions-row .btn-cancel-skill {
+  margin-top: 0;
+  flex: 1;
 }
