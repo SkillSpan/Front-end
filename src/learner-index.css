@@ -1,0 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+html, body, #root { min-height: 100%; font-family: Inter, sans-serif; }
+* { scrollbar-width: thin; scrollbar-color: rgba(100,116,139,.25) transparent; }
+*::-webkit-scrollbar { width: 5px; height: 5px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: rgba(100,116,139,.25); border-radius: 3px; }

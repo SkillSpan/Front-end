@@ -1,0 +1,64 @@
+/* SkillSpan landing design tokens — scoped to the landing wrapper.
+   These were on `:root` in the standalone site, which would have leaked the
+   palette into the app shell (login, dashboard, company screens share this
+   document). Scoping keeps them inheriting into every landing child. */
+.landing-root {
+  /* Indigo / navy (lighter than v1, per Manar's feedback) */
+  --indigo-950: #0b1440;   /* darkest surface: hero start, footer */
+  --indigo-900: #111a55;
+  --indigo-800: #1a2370;   /* hero end, dark sections */
+  --indigo-700: #26318a;
+  --navy-950: #020720;     /* brand navy, used sparingly for ink */
+
+  /* Blue → violet brand */
+  --blue-600: #006eb4;
+  --blue-500: #0087d6;
+  --blue-400: #29a8ff;
+  --blue-100: #dee7ff;
+  --violet-500: #9e51fa;
+  --violet-400: #b07bff;
+  --cyan-400: #21b0e0;
+  --amber-500: #f9ab1f;
+  --amber-400: #fbbf24;
+  --success: #22c55e;
+  --rose-500: #f0577a;
+
+  /* Light surfaces */
+  --lavender: #f1f3fa;
+  --white: #ffffff;
+  --ink: #0b1440;           /* dark text on light */
+  --ink-2: #4a5275;         /* body text on light */
+  --ink-3: #7a819f;         /* muted on light */
+  --line-light: #e3e6f2;
+
+  /* On dark */
+  --text: #f3f5ff;
+  --text-dim: rgba(226, 232, 255, 0.74);
+  --text-faint: rgba(226, 232, 255, 0.5);
+  --line-dark: rgba(255, 255, 255, 0.1);
+
+  --grad-brand: linear-gradient(95deg, #29a8ff 0%, #6c7cff 50%, #9e51fa 100%);
+  --grad-cta: linear-gradient(95deg, #1f8fff 0%, #5a6bff 52%, #9e51fa 100%);
+  --grad-hero: linear-gradient(160deg, #0b1440 0%, #121b5e 55%, #1a2370 100%);
+
+  --font-en: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ar: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
+
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 24px;
+  --container: 1200px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Type scale — refined (v2): h1 60px / h2 42px / body 17px at desktop */
+  --fs-h1: clamp(2.25rem, 1.2rem + 3.1vw, 3.75rem);
+  --fs-h2: clamp(1.75rem, 1.2rem + 1.6vw, 2.625rem);
+  --fs-h3: 1.125rem;
+  --fs-lead: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+  --fs-xs: 0.75rem;
+
+  --section-y: clamp(4.5rem, 3rem + 5vw, 7.5rem);
+  --nav-h: 72px;
+}

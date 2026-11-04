@@ -1,0 +1,648 @@
+import { useEffect, useMemo, useState } from 'react';
+import './SkillMatrix.css';
+import { LEVELS, levelInfo } from './taxonomy';
+import { getSkillsMatrix, upsertSkillMatrix, updateSkillMatrixEntry, getSkillsTaxonomy, getStoredUser, resolveLearnerId } from '../../api';
+import AppLayout from '../dashboard/AppLayout';
+import { useAuth } from '../auth/AuthContext';
+import { filterTaxonomyByRoles, loadSpecializationRoles } from './specializationFilter';
+
+// The taxonomy (categories/skill list on the left) now loads from the real
+// backend (GET /skills/taxonomy) instead of the local mock in taxonomy.js -
+// this is what fixed the "The selected skill id is invalid" error: the
+// mock used made-up string ids ("python", "react"...) that don't exist in
+// the backend's skills table, so upsertSkillMatrix was rejected.
+//
+// Confirmed shape (from an actual logged sample - see
+// "[SkillMatrix] raw /skills/taxonomy response" in the console): `data` is
+// a FLAT array of skill nodes, each shaped like:
+//   { id, name, parent: null, parent_skill_id: null, slug, status, ... }
+// There's no nested `skills`/`children` array and no `category` string -
+// the hierarchy is expressed purely through `parent_skill_id`: a node with
+// parent_skill_id === null is a top-level "category" (e.g. "Web
+// Development"), and any node whose parent_skill_id equals that category's
+// id is one of its skills (e.g. "React").
+// Career role ids a taxonomy skill belongs to (the taxonomy eager-loads the
+// skill's career roles), used to narrow the list to the learner's
+// specialization.
+function roleIdsOf(skill) {
+  const roles = skill.career_roles || skill.careerRoles || [];
+  return Array.isArray(roles) ? roles.map((role) => String(role?.id ?? role)).filter(Boolean) : [];
+}
+
+function normalizeTaxonomy(raw) {
+  try {
+    const root = raw?.data ?? raw;
+
+    if (Array.isArray(root) && root.length === 0) {
+      // Valid, well-formed response - the server just has no skills yet.
+      return { categories: [], empty: true };
+    }
+
+    if (!Array.isArray(root) || !root.length) return null;
+
+    // Primary path: flat list + parent_skill_id tree (the confirmed shape).
+    if ('parent_skill_id' in root[0]) {
+      const topLevel = root.filter((s) => s.parent_skill_id == null);
+      const categories = topLevel
+        .map((cat) => ({
+          key: cat.slug || String(cat.id),
+          label: cat.name || cat.title || `Category ${cat.id}`,
+          skills: root
+            .filter((s) => s.parent_skill_id === cat.id)
+            .map((s) => ({ id: s.id, name: s.name || s.title || '', description: s.description || '', roleIds: roleIdsOf(s) })),
+        }))
+        .filter((cat) => cat.skills.length > 0);
+
+      if (categories.length) return { categories, empty: false };
+
+      // Every top-level node had zero children - either it's genuinely a
+      // flat, non-hierarchical list (each node IS a skill, no category
+      // grouping at all) or parent_skill_id points to ids not present in
+      // this page of results. Treat every node as its own skill under one
+      // "All Skills" bucket rather than showing nothing.
+      const flatSkills = root.map((s) => ({ id: s.id, name: s.name || s.title || '', description: s.description || '', roleIds: roleIdsOf(s) }));
+      if (flatSkills.every((s) => s.id !== undefined && s.id !== null)) {
+        return { categories: [{ key: 'all-skills', label: 'All Skills', skills: flatSkills }], empty: false };
+      }
+    }
+
+    // Fallback paths for other shapes, kept in case this varies by
+    // environment or changes later.
+    let rawCategories = null;
+
+    if (root.length && Array.isArray(root[0]?.skills || root[0]?.children)) {
+      rawCategories = root;
+    } else if (root.length) {
+      const buckets = {};
+      root.forEach((s) => {
+        const catKey = s.category || s.category_name || s.parent_name || s.parent?.name || 'General';
+        if (!buckets[catKey]) buckets[catKey] = { key: catKey, label: catKey, skills: [] };
+        buckets[catKey].skills.push(s);
+      });
+      rawCategories = Object.values(buckets);
+    }
+
+    if (!rawCategories || !rawCategories.length) return null;
+
+    const categories = rawCategories
+      .map((cat, i) => ({
+        key: cat.key || cat.slug || cat.id || cat.name || cat.label || `cat-${i}`,
+        label: cat.label || cat.name || cat.title || `Category ${i + 1}`,
+        skills: (cat.skills || cat.children || [])
+          .map((s) => ({
+            id: s.id ?? s.skill_id ?? s.skillId ?? s._id ?? s.slug ?? s.code,
+            name: s.name || s.title || s.label || '',
+            description: s.description || s.desc || '',
+            roleIds: roleIdsOf(s),
+          }))
+          .filter((s) => s.id !== undefined && s.id !== null && s.id !== ''),
+      }))
+      .filter((cat) => cat.skills.length > 0);
+
+
+    return categories.length ? { categories, empty: false } : null;
+  } catch {
+    return null;
+  }
+}
+
+
+function findSkillInTaxonomy(taxonomy, id) {
+  for (const cat of taxonomy) {
+    const found = cat.skills.find((s) => String(s.id) === String(id));
+    if (found) return { ...found, category: cat.key, categoryLabel: cat.label };
+  }
+  return null;
+}
+
+// The logged-in user object comes straight from the login/register response
+// (see saveSession in api.js) and its exact shape isn't guaranteed - see
+// resolveLearnerId() in api.js for the field names it tries. If none of
+// them match, callers should stop and surface a clear error instead of
+// silently sending `learner_id: undefined` (which the backend rejects with
+// a 422 "learner id field is required" - the request looks fine in
+// devtools but the field is just missing, since JSON.stringify drops
+// undefined values).
+
+
+function pickFirstUnowned(taxonomy, skills) {
+  for (const cat of taxonomy) {
+    for (const s of cat.skills) {
+      if (!skills[s.id]) return s.id;
+    }
+  }
+  return taxonomy[0]?.skills[0]?.id;
+}
+
+const PALETTE = ['#4f46e5', '#7c3aed', '#059669', '#ea580c', '#e11d48', '#0891b2', '#ca8a04', '#9333ea'];
+function confidenceToLabel(score) {
+  if (score >= 70) return 'High';
+  if (score >= 40) return 'Medium';
+  return 'Low';
+}
+
+function labelToConfidence(label) {
+  if (label === 'High') return 90;
+  if (label === 'Medium') return 60;
+  return 30;
+}
+
+const CAT_COLOR = { Programming: '#4f46e5', Web: '#7c3aed', Data: '#059669', Cloud: '#ea580c', Soft: '#e11d48' };
+
+function barColor(level) {
+  if (level >= 4) return '#10b981';
+  if (level === 3) return '#3b82f6';
+  return '#f59e0b';
+}
+
+export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
+  const { authUser, logout } = useAuth();
+  const currentUser = authUser || getStoredUser();
+  const learnerId = resolveLearnerId(currentUser);
+  const [taxonomy, setTaxonomy] = useState([]);
+  const [taxonomySource, setTaxonomySource] = useState('loading'); // loading | live | empty | error
+  const [taxonomyError, setTaxonomyError] = useState(null);
+  const [skills, setSkills] = useState({});
+  // Maps skill id -> backend matrix row id, so edits PUT /skills/matrix/{id}
+  // instead of re-POSTing (which would try to upsert a duplicate pair).
+  const [rowIds, setRowIds] = useState({});
+  const [loadingMatrix, setLoadingMatrix] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  const [tab, setTab] = useState(
+    initialTab === 'assessment' || initialTab === 'self' ? initialTab : 'all'
+  ); // all | assessment | self
+  const [openCategories, setOpenCategories] = useState(() => new Set());
+  // Bumped by the Retry button to run both loads again.
+  const [reloadKey, setReloadKey] = useState(0);
+  const [panelSkillId, setPanelSkillId] = useState(null);
+  const [panelLevel, setPanelLevel] = useState(1);
+  const [duplicateSkillId, setDuplicateSkillId] = useState(null);
+  const loading = loadingMatrix || taxonomySource === 'loading';
+  const [specializationFilter, setSpecializationFilter] = useState(null);
+
+  // The taxonomy lists every skill on the platform; the learner only sees the
+  // ones their specialization's career roles need (plus the ones they have).
+  useEffect(() => {
+    let cancelled = false;
+    loadSpecializationRoles()
+      .then((filter) => {
+        if (!cancelled) setSpecializationFilter(filter);
+      })
+      .catch(() => {
+        if (!cancelled) setSpecializationFilter(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    getSkillsTaxonomy()
+      .then((raw) => {
+        if (cancelled) return;
+        const result = normalizeTaxonomy(raw);
+        if (!result) {
+          setTaxonomySource('error');
+          setTaxonomyError("We couldn't read the skills list from the server.");
+        } else if (result.empty) {
+          setTaxonomy([]);
+          setTaxonomySource('empty');
+        } else {
+          setTaxonomy(result.categories);
+          setOpenCategories(new Set(result.categories.map((c) => c.key)));
+          setTaxonomySource('live');
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTaxonomySource('error');
+        setTaxonomyError("We couldn't load the skills list.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!learnerId) {
+      // Can't scope the matrix to "me" client-side without this (the
+      // backend doesn't actually filter by learner_id - see the note in
+      // careerRolesApi.js / api.js - so this client-side filter is the
+      // only thing standing between "my skills" and everyone's skills).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLoadingMatrix(false);
+      setLoadError("We couldn't find your learner id in your session. Try logging out and back in.");
+      return undefined;
+    }
+    setLoadingMatrix(true);
+    setLoadError(null);
+    getSkillsMatrix()
+      .then((data) => {
+        if (cancelled) return;
+        const rows = Array.isArray(data) ? data : data?.data || [];
+        const nextSkills = {};
+        const nextRowIds = {};
+        rows
+          .filter((row) => !learnerId || String(row.learner_id) === String(learnerId))
+          .forEach((row) => {
+            nextSkills[row.skill_id] = {
+              source: row.source_type === 'assessment' ? 'assessment' : 'self',
+              level: row.level,
+              confidence: confidenceToLabel(row.confidence_score ?? 0),
+            };
+            nextRowIds[row.skill_id] = row.id;
+          });
+        setSkills(nextSkills);
+        setRowIds(nextRowIds);
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError("We couldn't load your skills.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingMatrix(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [learnerId, reloadKey]);
+
+  const visibleTaxonomy = useMemo(
+    () => filterTaxonomyByRoles(taxonomy, specializationFilter, skills),
+    [taxonomy, specializationFilter, skills]
+  );
+  const skillIds = Object.keys(skills);
+  const assessmentCount = skillIds.filter((id) => skills[id].source === 'assessment').length;
+  const selfCount = skillIds.filter((id) => skills[id].source === 'self').length;
+  const avgProficiency = skillIds.length
+    ? (skillIds.reduce((sum, id) => sum + skills[id].level, 0) / skillIds.length).toFixed(1)
+    : '0.0';
+
+  const coverage = useMemo(
+    () =>
+      visibleTaxonomy.map((cat) => {
+        const have = cat.skills.filter((s) => skills[s.id]).length;
+        return { key: cat.key, label: cat.label, pct: cat.skills.length ? Math.round((have / cat.skills.length) * 100) : 0 };
+      }),
+    [skills, visibleTaxonomy]
+  );
+
+  const cards = useMemo(() => {
+    return skillIds
+      .filter((id) => (tab === 'all' ? true : tab === 'assessment' ? skills[id].source === 'assessment' : skills[id].source === 'self'))
+      .map((id) => {
+        const meta = findSkillInTaxonomy(taxonomy, id);
+        return meta ? { id, ...meta, ...skills[id] } : null;
+      })
+      .filter(Boolean);
+  }, [skillIds, skills, tab, taxonomy]);
+
+  const toggleCategory = (key) => {
+    setOpenCategories((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  };
+
+  const openAddSkill = (skillId) => {
+    if (skills[skillId]) {
+      setDuplicateSkillId(skillId);
+      return;
+    }
+    setPanelSkillId(skillId);
+    setPanelLevel(1);
+  };
+
+  const closePanel = () => setPanelSkillId(null);
+
+  const saveSkill = async () => {
+    if (!panelSkillId) return;
+    if (!learnerId) {
+      setSaveError("We couldn't find your learner id in your session. Try logging out and back in; if it keeps happening, check the console for the raw stored user object.");
+      return;
+    }
+    setSaving(true);
+    setSaveError(null);
+    const confidence = 'Low'; // self-assessed entries always start at Low confidence (BR-08)
+    try {
+      const existingRowId = rowIds[panelSkillId];
+      if (existingRowId) {
+        await updateSkillMatrixEntry(existingRowId, {
+          level: panelLevel,
+          confidence_score: labelToConfidence(confidence),
+        });
+      } else {
+        const created = await upsertSkillMatrix({
+          learner_id: learnerId,
+          skill_id: panelSkillId,
+          level: panelLevel,
+          confidence_score: labelToConfidence(confidence),
+          source_type: 'self',
+        });
+        const createdId = created?.data?.id ?? created?.id;
+        if (createdId) {
+          setRowIds((prev) => ({ ...prev, [panelSkillId]: createdId }));
+        }
+      }
+      setSkills((prev) => ({
+        ...prev,
+        [panelSkillId]: { source: 'self', level: panelLevel, confidence },
+      }));
+      closePanel();
+    } catch (err) {
+      setSaveError(err.message || 'Could not save this skill. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const goEditExisting = () => {
+    const id = duplicateSkillId;
+    setDuplicateSkillId(null);
+    if (id) {
+      setPanelSkillId(id);
+      setPanelLevel(skills[id].level);
+    }
+  };
+
+  const panelMeta = panelSkillId ? findSkillInTaxonomy(taxonomy, panelSkillId) : null;
+  const duplicateMeta = duplicateSkillId ? findSkillInTaxonomy(taxonomy, duplicateSkillId) : null;
+  const isEditingExisting = panelSkillId && skills[panelSkillId];
+
+  const retryLoad = () => {
+    setTaxonomyError(null);
+    setTaxonomySource('loading');
+    setReloadKey((key) => key + 1);
+  };
+
+  const pageError = taxonomyError || loadError;
+
+  if (loading) {
+    return (
+      <AppLayout
+        active="skill-matrix"
+        onNavigate={onNavigate}
+        user={currentUser}
+        onLogout={logout}
+        flushContent
+        contentClassName="skillmatrix-app-content"
+      >
+        <div className="sm-shell">
+          <div className="sm-loading">Loading your skill matrix…</div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  return (
+    <AppLayout
+      active="skill-matrix"
+      onNavigate={onNavigate}
+      user={currentUser}
+      onLogout={logout}
+      flushContent
+      contentClassName="skillmatrix-app-content"
+    >
+    <div className="sm-shell">
+      {pageError ? (
+        <div className="sm-state" role="alert">
+          <div className="sm-state-title">{pageError}</div>
+          <p className="sm-state-text">Please check your connection and try again.</p>
+          <button type="button" className="sm-state-btn" onClick={retryLoad}>Retry</button>
+        </div>
+      ) : taxonomySource === 'empty' ? (
+        <div className="sm-state">
+          <div className="sm-state-title">No skills are available yet.</div>
+          <p className="sm-state-text">Skills will appear here once they are added to the platform.</p>
+          <button type="button" className="sm-state-btn" onClick={retryLoad}>Retry</button>
+        </div>
+      ) : (
+      <div className={`sm-body${panelSkillId ? ' with-panel' : ''}`}>
+        {/* Left: taxonomy */}
+        <aside className="sm-taxonomy">
+          <div className="sm-taxonomy-label">SKILL TAXONOMY</div>
+          {specializationFilter && (
+            <div className="sm-taxonomy-scope">Skills for {specializationFilter.specialization}</div>
+          )}
+          <div className="sm-search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
+            </svg>
+            <input placeholder="Search skills..." />
+          </div>
+
+          {visibleTaxonomy.map((cat) => {
+            const isOpen = openCategories.has(cat.key);
+            const haveCount = cat.skills.filter((s) => skills[s.id]).length;
+            return (
+              <div className="sm-category" key={cat.key}>
+                <div className="sm-category-head" onClick={() => toggleCategory(cat.key)}>
+                  <span className="sm-category-check" />
+                  <span className="sm-category-title">
+                    {cat.label}
+                    <div className="sm-category-count">{cat.skills.length} skills</div>
+                  </span>
+                  {haveCount > 0 && <span className="sm-category-badge">+{haveCount}</span>}
+                  <span className="sm-category-chevron">{isOpen ? '▾' : '▸'}</span>
+                </div>
+                {isOpen && (
+                  <div className="sm-skill-list">
+                    {cat.skills.map((s) => {
+                      const owned = !!skills[s.id];
+                      return (
+                        <div className="sm-skill-item" key={s.id} onClick={() => openAddSkill(s.id)}>
+                          <span className={`sm-skill-check${owned ? ' checked' : ''}`}>{owned ? '✓' : ''}</span>
+                          {s.name}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <div className="sm-coverage">
+            <div className="sm-coverage-label">COVERAGE</div>
+            {coverage.map((c, i) => (
+              <div className="sm-coverage-row" key={c.key}>
+                <span className="cname">{c.label.split(' ')[0]}</span>
+                <span className="sm-coverage-track">
+                  <span className="sm-coverage-fill" style={{ width: `${c.pct}%`, background: CAT_COLOR[c.key] || PALETTE[i % PALETTE.length] }} />
+                </span>
+                <span className="sm-coverage-pct">{c.pct}%</span>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        {/* Middle: skill matrix */}
+        <main className="sm-main">
+          <div className="sm-main-head">
+            <div>
+              <h1>My Skill Matrix</h1>
+              <p>{skillIds.length} skills · initialized from your baseline assessment</p>
+            </div>
+            <div className="sm-head-actions">
+              <div className="sm-tabs">
+                <button type="button" className={`sm-tab${tab === 'all' ? ' active' : ''}`} onClick={() => setTab('all')}>All Skills</button>
+                <button type="button" className={`sm-tab${tab === 'assessment' ? ' active' : ''}`} onClick={() => setTab('assessment')}>Assessment</button>
+                <button type="button" className={`sm-tab${tab === 'self' ? ' active' : ''}`} onClick={() => setTab('self')}>Self-Assessed</button>
+              </div>
+              <button type="button" className="btn-add-skill" onClick={() => openAddSkill(pickFirstUnowned(visibleTaxonomy, skills))}>
+                + Add Skill
+              </button>
+            </div>
+          </div>
+
+          <div className="sm-summary-row">
+            <span className="sm-summary-chip"><b>{assessmentCount}</b>&nbsp;Assessment-derived</span>
+            <span className="sm-summary-chip"><b>{selfCount}</b>&nbsp;Self-assessed</span>
+            <span className="sm-summary-chip avg"><b>{avgProficiency}/5</b>&nbsp;Avg proficiency</span>
+          </div>
+
+          <div className="sm-grid">
+            {cards.map((card, index) => {
+              const lv = levelInfo(card.level);
+              return (
+                <div
+                  className="sm-card"
+                  key={card.id}
+                  onClick={() => openAddSkill(card.id)}
+                  style={{ cursor: 'pointer', animationDelay: `${Math.min(index, 10) * 45}ms` }}
+                >
+                  <div className="sm-card-top">
+                    <span className="sname">{card.name}</span>
+                    <span className={`sm-card-cat cat-${card.category}`}>{card.category}</span>
+                  </div>
+                  <div className="sm-card-desc">{card.description}</div>
+                  <div className="sm-level-row">
+                    <span className="sm-dots">
+                      {[0, 1, 2, 3, 4].map((i) => (
+                        <span key={i} className={`sm-dot lvl-${card.level}${i < card.level ? ' on' : ''}`} />
+                      ))}
+                    </span>
+                    <span className={`lvl-${card.level}`}>{lv.name}</span>
+                    <span className="sm-level-badge">Lv {card.level}/5</span>
+                  </div>
+                  <div className="sm-bar-track">
+                    <div className="sm-bar-fill" style={{ width: `${(card.level / 5) * 100}%`, background: barColor(card.level) }} />
+                  </div>
+                  <div className="sm-card-bottom">
+                    {card.source === 'assessment' ? (
+                      <span className="sm-source-badge src-assessment">Assessment</span>
+                    ) : (
+                      <span className="sm-source-badge src-self">Self-assessed</span>
+                    )}
+                    <span className={`sm-confidence conf-${card.confidence}`}>
+                      <span className="cdot" /> {card.confidence} confidence
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="sm-info-banner">
+            <span>
+              Skills from your baseline assessment carry a higher confidence score than self-assessed ones. Add new skills
+              from the list on the left or adjust your self-assessed levels.
+            </span>
+          </div>
+        </main>
+
+        {/* Right: add skill panel */}
+        {panelSkillId && panelMeta && (
+          <aside className="sm-panel">
+            <div className="sm-panel-head">
+              <span className="sm-panel-label">{isEditingExisting ? 'EDIT SKILL' : 'ADD SKILL'}</span>
+              <button type="button" className="sm-panel-close" onClick={closePanel}>✕</button>
+            </div>
+
+            <div className="sm-panel-skill">
+              <span className="sm-panel-avatar">{panelMeta.name[0]}</span>
+              <div>
+                <div className="sk-name">{panelMeta.name}</div>
+                <div className="sk-cat">{panelMeta.categoryLabel}</div>
+              </div>
+            </div>
+
+            <textarea rows={2} readOnly value={panelMeta.description} />
+
+            <div className="sm-field-label">
+              PROFICIENCY LEVEL
+              <span className="sm-level-tag">{panelLevel} / 5 — {levelInfo(panelLevel).name}</span>
+            </div>
+            <div className="sm-level-grid">
+              {LEVELS.map((lv) => (
+                <button
+                  type="button"
+                  key={lv.value}
+                  className={`sm-level-btn${panelLevel === lv.value ? ' selected' : ''}`}
+                  onClick={() => setPanelLevel(lv.value)}
+                >
+                  <div className="lnum">{lv.value}</div>
+                  <div className="llabel">{lv.label}</div>
+                </button>
+              ))}
+            </div>
+
+            <div className="sm-level-desc">
+              <div className="ld-title">{levelInfo(panelLevel).name}</div>
+              <div className="ld-sub">{levelInfo(panelLevel).desc}</div>
+            </div>
+
+            <div className="sm-scale-dots">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <span key={i} className={`d${i <= panelLevel ? ' on' : ''}`} />
+              ))}
+            </div>
+
+            <div className="sm-field-label">SKILL SOURCE</div>
+            <div className="sm-source-option disabled">
+              <span className="sm-source-radio" />
+              <div>
+                <div className="so-title">Assessment-derived</div>
+                <div className="so-sub">Higher confidence · verified source (from taking an assessment)</div>
+              </div>
+            </div>
+            <div className="sm-source-option selected">
+              <span className="sm-source-radio on" />
+              <div>
+                <div className="so-title">Self-assessed</div>
+                <div className="so-sub">Lower confidence · self-reported</div>
+              </div>
+            </div>
+
+            {saveError && <div className="sm-save-error">{saveError}</div>}
+            <button type="button" className="btn-save-skill" onClick={saveSkill} disabled={saving}>
+              {saving ? 'Saving…' : 'Save Skill'}
+            </button>
+            <button type="button" className="btn-cancel-skill" onClick={closePanel} disabled={saving}>Cancel</button>
+          </aside>
+        )}
+      </div>
+      )}
+
+      {duplicateSkillId && duplicateMeta && (
+        <div className="sm-modal-overlay" onClick={() => setDuplicateSkillId(null)}>
+          <div className="sm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="sm-modal-icon">⚠️</div>
+            <h3>Skill already exists</h3>
+            <p><b>{duplicateMeta.name}</b> is already in your Skill Matrix. You can edit its level instead of adding it again.</p>
+            <div className="sm-modal-note">To change the level, click the existing skill card to edit it.</div>
+            <div className="sm-modal-actions">
+              <button type="button" className="btn-dismiss" onClick={() => setDuplicateSkillId(null)}>Dismiss</button>
+              <button type="button" className="btn-edit" onClick={goEditExisting}>Edit Existing</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+    </AppLayout>
+  );
+}

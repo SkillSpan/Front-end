@@ -1,0 +1,94 @@
+.scene {
+  --mx: 0; --my: 0;
+  position: relative; width: 100%; max-width: 600px; margin-inline: auto; aspect-ratio: 1;
+}
+.compact { max-width: 420px; }
+
+.halo {
+  position: absolute; inset: 14% 14% 6%; border-radius: 50%; pointer-events: none;
+  background:
+    radial-gradient(closest-side at 50% 55%, rgba(120, 135, 255, 0.6), rgba(41, 168, 255, 0.16) 58%, transparent),
+    radial-gradient(closest-side at 70% 30%, rgba(158, 81, 250, 0.4), transparent 70%);
+  filter: blur(36px); animation: glow 7s ease-in-out infinite;
+}
+@keyframes glow { 0%, 100% { opacity: 0.7; transform: scale(0.97); } 50% { opacity: 1; transform: scale(1.03); } }
+
+/* ---------- path to the star ---------- */
+.path { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+:global(.landing-root[dir='rtl']) .path, :global(.landing-root[dir='rtl']) .star { transform: scaleX(-1); }
+.pathLine, .pathGlow, .pathFlow { fill: none; stroke-linecap: round; }
+.pathLine { stroke-width: 8; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.6s cubic-bezier(0.65, 0, 0.35, 1) 0.2s forwards; }
+.pathGlow { stroke-width: 22; opacity: 0; filter: blur(10px); stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 1.6s cubic-bezier(0.65, 0, 0.35, 1) 0.2s forwards, glowPulse 4s ease-in-out 1.8s infinite; }
+.pathFlow { stroke: #fff; stroke-width: 4; stroke-dasharray: 0.03 0.97; stroke-dashoffset: 1; opacity: 0; filter: drop-shadow(0 0 6px #b9ccff); animation: flow 3.2s linear 1.8s infinite; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes glowPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+@keyframes flow { 0% { stroke-dashoffset: 1; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+
+.star { position: absolute; z-index: 2; left: 90%; top: 11.7%; width: 13%; aspect-ratio: 1; margin: -6.5% 0 0 -6.5%; }
+:global(.landing-root[dir='rtl']) .star { left: 10%; transform: none; }
+.star img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 18px rgba(249, 171, 31, 0.75)); opacity: 0; animation: starIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 1.6s forwards, twinkle 3s ease-in-out 2.2s infinite; }
+@keyframes starIn { from { opacity: 0; transform: scale(0.3) rotate(-40deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes twinkle { 0%, 100% { transform: scale(1) rotate(0); filter: drop-shadow(0 0 14px rgba(249, 171, 31, 0.6)); } 50% { transform: scale(1.12) rotate(8deg); filter: drop-shadow(0 0 26px rgba(249, 171, 31, 0.95)); } }
+
+/* ---------- character ---------- */
+.character {
+  position: absolute; z-index: 3; left: 22%; right: 22%; top: 14%; bottom: 0;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.idle { width: 100%; height: 100%; animation: idle 6.5s ease-in-out infinite; }
+.idle img { -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent 100%); mask-image: linear-gradient(180deg, #000 78%, transparent 100%); display: block; width: 100%; height: 100%; object-fit: contain; object-position: bottom center; filter: drop-shadow(0 24px 34px rgba(4, 8, 40, 0.45)); }
+@keyframes idle { 0%, 100% { transform: translate3d(0, 0, 0) rotate(0); } 50% { transform: translate3d(0, -10px, 0) rotate(-0.6deg); } }
+
+/* ---------- journey tiles ---------- */
+.spot {
+  position: absolute; z-index: 4; left: var(--x); top: var(--y); width: 0; height: 0;
+}
+.tile {
+  position: absolute; left: 0; top: 0; translate: -50% -50%;
+  display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+  width: 6.6rem; padding: 0.7rem 0.5rem 0.65rem; border-radius: 18px; text-align: center;
+  color: #fff;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 18px 36px -18px rgba(2, 6, 30, 0.85);
+  opacity: 0;
+  /* appear one by one in journey order, after the path has drawn */
+  animation: tileIn 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) calc(1s + var(--i) * 0.28s) forwards, var(--loop);
+}
+.tile img { width: 2.9rem; height: 2.9rem; object-fit: contain; filter: drop-shadow(0 8px 10px rgba(4, 8, 40, 0.35)); }
+.tile span { font-size: 0.72rem; font-weight: 600; line-height: 1.2; letter-spacing: 0.01em; }
+@keyframes tileIn { from { opacity: 0; transform: scale(0.6) translate3d(0, 10px, 0); } to { opacity: 1; transform: scale(1) translate3d(0, 0, 0); } }
+
+:global(.landing-root[dir='rtl']) .spot { left: auto; right: var(--x); }
+
+/* the loops start once a tile has landed (delay = its entrance + a beat) */
+.float, .pulse, .blink { --loop: spotlight 7.2s ease-in-out calc(2.4s + var(--i) * 1.2s) infinite; }
+/* one tile at a time: grows, a glowing ring bursts around it, then it settles; the next tile follows, and the cycle repeats */
+@keyframes spotlight {
+  0%, 20%, 100% { opacity: 1; transform: scale(1); box-shadow: inset 0 1px 0 rgba(255,255,255,0.3), 0 18px 36px -18px rgba(2,6,30,0.85), 0 0 0 0 rgba(90,170,255,0); }
+  8%  { opacity: 1; transform: scale(1.22); box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 0 28px 6px rgba(80,160,255,0.75), 0 0 0 10px rgba(120,190,255,0.25); border-color: rgba(255,255,255,0.7); }
+  13% { opacity: 1; transform: scale(1.18); box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 0 22px 4px rgba(80,160,255,0.55), 0 0 0 22px rgba(120,190,255,0); }
+}
+.tile::after { content: ''; position: absolute; inset: -6px; border-radius: 22px; border: 2px solid rgba(140,200,255,0.9); opacity: 0; pointer-events: none;
+  animation: ring 7.2s ease-out calc(2.4s + var(--i) * 1.2s) infinite; }
+@keyframes ring { 0% { opacity: 0; transform: scale(0.9); } 4% { opacity: 1; transform: scale(1); } 16% { opacity: 0; transform: scale(1.45); } 100% { opacity: 0; transform: scale(1.45); } }
+.tile img { animation: iconPop 7.2s ease-in-out calc(2.4s + var(--i) * 1.2s) infinite; }
+@keyframes iconPop { 0%, 20%, 100% { transform: rotate(0) scale(1); } 8% { transform: rotate(-8deg) scale(1.15); } }
+
+/* compact (closing section) */
+.compact .tile { width: 5.8rem; }
+.compact .tile img { width: 2.5rem; height: 2.5rem; }
+
+@media (max-width: 560px) {
+  .mHide { display: none; }
+  .character { left: 24%; right: 24%; top: 20%; }
+  .tile { width: 5.2rem; padding: 0.55rem 0.4rem 0.5rem; border-radius: 14px; }
+  .tile img { width: 2.2rem; height: 2.2rem; }
+  .tile span { font-size: 0.62rem; }
+}
+
+:global(.landing-root.is-static) .scene * { animation: none !important; }
+:global(.landing-root.is-static) .tile, :global(.landing-root.is-static) .star img { opacity: 1; }
+:global(.landing-root.is-static) .pathLine, :global(.landing-root.is-static) .pathGlow { stroke-dashoffset: 0; }
+:global(.landing-root.is-static) .pathGlow { opacity: 0.5; }
