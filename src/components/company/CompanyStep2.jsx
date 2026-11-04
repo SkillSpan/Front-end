@@ -1,4 +1,5 @@
-import { ORGANIZATION_TYPES } from '../../config';
+import { ORGANIZATION_TYPES, COMPANY_INDUSTRIES, COMPANY_SIZES } from '../../config';
+import { isValidUrl } from '../../utils/companyValidation';
 import { useState } from 'react';
 import './CompanyRegister.css'; // Shared company styles file
 import { ShieldCheckIcon } from './CompanyIcons';
@@ -21,16 +22,6 @@ const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin, initialData })
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const isValidUrl = (str) => {
-    if (!str) return true; // empty is allowed (optional field)
-    try {
-      const url = new URL(str);
-      return url.protocol === 'http:' || url.protocol === 'https:';
-    } catch {
-      return false;
-    }
   };
 
   const handleNext = (e) => {
@@ -132,19 +123,18 @@ const CompanyStep2 = ({ onNextSuccess, onBack, onNavigateToLogin, initialData })
                 <div className="c-input-group">
                   <label>Industry (Required)</label>
                   <select name="industry" value={formData.industry} onChange={handleChange}>
-                    <option value="Software & IT Services">Software & IT Services</option>
-                    <option value="Digital Marketing">Digital Marketing</option>
-                    <option value="E-commerce">E-commerce</option>
+                    {COMPANY_INDUSTRIES.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="c-input-group">
                   <label>Company Size</label>
                   <select name="companySize" value={formData.companySize} onChange={handleChange}>
-                    <option value="1 - 10 employees">1 - 10 employees</option>
-                    <option value="11 - 50 employees">11 - 50 employees</option>
-                    <option value="51 - 200 employees">51 - 200 employees</option>
-                    <option value="200+ employees">200+ employees</option>
+                    {COMPANY_SIZES.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>

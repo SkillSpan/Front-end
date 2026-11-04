@@ -3,15 +3,25 @@
 // signed-in session (kept in cookies, see utils/cookies.js).
 
 import { setCookie, getCookie, removeCookie } from './utils/cookies';
+// Frontend API cache (src/cache): GET answers are reused / revalidated there,
+// mutations clear related answers, and the cache is emptied whenever the
+// session ends or the signed-in user / organization changes.
+import { apiKey, clearQueryCache, currentLocale, fetchQuery, invalidateAfterMutation, setCacheScope } from './cache/queryCache';
+import { SEND_ACCEPT_LANGUAGE, cacheRuleFor } from './cache/cacheConfig';
 
 // Base URL is injected at build time via Vite env vars. Set
 // VITE_API_BASE_URL in your .env (see .env.example) to point at the
 // Laravel backend for local dev / staging / production. Trailing slashes
 // are stripped so `${API_BASE_URL}${path}` never ends up with `//`.
 const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-// Keep the legacy Render host only for local development. Production builds must
-// explicitly configure the backend URL so they cannot silently call an old API.
-export const API_BASE_URL = (configuredApiBaseUrl || (import.meta.env.DEV ? 'https://skillspan.alwaysdata.net' : '')).replace(/\/+$/, '');
+// The deployed Laravel API (US-COMP-03 / US-COMP-04 frontend guides, 02-11-2026):
+// https://skillspan.alwaysdata.net, every route under /api/v1/. Local development
+// falls back to it; production builds still read VITE_API_BASE_URL (see
+// .env.example / .env.production) so a build can never silently call an old host.
+// Note from the guide: the token is tied to the server — after switching the
+// base URL, sign out and in again (the old token answers 401).
+export const DEFAULT_API_BASE_URL = 'https://skillspan.alwaysdata.net';
+export const API_BASE_URL = (configuredApiBaseUrl || (import.meta.env.DEV ? DEFAULT_API_BASE_URL : '')).replace(/\/+$/, '');
 
 const TOKEN_COOKIE = 'skillspan_token';
 const USER_COOKIE = 'skillspan_user';
@@ -38,6 +48,15 @@ function notifySessionExpired() {
   });
 }
 
+// Called by screens that got a 401 from an endpoint that is not in
+// isAuthEndpointRequiringSession() below (e.g. a company endpoint added later):
+// same end state as the automatic handling — cookies cleared, AuthContext told,
+// SessionExpired shown.
+export function expireSession() {
+  clearSession();
+  notifySessionExpired();
+}
+
 // ---------------------------------------------------------------------------
 // Session (cookie) helpers
 // ---------------------------------------------------------------------------
@@ -45,6 +64,8 @@ function notifySessionExpired() {
 export function saveSession({ token, user, organizations } = {}) {
   if (token) setCookie(TOKEN_COOKIE, token, SESSION_DAYS);
   if (user) {
+    // A different user or organization → start from an empty cache.
+    setCacheScope({ ...user, organizations: organizations || user.organizations || [] });
     setCookie(USER_COOKIE, JSON.stringify({ ...user, organizations: organizations || [] }), SESSION_DAYS);
   }
 }
@@ -63,6 +84,9 @@ export function getStoredUser() {
   }
 }
 
+// The cache belongs to whoever is signed in when the app loads.
+setCacheScope(getToken() ? getStoredUser() : null);
+
 export function isAuthenticated() {
   return !!getToken();
 }
@@ -78,6 +102,9 @@ export function resolveLearnerId(user) {
 export function clearSession() {
   removeCookie(TOKEN_COOKIE);
   removeCookie(USER_COOKIE);
+  // Logout / 401 / session expired: nothing cached may outlive the session.
+  clearQueryCache();
+  setCacheScope(null);
 }
 
 // Revokes the server-side session (if any) and then drops the local
@@ -98,19 +125,60 @@ export async function clearSessionAndRevoke() {
 // Low level request helper
 // ---------------------------------------------------------------------------
 
-async function request(
+// Copy handed to plain callers, so a screen that edits a response object can
+// never change the cached answer another screen gets.
+const cloneData = (data) => {
+  if (data == null || typeof data !== 'object') return data;
+  try {
+    return typeof structuredClone === 'function' ? structuredClone(data) : JSON.parse(JSON.stringify(data));
+  } catch {
+    return data;
+  }
+};
+
+// request() = rawRequest() + the frontend API cache:
+//  - GET on an endpoint whose rule in src/cache/cacheConfig.js says
+//    `transport: true` reuses a FRESH cached answer and shares an identical
+//    request that is already running (never a stale one; screens that want
+//    stale-while-revalidate use the useCachedQuery hook). `cache: false`
+//    skips it; a call with its own abort `signal` is never shared.
+//  - a successful POST/PATCH/PUT/DELETE clears the related cached answers
+//    (INVALIDATION_MAP in cacheConfig.js).
+//  - any logout request empties the cache first.
+async function request(path, options = {}) {
+  const method = String(options.method || 'GET').toUpperCase();
+  if (String(path).startsWith('/api/v1/auth/logout')) clearQueryCache();
+  if (method === 'GET' && options.cache !== false && !options.signal) {
+    const rule = cacheRuleFor(path);
+    if (rule?.transport) {
+      const data = await fetchQuery(apiKey(path), () => rawRequest(path, options));
+      return cloneData(data);
+    }
+  }
+  const data = await rawRequest(path, options);
+  if (method !== 'GET') invalidateAfterMutation(method, path);
+  return data;
+}
+
+async function rawRequest(
   path,
-  { method = 'GET', body, isFormData = false, withAuth = false, timeoutMs = 0, signal } = {},
+  { method = 'GET', body, isFormData = false, withAuth = false, timeoutMs = 0, signal, headers: extraHeaders } = {},
 ) {
   if (!API_BASE_URL) {
     throw { status: 0, configuration: true, message: 'VITE_API_BASE_URL is missing. Configure the SkillSpan API URL before building for production.', errors: {} };
   }
   const headers = { Accept: 'application/json' };
   if (!isFormData) headers['Content-Type'] = 'application/json';
+  // Off by default (src/cache/cacheConfig.js). When on, cache keys carry the
+  // language too, so EN/AR answers are never mixed up.
+  if (SEND_ACCEPT_LANGUAGE) headers['Accept-Language'] = currentLocale();
   if (withAuth) {
     const token = getToken();
     if (token) headers.Authorization = `Bearer ${token}`;
   }
+  // Per-request extras, e.g. Idempotency-Key on Sprint 4 create / submit /
+  // decision requests ("support safe retries", NFR-REL-03).
+  if (extraHeaders) Object.assign(headers, extraHeaders);
 
   // Optional hard timeout + caller-provided cancel signal. Without this a
   // sleeping / unreachable backend leaves the fetch pending forever and the
@@ -221,6 +289,18 @@ function isAuthEndpointRequiringSession(path) {
   if (!path) return false;
   if (path.startsWith('/api/v1/auth/logout')) return true;
   if (path.startsWith('/api/v1/profile')) return true;
+  // Company workspace (Sprint 4, US-COMP-03 Scenario 5): these only answer a
+  // signed-in representative, so a 401 means the session is gone.
+  if (path.startsWith('/api/v1/organization')) return true;
+  if (path.startsWith('/api/v1/company')) return true;
+  if (path.startsWith('/api/v1/notifications')) return true;
+  // Sprint 4 project / application / team routes (US-PRJ-01/02, US-MATCH-03/04).
+  if (path.startsWith('/api/v1/projects')) return true;
+  if (path.startsWith('/api/v1/applications')) return true;
+  if (path.startsWith('/api/v1/team-invitations')) return true;
+  if (path.startsWith('/api/v1/rubrics')) return true;
+  // Talent discovery (US-COMP-05/06/07).
+  if (path.startsWith('/api/v1/talent')) return true;
   return false;
 }
 
@@ -644,19 +724,150 @@ export const getConversations = ({ page, perPage } = {}) => {
   const q = new URLSearchParams(); if (page) q.set('page', page); if (perPage) q.set('per_page', perPage);
   return request(`/api/v1/conversations${q.toString() ? `?${q}` : ''}`, { withAuth: true });
 };
-export const getNotifications = ({ page, perPage } = {}) => {
+// GET /api/v1/notifications?page=&per_page=&unread=1 (US-COMP-03 guide §6):
+// per_page is capped at 50 by the server (a bigger number answers 50, no error);
+// `unread=1` is the filter name (the older unread_only=1 still works).
+// The answer carries meta.unread_count, so the bell needs no second request.
+export const getNotifications = ({ page, perPage, unread } = {}) => {
   const q = new URLSearchParams(); if (page) q.set('page', page); if (perPage) q.set('per_page', perPage);
+  if (unread) q.set('unread', '1');
   return request(`/api/v1/notifications${q.toString() ? `?${q}` : ''}`, { withAuth: true });
 };
+// → { data: { unread_count } } (US-COMP-03 guide §2, row 6).
 export const getUnreadNotificationCount = () => request('/api/v1/notifications/unread-count', { withAuth: true });
 export const markAllNotificationsRead = () => request('/api/v1/notifications/read-all', { method: 'POST', withAuth: true });
 export const markNotificationRead = (id) => request(`/api/v1/notifications/${id}/read`, { method: 'POST', withAuth: true });
+// US-COMP-03 guide §6: PATCH /api/v1/notifications/{id}/read is the verb to use
+// (200 on success, 404 when the notification is not the current user's; safe to
+// repeat). POST on the same path still works, so the learner screens above keep it.
+export const patchNotificationRead = (id) => request(`/api/v1/notifications/${id}/read`, { method: 'PATCH', withAuth: true });
+
+/**
+ * Authenticated JSON request for the Sprint 4 company modules
+ * (src/components/company/projects|applications|team/*Api.js). Each module
+ * keeps its own endpoint constants, so re-pointing a route is a one-line
+ * change there. Same client as every other call: Bearer token, 401 ->
+ * session expired, cache invalidation, api.js error shape.
+ */
+export const companyRequest = (path, { method = 'GET', body, headers, cache } = {}) =>
+  request(path, { method, body, headers, cache, withAuth: true });
 
 export function unwrapApiData(payload) {
   return payload?.data?.data ?? payload?.data ?? payload;
 }
 
+// GET /api/v1/organization/profile — the dashboard's organization card
+// (US-COMP-03 guide §5): now carries profile_completeness (0–100) and
+// profile_fields [{ key, done }]. Still answered; same payload as /profile/me.
 export const getOrganizationProfile = () => request('/api/v1/organization/profile', { withAuth: true });
+
+// GET /api/v1/company/dashboard (US-COMP-03 guide §3/§8) — every number is
+// computed by the server; the frontend sums nothing.
+// → { data: { counts, permissions, tasks, projectStates, recentProjects, funnel } }
+export const getCompanyDashboard = () =>
+  request('/api/v1/company/dashboard', { withAuth: true });
+
+// ---------------------------------------------------------------------------
+// Organization Profile (Sprint 4, US-COMP-04) — US-COMP-04 frontend guide
+// ---------------------------------------------------------------------------
+// GET   /api/v1/profile/me                       → the whole organization profile
+// PATCH /api/v1/profile/me                       → partial update (changed fields only)
+// POST  /api/v1/company/profile/documents        → multipart: type + file (upload / replace)
+// GET   /api/v1/company/profile/documents/{id}   → the file itself (attachment)
+// All need Bearer <token>, a company_admin account and a verified organization.
+// Field mapping and the 422 → field-error handling:
+// src/components/company/profile/companyProfileApi.js
+export const getCompanyProfile = () => request('/api/v1/profile/me', { withAuth: true });
+export const updateCompanyProfile = (payload) =>
+  request('/api/v1/profile/me', { method: 'PATCH', body: payload, withAuth: true });
+
+// Downloads a document through its ready-made `url` (documents.*.url, e.g.
+// /api/v1/company/profile/documents/5 — the guide says not to build it
+// ourselves). Returns { blob, filename }. 404 → DOCUMENT_NOT_FOUND /
+// DOCUMENT_UNAVAILABLE (thrown with the usual { status, code, message } shape).
+export async function downloadCompanyDocument(url) {
+  if (!API_BASE_URL) {
+    throw { status: 0, configuration: true, message: 'VITE_API_BASE_URL is missing. Configure the SkillSpan API URL before building for production.', errors: {} };
+  }
+  const path = /^https?:\/\//i.test(url) ? url : `${API_BASE_URL}${url}`;
+  const headers = { Accept: 'application/json, application/octet-stream, */*' };
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  let response;
+  try {
+    response = await fetch(path, { method: 'GET', headers, credentials: 'omit' });
+  } catch (cause) {
+    throw { status: 0, message: 'Unable to reach the server. Check your internet connection and try again.', errors: {}, cause };
+  }
+  if (!response.ok) {
+    let data = {};
+    try { data = await response.json(); } catch { /* binary or empty body */ }
+    if (response.status === 401) {
+      clearSession();
+      notifySessionExpired();
+    }
+    throw { status: response.status, code: data.code, message: data.message || 'Something went wrong. Please try again.', errors: data.errors || {} };
+  }
+  const disposition = response.headers.get('Content-Disposition') || '';
+  const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition);
+  const filename = match ? decodeURIComponent(match[1]) : '';
+  return { blob: await response.blob(), filename };
+}
+
+// Multipart upload with progress. fetch() cannot report upload progress, so
+// this one uses XMLHttpRequest — same error shape and same 401 handling as
+// request() above.
+export function uploadCompanyProfileDocument(formData, { onProgress, signal } = {}) {
+  const path = '/api/v1/company/profile/documents';
+  return new Promise((resolve, reject) => {
+    if (!API_BASE_URL) {
+      reject({ status: 0, configuration: true, message: 'VITE_API_BASE_URL is missing. Configure the SkillSpan API URL before building for production.', errors: {} });
+      return;
+    }
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', `${API_BASE_URL}${path}`);
+    xhr.setRequestHeader('Accept', 'application/json');
+    if (SEND_ACCEPT_LANGUAGE) xhr.setRequestHeader('Accept-Language', currentLocale());
+    const token = getToken();
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    if (onProgress && xhr.upload) {
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+      };
+    }
+    if (signal) {
+      if (signal.aborted) { reject({ status: 0, aborted: true, message: 'Request cancelled.', errors: {} }); return; }
+      signal.addEventListener('abort', () => xhr.abort(), { once: true });
+    }
+    xhr.onabort = () => reject({ status: 0, aborted: true, message: 'Request cancelled.', errors: {} });
+    xhr.onerror = () => reject({
+      status: 0,
+      message: 'Unable to reach the server. Check your internet connection, wait a few seconds (the server may be waking up) and try again.',
+      errors: {},
+    });
+    xhr.onload = () => {
+      let data;
+      try { data = xhr.responseText ? JSON.parse(xhr.responseText) : {}; } catch { data = {}; }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        invalidateAfterMutation('POST', path); // profile + dashboard (cacheConfig.js)
+        resolve(data);
+        return;
+      }
+      if (xhr.status === 401 && isAuthEndpointRequiringSession(path)) {
+        clearSession();
+        notifySessionExpired();
+      }
+      reject({
+        status: xhr.status,
+        message: data.message || 'Something went wrong. Please try again.',
+        errors: data.errors || {},
+        code: data.code,
+        details: data.details,
+      });
+    };
+    xhr.send(formData);
+  });
+}
 export const getNotificationsPreferences = () => request('/api/v1/notifications/preferences', { withAuth: true });
 export const updateNotificationsPreferences = (payload) => request('/api/v1/notifications/preferences', { method: 'PUT', body: payload, withAuth: true });
 export const getConversation = (id) => request(`/api/v1/conversations/${id}`, { withAuth: true });

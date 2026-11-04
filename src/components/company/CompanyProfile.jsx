@@ -1,81 +1,146 @@
-import { useEffect, useState } from 'react';
-import { getOrganizationProfile, unwrapApiData } from '../../api';
-import { useI18n } from '../../i18n/useI18n';
+import { useCallback, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import './workspace/companyWorkspace.css';
+import './profile/companyProfile.css';
+import { useCompanyI18n } from './useCompanyI18n';
+import { expireSession } from '../../api';
+import { classifyCompanyError } from './dashboard/companyDashboardApi';
+import { SectionError } from './dashboard/SectionState';
+import CompanyAccessDenied from './CompanyAccessDenied';
+import { getProfile, profileQueryKey, resetPreviewProfile } from './profile/companyProfileApi';
+import { invalidateAfterMutation, setQueryData } from '../../cache/queryCache';
+import { useCachedQuery } from '../../cache/useCachedQuery';
+import ProfileView from './profile/ProfileView';
+import ProfileEditForm from './profile/ProfileEditForm';
+import ProfileSkeleton from './profile/ProfileSkeleton';
 
 /**
- * Read-only view of the company's organization record. Editing lives in the
- * backend's organization endpoints (none of which are exposed here yet), so
- * this page intentionally has no form — it shows what the API returns and
- * says so, instead of presenting dead inputs.
+ * Organization Profile (Sprint 4, US-COMP-04).
+ *   /company/profile        → view (company info, location, contact, documents,
+ *                             verification status, completeness + missing fields)
+ *   /company/profile/edit   → edit form (?focus=<field> opens on that field)
+ *
+ * Data: profile/companyProfileApi.js (GET/PATCH /api/v1/profile/me,
+ * POST /api/v1/company/profile/documents). 401 → the app's SessionExpired
+ * screen; 403 → /company/pending for a pending org, otherwise Access denied —
+ * nothing of the profile is shown (Scenario 6).
+ *
+ * `demo` (preview builds): Nova Tech sample data kept in localStorage.
+ * `previewState` (preview builds, ?state=): loading | error | denied |
+ *   pending | incomplete | rejected | reverification | saved | upload-error |
+ *   uploading (view) · errors | reverify | upload-error (edit).
  */
-export default function CompanyProfile({ user }) {
-  const { t } = useI18n();
-  const [organization, setOrganization] = useState(() => user?.organizations?.[0] || null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+const VARIANTS = ['pending', 'incomplete', 'rejected', 'reverification'];
 
+export default function CompanyProfile({ user, onNavigate, demo, previewState, mode = 'view', onOrganization }) {
+  const { t } = useCompanyI18n();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const preview = Boolean(demo);
+  const variant = VARIANTS.includes(previewState) ? previewState : null;
+  const [previewError, setPreviewError] = useState(previewState === 'error');
+  const [flash, setFlash] = useState(() => location.state?.profileFlash || (previewState === 'saved' ? { saved: true } : null));
+  const go = onNavigate || navigate;
+
+  // The "saved" flash rides the navigation state once; drop it so a refresh
+  // doesn't show it again.
   useEffect(() => {
-    let cancelled = false;
+    if (location.state?.profileFlash) navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    (async () => {
-      try {
-        const payload = await getOrganizationProfile();
-        const row = unwrapApiData(payload);
-        if (!cancelled && row) setOrganization((prev) => ({ ...(prev || {}), ...row }));
-      } catch (err) {
-        if (!cancelled) setError(err?.message || t('company.profile.error'));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
+  // Cached (src/cache): view ⇄ edit and dashboard → profile → dashboard show
+  // the last answer at once and refresh it in the background. A save or an
+  // upload writes its answer into the cache (and clears the dashboard's org
+  // answers, cacheConfig.js INVALIDATION_MAP).
+  const key = profileQueryKey({ preview, variant });
+  const query = useCachedQuery(key, () => getProfile({ preview, variant }), {
+    enabled: previewState !== 'loading' && !previewError,
+  });
+  const { refetch } = query;
+  const [changeError, setChangeError] = useState(null);
+  const state = previewError || changeError
+    ? { status: 'error', error: changeError || { status: 500, preview: true } }
+    : { status: query.status, profile: query.data, error: query.error };
 
-    return () => {
-      cancelled = true;
-    };
-  }, [t]);
+  const profile = state.status === 'ready' ? state.profile : null;
+  useEffect(() => {
+    if (profile) onOrganization?.({ name: profile.values.companyName, verification_status: profile.verificationStatus });
+  }, [profile, onOrganization]);
 
-  const status = organization?.verification_status || 'pending';
+  const failure = state.status === 'error'
+    ? classifyCompanyError(state.error, user?.organizations?.[0])
+    : (previewState === 'denied' ? 'denied' : null);
+  useEffect(() => {
+    if (failure === 'expired') expireSession();
+    if (failure === 'pending') navigate('/company/pending', { replace: true });
+  }, [failure, navigate]);
 
-  const rows = [
-    { key: 'name', label: t('company.profile.name'), value: organization?.name },
-    { key: 'type', label: t('company.profile.type'), value: organization?.type },
-    { key: 'industry', label: t('company.profile.industry'), value: organization?.industry },
-    { key: 'size', label: t('company.profile.size'), value: organization?.company_size },
-    { key: 'email', label: t('company.profile.email'), value: organization?.contact_email },
-    { key: 'phone', label: t('company.profile.phone'), value: organization?.contact_phone },
-    { key: 'website', label: t('company.profile.website'), value: organization?.website },
-    {
-      key: 'location',
-      label: t('company.profile.location'),
-      value: [organization?.city, organization?.country].filter(Boolean).join(', '),
-    },
-  ];
+  // A document upload / save answered with the new profile → into the cache
+  // (a server answer, so it counts as fresh). An error here (e.g. 401/403 from
+  // an upload) is handled like a load error.
+  const onProfileChange = useCallback((next, err) => {
+    if (next) { setChangeError(null); setQueryData(key, next, { touch: true }); } else if (err) setChangeError(err);
+  }, [key]);
+  const retry = () => {
+    setChangeError(null);
+    if (previewError) { setPreviewError(false); return; }
+    refetch().catch(() => {});
+  };
+
+  const pick = (key) => go(`/company/profile/edit?focus=${encodeURIComponent(key)}`);
+
+  if (failure === 'denied') return <CompanyAccessDenied onNavigate={go} />;
+  if (state.status === 'loading' || failure === 'expired' || failure === 'pending') return <ProfileSkeleton mode={mode} />;
+  if (state.status === 'error') {
+    return (
+      <div className="cw-pf" style={{ display: 'contents' }}>
+        <div className="cw-ph"><div><h1>{t(mode === 'edit' ? 'company.pf.editTitle' : 'company.pf.title')}</h1><p>{t('company.pf.sub')}</p></div></div>
+        <SectionError
+          title={t('company.pf.title')}
+          variant="list"
+          error={state.error}
+          onRetry={retry}
+          className="cw-pf-error"
+        />
+      </div>
+    );
+  }
+
+  if (mode === 'edit') {
+    return (
+      <ProfileEditForm
+        key={previewState || 'edit'}
+        profile={profile}
+        preview={preview}
+        previewState={previewState}
+        onNavigate={go}
+        onProfileChange={onProfileChange}
+        onCancel={() => go('/company/profile')}
+        onSaved={(next, { reverification }) => {
+          setQueryData(key, next, { touch: true });
+          navigate('/company/profile', { state: { profileFlash: { saved: true, reverification } } });
+        }}
+      />
+    );
+  }
 
   return (
-    <div className="company-page">
-      <header className="company-page-head">
-        <div>
-          <p className="company-eyebrow">{t('company.profile.eyebrow')}</p>
-          <h1>{t('company.profile.title')}</h1>
-          <p className="company-sub">{t('company.profile.subtitle')}</p>
-        </div>
-        <span className={`company-status company-status--${status}`}>
-          {t(`company.status.${status}`)}
-        </span>
-      </header>
-
-      {error && <div className="company-alert">{error}</div>}
-
-      <section className="company-detail-card" aria-busy={loading}>
-        {rows.map((row) => (
-          <div key={row.key} className="company-detail-row">
-            <span>{row.label}</span>
-            <strong>{loading && !row.value ? '—' : row.value || '—'}</strong>
-          </div>
-        ))}
-      </section>
-
-      <p className="company-note">{t('company.profile.readOnlyNote')}</p>
-    </div>
+    <ProfileView
+      profile={profile}
+      preview={preview}
+      previewState={previewState}
+      flash={flash}
+      onDismissFlash={() => setFlash(null)}
+      onEdit={() => go('/company/profile/edit')}
+      onPick={pick}
+      onNavigate={go}
+      onProfileChange={onProfileChange}
+      onReset={() => {
+        resetPreviewProfile();
+        // Same clean-up a real profile change gets; this screen refetches.
+        invalidateAfterMutation('PATCH', '/api/v1/profile/me');
+      }}
+    />
   );
 }

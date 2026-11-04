@@ -3,7 +3,16 @@ import './CompanyLogin.css';
 import { loginOrganization, saveSession } from '../../api';
 import { ShieldCheckIcon, EyeIcon, EyeOffIcon } from './CompanyIcons';
 
-const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onForgotPassword, onLoginSuccess }) => {
+// The API refuses a pending organization with a tailored message. Until the
+// backend confirms a dedicated error code (TODO, to be confirmed), a 403 whose
+// message mentions pending / review is treated as "organization under review"
+// and sent to the pending screen (Sprint 1, BR-01).
+const isPendingOrganizationError = (err) =>
+  // US-COMP-03 guide §4: the backend's code is ORGANIZATION_PENDING (branch on code, not message).
+  String(err?.code || '').toUpperCase() === 'ORGANIZATION_PENDING' ||
+  (err?.status === 403 && /pending|under review|not (yet )?approved/i.test(err?.message || ''));
+
+const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onForgotPassword, onLoginSuccess, onPendingApproval }) => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,16 +48,23 @@ const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onFo
     setErrors({});
     try {
       const res = await loginOrganization(formData.email.trim(), formData.password);
-      const { user, organizations, token } = res.data || {};
+      // POST /api/v1/auth/login/organization → { user, organizations, token,
+      // token_type, redirect_url } (US-COMP-03 guide §7). redirect_url (e.g.
+      // "/company/dashboard") says where to go; App.jsx honours it.
+      const { user, organizations, token, redirect_url: redirectUrl } = res.data || {};
 
       // Persist the session in a same-site, path-scoped cookie (see
       // utils/cookies.js) instead of localStorage.
       saveSession({ token, user, organizations });
 
       setIsSubmitting(false);
-      if (onLoginSuccess) onLoginSuccess({ user, organizations, token });
+      if (onLoginSuccess) onLoginSuccess({ user, organizations, token, redirectUrl });
     } catch (err) {
       setIsSubmitting(false);
+      if (onPendingApproval && isPendingOrganizationError(err)) {
+        onPendingApproval({ email: formData.email.trim() });
+        return;
+      }
       // The API already returns tailored messages for a pending or
       // rejected organization, and for bad credentials — surface it as-is.
       setErrors({ general: err.message || 'Unable to log in right now. Please try again.' });

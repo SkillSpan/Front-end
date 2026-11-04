@@ -3,6 +3,11 @@ import '@testing-library/jest-dom/vitest';
 // React (most components here). Expose React globally so those modules can
 // render in tests without each one adding an unused import.
 import React from 'react';
+import { afterEach } from 'vitest';
+import { clearQueryCache } from '../cache/queryCache';
+
+// The API cache lives for the whole page; every test starts from an empty one.
+afterEach(() => clearQueryCache());
 
 globalThis.React = React;
 
