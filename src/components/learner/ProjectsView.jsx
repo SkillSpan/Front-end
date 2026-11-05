@@ -839,7 +839,34 @@ function NoProjectsState({ hasFilters, onClear }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 const ALL_TYPES = ["Practice Task", "Simulation Project", "Real Project", "Assessment", "Capstone"];
 const ALL_ELIGIBILITY = ["Eligible", "Conditionally Eligible", "Not Eligible", "Completed", "Not evaluated"];
+
+/**
+ * The answer from POST /projects/{id}/match, in the shape this screen renders.
+ *
+ * The list endpoint carries no score and no eligibility — those are computed
+ * per project by the matching service — so this is the only place the card can
+ * learn them. `skill_results` is deliberately not mapped: the service returns it
+ * empty today, and inventing rows would show skills that were never compared.
+ */
+function matchPatch(result) {
+  const state = String(result?.eligibility_state || "").toLowerCase();
+  const eligibility = state === "eligible" ? "Eligible" : state ? "Not Eligible" : "Not evaluated";
+  const explanation = Array.isArray(result?.explanation) ? result.explanation.join(" ") : "";
+  const limiting = Array.isArray(result?.limiting_factors) ? result.limiting_factors.join(" ") : "";
+
+  return {
+    matchScore: Number(result?.score ?? 0),
+    eligibility,
+    eligibilityReason: limiting,
+    matchExplanation: explanation,
+  };
+}
+
 export default function ProjectsView({ onOpenDetails, initialProjects = null, onApply, onMatch, roleLabel = "" }) {
+  // Match results keyed by project id. Without this the "Check match" button
+  // fired the request and threw the answer away, so every card stayed on
+  // "Not evaluated" and the header always read "0 eligible".
+  const [matches, setMatches] = useState({});
   const projectData = useMemo(() => (initialProjects ?? []).map((raw) => {
     const p = unwrapApiData(raw) || raw;
     let mappedType = "Real Project";
@@ -879,8 +906,9 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
       tags: p.tags ?? [],
       roadmapPhase: p.roadmap_phase ?? p.roadmapPhase ?? null,
       alignsWithNBA: Boolean(p.aligns_with_nba ?? p.alignsWithNBA),
+      ...(matches[String(p.id ?? p.project_id ?? p.uuid ?? "")] || {}),
     };
-  }), [initialProjects]);
+  }), [initialProjects, matches]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [eligFilter, setEligFilter] = useState("all");
@@ -915,7 +943,19 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
   const hasActiveFilter = typeFilter !== "all" || eligFilter !== "all" || !!search;
   const isLoaded = true;
   const handleApply = async (project) => { try { setActionBusy(true); setActionError(""); if (onApply) await onApply(project); else await applyToProject(project.id); } catch (error) { setActionError(error?.message || "Could not submit the application."); } finally { setActionBusy(false); } };
-  const handleMatch = async (project) => { try { setActionBusy(true); setActionError(""); if (onMatch) await onMatch(project); else await matchProject(project.id); } catch (error) { setActionError(error?.message || "Could not calculate the match."); } finally { setActionBusy(false); } };
+  const handleMatch = async (project) => {
+    try {
+      setActionBusy(true);
+      setActionError("");
+      if (onMatch) return await onMatch(project);
+      const result = unwrapApiData(await matchProject(project.id)) || {};
+      setMatches((prev) => ({ ...prev, [project.id]: matchPatch(result) }));
+    } catch (error) {
+      setActionError(error?.message || "Could not calculate the match.");
+    } finally {
+      setActionBusy(false);
+    }
+  };
   return (
     <div className="flex flex-col h-full overflow-hidden bg-[#f1f3fa]">
       {projectData.length === 0 && <div role="status" className="mx-8 mt-5 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No projects are currently available from the server. Projects will appear here when data becomes available.</div>}
