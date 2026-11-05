@@ -156,7 +156,7 @@ const roleSum = (roles) => (roles || []).reduce((a, r) => a + (Number(r.capacity
  * (title + type + consistency); mode 'submit' = everything PRJ-01/PRJ-02 asks.
  * Returns { fieldKey: messageKey } — message keys live in projectMessages.js.
  */
-export function validateProjectForm(form, mode = 'submit') {
+export function validateProjectForm(form, mode = 'submit', options = {}) {
   const err = {};
   const submit = mode === 'submit';
   if (!PROJECT_TYPES.includes(form.projectType)) err.projectType = 'prj.err.type';
@@ -212,7 +212,11 @@ export function validateProjectForm(form, mode = 'submit') {
 
   // PRJ-08 / PRJ-09
   if (form.confidentiality === 'confidential' && !hasText(form.confidentialInfo)) err.confidentialInfo = 'prj.err.confidential';
-  if (!form.rubricId) err.rubricId = 'prj.err.rubric';
+  // A rubric is only required when the platform actually offers one. `GET
+  // /api/v1/rubrics` can legitimately come back empty (nothing published yet),
+  // and blocking the whole form on an impossible choice is what stopped
+  // companies from creating projects at all.
+  if (options.rubricsAvailable !== false && !form.rubricId) err.rubricId = 'prj.err.rubric';
   return err;
 }
 

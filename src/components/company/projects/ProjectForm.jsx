@@ -118,7 +118,10 @@ function FormBody({ project: initialProject, refs, refsError, preview, previewSt
   const material = Boolean(project && (project.applications_count || 0) > 0);
   const moderation = project?.approval || {};
 
-  const clientErrors = useMemo(() => (attempt ? validateProjectForm(form, attempt) : {}), [form, attempt]);
+  const clientErrors = useMemo(
+    () => (attempt ? validateProjectForm(form, attempt, { rubricsAvailable: (refs.rubrics || []).length > 0 }) : {}),
+    [form, attempt, refs],
+  );
   const check = useMemo(() => completeness(form), [form]);
   const errorFor = (field) => {
     if (serverErrors[field]) return serverErrors[field].text;
@@ -139,7 +142,7 @@ function FormBody({ project: initialProject, refs, refsError, preview, previewSt
   };
 
   async function save({ quiet = false } = {}) {
-    const errs = validateProjectForm(form, 'draft');
+    const errs = validateProjectForm(form, 'draft', { rubricsAvailable: (refs.rubrics || []).length > 0 });
     if (Object.keys(errs).length) {
       setAttempt((a) => a || 'draft');
       const first = Object.keys(errs)[0];
