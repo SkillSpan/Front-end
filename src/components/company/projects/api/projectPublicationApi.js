@@ -25,6 +25,10 @@ export const PUBLICATION_ENDPOINTS = {
   // TODO(api, ASSUMED — not in the sprint doc): approved rubric versions the
   // company may attach (PRJ-09, AC-07; OQ-04 is still open).
   rubrics: () => `/api/v1/rubrics${toQuery({ status: 'approved' })}`,
+  // The role's own skill map. Needed because the server rejects any
+  // `required_skills.*.skill_id` that is not in it (SkillMappedToCareerRole),
+  // while the picker offers the whole taxonomy.
+  careerRoleSkills: (id) => `/api/v1/career-roles/${encodeURIComponent(id)}/skills`,
 };
 
 /** GET skills taxonomy (flat list, tree in parent_skill_id) → [{ key, label, skills: [{ id, name }] }]. */
@@ -85,6 +89,25 @@ export async function loadFormReferences({ preview } = {}) {
 }
 
 const skillNames = (refs) => Object.fromEntries((refs?.taxonomy || []).flatMap((g) => g.skills.map((s) => [s.id, s.name])));
+
+/**
+ * Skill ids the chosen career role maps to, or `null` when we cannot know.
+ *
+ * `null` means "do not filter": no role chosen yet, preview mode, an empty
+ * map, or a failed call. Reference data must never block the form — worst
+ * case the picker shows the whole taxonomy, exactly as it did before.
+ */
+export async function loadCareerRoleSkills(roleId, { preview } = {}) {
+  if (!roleId || preview) return null;
+  try {
+    const raw = await liveCall(PUBLICATION_ENDPOINTS.careerRoleSkills(roleId));
+    const rows = unwrapApiData(raw)?.skills ?? [];
+    const ids = rows.map((s) => s.skill_id ?? s.skill?.id ?? s.id).filter((v) => v != null);
+    return ids.length ? ids : null;
+  } catch {
+    return null;
+  }
+}
 
 /** Save as Draft — first save (Scenario 1, AC-09). */
 export async function createProjectDraft(form, { preview, idempotencyKey, refs } = {}) {

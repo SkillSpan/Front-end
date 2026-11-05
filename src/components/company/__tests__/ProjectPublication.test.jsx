@@ -8,6 +8,7 @@ import ProjectForm from '../projects/ProjectForm.jsx';
 import {
   completeness, emptyProjectForm, formToPayload, mapServerErrors, projectToForm, validateProjectForm,
 } from '../projects/projectForm';
+import { loadCareerRoleSkills } from '../projects/api/projectPublicationApi';
 import { SAMPLE_PROJECTS } from '../projects/projectsMock';
 import { resetMockBackend, mockForceState, mockGetProject, mockSubmitProject, mockTransition } from '../projects/mockBackend';
 
@@ -181,5 +182,19 @@ describe('ProjectForm waits for the skill list', () => {
     expect(screen.getByRole('radio', { name: '4' })).toHaveAttribute('aria-checked', 'true');
     fireEvent.click(screen.getByRole('checkbox', { name: /Critical entry/ }));
     await waitFor(() => expect(screen.getByRole('checkbox', { name: /Critical entry/ })).toBeChecked());
+  });
+});
+
+/*
+ * The picker offers the whole taxonomy, but the server only accepts skills
+ * inside the chosen career role's map (SkillMappedToCareerRole). `null` means
+ * "do not filter", so these two cases must never reach the network — a failed
+ * lookup must not hide every skill in the form.
+ */
+describe('career role skill map', () => {
+  it('is never requested without a role, or in preview', async () => {
+    expect(await loadCareerRoleSkills('')).toBeNull();
+    expect(await loadCareerRoleSkills(null)).toBeNull();
+    expect(await loadCareerRoleSkills(7, { preview: true })).toBeNull();
   });
 });

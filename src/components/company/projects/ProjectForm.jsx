@@ -18,7 +18,7 @@ import {
   PROJECT_TYPES, sectionOf, SKILL_LEVEL_KEYS, SKILL_LEVELS, validateProjectForm, WORK_MODES,
 } from './projectForm.js';
 import { isEditable } from './lifecycle';
-import { createProjectDraft, loadFormReferences, submitProject, updateProjectDraft } from './api/projectPublicationApi';
+import { createProjectDraft, loadCareerRoleSkills, loadFormReferences, PUBLICATION_ENDPOINTS, submitProject, updateProjectDraft } from './api/projectPublicationApi';
 import { getCompanyProject, projectKeys } from './api/projectLifecycleApi';
 import { newIdempotencyKey } from './api/shared';
 import { InlineAlert, Notice, PageFailure, PageHeader, StatePill } from './common';
@@ -123,6 +123,28 @@ function FormBody({ project: initialProject, refs, refsError, preview, previewSt
     [form, attempt, refs],
   );
   const check = useMemo(() => completeness(form), [form]);
+
+  /*
+   * The server only accepts `required_skills` that sit inside the chosen
+   * career role's map (SkillMappedToCareerRole), but the picker offers the
+   * whole taxonomy — so without this a company could pick a skill and get a
+   * 422 it cannot explain. `null` = unknown map = do not filter.
+   */
+  const roleSkillKey = form.careerRoleId
+    ? apiKey(PUBLICATION_ENDPOINTS.careerRoleSkills(form.careerRoleId), null, { variant: preview ? 'role-skills-preview' : 'role-skills' })
+    : null;
+  const roleSkills = useCachedQuery(roleSkillKey, () => loadCareerRoleSkills(form.careerRoleId, { preview }), { enabled: Boolean(form.careerRoleId) });
+  const allowedSkillIds = useMemo(() => (Array.isArray(roleSkills.data) ? new Set(roleSkills.data) : null), [roleSkills.data]);
+
+  // Changing the role can orphan a skill that was picked under the old one.
+  // Those rows can never be saved, so drop them rather than let the form fail.
+  useEffect(() => {
+    if (!allowedSkillIds) return;
+    setForm((f) => {
+      const kept = f.skills.filter((s) => allowedSkillIds.has(s.skillId));
+      return kept.length === f.skills.length ? f : { ...f, skills: kept };
+    });
+  }, [allowedSkillIds]);
   const errorFor = (field) => {
     if (serverErrors[field]) return serverErrors[field].text;
     if (clientErrors[field]) return t(clientErrors[field]);
@@ -295,7 +317,7 @@ function FormBody({ project: initialProject, refs, refsError, preview, previewSt
 
             {section === 'basic' && <BasicSection form={form} update={update} errorFor={errorFor} t={t} />}
             {section === 'roles' && <RolesSection form={form} update={update} errorFor={errorFor} t={t} />}
-            {section === 'skills' && <SkillsSection form={form} update={update} errorFor={errorFor} refs={refs} t={t} />}
+            {section === 'skills' && <SkillsSection form={form} update={update} errorFor={errorFor} refs={refs} allowedSkillIds={allowedSkillIds} t={t} />}
             {section === 'confidentiality' && <ConfidentialitySection form={form} update={update} errorFor={errorFor} refs={refs} t={t} />}
             {section === 'review' && (
               <ReviewSection form={form} refs={refs} check={check} policy={policy} onFix={(m) => { setAttempt('submit'); goSection(m.section); }} goSection={goSection} t={t} />
@@ -522,7 +544,7 @@ function RolesSection({ form, update, errorFor, t }) {
 /* Section 3 — Skills, Difficulty & Eligibility                        */
 /* ------------------------------------------------------------------ */
 
-function SkillPicker({ taxonomy, selected, onPick, t }) {
+function SkillPicker({ taxonomy, selected, allowed = null, onPick, t }) {
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
   const boxRef = useRef(null);
@@ -533,7 +555,12 @@ function SkillPicker({ taxonomy, selected, onPick, t }) {
     return () => document.removeEventListener('mousedown', close);
   }, [open]);
   const needle = q.trim().toLowerCase();
-  const groups = taxonomy.map((g) => ({ ...g, skills: g.skills.filter((s) => !needle || s.name.toLowerCase().includes(needle)) })).filter((g) => g.skills.length);
+  const groups = taxonomy.map((g) => ({
+    ...g,
+    // When the chosen role's map is known, only its skills are offerable —
+    // anything else is rejected by the server.
+    skills: g.skills.filter((s) => (!allowed || allowed.has(s.id)) && (!needle || s.name.toLowerCase().includes(needle))),
+  })).filter((g) => g.skills.length);
   const pick = (s) => { onPick(s); setQ(''); setOpen(false); };
   const first = groups[0]?.skills.find((s) => !selected.includes(s.id));
   return (
@@ -593,7 +620,7 @@ function LevelSelector({ value, onChange, label, t }) {
   );
 }
 
-function SkillsSection({ form, update, errorFor, refs, t }) {
+function SkillsSection({ form, update, errorFor, refs, allowedSkillIds = null, t }) {
   const selectedIds = form.skills.map((s) => s.skillId);
   const setSkill = (i, patch) => update((f) => ({ skills: f.skills.map((s, j) => (j === i ? { ...s, ...patch } : s)) }));
   const e = form.eligibility;
@@ -602,7 +629,7 @@ function SkillsSection({ form, update, errorFor, refs, t }) {
     <>
       <div className="cw-pj-fgroup">
         <Field id="pj-skills" label={t('prj.f.skills')} required wide error={errorFor('skills')} hint={t('prj.hint.skills')} t={t}>
-          <SkillPicker taxonomy={refs.taxonomy || []} selected={selectedIds} onPick={(s) => update((f) => ({ skills: [...f.skills, { skillId: s.id, skillName: s.name, minLevel: 2, critical: false }] }))} t={t} />
+          <SkillPicker taxonomy={refs.taxonomy || []} selected={selectedIds} allowed={allowedSkillIds} onPick={(s) => update((f) => ({ skills: [...f.skills, { skillId: s.id, skillName: s.name, minLevel: 2, critical: false }] }))} t={t} />
         </Field>
         {form.skills.length > 0 && (
           <div className="cw-pj-sklist">
