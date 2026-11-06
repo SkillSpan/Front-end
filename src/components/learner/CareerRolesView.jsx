@@ -1199,6 +1199,11 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave, onSea
   const [searchResults, setSearchResults] = useState(null);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [selectedRoleSnapshot, setSelectedRoleSnapshot] = useState(null);
+  // What the tabs render: server results once a search has run, otherwise the
+  // list the workspace loaded on mount. Defined up here because selectRole
+  // needs it to resolve the row that was clicked.
+  const visibleRoles = searchResults ?? roles;
   const savedCount = roles.filter((r) => r.isSaved).length;
   function toggleSave(id) {
     setRoles((prev) => prev.map((r) => (r.id === id ? { ...r, isSaved: !r.isSaved } : r)));
@@ -1207,8 +1212,11 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave, onSea
   }
   function selectRole(id) {
     setSelectedRoleId(id);
+    // Keep what was clicked, so the panel survives a later search that no
+    // longer contains this row.
+    const found = visibleRoles.find((r) => r.id === id) ?? roles.find((r) => r.id === id) ?? null;
+    setSelectedRoleSnapshot(found);
   }
-  const selectedRole = roles.find((r) => r.id === selectedRoleId) ?? null;
   const tabs = [
     { key: "browse", label: "Browse Roles" },
     { key: "saved", label: "Saved Roles", count: savedCount },
@@ -1274,7 +1282,24 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave, onSea
 
   // What the tabs below render: server results once a search has run, otherwise
   // the list the workspace loaded on mount.
-  const visibleRoles = searchResults ?? roles;
+  /*
+   * Look the selection up in what is ON SCREEN, not just in the page the
+   * workspace loaded on mount.
+   *
+   * This used to search `roles` (the first 15). A role found by SEARCH can live
+   * on page 2 and therefore is not in `roles`, so clicking "View Role Details"
+   * ran setSelectedRoleId, found nothing, and looked completely dead — no
+   * panel, no URL change, no request, no error. That silent no-op is exactly
+   * what was reported.
+   *
+   * `selectedRoleSnapshot` covers the last case: if a new search drops the
+   * selected role from the results while its detail is open, the panel would
+   * otherwise vanish mid-read.
+   */
+  const selectedRole =
+    visibleRoles.find((r) => r.id === selectedRoleId) ??
+    roles.find((r) => r.id === selectedRoleId) ??
+    selectedRoleSnapshot;
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Page header */}
