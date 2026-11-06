@@ -450,7 +450,10 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
           .forEach((row) => {
             nextSkills[row.skill_id] = {
               source: row.source_type === 'assessment' ? 'assessment' : 'self',
-              level: row.level,
+              // The API sends `level` as a decimal STRING ("3.50"). It is used
+              // in arithmetic below (`card.level / 5`, `i < card.level`), and a
+              // string either concatenates or yields NaN there.
+              level: Number(row.level) || 0,
               confidence: confidenceToLabel(row.confidence_score ?? 0),
             };
             nextRowIds[row.skill_id] = row.id;

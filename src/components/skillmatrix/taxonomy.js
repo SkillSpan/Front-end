@@ -73,8 +73,15 @@ export const LEVELS = [
   { value: 5, label: 'Exp', name: 'Expert', desc: 'Deep expertise, sets best practice' },
 ];
 
+// Levels arrive from the backend as the string form of a DECIMAL, e.g.
+// "3.50" or "2.50" (the column is `level` on a 0.00-5.00 scale). This used to
+// index the array with that raw number: LEVELS[3.5] is undefined, so the page
+// crashed on `.name` and rendered completely blank. Round to the nearest whole
+// band first, and never return undefined for a non-numeric value.
 export function levelInfo(value) {
-  return LEVELS[Math.max(0, Math.min(5, value))];
+  const n = Number(value);
+  const index = Number.isFinite(n) ? Math.round(Math.max(0, Math.min(5, n))) : 0;
+  return LEVELS[index] ?? LEVELS[0];
 }
 
 export function findSkillById(id) {
