@@ -6,6 +6,31 @@ function demandColor(level) {
   if (level === "Medium") return { bg: "bg-[rgba(245,158,11,0.1)]", text: "text-[#f59e0b]", dot: "bg-[#f59e0b]" };
   return { bg: "bg-[rgba(100,116,139,0.1)]", text: "text-[#64748b]", dot: "bg-[#64748b]" };
 }
+// Labour-market demand is OPTIONAL in the API payload. `career-roles` returns
+// id/title/version and nothing else (see CareerRoleController::index), and
+// `/career-roles/{id}` is just id/title/version/effective_date/status — neither
+// carries a demand block. The role mapping therefore stores `demand: role.demand
+// ?? null`, and reading `role.demand.demandLevel` threw
+// "Cannot read properties of null (reading 'demandLevel')" on every card.
+// One neutral shape is used everywhere instead of eight separate null checks.
+const EMPTY_DEMAND = Object.freeze({
+  demandLevel: null,
+  demandValue: null,
+  source: null,
+  collectionDate: null,
+  validUntil: null,
+  isExpired: false,
+});
+const demandOf = (role) => role?.demand ?? EMPTY_DEMAND;
+// A role with no market data must not look like a real "Low demand" reading.
+const hasDemand = (demand) =>
+  Boolean(demand) && demand.demandLevel != null && demand.demandLevel !== "";
+// Skill requirements come from a SEPARATE endpoint (`/career-roles/{id}/skills`)
+// and the list payload carries no `skillRequirements` field at all, so the same
+// crash sits one line further down (`role.skillRequirements.filter`). Treated as
+// "not loaded yet" rather than as an error.
+const skillRequirementsOf = (role) =>
+  Array.isArray(role?.skillRequirements) ? role.skillRequirements : [];
 function readinessColor(score) {
   if (score >= 70) return "#059669";
   if (score >= 50) return "#f59e0b";
@@ -61,14 +86,35 @@ function ReadinessGauge({ score, size = 100 }) {
 }
 // ── DemandIndicator ───────────────────────────────────────────────────────────
 function DemandIndicator({ demand }) {
-  const c = demandColor(demand.demandLevel);
+  const d = demand ?? EMPTY_DEMAND;
+  // No market data is the normal case today, not an error: render the panel
+  // with an explicit "not available yet" line so the page still reads correctly.
+  if (!hasDemand(d)) {
+    return (
+      <div
+        data-testid="demand-unavailable"
+        className="border border-dashed border-[#e8eaf0] rounded-[12px] p-[16px] bg-[#fafbff]"
+      >
+        <div className="flex items-center justify-between mb-[8px]">
+          <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
+            Labor-Market Demand
+          </span>
+        </div>
+        <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b]">
+          Labor-market demand data is not available for this role yet. Everything else on this
+          page is unaffected.
+        </p>
+      </div>
+    );
+  }
+  const c = demandColor(d.demandLevel);
   return (
     <div className="border border-[#e8eaf0] rounded-[12px] p-[16px] bg-white">
       <div className="flex items-center justify-between mb-[12px]">
         <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
           Labor-Market Demand
         </span>
-        {demand.isExpired && (
+        {d.isExpired && (
           <span className="bg-[rgba(239,68,68,0.08)] text-[#ef4444] text-[11px] font-['Inter:Medium',sans-serif] font-medium px-[8px] py-[3px] rounded-full">
             Data Expired
           </span>
@@ -78,28 +124,28 @@ function DemandIndicator({ demand }) {
         <div className={`flex items-center gap-[6px] px-[10px] py-[4px] rounded-full ${c.bg}`}>
           <span className={`w-[6px] h-[6px] rounded-full ${c.dot}`} />
           <span className={`font-['Inter:Semi_Bold',sans-serif] font-semibold text-[12px] ${c.text}`}>
-            {demand.demandLevel} Demand
+            {d.demandLevel} Demand
           </span>
         </div>
         <span className="font-['Inter:Bold',sans-serif] font-bold text-[14px] text-[#0a0b14]">
-          {demand.demandValue}%
+          {d.demandValue}%
         </span>
       </div>
       <div className="w-full bg-[#f1f3fa] rounded-full h-[6px] mb-[12px]">
-        <div className={`h-[6px] rounded-full ${c.dot}`} style={{ width: `${demand.demandValue}%` }} />
+        <div className={`h-[6px] rounded-full ${c.dot}`} style={{ width: `${d.demandValue}%` }} />
       </div>
       <div className="flex items-start gap-[4px] flex-wrap">
         <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Source:</span>
-        <span className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b]">{demand.source}</span>
+        <span className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b]">{d.source}</span>
         <span className="text-[11px] text-[#94a3b8]">·</span>
         <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-          Collected {demand.collectionDate}
+          Collected {d.collectionDate}
         </span>
         <span className="text-[11px] text-[#94a3b8]">·</span>
         <span
-          className={`text-[11px] font-['Inter:Medium',sans-serif] font-medium ${demand.isExpired ? "text-[#ef4444]" : "text-[#94a3b8]"}`}
+          className={`text-[11px] font-['Inter:Medium',sans-serif] font-medium ${d.isExpired ? "text-[#ef4444]" : "text-[#94a3b8]"}`}
         >
-          {demand.isExpired ? "Expired" : `Valid until ${demand.validUntil}`}
+          {d.isExpired ? "Expired" : `Valid until ${d.validUntil}`}
         </span>
       </div>
     </div>
@@ -227,9 +273,10 @@ function SkillRequirementRow({ skill, expanded, onToggle }) {
 // ── RoleDetailPanel ────────────────────────────────────────────────────────────
 function RoleDetailPanel({ role, onBack, onSaveToggle }) {
   const [expandedSkill, setExpandedSkill] = useState(null);
-  const criticalMet = role.skillRequirements.filter((s) => s.isCritical && s.currentLevel >= s.requiredLevel).length;
-  const criticalTotal = role.skillRequirements.filter((s) => s.isCritical).length;
-  const skillsMet = role.skillRequirements.filter((s) => s.currentLevel >= s.requiredLevel).length;
+  const requirements = skillRequirementsOf(role);
+  const criticalMet = requirements.filter((s) => s.isCritical && s.currentLevel >= s.requiredLevel).length;
+  const criticalTotal = requirements.filter((s) => s.isCritical).length;
+  const skillsMet = requirements.filter((s) => s.currentLevel >= s.requiredLevel).length;
   return (
     <div className="flex-1 overflow-y-auto">
       {/* Detail Header */}
@@ -332,7 +379,7 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
               <p className="font-['Inter:Bold',sans-serif] font-bold text-[20px] text-[#0a0b14]">
                 {skillsMet}
                 <span className="text-[14px] text-[#64748b] font-['Inter:Regular',sans-serif] font-normal">
-                  /{role.skillRequirements.length}
+                  /{requirements.length}
                 </span>
               </p>
             </div>
@@ -391,26 +438,34 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
             <span className="w-[28px] text-right">Wt.</span>
           </div>
         </div>
-        {role.skillRequirements
-          .slice()
-          .sort((a, b) => b.importanceWeight - a.importanceWeight)
-          .map((skill) => (
-            <SkillRequirementRow
-              key={skill.skillId}
-              skill={skill}
-              expanded={expandedSkill === skill.skillId}
-              onToggle={() => setExpandedSkill(expandedSkill === skill.skillId ? null : skill.skillId)}
-            />
-          ))}
+        {requirements.length === 0 ? (
+          <p data-testid="requirements-unavailable" className="px-[20px] py-[20px] text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b]">
+            Skill requirements have not been published for this role yet.
+          </p>
+        ) : (
+          requirements
+            .slice()
+            .sort((a, b) => b.importanceWeight - a.importanceWeight)
+            .map((skill) => (
+              <SkillRequirementRow
+                key={skill.skillId}
+                skill={skill}
+                expanded={expandedSkill === skill.skillId}
+                onToggle={() => setExpandedSkill(expandedSkill === skill.skillId ? null : skill.skillId)}
+              />
+            ))
+        )}
       </div>
     </div>
   );
 }
 // ── RoleCard ──────────────────────────────────────────────────────────────────
 function RoleCard({ role, onSelect, onSaveToggle }) {
-  const c = demandColor(role.demand.demandLevel);
-  const criticalTotal = role.skillRequirements.filter((s) => s.isCritical).length;
-  const criticalMet = role.skillRequirements.filter((s) => s.isCritical && s.currentLevel >= s.requiredLevel).length;
+  const demand = demandOf(role);
+  const c = demandColor(demand.demandLevel);
+  const requirements = skillRequirementsOf(role);
+  const criticalTotal = requirements.filter((s) => s.isCritical).length;
+  const criticalMet = requirements.filter((s) => s.isCritical && s.currentLevel >= s.requiredLevel).length;
   return (
     <div className="bg-white border border-[#e8eaf0] rounded-[16px] p-[20px] flex flex-col gap-[16px] hover:border-[#c7d2e8] hover:shadow-[0_4px_20px_rgba(59,139,255,0.06)] transition-all group">
       <div className="flex items-start justify-between gap-[8px]">
@@ -478,7 +533,7 @@ function RoleCard({ role, onSelect, onSaveToggle }) {
         <div className="flex-1">
           <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Skills required</p>
           <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
-            {role.skillRequirements.length}
+            {requirements.length}
           </p>
         </div>
         <div className="flex-1">
@@ -492,7 +547,7 @@ function RoleCard({ role, onSelect, onSaveToggle }) {
         <div className={`flex items-center gap-[4px] px-[8px] py-[3px] rounded-full ${c.bg}`}>
           <span className={`w-[5px] h-[5px] rounded-full ${c.dot}`} />
           <span className={`text-[10px] font-['Inter:Medium',sans-serif] font-medium ${c.text}`}>
-            {role.demand.demandLevel}
+            {hasDemand(demand) ? demand.demandLevel : "No demand data"}
           </span>
         </div>
       </div>
@@ -587,7 +642,8 @@ function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
 
       <div className="flex flex-col gap-[10px]">
         {suggested.map((role) => {
-          const c = demandColor(role.demand.demandLevel);
+          const demand = demandOf(role);
+          const c = demandColor(demand.demandLevel);
           return (
             <div
               key={role.id}
@@ -606,7 +662,7 @@ function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
                   <span
                     className={`text-[10px] font-['Inter:Medium',sans-serif] font-medium px-[6px] py-[2px] rounded-full ${c.bg} ${c.text}`}
                   >
-                    {role.demand.demandLevel} Demand
+                    {hasDemand(demand) ? `${demand.demandLevel} Demand` : "No demand data"}
                   </span>
                 </div>
                 <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] truncate">
@@ -682,8 +738,9 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
       </div>
       <div className="flex flex-col gap-[12px]">
         {saved.map((role) => {
-          const c = demandColor(role.demand.demandLevel);
-          const skillsMet = role.skillRequirements.filter((s) => s.currentLevel >= s.requiredLevel).length;
+          const demand = demandOf(role);
+          const c = demandColor(demand.demandLevel);
+          const skillsMet = skillRequirementsOf(role).filter((s) => s.currentLevel >= s.requiredLevel).length;
           return (
             <div
               key={role.id}
@@ -733,7 +790,7 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                         Skills Met
                       </p>
                       <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#0a0b14]">
-                        {skillsMet}/{role.skillRequirements.length}
+                        {skillsMet}/{skillRequirementsOf(role).length}
                       </p>
                     </div>
                     <div>
@@ -743,7 +800,7 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                       <div className={`flex items-center gap-[4px] px-[8px] py-[2px] rounded-full ${c.bg}`}>
                         <span className={`w-[5px] h-[5px] rounded-full ${c.dot}`} />
                         <span className={`text-[11px] font-['Inter:Medium',sans-serif] font-medium ${c.text}`}>
-                          {role.demand.demandLevel}
+                          {hasDemand(demand) ? demand.demandLevel : "No data"}
                         </span>
                       </div>
                     </div>
@@ -779,7 +836,7 @@ function CompareView({ roles, onSelect }) {
   function toggleSelect(id) {
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < 3 ? [...prev, id] : prev));
   }
-  const allSkillNames = Array.from(new Set(compareRoles.flatMap((r) => r.skillRequirements.map((s) => s.skillName))));
+  const allSkillNames = Array.from(new Set(compareRoles.flatMap((r) => skillRequirementsOf(r).map((s) => s.skillName))));
   return (
     <div>
       {/* Role selector */}
@@ -910,7 +967,7 @@ function CompareView({ roles, onSelect }) {
                         {skillName}
                       </td>
                       {compareRoles.map((role) => {
-                        const skill = role.skillRequirements.find((s) => s.skillName === skillName);
+                        const skill = skillRequirementsOf(role).find((s) => s.skillName === skillName);
                         if (!skill)
                           return (
                             <td key={role.id} className="px-[16px] py-[11px] text-center text-[#d1d5db]">
@@ -1018,7 +1075,26 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave }) {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-[32px] pb-[32px]">
-        {selectedRole ? (
+        {roles.length === 0 ? (
+          // Previously this rendered nothing at all: the header and tabs stayed
+          // up over a blank panel. A missing roles list is a "nothing to show
+          // yet" state, not an error — say so instead of leaving the page empty.
+          <div data-testid="career-roles-empty" className="flex flex-col items-center justify-center py-[64px] text-center">
+            <div className="w-[56px] h-[56px] rounded-[14px] bg-[rgba(59,139,255,0.08)] flex items-center justify-center mb-[16px]">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="7" width="18" height="13" rx="2" stroke="#3b8bff" strokeWidth="1.5" />
+                <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" stroke="#3b8bff" strokeWidth="1.5" />
+              </svg>
+            </div>
+            <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[16px] text-[#0a0b14] mb-[6px]">
+              No career roles to show yet
+            </h3>
+            <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] max-w-[360px]">
+              Career roles will appear here once they are published. Your readiness and skill
+              evidence are not affected.
+            </p>
+          </div>
+        ) : selectedRole ? (
           <RoleDetailPanel role={selectedRole} onBack={() => setSelectedRoleId(null)} onSaveToggle={toggleSave} />
         ) : activeTab === "browse" ? (
           <BrowseRoles

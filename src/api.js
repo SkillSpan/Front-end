@@ -644,7 +644,17 @@ export const getCareerRoleSkills = (id) =>
 export const calculateReadiness = (payload) =>
   request('/api/v1/readiness/calculate', { method: 'POST', body: payload, withAuth: true });
 
-export const getLatestReadiness = () => request('/api/v1/readiness/latest', { method: 'GET', withAuth: true });
+// A learner who has never calculated readiness has no snapshot, and the API
+// answers that with 404 READINESS_NOT_FOUND (ReadinessController::latest). That
+// is the normal first-run state, not a failure, so it resolves to `null` instead
+// of rejecting: callers can then keep the rest of the page and show "not
+// calculated yet" rather than an error banner. Every other status still throws.
+export const getLatestReadiness = () =>
+  request('/api/v1/readiness/latest', { method: 'GET', withAuth: true })
+    .catch((error) => {
+      if (error?.status === 404) return null;
+      throw error;
+    });
 
 
 // ---------------------------------------------------------------------------
@@ -697,7 +707,15 @@ export const submitRecommendationFeedback = (id, payload) =>
 // slowest call in the product and must not hang a page forever.
 export const calculateIntelligence = (payload = {}, options = {}) =>
   request('/api/v1/intelligence/calculate', { method: 'POST', body: payload, withAuth: true, ...options });
-export const getLatestIntelligence = () => request('/api/v1/intelligence/latest', { withAuth: true });
+// Same contract as getLatestReadiness: 404 = "no intelligence snapshot yet"
+// (IntelligenceController::latest), which is a first-run state. Resolves to
+// `null`; any other failure still propagates.
+export const getLatestIntelligence = () =>
+  request('/api/v1/intelligence/latest', { withAuth: true })
+    .catch((error) => {
+      if (error?.status === 404) return null;
+      throw error;
+    });
 export const calculateReadinessScore = (payload = {}) =>
   request('/api/v1/readiness/calculate', { method: 'POST', body: payload, withAuth: true });
 export const askAssistant = (payload) =>

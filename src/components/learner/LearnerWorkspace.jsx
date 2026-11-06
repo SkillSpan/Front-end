@@ -65,16 +65,23 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
     if (rr.status === 'fulfilled') setRoles(collection(rr.value));
     if (pj.status === 'fulfilled') setProjects(collection(pj.value));
     if (rec.status === 'fulfilled') setRecommendations(collection(rec.value));
-    if (rd.status === 'fulfilled') {
-      const readinessData = unwrapApiData(rd.value);
+    // `getLatestReadiness` / `getLatestIntelligence` resolve to `null` when the
+    // learner has no snapshot yet (the API answers 404). That is not a load
+    // failure — it must not land in `apiError`, and it must not stop the rest of
+    // the workspace from rendering.
+    if (rd.status === 'fulfilled' && rd.value != null) {
+      const readinessData = unwrapApiData(rd.value) ?? {};
       setReadiness(readinessData);
       const roleId = readinessData?.career_role_id ?? readinessData?.careerRoleId;
       if (roleId != null && roleId !== '') {
         try { setActiveCareerRole(unwrapApiData(await getCareerRoleById(roleId))); }
         catch { setActiveCareerRole(null); }
       }
+    } else if (rd.status === 'fulfilled') {
+      setReadiness(null);
+      setActiveCareerRole(null);
     }
-    if (intel.status === 'fulfilled') setIntelligence(unwrapApiData(intel.value));
+    if (intel.status === 'fulfilled') setIntelligence(intel.value == null ? null : unwrapApiData(intel.value));
     if (un.status === 'fulfilled') {
       const value = unwrapApiData(un.value); setUnread(Number(value?.count ?? value?.unread_count ?? value ?? 0) || 0);
     }
