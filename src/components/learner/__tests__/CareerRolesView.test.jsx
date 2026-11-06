@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 /*
  * A learner who has never calculated readiness or intelligence has no snapshot,
@@ -20,6 +20,10 @@ import { render, screen, fireEvent } from '@testing-library/react';
  */
 vi.mock('../../../api', () => ({
   unwrapApiData: (payload) => payload?.data ?? payload,
+  // The detail panel now fetches these; these tests cover the list and the
+  // no-data fallbacks, so a role with no published requirements is the case.
+  getCareerRoleSkills: vi.fn().mockResolvedValue({ data: { skills: [] } }),
+  getSkillsMatrix: vi.fn().mockResolvedValue({ data: [] }),
 }));
 
 import CareerRolesView from '../CareerRolesView.jsx';
@@ -45,13 +49,13 @@ describe('learner career roles without readiness/intelligence snapshots', () => 
     expect(screen.getByText('Data Analyst')).toBeInTheDocument();
   });
 
-  it('opens the detail panel and shows fallbacks instead of throwing', () => {
+  it('opens the detail panel and shows fallbacks instead of throwing', async () => {
     render(<CareerRolesView initialRoles={[ROLE]} />);
 
     fireEvent.click(screen.getByRole('button', { name: /View Role Details/ }));
 
+    await waitFor(() => expect(screen.getByTestId('requirements-unavailable')).toBeInTheDocument());
     expect(screen.getByTestId('demand-unavailable')).toBeInTheDocument();
-    expect(screen.getByTestId('requirements-unavailable')).toBeInTheDocument();
     expect(screen.getByText('Labor-Market Demand')).toBeInTheDocument();
   });
 

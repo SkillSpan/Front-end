@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getCareerRoles, unwrapApiData } from "../../api";
+import { getCareerRoleSkills, getCareerRoles, getSkillsMatrix, unwrapApiData } from "../../api";
 // ── Mock Data ────────────────────────────────────────────────────────────────
 // ── Utility helpers ──────────────────────────────────────────────────────────
 function demandColor(level) {
@@ -32,6 +32,55 @@ const hasDemand = (demand) =>
 // "not loaded yet" rather than as an error.
 const skillRequirementsOf = (role) =>
   Array.isArray(role?.skillRequirements) ? role.skillRequirements : [];
+// Skills are rated 1..5 in the backend; the bars need a denominator.
+const SKILL_MAX_LEVEL = 5;
+
+/**
+ * Turn `/career-roles/{id}/skills` + the learner's matrix into the shape the
+ * requirement rows render.
+ *
+ * The career-roles payload carries no `skillRequirements`, and nothing ever
+ * called the skills endpoint, so every role opened with an empty requirement
+ * table and "Skills Met 0/0". `/career-roles/{id}/skills` sends
+ * `{ skills: [{ skill_id, skill_name, required_level, importance_weight,
+ * is_critical, prerequisites }] }` and no per-learner level at all — the
+ * learner side comes from `/skills/matrix` and is joined on `skill_id` here.
+ * A learner with no row for a skill is at level 0, which is the honest answer,
+ * not a missing value.
+ */
+function buildSkillRequirements(payload, matrix) {
+  const rows = unwrapApiData(payload);
+  const skills = Array.isArray(rows) ? rows : rows?.skills ?? [];
+  const levels = matrix instanceof Map ? matrix : new Map();
+
+  return skills.map((skill) => {
+    const id = skill.skill_id ?? skill.skillId ?? skill.id;
+    const current = Number(levels.get(id) ?? levels.get(String(id)) ?? 0) || 0;
+    return {
+      skillId: id,
+      skillName: skill.skill_name ?? skill.skillName ?? skill.name ?? "Unnamed skill",
+      requiredLevel: Number(skill.required_level ?? skill.requiredLevel ?? 0) || 0,
+      currentLevel: current,
+      maxLevel: SKILL_MAX_LEVEL,
+      importanceWeight: Number(skill.importance_weight ?? skill.importanceWeight ?? 0) || 0,
+      isCritical: Boolean(skill.is_critical ?? skill.isCritical),
+      prerequisites: skill.prerequisites ?? [],
+    };
+  });
+}
+
+/** `Map<skill_id, level>` from `/skills/matrix`, whose rows carry `skill.id`. */
+function levelsBySkill(payload) {
+  const rows = unwrapApiData(payload);
+  const list = Array.isArray(rows) ? rows : rows?.data ?? [];
+  const map = new Map();
+  for (const row of list) {
+    const id = row?.skill?.id ?? row?.skill_id;
+    if (id == null) continue;
+    map.set(id, Number(row.level ?? 0) || 0);
+  }
+  return map;
+}
 function readinessColor(score) {
   if (score >= 70) return "#059669";
   if (score >= 50) return "#f59e0b";
@@ -274,10 +323,50 @@ function SkillRequirementRow({ skill, expanded, onToggle }) {
 // ── RoleDetailPanel ────────────────────────────────────────────────────────────
 function RoleDetailPanel({ role, onBack, onSaveToggle }) {
   const [expandedSkill, setExpandedSkill] = useState(null);
-  const requirements = skillRequirementsOf(role);
+  // Requirements are NOT part of the list payload: they come from
+  // `/career-roles/{id}/skills`, joined with the learner's own levels. Before
+  // this every detail page showed an empty table and 0/0 counts.
+  const [fetched, setFetched] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (role?.id == null) { setFetched(null); return; }
+    let alive = true;
+    setLoading(true);
+    setFetched(null);
+    (async () => {
+      // The matrix is only needed for "skills met"; a failure there must not
+      // hide the requirements themselves, so it degrades to level 0.
+      const [skillsResult, matrixResult] = await Promise.allSettled([
+        getCareerRoleSkills(role.id),
+        getSkillsMatrix(),
+      ]);
+      if (!alive) return;
+      if (skillsResult.status === "fulfilled") {
+        const matrix = matrixResult.status === "fulfilled" ? levelsBySkill(matrixResult.value) : new Map();
+        setFetched(buildSkillRequirements(skillsResult.value, matrix));
+      } else {
+        setFetched([]);
+      }
+      setLoading(false);
+    })();
+    return () => { alive = false; };
+  }, [role?.id]);
+
+  // Props win when a caller already supplied them; otherwise the fetched rows.
+  const requirements = fetched ?? skillRequirementsOf(role);
   const criticalMet = requirements.filter((s) => s.isCritical && s.currentLevel >= s.requiredLevel).length;
   const criticalTotal = requirements.filter((s) => s.isCritical).length;
   const skillsMet = requirements.filter((s) => s.currentLevel >= s.requiredLevel).length;
+  // Readiness is derived from what the learner actually has against the role, so
+  // an empty requirement list cannot show a misleading 0%: with nothing to
+  // measure against, there is no score to report.
+  const readiness = requirements.length === 0
+    ? null
+    : Math.round((requirements.reduce((sum, s) => {
+        const ratio = s.requiredLevel > 0 ? Math.min(1, s.currentLevel / s.requiredLevel) : 1;
+        return sum + ratio * (s.importanceWeight || 1);
+      }, 0) / requirements.reduce((sum, s) => sum + (s.importanceWeight || 1), 0)) * 100);
   return (
     <div className="flex-1 overflow-y-auto">
       {/* Detail Header */}
@@ -354,16 +443,19 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
         <div className="mt-[20px] grid grid-cols-3 gap-[16px]">
           <div className="col-span-1 flex flex-col items-center justify-center bg-[#f8f9ff] rounded-[12px] p-[20px] border border-[#eef0f8]">
             <div className="relative mb-[8px]">
-              <ReadinessGauge score={role.readinessScore} size={80} />
+              <ReadinessGauge score={readiness ?? 0} size={80} />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center mt-[4px]">
                   <span
+                    data-testid="role-readiness"
                     className="font-['Inter:Bold',sans-serif] font-bold text-[18px]"
-                    style={{ color: readinessColor(role.readinessScore) }}
+                    style={{ color: readiness == null ? "#94a3b8" : readinessColor(readiness) }}
                   >
-                    {role.readinessScore}
+                    {readiness == null ? "—" : readiness}
                   </span>
-                  <span className="font-['Inter:Regular',sans-serif] text-[10px] text-[#94a3b8] block">/ 100</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[10px] text-[#94a3b8] block">
+                    {readiness == null ? "" : "/ 100"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -371,7 +463,11 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
               Role Readiness
             </p>
             <p className="font-['Inter:Regular',sans-serif] text-[11px] text-[#94a3b8] text-center mt-[2px]">
-              Based on current evidence snapshot
+              {loading
+                ? "Loading skill requirements…"
+                : requirements.length === 0
+                  ? "No requirements published for this role yet"
+                  : "Your level against this role's required skills"}
             </p>
           </div>
           <div className="col-span-2 grid grid-cols-2 gap-[12px]">
@@ -405,13 +501,13 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
                   Overall progress toward role readiness
                 </p>
                 <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">
-                  {role.readinessScore}%
+                  {readiness == null ? "—" : `${readiness}%`}
                 </p>
               </div>
               <div className="w-full bg-[#f1f3fa] rounded-full h-[8px]">
                 <div
                   className="h-[8px] rounded-full bg-gradient-to-r from-[#3b8bff] to-[#7c3aed] transition-all"
-                  style={{ width: `${role.readinessScore}%` }}
+                  style={{ width: `${readiness ?? 0}%` }}
                 />
               </div>
             </div>
@@ -441,7 +537,9 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
         </div>
         {requirements.length === 0 ? (
           <p data-testid="requirements-unavailable" className="px-[20px] py-[20px] text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b]">
-            Skill requirements have not been published for this role yet.
+            {loading
+              ? "Loading skill requirements…"
+              : "Skill requirements have not been published for this role yet."}
           </p>
         ) : (
           requirements
