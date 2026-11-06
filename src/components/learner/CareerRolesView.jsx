@@ -95,6 +95,24 @@ function readinessColor(score) {
   if (score >= 50) return "#f59e0b";
   return "#ef4444";
 }
+/**
+ * Readiness for a list of requirements: Σ(min(1, current/required) × weight) /
+ * Σ weight, as a whole percent — or `null` when there is nothing to measure
+ * against, so the caller can show "—" instead of a misleading 0%.
+ *
+ * Extracted so the role card and the detail panel cannot drift apart. The card
+ * used to read `role.readinessScore`, a field `/career-roles` never sends, so
+ * every card showed 0% even for a role the detail panel scored 83%.
+ */
+function computeReadiness(requirements) {
+  if (!Array.isArray(requirements) || requirements.length === 0) return null;
+  const total = requirements.reduce((sum, s) => sum + (s.importanceWeight || 1), 0);
+  const earned = requirements.reduce((sum, s) => {
+    const ratio = s.requiredLevel > 0 ? Math.min(1, s.currentLevel / s.requiredLevel) : 1;
+    return sum + ratio * (s.importanceWeight || 1);
+  }, 0);
+  return Math.round((earned / total) * 100);
+}
 function skillGapColor(current, required) {
   if (current >= required) return { bar: "bg-[#059669]", text: "text-[#059669]" };
   if (current >= required - 1) return { bar: "bg-[#f59e0b]", text: "text-[#f59e0b]" };
@@ -370,12 +388,7 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
   // Readiness is derived from what the learner actually has against the role, so
   // an empty requirement list cannot show a misleading 0%: with nothing to
   // measure against, there is no score to report.
-  const readiness = requirements.length === 0
-    ? null
-    : Math.round((requirements.reduce((sum, s) => {
-        const ratio = s.requiredLevel > 0 ? Math.min(1, s.currentLevel / s.requiredLevel) : 1;
-        return sum + ratio * (s.importanceWeight || 1);
-      }, 0) / requirements.reduce((sum, s) => sum + (s.importanceWeight || 1), 0)) * 100);
+  const readiness = computeReadiness(requirements);
   return (
     <div className="flex-1 overflow-y-auto">
       {/* Detail Header */}
@@ -568,12 +581,35 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
   );
 }
 // ── RoleCard ──────────────────────────────────────────────────────────────────
-function RoleCard({ role, onSelect, onSaveToggle }) {
+function RoleCard({ role, onSelect, onSaveToggle, requirements: loadedRequirements = null }) {
   const demand = demandOf(role);
   const c = demandColor(demand.demandLevel);
-  const requirements = skillRequirementsOf(role);
+  // The card used to read only `role.skillRequirements` (never sent by
+  // `/career-roles`) and `role.readinessScore` (also never sent), which is why
+  // every card showed 0 required / 0 critical / 0% no matter who was signed in.
+  // Requirements are resolved by the parent — fetched once for the page — and
+  // readiness is the SAME computation the detail panel uses.
+  const requirements = Array.isArray(loadedRequirements)
+    ? loadedRequirements
+    : skillRequirementsOf(role);
+  // `skills_count` IS sent by /career-roles and is the honest total even before
+  // the requirement rows arrive; the per-card fetch refines it.
+  const publishedCount = Number(role.skills_count ?? role.skillsCount);
+  const skillCount = requirements.length > 0
+    ? requirements.length
+    : Number.isFinite(publishedCount) && publishedCount > 0
+      ? publishedCount
+      : null;
   const criticalTotal = requirements.filter((s) => s.isCritical).length;
   const criticalMet = requirements.filter((s) => s.isCritical && s.currentLevel >= s.requiredLevel).length;
+  // Fall back to the server's number only if it ever starts sending one.
+  // Guarded on the key EXISTING: a role the grid has not scored yet must show
+  // "—", and `Number(undefined)` is NaN but `Number(null)` is 0 — which is how
+  // an unfetched card ended up rendering a confident 0%.
+  const serverValue = role.readinessScore ?? role.readiness_score;
+  const computed = computeReadiness(requirements);
+  const readinessScore = computed
+    ?? (serverValue != null && Number.isFinite(Number(serverValue)) ? Number(serverValue) : null);
   return (
     <div className="bg-white border border-[#e8eaf0] rounded-[16px] p-[20px] flex flex-col gap-[16px] hover:border-[#c7d2e8] hover:shadow-[0_4px_20px_rgba(59,139,255,0.06)] transition-all group">
       <div className="flex items-start justify-between gap-[8px]">
@@ -622,16 +658,17 @@ function RoleCard({ role, onSelect, onSaveToggle }) {
         <div className="flex items-center justify-between mb-[6px]">
           <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Your Readiness</span>
           <span
+            data-testid="card-readiness"
             className="font-['Inter:Bold',sans-serif] font-bold text-[13px]"
-            style={{ color: readinessColor(role.readinessScore) }}
+            style={{ color: readinessScore == null ? "#94a3b8" : readinessColor(readinessScore) }}
           >
-            {role.readinessScore}%
+            {readinessScore == null ? "—" : `${readinessScore}%`}
           </span>
         </div>
         <div className="w-full bg-[#f1f3fa] rounded-full h-[6px]">
           <div
             className="h-[6px] rounded-full bg-gradient-to-r from-[#3b8bff] to-[#7c3aed] transition-all"
-            style={{ width: `${role.readinessScore}%` }}
+            style={{ width: `${readinessScore ?? 0}%` }}
           />
         </div>
       </div>
@@ -640,16 +677,19 @@ function RoleCard({ role, onSelect, onSaveToggle }) {
       <div className="flex items-center gap-[12px] pt-[4px] border-t border-[#f1f3fa]">
         <div className="flex-1">
           <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Skills required</p>
-          <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
-            {requirements.length}
+          <p data-testid="card-skill-count" className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
+            {skillCount ?? "—"}
           </p>
         </div>
         <div className="flex-1">
           <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Critical skills</p>
           <p
-            className={`font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] ${criticalMet === criticalTotal ? "text-[#059669]" : "text-[#ef4444]"}`}
+            data-testid="card-critical-count"
+            className={`font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] ${
+              requirements.length === 0 ? "text-[#94a3b8]" : criticalMet === criticalTotal ? "text-[#059669]" : "text-[#ef4444]"
+            }`}
           >
-            {criticalMet}/{criticalTotal}
+            {requirements.length === 0 ? "—" : `${criticalMet}/${criticalTotal}`}
           </p>
         </div>
         <div className={`flex items-center gap-[4px] px-[8px] py-[3px] rounded-full ${c.bg}`}>
@@ -673,6 +713,7 @@ function RoleCard({ role, onSelect, onSaveToggle }) {
 function BrowseRoles({
   roles, onSelect, onSaveToggle, filter, onFilterChange, search, onSearchChange,
   searching = false, searchError = "", searchActive = false, total = null, page = 1, pageSize = 15, onPageChange,
+  requirementsById = {},
 }) {
   const categories = ["All", ...Array.from(new Set(roles.map((r) => r.category)))];
   // The text term is NOT filtered here any more — the server already did it over
@@ -749,7 +790,7 @@ function BrowseRoles({
       ) : (
         <div className="grid grid-cols-3 gap-[16px] mb-[32px]">
           {filtered.map((role) => (
-            <RoleCard key={role.id} role={role} onSelect={() => onSelect(role.id)} onSaveToggle={onSaveToggle} />
+            <RoleCard key={role.id} role={role} onSelect={() => onSelect(role.id)} onSaveToggle={onSaveToggle} requirements={requirementsById[role.id] ?? null} />
           ))}
         </div>
       )}
@@ -1187,7 +1228,10 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave, onSea
     id: role.id ?? role.uuid,
     title: role.title ?? role.name ?? role.role_title ?? "Untitled role",
     category: role.category ?? role.industry ?? "Other",
-    readinessScore: Number(role.readinessScore ?? role.readiness_score ?? 0),
+    // NOT defaulted to 0 any more: /career-roles sends no readiness at all, and
+    // turning "absent" into 0 here is what made every card claim 0%. Left
+    // undefined so the card can tell "not scored yet" from "scored zero".
+    readinessScore: role.readinessScore ?? role.readiness_score,
     description: role.description ?? role.summary ?? "",
     skills: role.skills ?? role.required_skills ?? [],
     isSaved: Boolean(role.isSaved ?? role.is_saved),
@@ -1309,6 +1353,48 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave, onSea
     visibleRoles.find((r) => r.id === selectedRoleId) ??
     roles.find((r) => r.id === selectedRoleId) ??
     selectedRoleSnapshot;
+
+  /*
+   * Requirement + level map for EVERY CARD ON SCREEN.
+   *
+   * A card used to get its numbers from `role.skillRequirements` and
+   * `role.readinessScore` — neither of which `/career-roles` sends — so the grid
+   * showed "0 required / 0/0 critical / 0%" for every role, while opening one
+   * showed the real 3/5 and 83%. The data was never missing; the list simply
+   * never asked for it.
+   *
+   * One `/skills/matrix` call for the whole page, one `/career-roles/{id}/skills`
+   * per card (they are small and the page size is 15). A card whose request
+   * fails keeps `—` rather than a fake 0%.
+   */
+  const [pageRequirements, setPageRequirements] = useState({});
+  const cardIds = visibleRoles.map((r) => r.id).join(",");
+  useEffect(() => {
+    if (!visibleRoles.length) return undefined;
+    let cancelled = false;
+    (async () => {
+      const [matrixResult, ...roleResults] = await Promise.allSettled([
+        getSkillsMatrix(),
+        ...visibleRoles.map((r) => getCareerRoleSkills(r.id)),
+      ]);
+      if (cancelled) return;
+      const levels = matrixResult.status === "fulfilled"
+        ? levelsBySkill(matrixResult.value)
+        : new Map();
+      const next = {};
+      roleResults.forEach((result, index) => {
+        // A failed fetch stays absent, so the card renders "—" and not 0%.
+        if (result.status !== "fulfilled") return;
+        const rows = buildSkillRequirements(result.value, levels);
+        if (rows.length) next[visibleRoles[index].id] = rows;
+      });
+      setPageRequirements(next);
+    })();
+    return () => { cancelled = true; };
+    // Re-runs when the visible page changes, not on every unrelated render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardIds]);
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Page header */}
@@ -1386,6 +1472,7 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave, onSea
             page={page}
             pageSize={pageSize}
             onPageChange={setPage}
+            requirementsById={pageRequirements}
           />
         ) : activeTab === "saved" ? (
           <SavedRolesView

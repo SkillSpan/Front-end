@@ -16,6 +16,11 @@ const getCareerRoles = vi.fn();
 vi.mock('../../../api', () => ({
   getCareerRoles: (...args) => getCareerRoles(...args),
   unwrapApiData: (payload) => payload?.data ?? payload,
+  // Every card on the page now resolves its own requirements, so these must
+  // exist for the list to mount. Empty here: these tests are about the search
+  // request, not the numbers.
+  getCareerRoleSkills: vi.fn().mockResolvedValue({ data: { skills: [] } }),
+  getSkillsMatrix: vi.fn().mockResolvedValue({ data: [] }),
 }));
 
 import CareerRolesView from '../CareerRolesView.jsx';
