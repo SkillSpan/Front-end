@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { getCareerRoles, unwrapApiData } from "../../api";
 // ── Mock Data ────────────────────────────────────────────────────────────────
 // ── Utility helpers ──────────────────────────────────────────────────────────
 function demandColor(level) {
@@ -562,11 +563,16 @@ function RoleCard({ role, onSelect, onSaveToggle }) {
   );
 }
 // ── BrowseRoles view ──────────────────────────────────────────────────────────
-function BrowseRoles({ roles, onSelect, onSaveToggle, filter, onFilterChange, search, onSearchChange }) {
+function BrowseRoles({
+  roles, onSelect, onSaveToggle, filter, onFilterChange, search, onSearchChange,
+  searching = false, searchError = "", searchActive = false, total = null, page = 1, pageSize = 15, onPageChange,
+}) {
   const categories = ["All", ...Array.from(new Set(roles.map((r) => r.category)))];
-  const filtered = roles.filter(
-    (r) => (filter === "All" || r.category === filter) && r.title.toLowerCase().includes(search.toLowerCase()),
-  );
+  // The text term is NOT filtered here any more — the server already did it over
+  // the whole catalog. Filtering again in memory was the original bug: it could
+  // only ever see the rows that had been fetched.
+  const filtered = roles.filter((r) => filter === "All" || r.category === filter);
+  const pageCount = total != null ? Math.max(1, Math.ceil(total / pageSize)) : 1;
   return (
     <div>
       {/* Search + Filter bar */}
@@ -607,12 +613,64 @@ function BrowseRoles({ roles, onSelect, onSaveToggle, filter, onFilterChange, se
         </div>
       </div>
 
+      {/* Result count / loading / error, tied to the real query */}
+      {(searchActive || searching || searchError) && (
+        <p data-testid="search-status" className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] mb-[12px]">
+          {searchError
+            ? searchError
+            : searching
+              ? "Searching all career roles…"
+              : `${total ?? filtered.length} role${(total ?? filtered.length) === 1 ? "" : "s"} found`}
+        </p>
+      )}
+
       {/* Role Cards Grid */}
-      <div className="grid grid-cols-3 gap-[16px] mb-[32px]">
-        {filtered.map((role) => (
-          <RoleCard key={role.id} role={role} onSelect={() => onSelect(role.id)} onSaveToggle={onSaveToggle} />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        // Only reached when the BACKEND returned nothing for this term — the
+        // list is no longer pre-filtered in memory, so an empty array really
+        // means "no match anywhere in the catalog".
+        <div data-testid="career-roles-no-results" className="flex flex-col items-center justify-center py-[56px] text-center">
+          <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#0a0b14] mb-[6px]">
+            No career roles match your search
+          </h3>
+          <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] max-w-[360px]">
+            {search.trim()
+              ? `Nothing matched “${search.trim()}”. Try a shorter term or check the spelling.`
+              : "Try a different filter."}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-[16px] mb-[32px]">
+          {filtered.map((role) => (
+            <RoleCard key={role.id} role={role} onSelect={() => onSelect(role.id)} onSaveToggle={onSaveToggle} />
+          ))}
+        </div>
+      )}
+
+      {/* Pagination — server-side, because the list is only one page at a time */}
+      {pageCount > 1 && (
+        <div className="flex items-center justify-center gap-[8px] mb-[32px]">
+          <button
+            type="button"
+            onClick={() => onPageChange?.(page - 1)}
+            disabled={page <= 1 || searching}
+            className="px-[12px] py-[7px] rounded-[8px] text-[12px] font-['Inter:Medium',sans-serif] font-medium bg-white border border-[#e8eaf0] text-[#64748b] disabled:opacity-40"
+          >
+            Previous
+          </button>
+          <span data-testid="page-indicator" className="text-[12px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b]">
+            Page {page} of {pageCount}
+          </span>
+          <button
+            type="button"
+            onClick={() => onPageChange?.(page + 1)}
+            disabled={page >= pageCount || searching}
+            className="px-[12px] py-[7px] rounded-[8px] text-[12px] font-['Inter:Medium',sans-serif] font-medium bg-white border border-[#e8eaf0] text-[#64748b] disabled:opacity-40"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* Suggested Roles Section */}
       <SuggestedRolesSection roles={roles} onSelect={onSelect} onSaveToggle={onSaveToggle} />
@@ -1013,13 +1071,36 @@ function CompareView({ roles, onSelect }) {
     </div>
   );
 }
-export default function CareerRolesView({ initialRoles = null, onRoleSave }) {
-  const [roles, setRoles] = useState(() => (initialRoles ?? []).map((role) => ({ ...role, id: role.id ?? role.uuid, title: role.title ?? role.name ?? role.role_title ?? "Untitled role", category: role.category ?? role.industry ?? "Other", readinessScore: Number(role.readinessScore ?? role.readiness_score ?? 0), description: role.description ?? role.summary ?? "", skills: role.skills ?? role.required_skills ?? [], isSaved: Boolean(role.isSaved ?? role.is_saved), demand: role.demand ?? null, version: role.version ?? role.role_version ?? null })));
-  useEffect(() => { setRoles((initialRoles ?? []).map((role) => ({ ...role, id: role.id ?? role.uuid, title: role.title ?? role.name ?? role.role_title ?? "Untitled role", category: role.category ?? role.industry ?? "Other", readinessScore: Number(role.readinessScore ?? role.readiness_score ?? 0), description: role.description ?? role.summary ?? "", skills: role.skills ?? role.required_skills ?? [], isSaved: Boolean(role.isSaved ?? role.is_saved), demand: role.demand ?? null, version: role.version ?? role.role_version ?? null }))); }, [initialRoles]);
+export default function CareerRolesView({ initialRoles = null, onRoleSave, onSearch, searchDebounceMs = 300, pageSize = 15 }) {
+  // One mapping, used by the initial props and by every server result. It was
+  // duplicated inline (two identical 700-character expressions) which is how the
+  // two copies drifted apart.
+  const normalizeRole = (role) => ({
+    ...role,
+    id: role.id ?? role.uuid,
+    title: role.title ?? role.name ?? role.role_title ?? "Untitled role",
+    category: role.category ?? role.industry ?? "Other",
+    readinessScore: Number(role.readinessScore ?? role.readiness_score ?? 0),
+    description: role.description ?? role.summary ?? "",
+    skills: role.skills ?? role.required_skills ?? [],
+    isSaved: Boolean(role.isSaved ?? role.is_saved),
+    demand: role.demand ?? null,
+    version: role.version ?? role.role_version ?? null,
+  });
+
+  const [roles, setRoles] = useState(() => (initialRoles ?? []).map(normalizeRole));
+  useEffect(() => { setRoles((initialRoles ?? []).map(normalizeRole)); }, [initialRoles]);
   const [activeTab, setActiveTab] = useState("browse");
   const [selectedRoleId, setSelectedRoleId] = useState(null);
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
+  // Which page the list currently shows, and how many results the last query
+  // matched across the WHOLE catalog (not just the page on screen).
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(null);
+  const [searchResults, setSearchResults] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
   const savedCount = roles.filter((r) => r.isSaved).length;
   function toggleSave(id) {
     setRoles((prev) => prev.map((r) => (r.id === id ? { ...r, isSaved: !r.isSaved } : r)));
@@ -1035,6 +1116,67 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave }) {
     { key: "saved", label: "Saved Roles", count: savedCount },
     { key: "compare", label: "Compare Readiness" },
   ];
+
+  /*
+   * Search runs on the SERVER.
+   *
+   * It used to filter `roles` in memory, which only ever held the first page
+   * (15 rows, `?page=1&per_page=15`), so a role on page 2 or 3 could not be
+   * found no matter what was typed — and typing sent no request at all. The
+   * filter now goes to the API, before pagination, so it covers every role.
+   *
+   * When `onSearch` is supplied the owner does the fetching instead (keeps one
+   * source of truth); otherwise this component fetches for itself.
+   */
+  const fetchRoles = onSearch ?? (async (term, nextPage) => {
+    const payload = await getCareerRoles({ page: nextPage, perPage: pageSize, search: term });
+    return payload;
+  });
+  const firstRun = useRef(true);
+  const requestSeq = useRef(0);
+
+  useEffect(() => {
+    const term = search.trim();
+    // Nothing to do until the user actually searches: keep showing the list the
+    // workspace already loaded instead of refetching the same page.
+    if (firstRun.current && term === "") { firstRun.current = false; return; }
+    firstRun.current = false;
+
+    const seq = ++requestSeq.current;
+    setSearching(true);
+    setSearchError("");
+
+    const timer = setTimeout(async () => {
+      try {
+        const payload = await fetchRoles(term, page);
+        // A slower earlier response must not overwrite a newer one.
+        if (seq !== requestSeq.current) return;
+        const rows = unwrapApiData(payload);
+        const list = Array.isArray(rows) ? rows : rows?.data ?? [];
+        setSearchResults(list.map(normalizeRole));
+        setTotal(Number(rows?.total ?? list.length));
+      } catch {
+        if (seq !== requestSeq.current) return;
+        // Leave the previous results on screen; a failed search is not an empty result.
+        setSearchError("Search could not be completed. Please try again.");
+      } finally {
+        if (seq === requestSeq.current) setSearching(false);
+      }
+    }, searchDebounceMs);
+
+    return () => clearTimeout(timer);
+  }, [search, page]);
+
+  // Changing the term starts over at page 1 — otherwise page 3 of the old query
+  // would silently apply to the new one.
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  // What the tabs below render: server results once a search has run, otherwise
+  // the list the workspace loaded on mount.
+  const visibleRoles = searchResults ?? roles;
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Page header */}
@@ -1098,13 +1240,20 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave }) {
           <RoleDetailPanel role={selectedRole} onBack={() => setSelectedRoleId(null)} onSaveToggle={toggleSave} />
         ) : activeTab === "browse" ? (
           <BrowseRoles
-            roles={roles}
+            roles={visibleRoles}
             onSelect={selectRole}
             onSaveToggle={toggleSave}
             filter={filter}
             onFilterChange={setFilter}
             search={search}
-            onSearchChange={setSearch}
+            onSearchChange={handleSearchChange}
+            searching={searching}
+            searchError={searchError}
+            searchActive={searchResults !== null}
+            total={total}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
           />
         ) : activeTab === "saved" ? (
           <SavedRolesView

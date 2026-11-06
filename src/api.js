@@ -620,11 +620,14 @@ export const reviewEvidence = (id, verificationStatus, reviewerNotes) =>
 // those surface in the UI.
 
 // page/perPage are optional - only sent when provided.
-export const getCareerRoles = ({ page, perPage, specializationId } = {}) => {
+export const getCareerRoles = ({ page, perPage, specializationId, search } = {}) => {
   const params = new URLSearchParams();
   // GET /api/v1/career-roles?specialization_id=5 - only the roles linked to
   // that specialization (career_role_specialization).
   if (specializationId) params.set('specialization_id', specializationId);
+  // Applied server-side, BEFORE pagination. Filtering the loaded page instead
+  // only ever searched the first 15 rows, so a role on page 2 was unreachable.
+  if (search && String(search).trim()) params.set('search', String(search).trim());
   if (page) params.set('page', page);
   if (perPage) params.set('per_page', perPage);
   const qs = params.toString();
