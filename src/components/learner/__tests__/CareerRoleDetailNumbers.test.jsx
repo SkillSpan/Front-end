@@ -115,4 +115,22 @@ describe('learner career roles — role detail numbers', () => {
     await waitFor(() => expect(screen.getByText('REST APIs')).toBeInTheDocument());
     expect(screen.queryByTestId('requirements-unavailable')).not.toBeInTheDocument();
   });
+
+  it('does not let a duplicated skill row overwrite the real level', async () => {
+    // The backend used to return every learner's rows to an admin, so the same
+    // skill arrived several times at different levels.
+    getSkillsMatrix.mockResolvedValue({
+      data: [
+        { skill: { id: 10 }, level: '1.00' },
+        { skill: { id: 10 }, level: '5.00' },
+        { skill: { id: 164 }, level: '0.00' },
+      ],
+    });
+
+    await openDetail();
+
+    // Highest wins, deterministically: REST APIs = 5 (met), Digital
+    // Transformation = 0 (not met). (0.6*1 + 0.9*0) / 1.5 = 40%.
+    expect(screen.getByTestId('role-readiness')).toHaveTextContent('40');
+  });
 });

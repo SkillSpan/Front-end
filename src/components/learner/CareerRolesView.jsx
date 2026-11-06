@@ -69,7 +69,15 @@ function buildSkillRequirements(payload, matrix) {
   });
 }
 
-/** `Map<skill_id, level>` from `/skills/matrix`, whose rows carry `skill.id`. */
+/**
+ * `Map<skill_id, level>` from `/skills/matrix`, whose rows carry `skill.id`.
+ *
+ * If an id appears more than once it is NOT overwritten in row order: the
+ * backend used to return every learner's rows to an admin, so the same skill
+ * could arrive three times with different levels and the last row silently
+ * won. Taking the highest keeps the result deterministic and never lowers a
+ * level the learner actually has.
+ */
 function levelsBySkill(payload) {
   const rows = unwrapApiData(payload);
   const list = Array.isArray(rows) ? rows : rows?.data ?? [];
@@ -77,7 +85,8 @@ function levelsBySkill(payload) {
   for (const row of list) {
     const id = row?.skill?.id ?? row?.skill_id;
     if (id == null) continue;
-    map.set(id, Number(row.level ?? 0) || 0);
+    const level = Number(row.level ?? 0) || 0;
+    map.set(id, Math.max(map.get(id) ?? 0, level));
   }
   return map;
 }
