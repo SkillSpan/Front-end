@@ -124,6 +124,39 @@ export function ContactDialog({ name, projects, busy, error, onSend, onClose }) 
   );
 }
 
+/**
+ * One message to every candidate the company can see.
+ *
+ * Deliberately NOT the per-candidate `ContactDialog` with an extra radio: the
+ * recipient there is a specific person, and a "everyone" option inside it would
+ * make the title ("Contact Reem") a lie. This dialog has no recipient field at
+ * all — the audience is fixed and stated in the body.
+ */
+export function BroadcastDialog({ count, busy, error, onSend, onClose }) {
+  const { t } = useCompanyI18n();
+  const [message, setMessage] = useState('');
+  const [touched, setTouched] = useState(false);
+  return (
+    <ConfirmDialog
+      icon={Send}
+      title={t('tal.broadcast.title')}
+      body={t('tal.broadcast.body', { n: count })}
+      confirmLabel={t('tal.broadcast.send')}
+      busy={busy}
+      error={error}
+      onClose={onClose}
+      onConfirm={() => { setTouched(true); if (message.trim()) onSend(message.trim()); }}
+    >
+      <div className="cw-pf-field cw-pj-reason">
+        <label htmlFor="tl-bc-msg">{t('tal.contact.text')}<span className="cw-pf-req" aria-hidden="true">*</span></label>
+        <textarea id="tl-bc-msg" rows={4} maxLength={1000} value={message} onChange={(e) => setMessage(e.target.value)} placeholder={t('tal.contact.messagePh')} aria-invalid={touched && !message.trim() ? 'true' : undefined} />
+        {touched && !message.trim() && <span className="cw-pj-ferr">{t('team.exc.required')}</span>}
+      </div>
+      <p className="cw-pf-muted" style={{ fontSize: 12.5 }}>{t('tal.broadcast.rules')}</p>
+    </ConfirmDialog>
+  );
+}
+
 export function AddButton({ children, ...rest }) {
   return <button type="button" className="cw-btn sec sm" {...rest}><Plus size={14} aria-hidden="true" /> {children}</button>;
 }

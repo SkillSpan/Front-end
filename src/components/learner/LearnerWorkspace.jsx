@@ -4,6 +4,7 @@ import CareerRolesView from './CareerRolesView';
 import ProjectsView from './ProjectsView';
 import ProjectDetailsView from './ProjectDetailsView';
 import AssistantView from './AssistantView';
+import MessagesView from './MessagesView';
 import MentorView from './MentorView';
 import SupportView from './SupportView';
 import ProfileView from './ProfileView';
@@ -189,6 +190,7 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
     if (view === 'career-roles') return <CareerRolesView initialRoles={roles} />;
     if (view === 'projects') return projectDetails ? <ProjectDetailsView projectId={selectedProjectId} onBack={() => setProjectDetails(false)} /> : <ProjectsView roleLabel={roleLabel} initialProjects={projects} onOpenDetails={(id) => { setSelectedProjectId(id); setProjectDetails(true); }} />;
     if (view === 'assistant') return <AssistantView onNavigate={go} />;
+    if (view === 'messages') return <MessagesView />;
     if (view === 'support') return <SupportView />;
     if (view === 'profile') return <ProfileView readinessScore={readinessScore} roleLabel={roleLabel} />;
     if (view === 'settings') return <SettingsView onLogout={() => onLogout?.()} />;

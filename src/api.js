@@ -641,6 +641,20 @@ export const getCareerRoleSkills = (id) =>
   request(`/api/v1/career-roles/${id}/skills`, { method: 'GET', withAuth: true });
 
 // ---------------------------------------------------------------------------
+// Learner inbox (requires Authorization: Bearer {token}, role:learner)
+// Read-only by contract: companies write, the learner reads. There is no
+// reply, accept or decline endpoint on purpose.
+// ---------------------------------------------------------------------------
+
+export const getLearnerMessages = ({ page, perPage } = {}) => {
+  const params = new URLSearchParams();
+  if (page) params.set('page', page);
+  if (perPage) params.set('per_page', perPage);
+  const qs = params.toString();
+  return request(`/api/v1/learner/messages${qs ? `?${qs}` : ''}`, { method: 'GET', withAuth: true });
+};
+
+// ---------------------------------------------------------------------------
 // Readiness (requires Authorization: Bearer {token}, role:learner)
 // ---------------------------------------------------------------------------
 

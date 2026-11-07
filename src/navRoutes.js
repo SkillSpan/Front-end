@@ -7,6 +7,7 @@ export const NAV_ROUTES = {
   'skill-assessment': '/skill-matrix?tab=assessment',
   projects: '/projects',
   assistant: '/assistant',
+  messages: '/messages',
   support: '/support',
   mentor: '/mentor',
   talent: '/talent',

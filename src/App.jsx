@@ -481,6 +481,7 @@ function AppRoutes() {
       <Route path="/career-journey" element={<RequireAuth><WorkspacePage key="career-journey" view="career-journey" /></RequireAuth>} />
       <Route path="/projects" element={<RequireAuth><WorkspacePage key="projects" view="projects" /></RequireAuth>} />
       <Route path="/assistant" element={<RequireAuth><WorkspacePage key="assistant" view="assistant" /></RequireAuth>} />
+      <Route path="/messages" element={<RequireAuth><WorkspacePage key="messages" view="messages" /></RequireAuth>} />
       <Route path="/support" element={<RequireAuth><WorkspacePage key="support" view="support" /></RequireAuth>} />
       <Route path="/mentor" element={<RequireAuth><WorkspacePage key="mentor" view="mentor" /></RequireAuth>} />
       <Route path="/talent" element={<RequireAuth><WorkspacePage key="talent" view="talent" /></RequireAuth>} />

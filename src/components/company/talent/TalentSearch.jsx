@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight, FolderHeart, Info, ListFilter, Search, SearchX, Scale, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, FolderHeart, Info, ListFilter, Search, SearchX, Scale, Send, X } from 'lucide-react';
 import '../workspace/companyWorkspace.css';
 import '../profile/companyProfile.css';
 import '../projects/projects.css';
@@ -15,10 +15,10 @@ import { useCachedQuery } from '../../../cache/useCachedQuery';
 import { newIdempotencyKey } from '../projects/api/shared';
 import { initials } from '../applications/people';
 import {
-  addToList, COMPARE_MAX, createList, EXTRA_FILTERS, getLists, getTalentFilterOptions, searchTalent, talentKeys, TALENT_PAGE_SIZE, TALENT_SORTS,
+  addToList, COMPARE_MAX, contactAllCandidates, createList, EXTRA_FILTERS, getLists, getTalentFilterOptions, searchTalent, talentKeys, TALENT_PAGE_SIZE, TALENT_SORTS,
 } from './talentApi';
 import { compareSelection, useCompareSelection } from './selection';
-import { Readiness, SaveToListDialog, SkillChip } from './talentUi';
+import { BroadcastDialog, Readiness, SaveToListDialog, SkillChip } from './talentUi';
 
 /**
  * Talent Search (US-COMP-05) — /company/talent
@@ -66,6 +66,9 @@ export default function TalentSearch({ user, onNavigate, demo, previewState }) {
   const [busy, setBusy] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [flash, setFlash] = useState(null);
+  const [broadcastOpen, setBroadcastOpen] = useState(false);
+  const [broadcastBusy, setBroadcastBusy] = useState(false);
+  const [broadcastError, setBroadcastError] = useState(null);
   const selected = useCompareSelection();
 
   const emptyPreview = previewState === 'empty';
@@ -81,9 +84,24 @@ export default function TalentSearch({ user, onNavigate, demo, previewState }) {
       title={t('tal.title')}
       sub={t('tal.sub')}
       actions={(
-        <button type="button" className="cw-btn sec" onClick={() => go('/company/talent/lists')}>
-          <FolderHeart size={15} strokeWidth={1.9} aria-hidden="true" /> {t('tal.lists.title')}
-        </button>
+        <>
+          <button type="button" className="cw-btn sec" onClick={() => go('/company/talent/lists')}>
+            <FolderHeart size={15} strokeWidth={1.9} aria-hidden="true" /> {t('tal.lists.title')}
+          </button>
+          {/* Writing to candidates is the same permission as reading them: a
+              company that cannot search talent has nobody to write to, and the
+              broadcast endpoint would answer sent_to: 0. Hide the control
+              rather than offer a button that cannot do anything. */}
+          {perms.can_search_talent && (
+            <button
+              type="button"
+              className="cw-btn pri"
+              onClick={() => { setBroadcastError(null); setBroadcastOpen(true); }}
+            >
+              <Send size={15} strokeWidth={1.9} aria-hidden="true" /> {t('tal.broadcast.action')}
+            </button>
+          )}
+        </>
       )}
     />
   );
@@ -110,6 +128,21 @@ export default function TalentSearch({ user, onNavigate, demo, previewState }) {
     } catch (err) { if (err?.status !== 401) setSaveError(err); } finally { setBusy(false); }
   }
 
+  /**
+   * Send one message to everyone this company can see.
+   *
+   * `sentTo: 0` is reported as such rather than as success: a verified company
+   * that currently sees nobody would otherwise be told "sent" when nothing was.
+   */
+  async function sendToAll(message) {
+    setBroadcastBusy(true); setBroadcastError(null);
+    try {
+      const { sentTo } = await contactAllCandidates(message, { preview, idempotencyKey: newIdempotencyKey('broadcast') });
+      setBroadcastOpen(false);
+      setFlash({ title: sentTo === 0 ? t('tal.broadcast.sentNone') : t('tal.broadcast.sent', { n: sentTo }), body: sentTo === 0 ? null : t('tal.broadcast.sentBody') });
+    } catch (err) { if (err?.status !== 401) setBroadcastError(err); } finally { setBroadcastBusy(false); }
+  }
+
   const suggestions = data?.suggestions || [
     query.role && { key: 'role', label: t('tal.suggest.role'), patch: { role: '' } },
     query.minReadiness && { key: 'min', label: t('tal.suggest.min'), patch: { min: '' } },
@@ -121,7 +154,7 @@ export default function TalentSearch({ user, onNavigate, demo, previewState }) {
     <div className="cw-pj cw-tl">
       {preview && <div className="cw-sample">{t('company.ws.sampleBanner')}</div>}
       {header}
-      {flash && <Notice title={flash.title} body={t('tal.flash.savedBody')} onClose={() => setFlash(null)} />}
+      {flash && <Notice title={flash.title} body={flash.body ?? t('tal.flash.savedBody')} onClose={() => setFlash(null)} />}
 
       <div className="cw-tl-layout">
         <aside className={`cw-card cw-tl-filters${filtersOpen ? ' is-open' : ''}`} aria-labelledby="tl-f-h">
@@ -258,6 +291,16 @@ export default function TalentSearch({ user, onNavigate, demo, previewState }) {
 
       {saveFor && (
         <SaveToListDialog lists={lists.data || []} count={saveFor.length} busy={busy} error={saveError} onClose={() => setSaveFor(null)} onSave={save} onCreate={create} />
+      )}
+
+      {broadcastOpen && (
+        <BroadcastDialog
+          count={data?.total ?? 0}
+          busy={broadcastBusy}
+          error={broadcastError}
+          onClose={() => setBroadcastOpen(false)}
+          onSend={sendToAll}
+        />
       )}
     </div>
   );

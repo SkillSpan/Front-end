@@ -37,6 +37,7 @@ export const TALENT_ENDPOINTS = {
   addToList: (listId) => `/api/v1/talent/lists/${encodeURIComponent(listId)}/candidates`, // POST { candidate_ids: [] }
   addNote: (id) => `/api/v1/talent/candidates/${encodeURIComponent(id)}/notes`, // POST { body }
   contact: (id) => `/api/v1/talent/candidates/${encodeURIComponent(id)}/contact`, // POST { type: invite|message, message, project_id? }
+  contactAll: () => '/api/v1/talent/contact-all', // POST { message } → { sent_to }
   // ASSUMED — TODO(api): needed by AC-01 (rename/delete), lists screen, notes list, dashboard funnel.
   lists: () => '/api/v1/talent/lists', // GET
   listDetail: (listId) => `/api/v1/talent/lists/${encodeURIComponent(listId)}`, // GET · PATCH { name } · DELETE
@@ -406,6 +407,23 @@ export async function contactCandidate(id, { type, message, projectId }, { previ
 }
 // TODO(api): exact codes.
 export const CONTACT_BLOCK_CODES = ['CONTACT_NOT_CONSENTED', 'CONTACT_RATE_LIMITED', 'CONTACT_FLAGGED', 'ORGANIZATION_NOT_VERIFIED'];
+
+/**
+ * Send one message to EVERY candidate this company may see.
+ *
+ * The backend expands it to one row per visible student — exactly the set
+ * `GET /talent` would return — and answers with how many were reached.
+ * `sentTo: 0` is a real outcome (a company that can see nobody), not an error,
+ * so the caller must report the number rather than assume success.
+ */
+export async function contactAllCandidates(message, { preview, idempotencyKey } = {}) {
+  const res = preview
+    ? await previewCall(() => ({ success: true, data: { sent_to: db.talent.filter((c) => !db.hidden.has(c.id)).length } }), { method: 'POST', path: TALENT_ENDPOINTS.contactAll() })
+    : await liveCall(TALENT_ENDPOINTS.contactAll(), { method: 'POST', body: { message }, headers: idempotencyHeaders(idempotencyKey) });
+
+  const d = unwrapApiData(res) || {};
+  return { sentTo: Number(d.sent_to ?? 0) };
+}
 
 /** Candidate funnel for the dashboard (COMP-07 AC-09) — aggregate counts only. */
 export async function getTalentFunnel({ preview } = {}) {
