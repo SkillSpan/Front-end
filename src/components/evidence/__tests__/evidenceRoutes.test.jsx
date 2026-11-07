@@ -9,6 +9,9 @@ vi.mock('../../../api', () => ({
   reviewEvidence: vi.fn(),
   markAllNotificationsRead: vi.fn(),
   markNotificationRead: vi.fn(),
+  // The app shell now carries a messages bell next to the notifications bell.
+  getLearnerMessages: vi.fn().mockResolvedValue({ data: [] }),
+  unwrapApiData: (payload) => payload?.data ?? payload,
 }));
 vi.mock('../../auth/AuthContext', () => ({
   useAuth: () => ({ authUser: { name: 'Ahmed Mazen' }, logout: vi.fn() }),

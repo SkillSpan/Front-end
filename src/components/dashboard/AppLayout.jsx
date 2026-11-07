@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './Dashboard.css';
 
 // A fresh `[]` default would give the prop a new identity on every render and
 // make the sync below look like a change every time.
 const EMPTY_NOTIFICATIONS = [];
-import { markAllNotificationsRead, markNotificationRead, logoutUser, logoutAllDevices } from '../../api';
+import { getLearnerMessages, markAllNotificationsRead, markNotificationRead, logoutUser, logoutAllDevices, unwrapApiData } from '../../api';
 import LogoutModal from './LogoutModal';
 import { useI18n } from '../../i18n/useI18n';
 
@@ -47,6 +47,53 @@ function initials(name) {
   return name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
 }
 
+/*
+ * The messages bell sits beside the notifications bell and behaves the same
+ * way — a count and a popover — but it has one honest difference: a message
+ * carries no read flag. The backend is read-only and never records that the
+ * learner looked at it, and it must not start doing so, because that would be
+ * a read receipt shown to the company.
+ *
+ * So "new" here means "arrived since you last opened the Messages page",
+ * remembered on this device only. Nothing is written back to the server, and a
+ * fresh device simply shows the messages it has not seen yet.
+ */
+const MESSAGES_SEEN_PREFIX = 'skillspan.messages.seenAt';
+
+function messagesSeenKey(user) {
+  return `${MESSAGES_SEEN_PREFIX}.${user?.id ?? user?.user_id ?? user?.email ?? 'me'}`;
+}
+
+function readMessagesSeenAt(user) {
+  try {
+    const n = Number(window.localStorage.getItem(messagesSeenKey(user)));
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function messageRows(payload) {
+  const raw = unwrapApiData(payload);
+  if (Array.isArray(raw)) return raw;
+  if (Array.isArray(raw?.data)) return raw.data;
+  return [];
+}
+
+function messageWhen(iso) {
+  if (!iso) return '';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const minutes = Math.round((Date.now() - date.getTime()) / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+}
+
 export default function AppLayout({
   active,
   onNavigate,
@@ -68,6 +115,57 @@ export default function AppLayout({
   const [localNotifications, setLocalNotifications] = useState(notifications);
   const [unreadCount, setUnreadCount] = useState(notificationCount);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Company messages, shown in the top bar next to the notifications bell.
+  const [messages, setMessages] = useState([]);
+  const [messagesOpen, setMessagesOpen] = useState(false);
+  const [messagesSeenAt, setMessagesSeenAt] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    getLearnerMessages({ page: 1, perPage: 20 })
+      .then((payload) => {
+        if (alive) setMessages(messageRows(payload));
+      })
+      // A learner who is not allowed the inbox (or is offline) simply has no
+      // badge. The bell still opens and explains itself.
+      .catch(() => {
+        if (alive) setMessages([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // Child effects run first, so opening /messages (which stamps the seen
+  // marker on mount) clears the badge in the same pass instead of one render
+  // later.
+  useEffect(() => {
+    setMessagesSeenAt(readMessagesSeenAt(user));
+  }, [user?.id, user?.user_id, user?.email]);
+
+  const unseenMessages = messages.filter((m) => {
+    const at = Date.parse(m?.created_at || '');
+    return Number.isFinite(at) && at > messagesSeenAt;
+  }).length;
+
+  const markMessagesSeen = () => {
+    const now = Date.now();
+    try {
+      window.localStorage.setItem(messagesSeenKey(user), String(now));
+    } catch {
+      // Private mode: the badge just stays until the next full page load.
+    }
+    setMessagesSeenAt(now);
+  };
+
+  // Reading the inbox is the thing that clears the badge. Doing it here rather
+  // than inside MessagesView keeps one owner for the marker, and `active` is
+  // already the prop that says which page is open.
+  useEffect(() => {
+    if (active === 'messages') markMessagesSeen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
 
   // Logging out is destructive enough to deserve a confirmation: the button
   // sits right next to the user avatar in the top bar, and one stray click used
@@ -227,6 +325,61 @@ export default function AppLayout({
             />
           </div>
           <div className="app-topbar-right">
+            <div className="app-notification-wrap">
+              <button
+                type="button"
+                className="app-bell"
+                data-testid="topbar-messages"
+                aria-label={t('topbar.messages')}
+                title={t('topbar.messages')}
+                onClick={() => setMessagesOpen((v) => !v)}
+              >
+                {Icon.mail}
+                {unseenMessages > 0 && <span className="badge">{unseenMessages > 9 ? '9+' : unseenMessages}</span>}
+              </button>
+              {messagesOpen && (
+                <div className="app-notification-popover app-message-popover" role="dialog" aria-label={t('topbar.messages')}>
+                  <div className="notif-header">
+                    <strong>{t('topbar.messages')}{unseenMessages > 0 ? ` (${unseenMessages})` : ''}</strong>
+                  </div>
+                  {messages.length > 0 ? (
+                    <div className="notif-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                      {messages.slice(0, 5).map((m) => (
+                        <div
+                          key={m.id}
+                          className={`notif-item${Date.parse(m.created_at || '') > messagesSeenAt ? ' unread' : ''}`}
+                          onClick={() => {
+                            setMessagesOpen(false);
+                            markMessagesSeen();
+                            go('messages');
+                          }}
+                        >
+                          <div className="notif-title">{m?.from?.organization_name || t('topbar.messagesUnknownSender')}</div>
+                          <div className="notif-body" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                            {m?.message || ''}
+                          </div>
+                          <div className="notif-time">{messageWhen(m.created_at)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin: '8px 0', color: '#64748b', fontSize: '0.8rem' }}>{t('topbar.emptyMessages')}</p>
+                  )}
+                  <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #f1f2f9' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMessagesOpen(false);
+                        markMessagesSeen();
+                        go('messages');
+                      }}
+                    >
+                      {t('topbar.openMessages')} →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="app-notification-wrap">
               <button
                 type="button"

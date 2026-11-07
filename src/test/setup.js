@@ -4,7 +4,15 @@ import '@testing-library/jest-dom/vitest';
 // render in tests without each one adding an unused import.
 import React from 'react';
 import { afterEach } from 'vitest';
+import { configure } from '@testing-library/react';
 import { clearQueryCache } from '../cache/queryCache';
+
+// Every preview-mode API call sleeps 220 ms (`previewCall`). Under a full-suite
+// run the workers compete for the CPU and a single 220 ms wait can easily cross
+// the 1 s default, so tests that pass alone fail only when everything runs at
+// once — the worst kind of flake, because it looks like a real regression.
+// Three seconds is still far below any real hang.
+configure({ asyncUtilTimeout: 3000 });
 
 // The API cache lives for the whole page; every test starts from an empty one.
 afterEach(() => clearQueryCache());
