@@ -251,11 +251,63 @@ export async function getCandidate(id, { preview } = {}) {
   return normalizeCandidate(unwrapApiData(res));
 }
 
+/*
+ * POST /api/v1/talent/compare returns `{ students, skills, unavailable }`.
+ *
+ * The page used to read `data.candidates`, which the live endpoint never sends,
+ * so `people` was always `[]` and the compare screen showed "choose at least
+ * two candidates" even with two chosen and a 200 back from the server.
+ *
+ * `skills` on each student is the top 5 only; the full union lives in the
+ * top-level `skills` matrix (`levels[studentId]`), so that is the authoritative
+ * per-skill list when it is present.
+ */
+export function normalizeComparedStudent(s = {}, matrix = null) {
+  const fromMatrix = Array.isArray(matrix)
+    ? matrix
+        .filter((row) => row && row.levels && row.levels[s.id] != null)
+        .map((row) => ({
+          id: row.name,
+          name: row.name,
+          level: row.levels[s.id],
+          verified: row.verified ? Boolean(row.verified[s.id]) : null,
+        }))
+    : null;
+
+  const skills = fromMatrix && fromMatrix.length
+    ? fromMatrix
+    : (s.skills || []).map(skillOf);
+
+  return {
+    ...normalizeCandidateRow(s),
+    skills,
+    projects: [],
+    evaluations: [],
+    // The endpoint sends no evidence rows, so these are honest absences rather
+    // than claims that the candidate has none.
+    limitations: [
+      'no_projects',
+      'no_evaluations',
+      ...(skills.some((sk) => sk.verified === false) ? ['self_declared_skills'] : []),
+    ],
+    contactAllowed: s.contactable !== false,
+  };
+}
+
 export async function compareCandidates(ids, { preview } = {}) {
   // `student_ids`: the API names the people after the resource it stores.
   const body = { student_ids: ids };
   const res = preview ? await previewCall(() => mockCompare(ids)) : await liveCall(TALENT_ENDPOINTS.compare(), { method: 'POST', body });
   const d = unwrapApiData(res) || {};
+
+  if (Array.isArray(d.students)) {
+    return {
+      period: d.evidence_period || null,
+      candidates: d.students.map((s) => normalizeComparedStudent(s, d.skills)),
+      removedCount: Number(d.removed_count ?? (Array.isArray(d.unavailable) ? d.unavailable.length : 0)),
+    };
+  }
+
   return { period: d.evidence_period || null, candidates: (d.candidates || []).map(normalizeCandidate), removedCount: Number(d.removed_count || 0) };
 }
 
