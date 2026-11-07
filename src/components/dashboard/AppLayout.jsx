@@ -35,7 +35,6 @@ const NAV_ITEMS = [
   { key: 'projects', labelKey: 'nav.projects', icon: Icon.folder },
   { key: 'record', labelKey: 'nav.record', icon: Icon.record },
   { key: 'assistant', labelKey: 'nav.assistant', icon: Icon.bolt },
-  { key: 'messages', labelKey: 'nav.messages', icon: Icon.mail },
   { key: 'support', labelKey: 'nav.support', icon: Icon.support },
   { key: 'profile', labelKey: 'nav.profile', icon: Icon.user },
   { key: 'mentor', labelKey: 'nav.mentor', icon: Icon.mentor },
