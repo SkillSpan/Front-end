@@ -149,3 +149,39 @@ describe('TalentCompare page — live payload', () => {
     expect(screen.getAllByText('JavaScript').length).toBeGreaterThan(0);
   });
 });
+
+/*
+ * A shortlist row carries TWO ids: the list item's (`id`) and the student it
+ * points at (`student_id`). The normaliser took `id`, so "view" on a saved
+ * candidate linked to /company/talent/4 — the list item — and the API answered
+ * 404 "No discoverable student with that id."
+ *
+ * Verified live: GET /api/v1/talent/lists/4 -> candidates [{id:4, student_id:68},
+ * {id:5, student_id:25}], and GET /api/v1/talent/4 -> 404.
+ */
+describe('shortlist rows use the STUDENT id, not the list-item id', () => {
+  it('maps student_id to the row id', async () => {
+    const { normalizeCandidateRow } = await import('../talent/talentApi');
+
+    const row = normalizeCandidateRow({ id: 4, student_id: 68, name: 'asda' });
+
+    expect(row.id).toBe(68);
+  });
+
+  it('leaves a search row alone (no student_id present)', async () => {
+    const { normalizeCandidateRow } = await import('../talent/talentApi');
+
+    expect(normalizeCandidateRow({ id: 68, name: 'asda' }).id).toBe(68);
+  });
+
+  it('a list detail page links to the student profile', async () => {
+    api.companyRequest.mockResolvedValue({
+      data: { id: 4, name: 'Test shortlist', candidates_count: 2, candidates: [{ id: 4, student_id: 68, name: 'asda' }] },
+    });
+    const { getList } = await import('../talent/talentApi');
+
+    const list = await getList(4);
+
+    expect(list.candidates.map((c) => c.id)).toEqual([68]);
+  });
+});

@@ -82,7 +82,11 @@ const skillOf = (s) => (typeof s === 'string'
 /** A search row: guide fields first; the rest are ASSUMED and simply absent until sent. */
 export function normalizeCandidateRow(c = {}) {
   return {
-    id: c.id,
+    // `student_id` wins when present: a row inside a shortlist carries BOTH the
+    // list-item id (`id`) and the student it points at (`student_id`). Using
+    // `id` there linked to `/company/talent/4` — the list item — instead of the
+    // student, so "view" on a saved candidate answered 404.
+    id: c.student_id ?? c.id,
     name: c.name || '',
     careerRole: c.career_role || '',
     readiness: c.readiness ? { score: c.readiness.score ?? null, band: c.readiness.band ?? null } : null,
