@@ -16,6 +16,7 @@ export default function QuickLinks({ links = QUICK_LINKS, drafts = 0, onNavigate
       {links.length === 0 && (
         <EmptyState mini icon={Lock} title={t('company.ws.ql.none')} body={t('company.ws.ql.noneBody')} />
       )}
+      <div className="cw-ql-list">
       {links.map(({ key, route, Icon, highlight }) => (
         <button key={key} type="button" className={`cw-qrow${highlight ? ' hl' : ''}`} onClick={() => onNavigate?.(route)}>
           <span className="cw-b"><Icon size={18} strokeWidth={highlight ? 2.2 : 1.8} aria-hidden="true" /></span>
@@ -26,6 +27,7 @@ export default function QuickLinks({ links = QUICK_LINKS, drafts = 0, onNavigate
           <ChevronRight className="cw-c cw-flip" size={18} strokeWidth={1.8} aria-hidden="true" />
         </button>
       ))}
+      </div>
     </section>
   );
 }

@@ -88,8 +88,10 @@ export default function ApplicationsPage({ user, onNavigate, demo, previewState 
         {preview && <div className="cw-sample">{t('company.ws.sampleBanner')}</div>}
         {header}
         <section className="cw-card cw-pj-listcard" aria-labelledby="cw-ap-pick-h">
-          <h2 id="cw-ap-pick-h" className="cw-ap-h2">{t('app.pick.title')}</h2>
-          <p className="cw-pf-muted" style={{ margin: '4px 0 14px' }}>{t('app.pick.sub')}</p>
+          <header className="cw-pj-cardhead">
+            <h2 id="cw-ap-pick-h" className="cw-ap-h2">{t('app.pick.title')}</h2>
+            <p className="cw-pf-muted">{t('app.pick.sub')}</p>
+          </header>
           {projects.status === 'loading' && previewState !== 'empty' ? <PickSkeleton /> : reviewable.length === 0 ? (
             <EmptyState icon={Inbox} title={t('app.pick.emptyTitle')} body={t('app.pick.emptyBody')} action={<button type="button" className="cw-btn ghost" onClick={() => go('/company/projects')}>{t('app.pick.toProjects')}</button>} />
           ) : (

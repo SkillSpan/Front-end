@@ -54,6 +54,12 @@
 .cw-pj-chip.on .cw-pj-chip-n { background: rgba(255,255,255,.16); color: #fff; }
 .cw-pj-count { padding: 12px 20px 4px; font-size: 12px; color: var(--cw-muted); }
 .cw-pj-rows { list-style: none; margin: 0; padding: 0 8px 8px; }
+/* A visible card header inside a list card (e.g. Applications ▸ "Choose a project").
+   The card itself has no padding (rows run edge to edge), so the header carries
+   the same inline inset as the row text (8px list + 12px row = 20px). */
+.cw-pj-cardhead { padding-block: 20px 12px; padding-inline: 20px; }
+.cw .cw-pj-cardhead .cw-pf-muted { margin: 4px 0 0; }
+.cw-pj-cardhead + .cw-pj-rows { padding-top: 0; }
 .cw-pj-rows > li + li { border-top: 1px solid var(--cw-line); }
 .cw .cw-pj-row { width: 100%; display: grid; grid-template-columns: minmax(0, 2.2fr) 150px 120px minmax(110px, 1fr) 20px; gap: 16px; align-items: center; padding: 14px 12px; border-radius: 12px; text-align: start; transition: background .15s; }
 .cw .cw-pj-row:hover { background: #F7FAFE; }
@@ -284,6 +290,7 @@
   .cw-pj-chips { padding: 0 14px 12px; }
   .cw-pj-count { padding: 10px 14px 2px; }
   .cw-pj-rows { padding: 0 4px 4px; }
+  .cw-pj-cardhead { padding-block: 18px 10px; padding-inline: 14px; }
   .cw .cw-pj-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'main go' 'state state' 'dl cap'; gap: 8px 12px; padding: 14px 10px; }
   .cw-pj-row-main { grid-area: main; }
   .cw-pj-row-state { grid-area: state; }

@@ -5,7 +5,6 @@ import { useOptionLabel } from './profileOptions';
 import { formatDay } from './profileFormat';
 import VerificationStatus from './VerificationStatus';
 import CompletenessCard from './CompletenessCard';
-import DocumentsCard from './DocumentsCard';
 import ReverificationNotice from './ReverificationNotice';
 import AccountNote from './AccountNote';
 import { logoUrl } from './companyProfileApi';
@@ -33,7 +32,7 @@ function Value({ field, value }) {
  * Organization Profile view (US-COMP-04 Scenario 1, AC-01/02/09).
  */
 export default function ProfileView({
-  profile, preview, previewState, flash, onDismissFlash, onEdit, onPick, onProfileChange, onNavigate, onReset,
+  profile, preview, previewState: _previewState, flash, onDismissFlash, onEdit, onPick, onProfileChange: _onProfileChange, onNavigate, onReset,
 }) {
   const { t, lang } = useCompanyI18n();
   const optionLabel = useOptionLabel();
@@ -146,13 +145,6 @@ export default function ProfileView({
               </section>
             );
           })}
-          <DocumentsCard
-            documents={profile.documents}
-            status={profile.verificationStatus}
-            preview={preview}
-            previewState={previewState}
-            onUploaded={(p) => onProfileChange?.(p)}
-          />
         </div>
         <aside className="cw-pf-col cw-pf-side">
           <CompletenessCard completeness={profile.completeness} onPick={onPick} />

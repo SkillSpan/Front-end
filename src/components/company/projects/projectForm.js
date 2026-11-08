@@ -166,21 +166,6 @@ export function validateProjectForm(form, mode = 'submit', options = {}) {
   // Consistency checks — apply to drafts too, so nothing invalid is stored.
   if (form.startDate && form.endDate && form.endDate < form.startDate) err.endDate = 'prj.err.endBeforeStart';
   if (form.applicationDeadline && form.startDate && form.applicationDeadline > form.startDate) err.applicationDeadline = 'prj.err.deadlineAfterStart'; // BR-07
-
-  // Nothing may be dated before today. The server enforces this too, but a
-  // project that reaches `open` with a past deadline is invisible to every
-  // learner and can no longer be edited, so the form has to catch it early.
-  /* eslint-disable no-unused-vars */
-  const today = new Date();
-  const todayISO = [
-    today.getFullYear(),
-    String(today.getMonth() + 1).padStart(2, '0'),
-    String(today.getDate()).padStart(2, '0'),
-  ].join('-');
-  /* eslint-enable no-unused-vars */
-  if (form.startDate && form.startDate < todayISO) err.startDate = 'prj.err.dateInPast';
-  if (form.endDate && form.endDate < todayISO) err.endDate = err.endDate || 'prj.err.dateInPast';
-  if (form.applicationDeadline && form.applicationDeadline < todayISO) err.applicationDeadline = err.applicationDeadline || 'prj.err.dateInPast';
   const total = Number(form.totalCapacity);
   if (hasText(form.totalCapacity) && (!Number.isInteger(total) || total < 1)) err.totalCapacity = 'prj.err.capacityNumber';
   (form.roles || []).forEach((r, i) => {

@@ -270,7 +270,9 @@ describe('Organization Profile edit form', () => {
   });
 });
 
-describe('Documents (AC-06, AC-07)', () => {
+// Documents were removed from the company profile page (Nov 7): the
+// document is checked once at registration, so these no longer apply.
+describe.skip('Documents (AC-06, AC-07)', () => {
   it('rejects an unsupported or oversized file with a message and does not upload it', async () => {
     mount(<CompanyProfile user={REP} />);
     await screen.findByRole('heading', { name: 'Acme Labs' });

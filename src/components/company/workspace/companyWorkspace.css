@@ -25,10 +25,10 @@
 }
 .cw[dir='rtl'], [dir='rtl'] .cw { font-family: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif; }
 .cw *, .cw *::before, .cw *::after { box-sizing: border-box; }
-:where(.cw-top, .cw-side, .cw-dash, .cw-pg) :is(h1, h2, h3, h4, p) { margin: 0; }
+:where(.cw-top, .cw-side, .cw-dash, .company-shell) :is(h1, h2, h3, h4, p) { margin: 0; }
 /* Resets only inside the new screens (zero specificity), so the existing
    Talent / Profile pages rendered inside the shell keep their own styles. */
-:where(.cw-top, .cw-side, .cw-dash, .cw-pg) button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
+:where(.cw-top, .cw-side, .cw-dash, .company-shell) button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
 .cw button:focus-visible, .cw a:focus-visible { outline: 2px solid #4C95FF; outline-offset: 2px; }
 .cw-ic { flex: none; display: block; }
 [dir='rtl'] .cw-flip { transform: scaleX(-1); }
@@ -56,6 +56,7 @@
 .cw-iconbtn .cw-dot { position: absolute; top: 6px; inset-inline-end: 6px; min-width: 16px; height: 16px; border-radius: 8px; background: var(--cw-amber); color: var(--cw-navy-950); font-size: 10px; font-weight: 700; display: grid; place-items: center; padding: 0 4px; border: 2px solid var(--cw-navy-950); line-height: 1; }
 .cw-menu-btn { display: none !important; }
 .cw-me { display: flex; align-items: center; gap: 10px; padding-inline-start: 6px; color: #8E9AC0; }
+.cw-um { margin-inline-start: 2px; }
 .cw-av { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#2C7BF2,#5B5BD6); color: #fff; font-weight: 600; font-size: 13px; display: grid; place-items: center; flex: none; }
 .cw-me .cw-n { color: #fff; font-size: 13px; font-weight: 500; line-height: 1.2; }
 .cw-me .cw-r { color: #8E9AC0; font-size: 12px; }
@@ -160,7 +161,7 @@
 .cw-qrow .cw-t { font-weight: 600; color: var(--cw-ink); font-size: 13.5px; }
 .cw-qrow .cw-s { color: var(--cw-muted); font-size: 12px; margin-top: 1px; }
 .cw-qrow .cw-c { margin-inline-start: auto; color: var(--cw-faint); }
-.cw .cw-qrow.hl { background: linear-gradient(120deg,#1667E0,#2F7BF0); border-color: transparent; }
+.cw .cw-qrow.hl { background: var(--cw-blue, #1667E0); border-color: transparent; }
 .cw .cw-qrow.hl:hover { filter: brightness(1.05); }
 .cw-qrow.hl .cw-b { background: rgba(255,255,255,.18); color: #fff; }
 .cw-qrow.hl .cw-t, .cw-qrow.hl .cw-c { color: #fff; } .cw-qrow.hl .cw-s { color: #D5E5FF; }
@@ -488,3 +489,9 @@
 /* Keep the sidebar truly fixed: the route fade-in's `both` fill leaves a transform on the wrapper, which would pin position:fixed to it. */
 .route-transition:has(.cw-app) { animation-fill-mode: backwards; }
 html:has(.cw-app), body:has(.cw-app) { overflow-x: clip; overflow-y: visible; }
+
+/* Company pages: show the page scrollbar (App.css hides it globally). */
+html:has(.company-shell), body:has(.company-shell) { scrollbar-width: thin; -ms-overflow-style: auto; scrollbar-color: #B8C7E0 transparent; }
+html:has(.company-shell)::-webkit-scrollbar, body:has(.company-shell)::-webkit-scrollbar { display: block; width: 10px; }
+html:has(.company-shell)::-webkit-scrollbar-thumb, body:has(.company-shell)::-webkit-scrollbar-thumb { background: #B8C7E0; border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+html:has(.company-shell)::-webkit-scrollbar-track { background: transparent; }

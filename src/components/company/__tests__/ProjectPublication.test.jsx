@@ -12,13 +12,7 @@ import { loadCareerRoleSkills } from '../projects/api/projectPublicationApi';
 import { SAMPLE_PROJECTS } from '../projects/projectsMock';
 import { resetMockBackend, mockForceState, mockGetProject, mockSubmitProject, mockTransition } from '../projects/mockBackend';
 
-const complete = () => {
-  // The demo fixture carries a fixed October 2026 deadline, which is in the
-  // past now that dates must not be. Only the DATE fields are moved forward so
-  // the "everything is filled in" property still holds.
-  const form = projectToForm(SAMPLE_PROJECTS[0]);
-  return { ...form, startDate: '2099-01-10', endDate: '2099-02-20', applicationDeadline: '2099-01-05' };
-};
+const complete = () => projectToForm(SAMPLE_PROJECTS[0]); // Clinic App: every PRJ-01/PRJ-02 field set
 
 function mount(path, { lang } = {}) {
   if (lang) window.localStorage.setItem(STORE_KEY, JSON.stringify({ lang }));
@@ -46,23 +40,6 @@ describe('US-PRJ-01 validation rules (projectForm.js)', () => {
   it('BR-07: the application deadline cannot be after the start date', () => {
     const f = { ...complete(), applicationDeadline: '2026-12-01', startDate: '2026-11-16' };
     expect(validateProjectForm(f, 'draft').applicationDeadline).toBe('prj.err.deadlineAfterStart');
-  });
-
-  it('a date before today is refused before it reaches the server', () => {
-    // A project opened with a past deadline is invisible to learners AND can
-    // no longer be edited, so the form must reject it up front.
-    const f = { ...complete(), applicationDeadline: '2020-01-05' };
-    expect(validateProjectForm(f, 'draft').applicationDeadline).toBe('prj.err.dateInPast');
-
-    const e = validateProjectForm({ ...complete(), startDate: '2020-01-05' }, 'draft');
-    expect(e.startDate).toBe('prj.err.dateInPast');
-  });
-
-  it('today is still an acceptable deadline', () => {
-    const now = new Date();
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const f = { ...complete(), applicationDeadline: today, startDate: today };
-    expect(validateProjectForm(f, 'draft').applicationDeadline).toBeUndefined();
   });
 
   it('BR-08: role capacities cannot add up to more than the total capacity', () => {

@@ -15,6 +15,7 @@ import { EvidenceProvider } from './components/evidence/EvidenceContext'
 const Login = lazy(() => import('./components/auth/Login'))
 const CompanyLogin = lazy(() => import('./components/company/CompanyLogin'))
 const CompanyForgotPassword = lazy(() => import('./components/company/CompanyForgotPassword'))
+const CompanySettings = lazy(() => import('./components/company/settings/CompanySettings'))
 const RegisterWizard = lazy(() => import('./components/auth/RegisterWizard'))
 const RoleChoice = lazy(() => import('./components/auth/RoleChoice'))
 const ForgotPasswordWizard = lazy(() => import('./components/auth/ForgotPasswordWizard'))
@@ -268,6 +269,18 @@ function CompanyPage({ view, demo, previewState, mode }) {
     if (view === 'team') return <TeamFormation {...sprint4} />
     if (view === 'applicants') return <ApplicationsPage {...sprint4} />
     if (view === 'application') return <ApplicationDetail {...sprint4} />
+    if (view === 'settings') {
+      return (
+        <CompanySettings
+          {...sprint4}
+          organization={organization}
+          onLogout={() => {
+            logout()
+            navigate('/company/login')
+          }}
+        />
+      )
+    }
     if (COMPANY_SOON_VIEWS.includes(view)) return <CompanyComingSoon onNavigate={navigate} />
     if (view === 'notifications') {
       return <CompanyNotifications user={user} onNavigate={navigate} demo={demo} previewState={previewState} />

@@ -113,6 +113,7 @@ export default function CompanyLayout({
           menuId="company-sidebar"
           onToggleMenu={() => setMenuOpen((v) => !v)}
           onNavigate={go}
+          onLogout={() => { setMenuOpen(false); setLogoutOpen(true); }}
         />
         <CompanySidebar
           id="company-sidebar"

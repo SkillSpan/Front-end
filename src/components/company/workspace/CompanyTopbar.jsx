@@ -1,19 +1,13 @@
-import { Building2, Bell, ChevronDown, Menu, X, BadgeCheck, Hourglass, ShieldX, RefreshCw, ShieldAlert } from 'lucide-react';
-import { usePreferences } from '../../../preferences/PreferencesContext';
+import { Building2, Bell, Menu, X, BadgeCheck, Hourglass, ShieldX, RefreshCw, ShieldAlert, Settings, LogOut } from 'lucide-react';
+import UserMenu from '../../common/UserMenu';
 import { useCompanyI18n } from '../useCompanyI18n';
 import SkillSpanMark from './SkillSpanMark';
 
-function initials(name) {
-  if (!name) return '?';
-  return name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
-}
-
 export default function CompanyTopbar({
   orgName, status, pageTitle, displayName, unread = 0,
-  menuOpen, onToggleMenu, onNavigate, menuId,
+  menuOpen, onToggleMenu, onNavigate, onLogout, menuId,
 }) {
   const { t, lang } = useCompanyI18n();
-  const { setLang } = usePreferences();
   const StatusIcon = { verified: BadgeCheck, rejected: ShieldX, reverification_pending: RefreshCw, reverification_required: ShieldAlert }[status] || Hourglass;
 
   return (
@@ -48,23 +42,24 @@ export default function CompanyTopbar({
 
       <div className="cw-sp" />
 
-      <button type="button" className="cw-lang" lang={lang === 'ar' ? 'en' : 'ar'} onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}>
-        {t('company.ws.langSwitch')}
-      </button>
 
       <button type="button" className="cw-iconbtn" aria-label={t('company.ws.notifications')} onClick={() => onNavigate?.('/company/notifications')}>
         <Bell size={18} strokeWidth={1.8} aria-hidden="true" />
         {unread > 0 && <span className="cw-dot">{unread}</span>}
       </button>
 
-      <div className="cw-me">
-        <div className="cw-av" aria-hidden="true">{initials(displayName)}</div>
-        <div>
-          <div className="cw-n">{displayName}</div>
-          <div className="cw-r">{t('company.ws.representative')}</div>
-        </div>
-        <ChevronDown className="cw-ic" size={16} strokeWidth={1.8} aria-hidden="true" />
-      </div>
+      <UserMenu
+        className="cw-um"
+        name={displayName}
+        role={t('company.ws.representative')}
+        closeKey={pageTitle}
+        menuLabel={lang === 'ar' ? 'قائمة الحساب' : 'Account menu'}
+        items={[
+          { key: 'profile', label: t('company.nav.profile'), Icon: Building2, onSelect: () => onNavigate?.('/company/profile') },
+          { key: 'settings', label: t('company.nav.settings'), Icon: Settings, onSelect: () => onNavigate?.('/company/settings') },
+          { key: 'logout', label: t('company.logout'), Icon: LogOut, danger: true, onSelect: () => onLogout?.() },
+        ]}
+      />
     </header>
   );
 }

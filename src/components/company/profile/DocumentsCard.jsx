@@ -93,6 +93,9 @@ function DocRow({ kind, required, verification, doc, preview, status, forced, on
     onDrop: (e) => { e.preventDefault(); setDrag(false); choose(e.dataTransfer?.files?.[0]); },
   };
 
+  // An approved document has done its job (the organization is verified):
+  // no replace action, so a verified company can't swap it afterwards.
+  const locked = doc?.status === 'approved';
   const errorText = error && t(`company.pf.doc.err.${error.code}`, {
     name: error.name, size: formatBytes(error.size, lang), mb: COMPANY_DOCUMENT_MAX_MB,
   });
@@ -149,6 +152,7 @@ function DocRow({ kind, required, verification, doc, preview, status, forced, on
               {t('company.pf.doc.download')}<span className="cw-vh"> — {t(`company.pf.doc.${kind}`)}</span>
             </button>
           )}
+          {!locked && (
           <button
             ref={browseRef}
             id={`pf-doc-${kind}`}
@@ -160,6 +164,7 @@ function DocRow({ kind, required, verification, doc, preview, status, forced, on
             <RefreshCw size={14} strokeWidth={2} aria-hidden="true" />
             {t('company.pf.doc.replace')}<span className="cw-vh"> — {t(`company.pf.doc.${kind}`)}</span>
           </button>
+          )}
         </div>
       ) : busy ? (
         <div className="cw-pf-file is-busy" role="status" aria-live="polite">
@@ -193,7 +198,7 @@ function DocRow({ kind, required, verification, doc, preview, status, forced, on
         </div>
       )}
 
-      <p className="cw-pf-doc-rules" id={rulesId}>{t('company.pf.doc.rules', { mb: COMPANY_DOCUMENT_MAX_MB })}</p>
+      {!locked && <p className="cw-pf-doc-rules" id={rulesId}>{t('company.pf.doc.rules', { mb: COMPANY_DOCUMENT_MAX_MB })}</p>}
 
       {pending && (
         <div className="cw-pf-pending">
@@ -222,7 +227,7 @@ function DocRow({ kind, required, verification, doc, preview, status, forced, on
           <span>{done}</span>
         </div>
       )}
-      {doc && !busy && (
+      {doc && !busy && !locked && (
         <p className="cw-pf-doc-hist"><History size={13} strokeWidth={1.8} aria-hidden="true" />{t('company.pf.doc.history')}</p>
       )}
     </div>

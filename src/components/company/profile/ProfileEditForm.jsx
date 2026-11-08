@@ -16,7 +16,6 @@ import { SAMPLE_422, SAMPLE_INVALID_VALUES } from './companyProfileMock';
 import ProfileField from './ProfileFields.jsx';
 import { errorText } from './profileOptions';
 import CompletenessCard from './CompletenessCard';
-import DocumentsCard from './DocumentsCard';
 import ReverificationNotice from './ReverificationNotice';
 import VerificationStatus from './VerificationStatus';
 import AccountNote from './AccountNote';
@@ -236,16 +235,6 @@ export default function ProfileEditForm({ profile, preview, previewState, onSave
               </fieldset>
             );
           })}
-
-          <DocumentsCard
-            documents={profile.documents}
-            status={profile.verificationStatus}
-            preview={preview}
-            previewState={previewState}
-            onUploaded={(p) => onProfileChange?.(p)}
-            focusKind={focusKey?.startsWith('doc:') ? focusKey.slice(4) : null}
-            inForm
-          />
 
           <div className="cw-pf-actions">
             <p className="cw-pf-muted">{dirty ? t('company.pf.unsaved') : t('company.pf.noChanges')}</p>
