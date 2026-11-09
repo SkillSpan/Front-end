@@ -15,6 +15,8 @@ const getCareerRoleSkills = vi.fn();
 const getSkillsMatrix = vi.fn();
 
 vi.mock('../../../api', () => ({
+  getSavedCareerRoles: vi.fn().mockResolvedValue({ data: [] }),
+  setCareerRoleSaved: vi.fn().mockResolvedValue({ data: { is_saved: true } }),
   getCareerRoles: (...a) => getCareerRoles(...a),
   getCareerRoleSkills: (...a) => getCareerRoleSkills(...a),
   getSkillsMatrix: (...a) => getSkillsMatrix(...a),

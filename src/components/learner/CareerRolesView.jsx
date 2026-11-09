@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getCareerRoleSkills, getCareerRoles, getSkillsMatrix, unwrapApiData } from "../../api";
+import { getCareerRoleSkills, getCareerRoles, getSkillsMatrix, getSavedCareerRoles, setCareerRoleSaved, unwrapApiData } from "../../api";
 // ── Mock Data ────────────────────────────────────────────────────────────────
 // ── Utility helpers ──────────────────────────────────────────────────────────
 function demandColor(level) {
@@ -440,6 +440,7 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
             </h2>
           </div>
           <button
+            disabled={role.isSaving}
             onClick={() => onSaveToggle(role.id)}
             className={`flex items-center gap-[6px] px-[14px] py-[8px] rounded-[10px] text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold transition-all shrink-0 ${
               role.isSaved
@@ -634,6 +635,8 @@ function RoleCard({ role, onSelect, onSaveToggle, requirements: loadedRequiremen
           </h3>
         </div>
         <button
+          disabled={role.isSaving}
+          aria-label={role.isSaved ? `Unsave ${role.title}` : `Save ${role.title}`}
           onClick={(e) => {
             e.stopPropagation();
             onSaveToggle(role.id);
@@ -1020,6 +1023,7 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                     View Details
                   </button>
                   <button
+                    disabled={role.isSaving}
                     onClick={() => onSaveToggle(role.id)}
                     className="px-[14px] py-[8px] rounded-[10px] text-[13px] font-['Inter:Medium',sans-serif] font-medium text-[#94a3b8] bg-[#f8f9fd] hover:bg-[rgba(239,68,68,0.06)] hover:text-[#ef4444] transition-colors border border-[#e8eaf0]"
                   >
@@ -1219,7 +1223,7 @@ function CompareView({ roles, onSelect }) {
     </div>
   );
 }
-export default function CareerRolesView({ initialRoles = null, onRoleSave, onSearch, searchDebounceMs = 300, pageSize = 15 }) {
+export default function CareerRolesView({ initialRoles = null, onSearch, searchDebounceMs = 300, pageSize = 15 }) {
   // One mapping, used by the initial props and by every server result. It was
   // duplicated inline (two identical 700-character expressions) which is how the
   // two copies drifted apart.
@@ -1239,8 +1243,7 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave, onSea
     version: role.version ?? role.role_version ?? null,
   });
 
-  const [roles, setRoles] = useState(() => (initialRoles ?? []).map(normalizeRole));
-  useEffect(() => { setRoles((initialRoles ?? []).map(normalizeRole)); }, [initialRoles]);
+  const roles = (initialRoles ?? []).map(normalizeRole);
   const [activeTab, setActiveTab] = useState("browse");
   const [selectedRoleId, setSelectedRoleId] = useState(null);
   const [filter, setFilter] = useState("All");
@@ -1256,12 +1259,60 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave, onSea
   // What the tabs render: server results once a search has run, otherwise the
   // list the workspace loaded on mount. Defined up here because selectRole
   // needs it to resolve the row that was clicked.
-  const visibleRoles = searchResults ?? roles;
-  const savedCount = roles.filter((r) => r.isSaved).length;
-  function toggleSave(id) {
-    setRoles((prev) => prev.map((r) => (r.id === id ? { ...r, isSaved: !r.isSaved } : r)));
-    const next = roles.find((r) => r.id === id);
-    if (onRoleSave && next) onRoleSave(id, !next.isSaved);
+  const [savedRoles, setSavedRoles] = useState([]);
+  const [savedLoaded, setSavedLoaded] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saveMessage, setSaveMessage] = useState("");
+  const [savingIds, setSavingIds] = useState(new Set());
+  const pendingSaves = useRef(new Set());
+  const [savedLoadAttempt, setSavedLoadAttempt] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const payload = unwrapApiData(await getSavedCareerRoles());
+        if (!Array.isArray(payload)) throw new Error("Invalid saved roles response");
+        if (!cancelled) {
+          setSavedRoles(payload.map(normalizeRole));
+          setSavedLoaded(true);
+        }
+      } catch {
+        if (!cancelled) setSaveError("Saved roles could not be loaded. Please retry.");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [savedLoadAttempt]);
+  // Saved state is independent of the current catalogue/search page.
+  const withSavedState = (role) => role && ({
+    ...role,
+    isSaved: savedRoles.some((r) => String(r.id) === String(role.id)),
+    isSaving: !savedLoaded || savingIds.has(String(role.id)),
+  });
+  const visibleRoles = (searchResults ?? roles).map(withSavedState);
+  const savedCount = savedRoles.length;
+  async function toggleSave(id) {
+    const key = String(id);
+    if (!savedLoaded || pendingSaves.current.has(key)) return;
+    const role = visibleRoles.find((r) => String(r.id) === key)
+      ?? savedRoles.find((r) => String(r.id) === key) ?? selectedRoleSnapshot;
+    if (!role || String(role.id) !== key) return;
+    const saved = !savedRoles.some((r) => String(r.id) === key);
+    pendingSaves.current.add(key);
+    setSavingIds(new Set(pendingSaves.current));
+    setSaveError("");
+    setSaveMessage("");
+    try {
+      await setCareerRoleSaved(id, saved);
+      setSavedRoles((prev) => saved
+        ? [...prev.filter((r) => String(r.id) !== key), role]
+        : prev.filter((r) => String(r.id) !== key));
+      setSaveMessage(saved ? "Role saved." : "Role removed from saved roles.");
+    } catch {
+      setSaveError("The role could not be updated. Please try again.");
+    } finally {
+      pendingSaves.current.delete(key);
+      setSavingIds(new Set(pendingSaves.current));
+    }
   }
   function selectRole(id) {
     setSelectedRoleId(id);
@@ -1349,10 +1400,11 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave, onSea
    * selected role from the results while its detail is open, the panel would
    * otherwise vanish mid-read.
    */
-  const selectedRole =
+  const selectedRole = selectedRoleId == null ? null : withSavedState(
     visibleRoles.find((r) => r.id === selectedRoleId) ??
     roles.find((r) => r.id === selectedRoleId) ??
-    selectedRoleSnapshot;
+    savedRoles.find((r) => r.id === selectedRoleId) ??
+    selectedRoleSnapshot);
 
   /*
    * Requirement + level map for EVERY CARD ON SCREEN.
@@ -1435,7 +1487,9 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave, onSea
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-[32px] pb-[32px]">
-        {roles.length === 0 ? (
+        {saveError && <div role="alert" className="mb-4 text-red-700">{saveError}{!savedLoaded && <button type="button" className="ml-2 underline" onClick={() => { setSaveError(""); setSavedLoadAttempt((n) => n + 1); }}>Retry saved roles</button>}</div>}
+        {saveMessage && <div role="status" className="mb-4 text-green-700">{saveMessage}</div>}
+        {roles.length === 0 && visibleRoles.length === 0 && savedRoles.length === 0 ? (
           // Previously this rendered nothing at all: the header and tabs stayed
           // up over a blank panel. A missing roles list is a "nothing to show
           // yet" state, not an error — say so instead of leaving the page empty.
@@ -1476,7 +1530,7 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave, onSea
           />
         ) : activeTab === "saved" ? (
           <SavedRolesView
-            roles={roles}
+            roles={savedRoles.map(withSavedState)}
             onSelect={(id) => {
               selectRole(id);
             }}
@@ -1484,7 +1538,7 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave, onSea
             onCompare={() => setActiveTab("compare")}
           />
         ) : (
-          <CompareView roles={roles} onSelect={selectRole} />
+          <CompareView roles={savedRoles.map(withSavedState)} onSelect={selectRole} />
         )}
       </div>
     </div>

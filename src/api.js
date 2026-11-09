@@ -637,6 +637,12 @@ export const getCareerRoles = ({ page, perPage, specializationId, search } = {})
 export const getCareerRoleById = (id) =>
   request(`/api/v1/career-roles/${id}`, { method: 'GET', withAuth: true });
 
+export const getSavedCareerRoles = () =>
+  request('/api/v1/saved-career-roles', { method: 'GET', withAuth: true, cache: false });
+
+export const setCareerRoleSaved = (id, saved) =>
+  request(`/api/v1/saved-career-roles/${id}`, { method: saved ? 'PUT' : 'DELETE', withAuth: true });
+
 export const getCareerRoleSkills = (id) =>
   request(`/api/v1/career-roles/${id}/skills`, { method: 'GET', withAuth: true });
 
