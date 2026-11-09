@@ -1,10 +1,6 @@
 import { applyToProject, withdrawApplication, getProject, getRecommendations, submitRecommendationFeedback, unwrapApiData } from "../../api";
 import { useEffect, useMemo, useState } from "react";
-
-const TYPE_EMOJI = {
-  "Practice Task": "🔧", "Simulation Project": "🧪", "Real Project": "🚀",
-  Assessment: "📝", Capstone: "🎯",
-};
+import { applicationStatusLabel } from "../../utils/projectMapping";
 
 function normalizeProject(raw) {
   const p = unwrapApiData(raw) || raw || {};
@@ -27,7 +23,6 @@ function normalizeProject(raw) {
     title: p.title ?? p.name ?? "Untitled project",
     description: p.description ?? "",
     type: p.type ?? p.project_type ?? "Real Project",
-    typeEmoji: TYPE_EMOJI[p.type ?? p.project_type] ?? "📌",
     difficulty: p.difficulty ?? "Not specified",
     matchScore: Number(p.match_score ?? p.matchScore ?? 0),
     estimatedHours: p.estimated_hours ?? p.estimatedHours ?? "Not specified",
@@ -36,13 +31,16 @@ function normalizeProject(raw) {
     workMode: p.work_mode ?? p.workMode ?? "Not specified",
     sponsor: p.organization?.title ?? p.organization?.name ?? "Not specified",
     sponsorRole: p.role ?? p.career_role?.title ?? "Not specified",
-    openSpots: p.capacity_state?.remaining ?? p.open_spots ?? null,
-    totalSpots: p.capacity ?? null,
+    openSpots: p.capacity_state?.seats_remaining ?? p.capacity_state?.remaining ?? p.open_spots ?? null,
+    totalSpots: p.capacity_state?.capacity ?? p.capacity ?? null,
     deadline: dates(p.application_deadline ?? p.deadline),
     objectives: Array.isArray(p.objectives) ? p.objectives : (typeof p.objectives === "string" ? p.objectives.split(/\r?\n/).filter(Boolean) : []),
     requirements,
     learningOutcomes: outcomes.map((o) => typeof o === "string" ? { skill: o, gain: "Not specified", impact: "Not specified" } : ({ skill: o.skill ?? o.name ?? o.title ?? "Learning outcome", gain: o.gain ?? o.outcome ?? "Not specified", impact: o.impact ?? "Not specified" })),
-    eligibilityNote: p.eligibility?.message ?? p.eligibility_reason ?? "Eligibility details were not provided by the server.",
+    // GET /projects/{id} sends eligibility: { eligible, reasons[], skill_failures[] }.
+    isEligible: p.eligibility?.eligible ?? null,
+    eligibilityNote: (Array.isArray(p.eligibility?.reasons) && p.eligibility.reasons.filter(Boolean).join(" "))
+      || p.eligibility?.message || p.eligibility_reason || "Eligibility details were not provided by the server.",
     phase: p.roadmap_phase ?? p.phase ?? "—",
     phaseName: p.roadmap_phase_name ?? p.phase_name ?? "",
     tags: p.tags ?? [],
@@ -53,9 +51,11 @@ function normalizeProject(raw) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATOMS
 // ═══════════════════════════════════════════════════════════════════════════════
+// eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function Sk({ w = "100%", h = 14, r = 8 }) {
   return <div className="shimmer" style={{ width: w, height: h, borderRadius: r }} />;
 }
+// eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function Bar({ pct, color, h = 5 }) {
   return (
     <div className="w-full rounded-full bg-[#f1f3fa] overflow-hidden" style={{ height: h }}>
@@ -86,7 +86,7 @@ function StatusPill({ status }) {
     Rejected: { bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.2)", dot: "#ef4444", text: "#ef4444" },
     Withdrawn: { bg: "rgba(148,163,184,0.08)", border: "rgba(148,163,184,0.2)", dot: "#94a3b8", text: "#94a3b8" },
   };
-  const c = cfg[status];
+  const c = cfg[status] ?? cfg.Submitted;
   return (
     <span
       className="inline-flex items-center gap-[5px] text-[12px] font-['Inter:Semi_Bold',sans-serif] font-semibold px-[10px] py-[4px] rounded-full border"
@@ -138,9 +138,6 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
 
         <div className="flex items-start gap-[16px]">
           {/* Icon */}
-          <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-[22px] shrink-0 bg-[rgba(59,139,255,0.08)] border border-[rgba(59,139,255,0.15)]">
-            {project.typeEmoji}
-          </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-[12px]">
               <div>
@@ -227,18 +224,19 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
             {/* Meta chips */}
             <div className="flex items-center gap-[8px] mt-[8px] flex-wrap">
               {[
-                { l: project.type, ic: "🔧" },
-                { l: project.difficulty, ic: "⚡" },
-                { l: project.estimatedHours, ic: "⏱" },
-                { l: project.estimatedDuration, ic: "📅" },
-                { l: project.workMode, ic: "💻" },
-                { l: `${project.openSpots} spots left`, ic: "👥" },
-              ].map((m) => (
+                { l: project.type },
+                { l: project.difficulty },
+                { l: project.estimatedHours },
+                { l: project.estimatedDuration },
+                { l: project.workMode },
+                { l: project.openSpots != null ? `${project.openSpots} spots left` : null },
+              ]
+                .filter((m, i, all) => m.l && m.l !== "Not specified" && all.findIndex((x) => x.l === m.l) === i)
+                .map((m) => (
                 <span
                   key={m.l}
                   className="flex items-center gap-[4px] text-[11px] font-['Inter:Regular',sans-serif] text-[#64748b] bg-[#f8f9fd] border border-[#eef0f8] px-[8px] py-[3px] rounded-full"
                 >
-                  <span>{m.ic}</span>
                   {m.l}
                 </span>
               ))}
@@ -252,17 +250,31 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
         {/* Left: main content */}
         <div className="flex-1 overflow-y-auto px-[32px] py-[24px] flex flex-col gap-[24px]">
           {/* Eligibility banner */}
-          <div className="flex items-start gap-[10px] bg-[rgba(5,150,105,0.06)] border border-[rgba(5,150,105,0.18)] rounded-[12px] px-[16px] py-[12px]">
-            <span className="text-[16px] mt-[1px]">✓</span>
-            <div>
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#059669] mb-[2px]">
-                You are eligible for this project
-              </p>
-              <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.5]">
-                {project.eligibilityNote}
-              </p>
+          {project.isEligible === false ? (
+            <div className="flex items-start gap-[10px] bg-[rgba(239,68,68,0.06)] border border-[rgba(239,68,68,0.18)] rounded-[12px] px-[16px] py-[12px]">
+              <span className="text-[16px] mt-[1px] text-[#ef4444]">✕</span>
+              <div>
+                <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#ef4444] mb-[2px]">
+                  You are not eligible for this project yet
+                </p>
+                <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.5]">
+                  {project.eligibilityNote}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-start gap-[10px] bg-[rgba(5,150,105,0.06)] border border-[rgba(5,150,105,0.18)] rounded-[12px] px-[16px] py-[12px]">
+              <span className="text-[16px] mt-[1px]">✓</span>
+              <div>
+                <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#059669] mb-[2px]">
+                  You are eligible for this project
+                </p>
+                <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.5]">
+                  {project.eligibilityNote}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* About */}
           <div>
@@ -399,7 +411,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
                 { l: "End", v: project.endDate },
                 { l: "Application deadline", v: project.deadline },
                 { l: "Work mode", v: project.workMode },
-                { l: "Capacity", v: `${project.openSpots} of ${project.totalSpots} spots open` },
+                { l: "Capacity", v: project.openSpots != null && project.totalSpots != null ? `${project.openSpots} of ${project.totalSpots} spots open` : "Not specified" },
                 { l: "Sponsor", v: project.sponsor },
               ].map((s) => (
                 <div key={s.l} className="bg-[#f8f9fd] border border-[#eef0f8] rounded-[10px] p-[10px]">
@@ -412,9 +424,6 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
 
           {/* Sponsor */}
           <div className="bg-white border border-[#e8eaf0] rounded-[12px] p-[16px] flex items-center gap-[14px]">
-            <div className="w-[42px] h-[42px] rounded-[12px] bg-[rgba(59,139,255,0.08)] border border-[rgba(59,139,255,0.12)] flex items-center justify-center text-[16px] shrink-0">
-              🏢
-            </div>
             <div>
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
                 {project.sponsor}
@@ -465,14 +474,15 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
 
           {/* Deadline urgency */}
           <div className="flex items-center gap-[8px] bg-[rgba(245,158,11,0.07)] border border-[rgba(245,158,11,0.2)] rounded-[10px] px-[12px] py-[10px]">
-            <span className="text-[14px]">⏰</span>
             <div>
               <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#f59e0b]">
                 Deadline: {project.deadline}
               </p>
-              <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-                {project.openSpots} spots remaining
-              </p>
+              {project.openSpots != null && (
+                <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
+                  {project.openSpots} spots remaining
+                </p>
+              )}
             </div>
           </div>
 
@@ -545,9 +555,6 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
           </button>
         </div>
         <div className="flex items-center gap-[8px]">
-          <div className="w-[36px] h-[36px] rounded-[10px] bg-[rgba(59,139,255,0.08)] border border-[rgba(59,139,255,0.15)] flex items-center justify-center text-[15px] shrink-0">
-            {project.typeEmoji}
-          </div>
           <div>
             <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Applying to</p>
             <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#0a0b14]">
@@ -739,9 +746,6 @@ function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
 
           {/* Project card */}
           <div className="bg-white border border-[#e8eaf0] rounded-[14px] p-[18px] flex items-start gap-[14px]">
-            <div className="w-[40px] h-[40px] rounded-[10px] bg-[rgba(59,139,255,0.08)] border border-[rgba(59,139,255,0.12)] flex items-center justify-center text-[16px] shrink-0">
-              {project.typeEmoji}
-            </div>
             <div className="flex-1">
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#0a0b14]">
                 {project.title}
@@ -834,18 +838,28 @@ function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // APPLICATION STATUS SCREEN
 // ═══════════════════════════════════════════════════════════════════════════════
-function AppStatusScreen({ project, status, onWithdraw, onBack }) {
+function AppStatusScreen({ project, status, application = null, onWithdraw, onBack }) {
+  // Dates come from the application record the server returned; a step the
+  // server has not dated yet reads "Pending" instead of an invented date.
+  const formatStepDate = (value) => {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  };
+  const submittedAt = formatStepDate(application?.submitted_at ?? application?.created_at);
+  const reviewedAt = formatStepDate(application?.reviewed_at);
+  const decidedAt = formatStepDate(application?.decided_at ?? application?.decision_at);
   const timeline = [
-    { label: "Application submitted", date: "22 Sep 2026, 14:32", done: true, active: false },
+    { label: "Application submitted", date: submittedAt ?? "Pending", done: true, active: false },
     {
       label: "Under review",
-      date: status !== "Submitted" ? "23 Sep 2026" : "Pending",
+      date: status !== "Submitted" ? reviewedAt ?? "Pending" : "Pending",
       done: status !== "Submitted",
       active: status === "Under Review",
     },
     {
       label: "Decision",
-      date: ["Accepted", "Rejected"].includes(status) ? "25 Sep 2026" : "Pending",
+      date: ["Accepted", "Rejected"].includes(status) ? decidedAt ?? "Pending" : "Pending",
       done: ["Accepted", "Rejected"].includes(status),
       active: false,
     },
@@ -880,9 +894,6 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
           {/* Status hero */}
           {status === "Submitted" && (
             <div className="bg-[rgba(59,139,255,0.05)] border border-[rgba(59,139,255,0.15)] rounded-[16px] p-[22px] flex items-start gap-[14px]">
-              <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(59,139,255,0.12)] border border-[rgba(59,139,255,0.2)] flex items-center justify-center text-[18px] shrink-0">
-                📤
-              </div>
               <div>
                 <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#3b8bff] mb-[4px]">
                   Application submitted successfully
@@ -904,9 +915,6 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
                 style={{ background: "radial-gradient(circle,#059669,transparent 70%)" }}
               />
               <div className="relative flex items-start gap-[14px]">
-                <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(5,150,105,0.2)] border border-[rgba(5,150,105,0.3)] flex items-center justify-center text-[18px] shrink-0">
-                  🎉
-                </div>
                 <div>
                   <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#34d399] mb-[4px]">
                     Congratulations — you've been accepted!
@@ -921,9 +929,6 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
           )}
           {status === "Rejected" && (
             <div className="bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.15)] rounded-[16px] p-[22px] flex items-start gap-[14px]">
-              <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.2)] flex items-center justify-center text-[18px] shrink-0">
-                📋
-              </div>
               <div>
                 <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#ef4444] mb-[4px]">
                   Application not accepted this time
@@ -937,9 +942,6 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
           )}
           {status === "Under Review" && (
             <div className="bg-[rgba(245,158,11,0.05)] border border-[rgba(245,158,11,0.15)] rounded-[16px] p-[22px] flex items-start gap-[14px]">
-              <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(245,158,11,0.12)] border border-[rgba(245,158,11,0.2)] flex items-center justify-center text-[18px] shrink-0">
-                🔍
-              </div>
               <div>
                 <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#f59e0b] mb-[4px]">
                   Your application is under review
@@ -954,9 +956,6 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
 
           {/* Project */}
           <div className="bg-white border border-[#e8eaf0] rounded-[12px] p-[16px] flex items-center gap-[12px]">
-            <div className="w-[36px] h-[36px] rounded-[9px] bg-[rgba(59,139,255,0.08)] border border-[rgba(59,139,255,0.12)] flex items-center justify-center text-[14px] shrink-0">
-              {project.typeEmoji}
-            </div>
             <div className="flex-1 min-w-0">
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14] truncate">
                 {project.title}
@@ -966,7 +965,7 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
               </p>
             </div>
             <div className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] shrink-0">
-              Ref #APP-20260922
+              {application?.id ?? application?.application_id ? `Ref #${application?.id ?? application?.application_id}` : null}
             </div>
           </div>
 
@@ -1077,9 +1076,6 @@ function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
         <div className="h-[4px] bg-[#ef4444]" />
         <div className="p-[28px] flex flex-col gap-[18px]">
           <div className="flex items-start gap-[12px]">
-            <div className="w-[42px] h-[42px] rounded-[12px] bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.15)] flex items-center justify-center text-[18px] shrink-0">
-              ⚠
-            </div>
             <div>
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#0a0b14] mb-[4px]">
                 Withdraw your application?
@@ -1140,12 +1136,13 @@ function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
 // WITHDRAWN STATE
 // ═══════════════════════════════════════════════════════════════════════════════
 function WithdrawnScreen({ project, onBack }) {
+  // The moment this screen opens is the moment the server confirmed the withdrawal.
+  const [withdrawnAt] = useState(() =>
+    new Date().toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+  );
   return (
     <div className="flex flex-col h-full overflow-hidden items-center justify-center px-[32px] py-[32px]">
       <div className="max-w-[520px] w-full flex flex-col items-center text-center gap-[20px]">
-        <div className="w-[72px] h-[72px] rounded-[20px] bg-[#f1f3fa] border border-[#e8eaf0] flex items-center justify-center text-[28px]">
-          📤
-        </div>
         <div>
           <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[20px] text-[#0a0b14] mb-[6px]">
             Application withdrawn
@@ -1154,7 +1151,7 @@ function WithdrawnScreen({ project, onBack }) {
             Your application to{" "}
             <strong className="font-['Inter:Semi_Bold',sans-serif] text-[#0a0b14]">{project.title}</strong> has been
             withdrawn. This has been recorded on{" "}
-            <strong className="font-['Inter:Semi_Bold',sans-serif]">22 Sep 2026 at 15:04</strong>. You may re-apply if
+            <strong className="font-['Inter:Semi_Bold',sans-serif]">{withdrawnAt}</strong>. You may re-apply if
             spots become available before the deadline.
           </p>
         </div>
@@ -1180,6 +1177,7 @@ function WithdrawnScreen({ project, onBack }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // FAILURE STATES
 // ═══════════════════════════════════════════════════════════════════════════════
+// eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function IneligibleScreen({ project, onBack }) {
   return (
     <div className="flex flex-col h-full overflow-hidden items-center justify-center px-[32px] py-[32px]">
@@ -1187,9 +1185,6 @@ function IneligibleScreen({ project, onBack }) {
         <div className="h-[4px] bg-[#ef4444]" />
         <div className="p-[28px] flex flex-col gap-[18px]">
           <div className="flex items-start gap-[12px]">
-            <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.15)] flex items-center justify-center text-[20px] shrink-0">
-              🚫
-            </div>
             <div>
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#ef4444] mb-[4px]">
                 Not eligible for this project
@@ -1244,6 +1239,7 @@ function IneligibleScreen({ project, onBack }) {
     </div>
   );
 }
+// eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function DuplicateScreen({ project, onViewStatus, onBack }) {
   return (
     <div className="flex flex-col h-full overflow-hidden items-center justify-center px-[32px] py-[32px]">
@@ -1251,9 +1247,6 @@ function DuplicateScreen({ project, onViewStatus, onBack }) {
         <div className="h-[4px] bg-[#f59e0b]" />
         <div className="p-[28px] flex flex-col gap-[18px]">
           <div className="flex items-start gap-[12px]">
-            <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(245,158,11,0.1)] border border-[rgba(245,158,11,0.2)] flex items-center justify-center text-[20px] shrink-0">
-              ⚠
-            </div>
             <div>
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#f59e0b] mb-[4px]">
                 You already have an active application
@@ -1268,10 +1261,10 @@ function DuplicateScreen({ project, onViewStatus, onBack }) {
           <div className="bg-[rgba(245,158,11,0.05)] border border-[rgba(245,158,11,0.15)] rounded-[10px] p-[14px] flex items-center justify-between">
             <div>
               <p className="text-[12px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14] mb-[1px]">
-                Application #APP-20260915
+                {project.application_id ? `Application #${project.application_id}` : "Active application"}
               </p>
               <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-                Submitted 15 Sep 2026 · Under Review
+                Under Review
               </p>
             </div>
             <StatusPill status="Under Review" />
@@ -1296,6 +1289,7 @@ function DuplicateScreen({ project, onViewStatus, onBack }) {
     </div>
   );
 }
+// eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function ExpiredFullScreen({ project, variant, onBack }) {
   const isExpired = variant === "expired";
   return (
@@ -1304,9 +1298,6 @@ function ExpiredFullScreen({ project, variant, onBack }) {
         <div className="h-[4px] bg-[#94a3b8]" />
         <div className="p-[28px] flex flex-col gap-[18px]">
           <div className="flex items-start gap-[12px]">
-            <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(148,163,184,0.1)] border border-[rgba(148,163,184,0.2)] flex items-center justify-center text-[20px] shrink-0">
-              {isExpired ? "🔒" : "👥"}
-            </div>
             <div>
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#64748b] mb-[4px]">
                 {isExpired ? "Application period has closed" : "Project is fully booked"}
@@ -1355,6 +1346,7 @@ export default function ProjectDetailsView({ projectId, onBack }) {
   useEffect(() => {
     let active = true;
     if (!projectId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset missing-id error
       setLoadError("No project was selected for details.");
       setLoadingProject(false);
       return () => { active = false; };
@@ -1372,6 +1364,7 @@ export default function ProjectDetailsView({ projectId, onBack }) {
   const [appStatus, setAppStatus] = useState("Submitted");
   const [applicationData, setApplicationData] = useState({});
   const [activeApplicationId, setActiveApplicationId] = useState(null);
+  const [submittedApplication, setSubmittedApplication] = useState(null);
   const [recommendationId, setRecommendationId] = useState(null);
   const [recState, setRecState] = useState("default");
   const [feedbackError, setFeedbackError] = useState("");
@@ -1422,8 +1415,9 @@ export default function ProjectDetailsView({ projectId, onBack }) {
             applicationData={applicationData}
             onConfirm={(application) => {
               setActiveApplicationId(application?.id ?? application?.application_id ?? application?.application?.id ?? null);
+              setSubmittedApplication(application?.application ?? application ?? null);
               setScreen("app-status");
-              setAppStatus(application?.status ?? "Submitted");
+              setAppStatus(applicationStatusLabel(application?.status));
             }}
             onBack={() => setScreen("apply-form")}
           />
@@ -1433,6 +1427,7 @@ export default function ProjectDetailsView({ projectId, onBack }) {
           <AppStatusScreen
             project={project}
             status={appStatus}
+            application={submittedApplication}
             onWithdraw={() => setScreen("withdraw-confirm")}
             onBack={() => setScreen("details")}
           />

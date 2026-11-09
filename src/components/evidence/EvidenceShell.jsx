@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Loader2, Info } from 'lucide-react';
 import AppLayout from '../dashboard/AppLayout';
 import { useAuth } from '../auth/AuthContext';
@@ -11,12 +11,14 @@ import './evidence.css';
 // sidebar + top bar) used by the Dashboard / Skill Matrix / Career Roles.
 export default function EvidenceShell({ children }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const active = pathname.startsWith('/record') ? 'record' : 'evidence';
   const { authUser, logout } = useAuth();
-  const { source, loadError, reload } = useEvidence();
+  const { source, reload } = useEvidence();
 
   return (
     <AppLayout
-      active="evidence"
+      active={active}
       user={authUser}
       onLogout={() => signOutToLanding(navigate, logout)}
       onNavigate={(key) => { if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key]); }}
@@ -27,10 +29,7 @@ export default function EvidenceShell({ children }) {
         {source === 'preview' && (
           <div className="mx-auto mb-4 flex max-w-[1180px] items-center gap-2 rounded-lg border border-[#d9e5ff] bg-[#f5f8ff] px-3.5 py-2.5 text-[11px] text-[#344054]">
             <Info size={14} className="shrink-0 text-[#2f5bea]" />
-            <span className="flex-1">
-              {loadError ? `Couldn't load your evidence (${loadError}). ` : 'No evidence returned by the API yet. '}
-              No preview records are shown. Changes require a successful server response.
-            </span>
+            <span className="flex-1">Couldn't load your evidence.</span>
             <button type="button" onClick={reload} className="font-semibold text-[#2f5bea] hover:underline">Retry</button>
           </div>
         )}

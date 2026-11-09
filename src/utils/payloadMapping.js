@@ -7,7 +7,7 @@
 /**
  * Maps the accumulated individual-registration wizard state
  * (RegisterStep1 + RegisterStep2 + RegisterStep3) to the body expected by
- * POST /api/auth/register.
+ * POST /api/v1/auth/register.
  *
  * Mapping (per backend contract review):
  *   fullName        -> name
@@ -43,23 +43,20 @@ export function buildRegisterPayload(registerData) {
  * (CompanyStep1..CompanyStep4) to a multipart/form-data FormData instance
  * for POST /api/auth/register/organization.
  *
- * NOTE ON ASSUMPTIONS (flag to backend if any of these field names are
- * wrong - see README "Open backend-contract questions"):
- *   - administrator_name         <- CompanyStep1 "Administrator Name"
- *   - organization_contact_email <- CompanyStep1 email (the account's own
- *                                    email, never a hardcoded placeholder)
- *   - phone
- *   - password / password_confirmation
- *   - organization_name          <- CompanyStep2 "Company Name"
- *   - organization_type          <- CompanyStep2, restricted to
- *                                    company | university | training_partner
- *   - organization_industry      <- CompanyStep2 "Industry" (kept distinct
- *                                    from organization_type)
- *   - organization_size, website, description
- *   - country, city, address, postal_code
- *   - proof_file                 <- CompanyStep3 required document (actual
+ * Field names follow RegisterOrganizationRequest on the backend. Every
+ * organization detail is sent under its `organization_` name; the backend
+ * still reads the old unprefixed names as a fallback, but only the prefixed
+ * ones are the contract.
+ *   - name / email / phone        <- CompanyStep1 administrator account
+ *   - organization_contact_email  <- the account's own email
+ *   - organization_contact_phone  <- the account's own phone
+ *   - organization_name / organization_type / organization_industry
+ *   - organization_company_size, organization_website,
+ *     organization_description, organization_country, organization_city,
+ *     organization_address, organization_postal_code
+ *   - proof_file                  <- CompanyStep3 required document (actual
  *                                    File object, not just its name)
- *   - additional_document        <- CompanyStep3 optional document
+ *   - additional_document         <- CompanyStep3 optional document
  *   - terms_accepted / privacy_accepted <- CompanyStep4
  */
 export function buildOrganizationFormData(companyData) {
@@ -87,26 +84,23 @@ export function buildOrganizationFormData(companyData) {
 
   const formData = new FormData();
 
-  // Backend requires both a top-level administrator `name` and a plain
-  // `email` field for validation, while still preserving the established
-  // organization_contact_email alias used elsewhere in the contract.
   formData.append('name', administratorName || '');
-  formData.append('administrator_name', administratorName || '');
   formData.append('email', email || '');
-  formData.append('organization_contact_email', email || '');
   formData.append('phone', phone || '');
   formData.append('password', password || '');
   formData.append('password_confirmation', confirmPassword || '');
+  formData.append('organization_contact_email', email || '');
+  formData.append('organization_contact_phone', phone || '');
   formData.append('organization_name', companyName || '');
   formData.append('organization_type', organizationType || '');
   formData.append('organization_industry', industry || '');
-  formData.append('organization_size', companySize || '');
-  formData.append('website', website || '');
-  formData.append('description', companyDescription || '');
-  formData.append('country', country || '');
-  formData.append('city', city || '');
-  formData.append('address', address || '');
-  formData.append('postal_code', postalCode || '');
+  formData.append('organization_company_size', companySize || '');
+  formData.append('organization_website', website || '');
+  formData.append('organization_description', companyDescription || '');
+  formData.append('organization_country', country || '');
+  formData.append('organization_city', city || '');
+  formData.append('organization_address', address || '');
+  formData.append('organization_postal_code', postalCode || '');
   formData.append('terms_accepted', agreedTerms ? '1' : '0');
   formData.append('privacy_accepted', agreedPrivacy ? '1' : '0');
 
@@ -130,7 +124,7 @@ export function buildOrganizationFormData(companyData) {
  *   `studentId`  -> student_university_number
  *   `specialization`             -> specialization          (free text)
  *   `academicLevel`              -> academic_level
- *   `expectedGraduation`         -> expected_graduation     (YYYY-MM-DD)
+ *   `expectedGraduation`         -> expected_graduation     (year, integer)
  *   `bio`                        -> bio
  *   `isPublic` (bool)            -> visibility (public|organization_only|private)
  */
@@ -148,7 +142,7 @@ export function buildProfilePayload({
     student_university_number: studentId || '',
     specialization: specialization || '',
     academic_level: academicLevel || '',
-    expected_graduation: expectedGraduation || '',
+    expected_graduation: expectedGraduation ? Number(expectedGraduation) : null,
     bio: bio || '',
     visibility: isPublic ? 'public' : 'private',
   };

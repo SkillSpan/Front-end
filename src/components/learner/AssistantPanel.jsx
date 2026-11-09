@@ -812,14 +812,14 @@ export default function AssistantPanel({ onClose }) {
   const [messages, setMessages] = useState([PRIVACY_MSG, ...(DEMO_MODE ? WELCOME_MSGS : [])]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [scenario, setScenario] = useState(DEMO_MODE ? "welcome" : "live");
+  const [_scenario, setScenario] = useState(DEMO_MODE ? "welcome" : "live");
   const [showSuggested, setShowSuggested] = useState(true);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
-  function applyScenario(key) {
+  function _applyScenario(key) {
     setScenario(key);
     const s = SCENARIOS.find((x) => x.key === key);
     if (!s) return;
@@ -1020,3 +1020,4 @@ export default function AssistantPanel({ onClose }) {
    </div>
   );
 }
+

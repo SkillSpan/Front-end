@@ -6,6 +6,7 @@ import { usePreferences } from "../../preferences/PreferencesContext";
 import { SUPPORTED_LANGUAGES } from "../../i18n/messages";
 import { useI18n } from "../../i18n/useI18n";
 import "./profile-settings.css";
+import "./navy-theme.css";
 
 const THEME_COPY = {
   light: "settings.light",
@@ -14,7 +15,7 @@ const THEME_COPY = {
 };
 
 function ThemeCard({ value, active, onSelect }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   return (
     <button
       type="button"
@@ -27,7 +28,7 @@ function ThemeCard({ value, active, onSelect }) {
         <span className="ps-theme-preview-card" />
         <span className="ps-theme-preview-card" />
       </span>
-      <span className="ps-theme-name">{t(THEME_COPY[value])}</span>
+      <span className="ps-theme-name">{value === "navy" ? (lang === "ar" ? "كحلي" : "Navy") : t(THEME_COPY[value])}</span>
       {active && <span className="ps-theme-check" aria-hidden="true">✓</span>}
     </button>
   );

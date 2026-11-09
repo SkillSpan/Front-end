@@ -14,7 +14,21 @@ import {
   getNotifications,
   unwrapApiData,
 } from '../../api';
+import { isLearnerEvidence } from '../evidence/lib/evidenceApi';
 import './Dashboard.css';
+
+// Roadmap actions carry the phase as a number or as the phase key the
+// backend uses ("foundations", "core_skills", …); either way the dashboard
+// needs its 1-based position.
+const PHASE_ORDER = ['foundations', 'core_skills', 'applied_practice', 'career_readiness'];
+function phaseNumber(phase) {
+  if (phase == null || phase === '') return null;
+  const n = Number(phase);
+  if (Number.isFinite(n) && n > 0) return n;
+  const key = String(phase).trim().toLowerCase().replace(/[\s-]+/g, '_');
+  const i = PHASE_ORDER.findIndex((name) => key === name || key.startsWith(name));
+  return i >= 0 ? i + 1 : null;
+}
 
 function ReadinessRing({ value = 0 }) {
   const size = 130;
@@ -91,14 +105,14 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
     activeProjectsNote: '0 active applications',
     skillsAssessed: 0,
     skillsAssessedTotal: 24,
-    roadmapPhase: 'Phase 1',
-    roadmapPhaseNote: 'Phase 1 of 4',
+    roadmapPhase: '0%',
+    roadmapPhaseNote: 'No roadmap yet',
     recordItems: 0,
     recordItemsNote: '0 verified',
     nextAction: {
       title: 'Complete Baseline Assessment',
       description: 'Take the assessment to evaluate your skills, generate your roadmap, and calculate readiness.',
-      tags: ['Skill Evaluation', 'Roadmap', 'Score +8pts'],
+      tags: ['Skill Evaluation', 'Roadmap'],
       target: 'skill-assessment',
       buttonLabel: 'Start Assessment →',
     },
@@ -149,7 +163,9 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       const intelligence = intelRes.status === 'fulfilled' ? unwrapApiData(intelRes.value) : null;
       const recs = recsRes.status === 'fulfilled' ? extractList(recsRes.value) : [];
       const projects = projectsRes.status === 'fulfilled' ? extractList(projectsRes.value) : [];
-      const evidence = evidenceRes.status === 'fulfilled' ? extractList(evidenceRes.value) : [];
+      // Assessment results come back from the evidence endpoint too; only what
+      // the learner submitted counts as a record item.
+      const evidence = evidenceRes.status === 'fulfilled' ? extractList(evidenceRes.value).filter(isLearnerEvidence) : [];
       const apps = appsRes.status === 'fulfilled' ? extractList(appsRes.value) : [];
       const skillsMatrix = skillsRes.status === 'fulfilled' ? extractList(skillsRes.value) : [];
       const unreadVal = unreadRes.status === 'fulfilled' ? unwrapApiData(unreadRes.value) : null;
@@ -215,7 +231,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       let nextAction = {
         title: 'Complete Baseline Assessment',
         description: 'Take the assessment to evaluate your skills, generate your personalized roadmap, and calculate readiness.',
-        tags: ['Skill Evaluation', 'Roadmap', 'Score +8pts'],
+        tags: ['Skill Evaluation', 'Roadmap'],
         target: 'skill-assessment',
         buttonLabel: 'Start Assessment →',
       };
@@ -223,11 +239,13 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       if (nextActionItem) {
         let target = 'career-journey';
         let buttonLabel = 'View Roadmap →';
+        // RoadmapAction::TYPES: assessment | resource | practice |
+        // simulated_project | real_project.
         const actType = String(nextActionItem.type ?? '').toLowerCase();
-        if (actType.includes('assessment') || nextActionItem.target_skill_id) {
+        if (actType === 'assessment') {
           target = 'skill-assessment';
           buttonLabel = 'Start Assessment →';
-        } else if (actType.includes('project') || actType.includes('simulation')) {
+        } else if (actType === 'practice' || actType === 'simulated_project' || actType === 'real_project') {
           target = 'projects';
           buttonLabel = 'Explore Projects →';
         }
@@ -237,7 +255,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
           tags = nextActionItem.completion_criteria.slice(0, 3);
         } else {
           if (nextActionItem.type) tags.push(nextActionItem.type.replace(/_/g, ' '));
-          if (nextActionItem.phase) tags.push(`Phase ${nextActionItem.phase}`);
+          if (phaseNumber(nextActionItem.phase)) tags.push(`Phase ${phaseNumber(nextActionItem.phase)}`);
           if (nextActionItem.estimated_hours) tags.push(`${nextActionItem.estimated_hours}h estimated`);
         }
 
@@ -251,18 +269,15 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       }
 
       // Roadmap phase & progress
-      let roadmapPhaseDisplay = '35%';
-      let roadmapPhaseNote = 'Phase 2 of 4';
+      let roadmapPhaseDisplay = '0%';
+      let roadmapPhaseNote = 'No roadmap yet';
       if (actions.length > 0) {
         const completedActions = actions.filter((a) => a.status === 'completed').length;
         const pct = Math.round((completedActions / actions.length) * 100);
-        const curPhase = nextActionItem?.phase || (completedActions > 0 ? actions[Math.min(completedActions, actions.length - 1)]?.phase : 1) || 1;
-        const maxPhase = Math.max(...actions.map((a) => a.phase || 1), 4);
+        const curPhase = phaseNumber(nextActionItem?.phase) || (completedActions > 0 ? phaseNumber(actions[Math.min(completedActions, actions.length - 1)]?.phase) : 1) || 1;
+        const maxPhase = Math.max(...actions.map((a) => phaseNumber(a.phase) || 1), 4);
         roadmapPhaseDisplay = `${pct}%`;
         roadmapPhaseNote = `Phase ${curPhase} of ${maxPhase}`;
-      } else if (score > 0) {
-        roadmapPhaseDisplay = `${Math.min(100, Math.round(score * 0.8))}%`;
-        roadmapPhaseNote = 'Phase 2 of 4';
       }
 
       // 6. Skill Gaps (from Intelligence)
@@ -282,14 +297,6 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
             isCritical: Boolean(gap.is_critical),
           };
         });
-      } else {
-        // Fallback default skills for visual display when no gaps returned
-        mappedGaps = [
-          { name: 'Python', level: '3/4', pct: 75, isCritical: true },
-          { name: 'React', level: '2/3', pct: 66, isCritical: false },
-          { name: 'SQL', level: '2/3', pct: 60, isCritical: false },
-          { name: 'Git & CI/CD', level: '1/2', pct: 50, isCritical: false },
-        ];
       }
 
       // 7. Recommended Projects (prefer stored recommendations, fallback to catalog)
@@ -311,8 +318,8 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
               code,
               title: p.title || 'Project',
               company: p.organization?.title || p.organization?.name || 'SkillSpan Partner',
-              duration: p.duration_days ? `${Math.round(p.duration_days / 7)} weeks` : (p.schedule || '4 weeks'),
-              match: Math.round(Number(r.score ?? 85)),
+              duration: p.duration_days ? `${Math.round(p.duration_days / 7)} weeks` : (p.schedule || ''),
+              match: r.score != null ? Math.round(Number(r.score)) : null,
               color: colors[i % colors.length],
             };
           });
@@ -331,44 +338,11 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
             code,
             title: p.title || 'Project',
             company: p.organization?.title || p.organization?.name || (p.type === 'simulation' ? 'SkillSpan Simulation' : 'Partner Project'),
-            duration: p.duration_days ? `${Math.round(p.duration_days / 7)} weeks` : (p.schedule || '4 weeks'),
-            match: Math.round(Number(p.match_score ?? (88 - i * 14))),
+            duration: p.duration_days ? `${Math.round(p.duration_days / 7)} weeks` : (p.schedule || ''),
+            match: p.match_score != null ? Math.round(Number(p.match_score)) : null,
             color: colors[i % colors.length],
           };
         });
-      }
-
-      // Default presentation when catalog is empty
-      if (mappedProjects.length === 0) {
-        mappedProjects = [
-          {
-            id: 1,
-            code: 'TE',
-            title: 'Customer Analytics Dashboard',
-            company: 'TechCorp · 4 weeks',
-            duration: '4 weeks',
-            match: 88,
-            color: 'linear-gradient(135deg, rgb(59, 139, 255) 0%, rgb(124, 58, 237) 100%)',
-          },
-          {
-            id: 2,
-            code: 'SK',
-            title: 'E-commerce REST API',
-            company: 'SkillSpan · 3 weeks',
-            duration: '3 weeks',
-            match: 74,
-            color: 'linear-gradient(135deg, rgb(5, 150, 105) 0%, rgb(16, 185, 129) 100%)',
-          },
-          {
-            id: 3,
-            code: 'DA',
-            title: 'ML Sentiment Analysis',
-            company: 'DataLabs · 6 weeks',
-            duration: '6 weeks',
-            match: 61,
-            color: 'linear-gradient(135deg, rgb(245, 158, 11) 0%, rgb(234, 88, 12) 100%)',
-          },
-        ];
       }
 
       // 8. Notifications
@@ -508,7 +482,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
         </div>
       </div>
 
-      {/* Stats Row: 4 Connected Cards */}
+      {/* Stats Row */}
       <div className="dash-stats-row motion-stagger">
         <div
           className="dash-stat-card"
@@ -638,9 +612,9 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
                 </span>
                 <div className="proj-info">
                   <div className="p-title">{p.title}</div>
-                  <div className="p-sub">{p.company} · {p.duration}</div>
+                  <div className="p-sub">{[p.company, p.duration].filter(Boolean).join(' · ')}</div>
                 </div>
-                <span className="proj-match">{p.match}%</span>
+                {p.match != null && <span className="proj-match">{p.match}%</span>}
               </div>
             ))
           ) : (

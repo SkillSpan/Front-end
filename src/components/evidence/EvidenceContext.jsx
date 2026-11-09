@@ -95,9 +95,11 @@ export function EvidenceProvider({ children }) {
         try {
           const created = await sendEvidence({
             skillId: data.skillId,
+            type: data.type,
             url: data.url,
             file: data.file || data.evidence_file,
             description: data.description,
+            source: data.source,
           });
           item = { ...local, ...definedOnly(created), status: (created && created.status) || "pending" };
         } catch (err) {

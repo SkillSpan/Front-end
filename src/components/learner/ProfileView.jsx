@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getProfile, updateProfile, uploadProfileAvatar, deleteProfileAvatar, fetchProfileAvatarUrl, unwrapApiData } from "../../api";
 import { useAuth } from "../auth/AuthContext";
 import { useI18n } from "../../i18n/useI18n";
+import { displayName } from "../../utils/displayName";
+import { formatEnum } from "../../utils/formatEnum";
 import "./profile-settings.css";
 
 const VISIBILITY = ["public", "organization_only", "private"];
@@ -46,15 +48,17 @@ function draftFrom(profile) {
   return next;
 }
 
-function Field({ label, value, editing, onChange, type = "text", placeholder, hint }) {
+function Field({ label, value, editing, onChange, type = "text", placeholder, hint, format = (v) => v }) {
+  const inputId = `profile-${String(label).toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
     <div className="ps-field">
-      <label className="ps-label" htmlFor={`profile-${label}`}>
+      <label className="ps-label" htmlFor={editing ? inputId : undefined}>
         {label}
       </label>
       {editing ? (
         <input
-          id={`profile-${label}`}
+          id={inputId}
+          name={inputId}
           className="ps-input"
           type={type}
           value={value ?? ""}
@@ -62,7 +66,7 @@ function Field({ label, value, editing, onChange, type = "text", placeholder, hi
           onChange={(event) => onChange(event.target.value)}
         />
       ) : (
-        <p className={`ps-value${value ? "" : " is-empty"}`}>{value || placeholder}</p>
+        <p className={`ps-value${value ? "" : " is-empty"}`}>{value ? format(value) : placeholder}</p>
       )}
       {hint ? <p className="ps-hint">{hint}</p> : null}
     </div>
@@ -236,7 +240,7 @@ export default function ProfileView({ readinessScore = 0, roleLabel = "" }) {
     }
   };
 
-  const name = authUser?.name || authUser?.full_name || "—";
+  const name = displayName(authUser, "—");
   const email = authUser?.email || "—";
 
   const circumference = 2 * Math.PI * 36;
@@ -293,7 +297,7 @@ export default function ProfileView({ readinessScore = 0, roleLabel = "" }) {
             <div className="ps-avatar-actions">
               <label className={`ps-btn ps-btn--ghost ps-btn--sm${avatarBusy ? " is-disabled" : ""}`}>
                 {t("profile.photoChange")}
-                <input type="file" accept="image/*" className="ps-file-input" onChange={onPickAvatar} disabled={avatarBusy} />
+                <input type="file" name="avatar" accept="image/*" className="ps-file-input" onChange={onPickAvatar} disabled={avatarBusy} />
               </label>
               {(avatarUrl || previewUrl) && (
                 <button type="button" className="ps-btn ps-btn--ghost ps-btn--sm" onClick={removeAvatar} disabled={avatarBusy}>
@@ -381,6 +385,7 @@ export default function ProfileView({ readinessScore = 0, roleLabel = "" }) {
                 value={editing ? draft.specialization : profile?.specialization}
                 editing={editing}
                 onChange={setField("specialization")}
+                format={formatEnum}
                 placeholder={t("profile.notSet")}
               />
               <Field
@@ -388,6 +393,7 @@ export default function ProfileView({ readinessScore = 0, roleLabel = "" }) {
                 value={editing ? draft.academic_level : profile?.academic_level}
                 editing={editing}
                 onChange={setField("academic_level")}
+                format={formatEnum}
                 placeholder={t("profile.notSet")}
               />
               <Field
@@ -405,6 +411,8 @@ export default function ProfileView({ readinessScore = 0, roleLabel = "" }) {
             <h3 className="ps-section-title">{t("profile.about")}</h3>
             {editing ? (
               <textarea
+                id="profile-bio"
+                name="bio"
                 className="ps-input ps-textarea"
                 rows={4}
                 maxLength={2000}
@@ -444,3 +452,4 @@ export default function ProfileView({ readinessScore = 0, roleLabel = "" }) {
     </div>
   );
 }
+

@@ -92,10 +92,24 @@ describe('buildOrganizationFormData', () => {
     expect(fd.get('additional_document')).toBeNull();
   });
 
-  it('maps administrator name and account fields', () => {
+  it('maps administrator account fields', () => {
     const fd = buildOrganizationFormData(baseCompanyData);
-    expect(fd.get('administrator_name')).toBe('Sam Admin');
+    expect(fd.get('phone')).toBe('+1-555-0100');
+    expect(fd.get('organization_contact_phone')).toBe('+1-555-0100');
     expect(fd.get('password_confirmation')).toBe('orgpass123');
+  });
+
+  it('sends organization details under the organization_ names the backend validates', () => {
+    const fd = buildOrganizationFormData(baseCompanyData);
+    expect(fd.get('organization_company_size')).toBe('11 - 50 employees');
+    expect(fd.get('organization_website')).toBe('https://acme.test');
+    expect(fd.get('organization_description')).toBe('We build things.');
+    expect(fd.get('organization_country')).toBe('Jordan');
+    expect(fd.get('organization_city')).toBe('Amman');
+    expect(fd.get('organization_address')).toBe('123 Main St');
+    expect(fd.get('organization_postal_code')).toBe('11183');
+    ['organization_size', 'website', 'description', 'country', 'city', 'address', 'postal_code', 'administrator_name']
+      .forEach((legacy) => expect(fd.get(legacy)).toBeNull());
   });
 
   it('includes the required top-level name field in the organization payload', () => {
@@ -121,7 +135,7 @@ describe('buildProfilePayload', () => {
       student_university_number: '2021900123',
       specialization: 'Marketing',
       academic_level: 'second_year',
-      expected_graduation: '2027',
+      expected_graduation: 2027,
       bio: 'Aspiring product marketer.',
       visibility: 'public',
     });
@@ -135,7 +149,7 @@ describe('buildProfilePayload', () => {
       student_university_number: '',
       specialization: '',
       academic_level: '',
-      expected_graduation: '',
+      expected_graduation: null,
       bio: '',
       visibility: 'private',
     });

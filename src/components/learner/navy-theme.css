@@ -1,0 +1,41 @@
+/* ===== Navy theme (Figma Design System): navy sidebar + white screens ===== */
+
+div.ps-theme-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ps-theme-preview--navy {
+    background: linear-gradient(90deg, #060D2E 0 28%, #F1F3FA 28% 100%);
+}
+
+.ps-theme-preview--navy .ps-theme-preview-card {
+    background: #ffffff;
+}
+
+:root[data-theme="navy"] .app-sidebar {
+    background: #060D2E;
+    border-right-color: #060D2E;
+    color: #ffffff;
+}
+
+:root[data-theme="navy"] .app-sidebar-brand .white {
+    color: #ffffff;
+}
+
+:root[data-theme="navy"] .app-nav-item {
+    color: #9A9DA2;
+}
+
+:root[data-theme="navy"] .app-nav-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+}
+
+:root[data-theme="navy"] .app-nav-item.active {
+    background: rgba(41, 168, 255, 0.14);
+    color: #29A8FF;
+}
+
+:root[data-theme="navy"] .app-sidebar-footer {
+    background: linear-gradient(130deg, #0D1A4A 0%, #142A64 100%);
+}

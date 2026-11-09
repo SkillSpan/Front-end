@@ -954,7 +954,8 @@ export default function AssistantView({ onNavigate }) {
     const item = messages.find((m) => String(m.id) === String(id));
     if (!item?.handoffAvailable || !item.interactionId) return;
     const transcript = messages.filter((m) => m.role === "user" || m.role === "assistant").slice(-40)
-      .map((m) => ({ role: m.role === "user" ? "learner" : "assistant", body: String(m.text || "").slice(0, 4000) }));
+      .filter((m) => String(m.text || "").trim())
+      .map((m) => ({ role: m.role === "user" ? "learner" : "assistant", body: String(m.text).slice(0, 4000) }));
     try {
       const response = await createSupportRequest({ reason: "insufficient_context", source_interaction_id: Number(item.interactionId), transcript });
       const request = unwrapApiData(response) || {};

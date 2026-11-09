@@ -103,12 +103,24 @@ export const STATUS_META = {
         panel: "border-[#d9d6fe] bg-[#f4f3ff] text-[#5925dc]",
         tabActive: "bg-[#f4f3ff] text-[#5925dc] border-[#d9d6fe]",
     },
+    expired: {
+        label: "Expired",
+        Icon: Clock3,
+        badge: "border-[#d0d5dd] bg-[#f2f4f7] text-[#475467]",
+        panel: "border-[#d0d5dd] bg-[#f2f4f7] text-[#475467]",
+        tabActive: "bg-[#f2f4f7] text-[#475467] border-[#d0d5dd]",
+    },
 };
 
 
 export function fmt(value) {
     if (!value) return "";
-    return new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
+    // Plain dates ("2026-10-25") are read as local days; full timestamps
+    // from the API ("2026-10-25T09:12:00.000000Z") are parsed as they are.
+    const text = String(value);
+    const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(text) ? `${text}T00:00:00` : text);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -124,6 +136,15 @@ export function isHttpUrl(value) {
     }
 }
 
+function isPrivateHost(host) {
+    if (host === "localhost" || host.endsWith(".localhost") || host === "0.0.0.0" || host === "[::1]") return true;
+    const m = host.match(/^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/);
+    if (!m) return false;
+    const a = Number(m[1]);
+    const b = Number(m[2]);
+    return a === 10 || a === 127 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254);
+}
+
 export function validateUrl(type, value) {
     const url = String(value || "").trim();
     if (!url) return "Enter a URL.";
@@ -136,11 +157,17 @@ export function validateUrl(type, value) {
     }
 
     if (parsed.protocol !== "https:") return "URL must start with https://.";
-    if (type === "github" && !/github\.com\//i.test(url)) {
-        return "Enter a GitHub repository URL.";
-    }
-    if (type === "design" && !/(figma|adobe)\.com\//i.test(url)) {
-        return "Enter a Figma or Adobe XD design file URL.";
+
+    // Same rules as the API (App\\Rules\\EvidenceUrl), so the learner sees the
+    // problem here instead of a 422 after submitting. Design files may live on
+    // any https host (Figma, Canva, Adobe, Sketch...), like the API allows.
+    const host = parsed.hostname.toLowerCase();
+    if (isPrivateHost(host)) return "Use a public link (not localhost or a private address).";
+    if (type === "github") {
+        const segments = parsed.pathname.split("/").filter(Boolean);
+        if ((host !== "github.com" && host !== "www.github.com") || segments.length < 2) {
+            return "Enter a GitHub repository URL, e.g. https://github.com/owner/project.";
+        }
     }
     return "";
 }
