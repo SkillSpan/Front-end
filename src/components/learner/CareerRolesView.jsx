@@ -983,14 +983,15 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                         <div className="w-[100px] bg-[#f1f3fa] rounded-full h-[6px]">
                           <div
                             className="h-[6px] rounded-full bg-gradient-to-r from-[#3b8bff] to-[#7c3aed]"
-                            style={{ width: `${role.readinessScore}%` }}
+                            style={{ width: `${role.readinessScore ?? 0}%` }}
                           />
                         </div>
                         <span
+                          data-testid="saved-role-readiness"
                           className="font-['Inter:Bold',sans-serif] font-bold text-[14px]"
                           style={{ color: readinessColor(role.readinessScore) }}
                         >
-                          {role.readinessScore}%
+                          {role.readinessScore == null ? "—" : `${role.readinessScore}%`}
                         </span>
                       </div>
                     </div>
@@ -998,8 +999,8 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                       <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[4px]">
                         Skills Met
                       </p>
-                      <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#0a0b14]">
-                        {skillsMet}/{skillRequirementsOf(role).length}
+                      <p data-testid="saved-role-skills-met" className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#0a0b14]">
+                        {role.readinessScore == null ? "—" : `${skillsMet}/${skillRequirementsOf(role).length}`}
                       </p>
                     </div>
                     <div>
@@ -1420,14 +1421,20 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
    * fails keeps `—` rather than a fake 0%.
    */
   const [pageRequirements, setPageRequirements] = useState({});
-  const cardIds = visibleRoles.map((r) => r.id).join(",");
+  const requirementRoles = activeTab === "browse" ? visibleRoles : savedRoles;
+  const cardIds = requirementRoles.map((r) => r.id).join(",");
+  const savedRolesWithMetrics = savedRoles.map((role) => ({
+    ...withSavedState(role),
+    skillRequirements: pageRequirements[role.id] ?? [],
+    readinessScore: computeReadiness(pageRequirements[role.id]),
+  }));
   useEffect(() => {
-    if (!visibleRoles.length) return undefined;
+    if (!requirementRoles.length) return undefined;
     let cancelled = false;
     (async () => {
       const [matrixResult, ...roleResults] = await Promise.allSettled([
         getSkillsMatrix(),
-        ...visibleRoles.map((r) => getCareerRoleSkills(r.id)),
+        ...requirementRoles.map((r) => getCareerRoleSkills(r.id)),
       ]);
       if (cancelled) return;
       const levels = matrixResult.status === "fulfilled"
@@ -1438,7 +1445,7 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
         // A failed fetch stays absent, so the card renders "—" and not 0%.
         if (result.status !== "fulfilled") return;
         const rows = buildSkillRequirements(result.value, levels);
-        if (rows.length) next[visibleRoles[index].id] = rows;
+        if (rows.length) next[requirementRoles[index].id] = rows;
       });
       setPageRequirements(next);
     })();
@@ -1530,7 +1537,7 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
           />
         ) : activeTab === "saved" ? (
           <SavedRolesView
-            roles={savedRoles.map(withSavedState)}
+            roles={savedRolesWithMetrics}
             onSelect={(id) => {
               selectRole(id);
             }}
@@ -1538,7 +1545,7 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
             onCompare={() => setActiveTab("compare")}
           />
         ) : (
-          <CompareView roles={savedRoles.map(withSavedState)} onSelect={selectRole} />
+          <CompareView roles={savedRolesWithMetrics} onSelect={selectRole} />
         )}
       </div>
     </div>
