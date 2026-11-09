@@ -14,6 +14,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 const getCareerRoles = vi.fn();
 
 vi.mock('../../../api', () => ({
+  getSavedCareerRoles: vi.fn().mockResolvedValue({ data: [] }),
+  setCareerRoleSaved: vi.fn().mockResolvedValue({ data: { is_saved: true } }),
   getCareerRoles: (...args) => getCareerRoles(...args),
   unwrapApiData: (payload) => payload?.data ?? payload,
   // Every card on the page now resolves its own requirements, so these must

@@ -19,6 +19,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
  * explicit "not available" label rather than blanking or crashing.
  */
 vi.mock('../../../api', () => ({
+  getSavedCareerRoles: vi.fn().mockResolvedValue({ data: [] }),
+  setCareerRoleSaved: vi.fn().mockResolvedValue({ data: { is_saved: true } }),
   unwrapApiData: (payload) => payload?.data ?? payload,
   // The detail panel now fetches these; these tests cover the list and the
   // no-data fallbacks, so a role with no published requirements is the case.
