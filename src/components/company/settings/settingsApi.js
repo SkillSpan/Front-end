@@ -2,37 +2,35 @@
  * Company Settings — data layer.
  *
  * Wired to endpoints that exist in src/api.js:
- *   POST /api/v1/auth/logout-all           logoutAllDevices()   (AUTH-13)
- *   GET  /api/v1/notifications/preferences getNotificationsPreferences()  (NOT-02)
- *   PUT  /api/v1/notifications/preferences updateNotificationsPreferences()
+ *   POST  /api/v1/auth/logout-all           logoutAllDevices()   (AUTH-13)
+ *   GET   /api/v1/notifications/preferences getNotificationsPreferences()  (NOT-02)
+ *   PUT   /api/v1/notifications/preferences updateNotificationsPreferences()
+ *   PATCH /api/v1/auth/me                   updateMyAccount()
+ *   POST  /api/v1/auth/change-password      changeMyPassword()
+ *   POST  /api/v1/organizations/{id}/deactivate deactivateOrganization()
  *
- * TODO(api): no endpoint exists yet for these — the forms validate on the
- * client and, outside preview, report "not available yet" instead of
- * pretending to save. Add the function to src/api.js and call it below:
- *   - Update representative account (name, phone):
- *       PATCH /api/v1/auth/me  { name, phone }            → saveAccount()
- *   - Change password (logged in):
- *       POST  /api/v1/auth/change-password
- *             { current_password, password, password_confirmation } → changePassword()
- *   - Deactivate organization account:
- *       POST  /api/v1/organizations/{id}/deactivate { reason } → deactivateAccount()
- * TODO(api): confirm the notification-preferences payload keys with the
- * backend (assumed below: new_applicant, project_status, messages).
+ * Notification keys are confirmed with the backend: it stores them against the
+ * categories that actually dispatch — new_applicant → application,
+ * messages → message, project_status → project_status — and echoes the same
+ * keys back in `key`, so readPrefs/savePrefs stay symmetrical.
+ *
+ * Server errors are thrown untouched ({status, code, message, errors}) so the
+ * screens can map errors.current_password / errors.password / errors.reason
+ * onto the fields.
  */
 import {
   logoutAllDevices,
   getNotificationsPreferences,
   updateNotificationsPreferences,
+  updateMyAccount,
+  changeMyPassword,
+  deactivateOrganization,
 } from '../../../api';
 
 export const NOTIFICATION_KEYS = ['new_applicant', 'project_status', 'messages'];
 export const DEFAULT_PREFS = { new_applicant: true, project_status: true, messages: true };
 
 const delay = (ms) => new Promise((r) => { setTimeout(r, ms); });
-
-export class NotAvailableError extends Error {
-  constructor() { super('not_available'); this.code = 'not_available'; }
-}
 
 function unwrap(res) {
   return res?.data?.data ?? res?.data ?? res;
@@ -68,12 +66,18 @@ export async function savePrefs(prefs, { demo }) {
 
 export async function saveAccount(values, { demo }) {
   if (demo) { await delay(500); return values; }
-  throw new NotAvailableError();
+  const res = await updateMyAccount({ name: values.name, phone: values.phone || null });
+  return unwrap(res)?.user ?? values;
 }
 
 export async function changePassword(values, { demo }) {
   if (demo) { await delay(600); return true; }
-  throw new NotAvailableError();
+  await changeMyPassword({
+    current_password: values.current_password,
+    password: values.password,
+    password_confirmation: values.password_confirmation,
+  });
+  return true;
 }
 
 export async function signOutEverywhere({ demo }) {
@@ -84,7 +88,10 @@ export async function signOutEverywhere({ demo }) {
 
 export async function deactivateAccount(values, { demo }) {
   if (demo) { await delay(600); return true; }
-  throw new NotAvailableError();
+  await deactivateOrganization(values.organizationId, {
+    reason: values.reason || null,
+  });
+  return true;
 }
 
 /** Same rules as RegisterStep1 / ResetPassword: required, ≥ 8 chars, confirm matches. */

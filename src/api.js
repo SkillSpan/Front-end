@@ -427,6 +427,30 @@ export const logoutAllDevices = () =>
   request('/api/v1/auth/logout-all', { method: 'POST', withAuth: true });
 
 // ---------------------------------------------------------------------------
+// Account settings (company settings page)
+// ---------------------------------------------------------------------------
+// Confirmed against the backend's routes/api.php: PATCH /api/v1/auth/me and
+// POST /api/v1/auth/change-password sit behind auth:sanctum + account.active,
+// so any signed-in account can call them (company or learner).
+
+// Updates the signed-in representative's own name / phone / locale.
+export const updateMyAccount = (payload) =>
+  request('/api/v1/auth/me', { method: 'PATCH', body: payload, withAuth: true });
+
+// Changes the password. The backend verifies current_password, requires 8+
+// characters and a value different from the current one, then revokes every
+// OTHER token — this device stays signed in.
+export const changeMyPassword = (payload) =>
+  request('/api/v1/auth/change-password', { method: 'POST', body: payload, withAuth: true });
+
+// Deactivates the company account. The backend records the reason, suspends
+// the members and deletes their tokens, so every later call answers 401.
+export const deactivateOrganization = (organizationId, payload = {}) =>
+  request(`/api/v1/organizations/${organizationId}/deactivate`, {
+    method: 'POST', body: payload, withAuth: true,
+  });
+
+// ---------------------------------------------------------------------------
 // Learner profile (role:learner only)
 // ---------------------------------------------------------------------------
 // Confirmed against the backend's routes/api.php (see api_endpoints_render.md):

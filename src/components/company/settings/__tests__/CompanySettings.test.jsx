@@ -5,6 +5,9 @@ vi.mock('../../../../api', () => ({
   logoutAllDevices: vi.fn(),
   getNotificationsPreferences: vi.fn(),
   updateNotificationsPreferences: vi.fn(),
+  updateMyAccount: vi.fn(),
+  changeMyPassword: vi.fn(),
+  deactivateOrganization: vi.fn(),
 }));
 
 import * as api from '../../../../api';
@@ -51,12 +54,46 @@ describe('CompanySettings', () => {
     expect(screen.getByText('Passwords do not match.')).toBeTruthy();
   });
 
-  it('says plainly when an endpoint is not connected instead of faking a save', async () => {
+  it('saves the representative account through PATCH /auth/me', async () => {
     api.getNotificationsPreferences.mockResolvedValue({ data: {} });
+    api.updateMyAccount.mockResolvedValue({ data: { user: { id: 3, name: 'Lina H.' } } });
     renderIt();
     fireEvent.change(screen.getByLabelText(/Full name/), { target: { value: 'Lina H.' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
-    expect(await screen.findByText('Not available yet')).toBeTruthy();
+    await waitFor(() => expect(api.updateMyAccount).toHaveBeenCalledWith({ name: 'Lina H.', phone: null }));
+    expect(await screen.findByText('Account details saved')).toBeTruthy();
+  });
+
+  it('changes the password through POST /auth/change-password', async () => {
+    api.getNotificationsPreferences.mockResolvedValue({ data: {} });
+    api.changeMyPassword.mockResolvedValue({ success: true });
+    renderIt();
+    fireEvent.click(screen.getByRole('tab', { name: 'Security' }));
+    fireEvent.change(screen.getByLabelText('Current password'), { target: { value: 'oldpass12' } });
+    fireEvent.change(screen.getByLabelText('New password'), { target: { value: 'newpass123' } });
+    fireEvent.change(screen.getByLabelText('Confirm new password'), { target: { value: 'newpass123' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Update password' }));
+    await waitFor(() => expect(api.changeMyPassword).toHaveBeenCalledWith({
+      current_password: 'oldpass12',
+      password: 'newpass123',
+      password_confirmation: 'newpass123',
+    }));
+    expect(await screen.findByText('Password updated')).toBeTruthy();
+  });
+
+  it('maps a rejected current password onto the field', async () => {
+    api.getNotificationsPreferences.mockResolvedValue({ data: {} });
+    api.changeMyPassword.mockRejectedValue({
+      status: 422,
+      errors: { current_password: ['The current password is incorrect.'] },
+    });
+    renderIt();
+    fireEvent.click(screen.getByRole('tab', { name: 'Security' }));
+    fireEvent.change(screen.getByLabelText('Current password'), { target: { value: 'wrongpass1' } });
+    fireEvent.change(screen.getByLabelText('New password'), { target: { value: 'newpass123' } });
+    fireEvent.change(screen.getByLabelText('Confirm new password'), { target: { value: 'newpass123' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Update password' }));
+    expect(await screen.findByText('The current password is incorrect.')).toBeTruthy();
   });
 
   it('saves notification preferences through PUT /notifications/preferences', async () => {
