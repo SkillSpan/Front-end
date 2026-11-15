@@ -314,8 +314,8 @@ function ProjectDetailPanel({ project, onClose }) {
             )}
             <div className="grid grid-cols-3 gap-[8px]">
               {[
-                { l: "Skills matched", v: `${matchedCount}/${project.skillMatches.length}`, c: "#059669" },
-                { l: "Skill gaps", v: `${gapCount}`, c: gapCount > 0 ? "#ef4444" : "#059669" },
+                { l: "Skills matched", v: project.skillMatches.length ? `${matchedCount}/${project.skillMatches.length}` : "—", c: "#059669" },
+                { l: "Skill gaps", v: project.skillMatches.length ? `${gapCount}` : "—", c: gapCount > 0 ? "#ef4444" : "#059669" },
                 {
                   l: "Match score",
                   v: `${project.matchScore}%`,
@@ -845,8 +845,7 @@ const ALL_ELIGIBILITY = ["Eligible", "Conditionally Eligible", "Not Eligible", "
  *
  * The list endpoint carries no score and no eligibility — those are computed
  * per project by the matching service — so this is the only place the card can
- * learn them. `skill_results` is deliberately not mapped: the service returns it
- * empty today, and inventing rows would show skills that were never compared.
+ * learn them. Skill rows come directly from the matching response.
  */
 function matchPatch(result) {
   const state = String(result?.eligibility_state || "").toLowerCase();
@@ -855,6 +854,16 @@ function matchPatch(result) {
   const limiting = Array.isArray(result?.limiting_factors) ? result.limiting_factors.join(" ") : "";
 
   return {
+    skillMatches: (Array.isArray(result?.skill_results) ? result.skill_results : []).map((skill) => ({
+      skillName: skill.skill_name || ("Skill #" + skill.skill_id),
+      yourLevel: skill.current_level,
+      requiredLevel: skill.minimum_level,
+      maxLevel: 5,
+      gap: skill.gap,
+      matched: skill.status === "met" || skill.status === "not_required",
+      category: skill.is_critical_entry ? "Critical entry" : "",
+      isGrowthTarget: skill.status === "manageable_gap",
+    })),
     matchScore: Number(result?.score ?? 0),
     eligibility,
     eligibilityReason: limiting,
