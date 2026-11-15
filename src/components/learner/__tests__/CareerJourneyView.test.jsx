@@ -197,3 +197,27 @@ describe('CareerJourneyView with a real backend payload', () => {
     expect(screen.getAllByText('Strengths').length).toBeGreaterThan(0);
   });
 });
+
+
+describe('missing analysis metadata', () => {
+  it('does not invent a readiness band', () => {
+    render(<CareerJourneyView readiness={{ ...READINESS, band: null }} />);
+    expect(screen.getAllByText('Not available').length).toBeGreaterThan(0);
+  });
+  it('does not label missing confidence as self assessment or zero', () => {
+    render(<CareerJourneyView intelligence={{ ...INTELLIGENCE, skill_gaps: [{ ...INTELLIGENCE.skill_gaps[0], confidence: null }] }} />);
+    openTab('Skill Gaps');
+    expect(screen.getByText('Not available')).toBeTruthy();
+    expect(screen.queryByText('Self-Assessment Only')).toBeNull();
+    expect(screen.getByText('—')).toBeTruthy();
+  });
+  it('weights achieved and required levels using the engine formula', () => {
+    const skills = [
+      { skill_id: 1, required_level: 3, current_level: 5, importance_weight: .9, status: 'met' },
+      { skill_id: 2, required_level: 2.5, current_level: 0, importance_weight: .7, status: 'gap' },
+    ];
+    render(<CareerJourneyView intelligence={{ ...INTELLIGENCE, skill_gaps: skills }} />);
+    openTab('Skill Gaps');
+    expect(screen.getByText('61%')).toBeTruthy();
+  });
+});

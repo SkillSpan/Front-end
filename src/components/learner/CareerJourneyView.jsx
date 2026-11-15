@@ -6,6 +6,7 @@ import { useState } from "react";
 // DESIGN TOKENS
 // ═══════════════════════════════════════════════════════════════════════════════
 const BAND = {
+  "Not available": { text: "text-[#94a3b8]", bg: "bg-slate-100", border: "border-slate-200", stop0: "#94a3b8", stop1: "#64748b" },
   "Not Started": {
     text: "text-[#94a3b8]",
     bg: "bg-[rgba(148,163,184,0.08)]",
@@ -110,6 +111,7 @@ const TM = {
   "Real Project": { emoji: "🚀", label: "Real Project" },
 };
 const CT = {
+  "Not available": { text: "text-[#94a3b8]", dot: "bg-[#d1d5db]", bar: "#d1d5db" },
   High: { text: "text-[#059669]", dot: "bg-[#059669]", bar: "#059669" },
   Medium: { text: "text-[#f59e0b]", dot: "bg-[#f59e0b]", bar: "#f59e0b" },
   Low: { text: "text-[#ef4444]", dot: "bg-[#ef4444]", bar: "#ef4444" },
@@ -597,10 +599,10 @@ function SkillGapTab({ gaps }) {
   const [expanded, setExpanded] = useState(null);
   // Weights can all be zero on a role whose skills carry no importance yet —
   // dividing by that total would render "NaN%".
-  const weightTotal = gaps.reduce((a, g) => a + g.importance, 0);
+  const weightTotal = gaps.reduce((a, g) => a + g.requiredLevel * g.importance, 0);
   const wtMatch = weightTotal > 0
-    ? gaps.reduce((a, g) => a + g.match * g.importance, 0) / weightTotal
-    : gaps.reduce((a, g) => a + g.match, 0) / Math.max(gaps.length, 1);
+    ? 100 * gaps.reduce((a, g) => a + Math.min(g.currentLevel, g.requiredLevel) * g.importance, 0) / weightTotal
+    : 100;
   const buckets = [
     {
       key: "priority-gap",
@@ -795,7 +797,7 @@ function SkillGapTab({ gaps }) {
                                 {gap.confidenceLabel}
                               </p>
                               <p className="text-[9px] font-['Inter:Regular',sans-serif] text-[#d1d5db]">
-                                {Math.round(gap.confidence * 100)}%
+                                {gap.confidence == null ? "—" : `${Math.round(gap.confidence * 100)}%`}
                               </p>
                             </div>
                           </div>
@@ -852,11 +854,11 @@ function SkillGapTab({ gaps }) {
                             <div className="flex items-center gap-[5px] mb-[6px]">
                               <span className={`w-[6px] h-[6px] rounded-full ${ct.dot}`} />
                               <p className={`text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold ${ct.text}`}>
-                                {gap.confidenceLabel} ({Math.round(gap.confidence * 100)}%)
+                                {gap.confidenceLabel} ({gap.confidence == null ? "—" : `${Math.round(gap.confidence * 100)}%`})
                               </p>
                             </div>
-                            <Bar pct={gap.confidence * 100} color={ct.bar} h={4} />
-                            {gap.confidence < 0.65 && (
+                            {gap.confidence != null && <Bar pct={gap.confidence * 100} color={ct.bar} h={4} />}
+                            {gap.confidence != null && gap.confidence < 0.65 && (
                               <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[6px] italic leading-[1.5]">
                                 Submit an assessment or project to raise confidence and improve roadmap accuracy.
                               </p>
@@ -1158,10 +1160,10 @@ function normaliseSkillGaps(skillGaps) {
       match,
       importance: Number(gap.importance_weight) || 0,
       isCritical,
-      confidence: confidence == null ? 0 : confidence / 100,
+      confidence: confidence == null ? null : confidence / 100,
       confidenceLabel:
         confidence == null
-          ? "Self-Assessment Only"
+          ? "Not available"
           : confidence >= 80
             ? "High"
             : confidence >= 50
@@ -1202,9 +1204,9 @@ const READINESS_BAND = {
 
 function normaliseBand(raw) {
   const value = String(raw ?? "").trim();
-  if (!value) return "Not Started";
+  if (!value) return "Not available";
   if (BAND[value]) return value;
-  return READINESS_BAND[value.toLowerCase()] ?? "Not Started";
+  return READINESS_BAND[value.toLowerCase()] ?? "Not available";
 }
 
 function normaliseReadiness(readiness, roleTitle = "") {
