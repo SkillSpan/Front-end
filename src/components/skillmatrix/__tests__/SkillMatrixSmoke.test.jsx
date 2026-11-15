@@ -19,12 +19,16 @@ const mocks = {
   getSpecializations: vi.fn(),
   getCareerRoles: vi.fn(),
   getCareerRoleSkills: vi.fn(),
+  getLatestReadiness: vi.fn(),
+  getCareerRoleById: vi.fn(),
   upsertSkillMatrix: vi.fn(),
   updateSkillMatrixEntry: vi.fn(),
   deleteLearnerSkill: vi.fn(),
 };
 
 vi.mock('../../../api', () => ({
+  getLatestReadiness: (...a) => mocks.getLatestReadiness(...a),
+  getCareerRoleById: (...a) => mocks.getCareerRoleById(...a),
   getSkillsMatrix: (...a) => mocks.getSkillsMatrix(...a),
   getSkillsTaxonomy: (...a) => mocks.getSkillsTaxonomy(...a),
   getStoredUser: (...a) => mocks.getStoredUser(...a),
@@ -45,7 +49,7 @@ vi.mock('../../auth/AuthContext', () => ({
 vi.mock('../../auth/signOut', () => ({ signOutToLanding: vi.fn() }));
 
 vi.mock('../../dashboard/AppLayout', () => ({
-  default: ({ children }) => <div data-testid="app-layout">{children}</div>,
+  default: ({ children, readinessScore, roleLabel }) => <div data-testid="app-layout"><span data-testid="matrix-readiness">{readinessScore}</span><span data-testid="matrix-role">{roleLabel}</span>{children}</div>,
 }));
 
 import SkillMatrix from '../SkillMatrix.jsx';
@@ -70,6 +74,16 @@ describe('learner skill matrix page', () => {
     mocks.getCareerRoleSkills.mockResolvedValue({ data: { skills: [] } });
     mocks.getSkillsTaxonomy.mockResolvedValue(TAXONOMY);
     mocks.getSkillsMatrix.mockResolvedValue({ data: [] });
+  });
+
+  it('loads readiness for the saved career goal', async () => {
+    mocks.getProfile.mockResolvedValue({ data: { primary_career_role_id: 3 } });
+    mocks.getLatestReadiness.mockResolvedValue({ data: { career_role_id: 3, score: 64.67 } });
+    mocks.getCareerRoleById.mockResolvedValue({ data: { id: 3, title: 'Data Analyst' } });
+    render(<MemoryRouter><SkillMatrix onNavigate={vi.fn()} /></MemoryRouter>);
+    await waitFor(() => expect(screen.getByTestId('matrix-readiness')).toHaveTextContent('64.67'));
+    expect(screen.getByTestId('matrix-role')).toHaveTextContent('Data Analyst');
+    expect(mocks.getLatestReadiness).toHaveBeenCalledWith({ careerRoleId: 3 });
   });
 
   it('renders instead of a blank page when the learner has no skills yet', async () => {

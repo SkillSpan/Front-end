@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SkillMatrix.css';
 import { TAXONOMY as FALLBACK_TAXONOMY, LEVELS, levelInfo } from './taxonomy';
-import { getSkillsMatrix, upsertSkillMatrix, updateSkillMatrixEntry, deleteLearnerSkill, getSkillsTaxonomy, getStoredUser, resolveLearnerId, getProfile, getSpecializations, getCareerRoles, getCareerRoleSkills } from '../../api';
+import { getSkillsMatrix, upsertSkillMatrix, updateSkillMatrixEntry, deleteLearnerSkill, getSkillsTaxonomy, getStoredUser, resolveLearnerId, getProfile, getSpecializations, getCareerRoles, getCareerRoleSkills, getLatestReadiness, getCareerRoleById } from '../../api';
 import AppLayout from '../dashboard/AppLayout';
 import { useAuth } from '../auth/AuthContext';
 import { signOutToLanding } from '../auth/signOut';
@@ -259,6 +259,8 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   const [panelSkillId, setPanelSkillId] = useState(null);
   const [panelLevel, setPanelLevel] = useState(1);
   const [duplicateSkillId, setDuplicateSkillId] = useState(null);
+  const [readinessScore, setReadinessScore] = useState(null);
+  const [roleLabel, setRoleLabel] = useState('');
   const [specialization, setSpecialization] = useState('');
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [showAllSpecs, setShowAllSpecs] = useState(false);
@@ -280,6 +282,16 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
       .then((res) => {
         if (cancelled) return;
         const data = res?.data || res || {};
+        const goalId = data.primary_career_role_id;
+        if (goalId != null) {
+          Promise.allSettled([getLatestReadiness({ careerRoleId: goalId }), getCareerRoleById(goalId)]).then(([result, role]) => {
+            if (cancelled) return;
+            const readiness = result.status === 'fulfilled' ? (result.value?.data ?? result.value) : null;
+            const careerRole = role.status === 'fulfilled' ? (role.value?.data ?? role.value) : null;
+            setReadinessScore(String(readiness?.career_role_id) === String(goalId) ? readiness?.score ?? null : null);
+            setRoleLabel(careerRole?.title || '');
+          });
+        }
         setSpecialization(data.specialization || '');
         setProfileSpecId(data.specialization_id ?? null);
       })
@@ -446,7 +458,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
         const nextSkills = {};
         const nextRowIds = {};
         rows
-          .filter((row) => !learnerId || row.learner_id === learnerId)
+          .filter((row) => !learnerId || String(row.learner_id) === String(learnerId))
           .forEach((row) => {
             nextSkills[row.skill_id] = {
               source: row.source_type === 'assessment' ? 'assessment' : 'self',
@@ -647,7 +659,9 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
       <AppLayout
         active="skill-matrix"
         onNavigate={onNavigate}
-        user={currentUser}
+        readinessScore={readinessScore}
+      roleLabel={roleLabel}
+      user={currentUser}
         onLogout={() => signOutToLanding(navigate, logout)}
         flushContent
         contentClassName="skillmatrix-app-content"
@@ -663,6 +677,8 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
     <AppLayout
       active="skill-matrix"
       onNavigate={onNavigate}
+      readinessScore={readinessScore}
+      roleLabel={roleLabel}
       user={currentUser}
       onLogout={() => signOutToLanding(navigate, logout)}
       flushContent
