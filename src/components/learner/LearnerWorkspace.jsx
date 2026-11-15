@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import CareerJourneyView from './CareerJourneyView';
 import CareerRolesView from './CareerRolesView';
+import CareerGoalControl from './CareerGoalControl';
 import ProjectsView from './ProjectsView';
 import ProjectDetailsView from './ProjectDetailsView';
 import AssistantView from './AssistantView';
@@ -12,7 +13,7 @@ import SettingsView from './SettingsView';
 import SupportFab from './SupportFab';
 import SupportWaitingToast, { SUPPORT_CREATED_EVENT } from './SupportWaitingToast';
 import TalentDiscoveryView from './TalentDiscoveryView';
-import { getApplications, getCareerRoles, getLatestReadiness, getLatestIntelligence, getNotifications, getProfile, getProjects, getRecommendations, getUnreadNotificationCount, getCareerRoleById, fetchProfileAvatarUrl, unwrapApiData } from '../../api';
+import { getApplications, getCareerRoles, getLatestReadiness, getLatestIntelligence, getNotifications, getProfile, getProjects, getRecommendations, getUnreadNotificationCount, getCareerRoleById, fetchProfileAvatarUrl, unwrapApiData, updateProfile, calculateIntelligence } from '../../api';
 import { useAuth } from '../auth/AuthContext';
 import AppLayout from '../dashboard/AppLayout';
 import './learner-workspace.css';
@@ -43,14 +44,25 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   // `{ id, name }` while the "someone is waiting for you" banner is up.
   const [supportToast, setSupportToast] = useState(null);
+  const [goalBusy, setGoalBusy] = useState(false);
+  const goalAction = useRef(false);
 
   const loadWorkspace = async (aliveRef) => {
+    // The profile owns the current goal. Read it before fetching role-scoped
+    // decisions so an older role's latest result cannot masquerade as this goal.
+    const [pr] = await Promise.allSettled([getProfile()]);
+    if (aliveRef && !aliveRef.current) return;
+    const profileData = pr.status === 'fulfilled' ? unwrapApiData(pr.value) : null;
+    const goalId = profileData?.primary_career_role_id ?? null;
+    const scope = { careerRoleId: goalId };
     const results = await Promise.allSettled([
-      getProfile(), getCareerRoles({ page: 1, perPage: 15 }), getProjects(), getRecommendations({ page: 1, perPage: 15 }),
-      getLatestReadiness(), getLatestIntelligence(), getUnreadNotificationCount(), getApplications({ page: 1, perPage: 20 }), getNotifications({ page: 1, perPage: 10 })
+      getCareerRoles({ page: 1, perPage: 15 }), getProjects(), getRecommendations({ page: 1, perPage: 15 }),
+      goalId == null ? Promise.resolve(null) : getLatestReadiness(scope),
+      goalId == null ? Promise.resolve(null) : getLatestIntelligence(scope),
+      getUnreadNotificationCount(), getApplications({ page: 1, perPage: 20 }), getNotifications({ page: 1, perPage: 10 })
     ]);
     if (aliveRef && !aliveRef.current) return;
-    const [pr, rr, pj, rec, rd, intel, un, , notifs] = results;
+    const [rr, pj, rec, rd, intel, un, , notifs] = results;
     if (pr.status === 'fulfilled') {
       const row = unwrapApiData(pr.value);
       setProfile(row);
@@ -70,19 +82,19 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
     // learner has no snapshot yet (the API answers 404). That is not a load
     // failure — it must not land in `apiError`, and it must not stop the rest of
     // the workspace from rendering.
-    if (rd.status === 'fulfilled' && rd.value != null) {
-      const readinessData = unwrapApiData(rd.value) ?? {};
-      setReadiness(readinessData);
-      const roleId = readinessData?.career_role_id ?? readinessData?.careerRoleId;
-      if (roleId != null && roleId !== '') {
-        try { setActiveCareerRole(unwrapApiData(await getCareerRoleById(roleId))); }
-        catch { setActiveCareerRole(null); }
-      }
-    } else if (rd.status === 'fulfilled') {
-      setReadiness(null);
-      setActiveCareerRole(null);
-    }
-    if (intel.status === 'fulfilled') setIntelligence(intel.value == null ? null : unwrapApiData(intel.value));
+    const readinessData = rd.status === 'fulfilled' && rd.value != null ? unwrapApiData(rd.value) : null;
+    const intelligenceData = intel.status === 'fulfilled' && intel.value != null ? unwrapApiData(intel.value) : null;
+    const currentReadiness = goalId != null && String(readinessData?.career_role_id ?? readinessData?.careerRoleId) === String(goalId) ? readinessData : null;
+    const currentIntelligence = goalId != null && String(intelligenceData?.role_id ?? intelligenceData?.career_role_id) === String(goalId) ? intelligenceData : null;
+    setReadiness(currentReadiness);
+    setIntelligence(currentIntelligence);
+    if (goalId != null) {
+      try {
+        const goal = unwrapApiData(await getCareerRoleById(goalId));
+        if (aliveRef && !aliveRef.current) return;
+        setActiveCareerRole(goal);
+      } catch { setActiveCareerRole(null); }
+    } else { setActiveCareerRole(null); }
     if (un.status === 'fulfilled') {
       const value = unwrapApiData(un.value); setUnread(Number(value?.count ?? value?.unread_count ?? value ?? 0) || 0);
     }
@@ -90,9 +102,48 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
     // fetched and then dropped: the count arrived, the list did not. A support
     // reply is delivered through exactly this list, so it has to be bound.
     if (notifs && notifs.status === 'fulfilled') setNotifications(collection(notifs.value));
-    const rejected = results.filter(x => x.status === 'rejected');
-    if (rejected.length) setApiError('Some workspace data could not be loaded from the server. Demo data will not be shown as a fallback.');
-    return rejected.length;
+    const rejected = [pr, ...results].filter(x => x.status === 'rejected');
+    setApiError(rejected.length ? 'Some workspace data could not be loaded from the server. Demo data will not be shown as a fallback.' : '');
+    return { analysisReady: Boolean(currentReadiness || currentIntelligence), partial: rejected.length > 0 };
+  };
+
+  const selectCareerGoal = async (role) => {
+    if (goalAction.current) throw new Error('A career-goal update is already in progress.');
+    const id = Number(role.id);
+    if (!Number.isSafeInteger(id) || id <= 0) throw new Error('This career role is not available.');
+    goalAction.current = true;
+    setGoalBusy(true);
+    try {
+      const savedProfile = unwrapApiData(await updateProfile({ primary_career_role_id: id }));
+      if (Number(savedProfile?.primary_career_role_id) !== id) throw new Error('The saved career goal could not be confirmed. Refresh and try again.');
+      setProfile(savedProfile);
+      setActiveCareerRole(role);
+      setReadiness(null);
+      setIntelligence(null);
+      setProjects([]);
+      setRecommendations([]);
+      setProjectDetails(false);
+      return await loadWorkspace();
+    } finally {
+      goalAction.current = false;
+      setGoalBusy(false);
+    }
+  };
+
+  const calculateGoalAnalysis = async (role) => {
+    if (goalAction.current) throw new Error('A career-goal update is already in progress.');
+    if (profile?.primary_career_role_id == null || String(role.id) !== String(profile.primary_career_role_id)) throw new Error('Select this role as your career goal first.');
+    goalAction.current = true;
+    setGoalBusy(true);
+    try {
+      // Profile changes already dispatch the backend recalculation hook.
+      // This is an explicit retry, never a duplicate automatic calculation.
+      await calculateIntelligence({ career_role_id: Number(role.id) }, { timeoutMs: 45000 });
+      return await loadWorkspace();
+    } finally {
+      goalAction.current = false;
+      setGoalBusy(false);
+    }
   };
 
   useEffect(() => {
@@ -183,12 +234,19 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
 
   // `/readiness` and `/intelligence` carry no role title, so the header label
   // comes from the role payload the workspace already resolved.
-  const journey = <CareerJourneyView readiness={readiness} intelligence={intelligence} roleTitle={roleLabel} />;
+  const journey = <div className="flex h-full flex-col">
+    <div className="mx-8 mt-5 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+      <p>{profile?.primary_career_role_id == null ? 'Choose a career goal to start your career journey.' : `Current career goal: ${roleLabel || 'Selected role'}`}</p>
+      <button type="button" onClick={() => go('roles')} className="mt-2 font-semibold text-blue-700">{profile?.primary_career_role_id == null ? 'Choose Career Goal' : 'Change Career Goal'}</button>
+      {profile?.primary_career_role_id != null && rolePayload?.id != null && <CareerGoalControl key={profile.primary_career_role_id} role={rolePayload} currentGoalId={profile.primary_career_role_id} onCalculate={calculateGoalAnalysis} busy={goalBusy} />}
+    </div>
+    <div className="min-h-0 flex-1"><CareerJourneyView readiness={readiness} intelligence={intelligence} roleTitle={roleLabel} /></div>
+  </div>;
 
   const content = () => {
     if (view === 'dashboard' || view === 'career-journey' || view === 'evidence' || view === 'record') return journey;
-    if (view === 'career-roles') return <CareerRolesView initialRoles={roles} />;
-    if (view === 'projects') return projectDetails ? <ProjectDetailsView projectId={selectedProjectId} onBack={() => setProjectDetails(false)} /> : <ProjectsView roleLabel={roleLabel} initialProjects={projects} onOpenDetails={(id) => { setSelectedProjectId(id); setProjectDetails(true); }} />;
+    if (view === 'career-roles') return <CareerRolesView initialRoles={roles} currentGoalId={profile?.primary_career_role_id} onGoalSelect={selectCareerGoal} onGoalCalculate={calculateGoalAnalysis} goalBusy={goalBusy || !profile} />;
+    if (view === 'projects') return projectDetails ? <ProjectDetailsView projectId={selectedProjectId} onBack={() => setProjectDetails(false)} /> : <ProjectsView key={profile?.primary_career_role_id ?? 'no-goal'} roleLabel={roleLabel} initialProjects={projects} onOpenDetails={(id) => { setSelectedProjectId(id); setProjectDetails(true); }} />;
     if (view === 'assistant') return <AssistantView onNavigate={go} />;
     if (view === 'messages') return <MessagesView />;
     if (view === 'support') return <SupportView />;

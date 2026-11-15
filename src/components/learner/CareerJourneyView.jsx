@@ -2226,7 +2226,7 @@ export default function CareerJourneyView({ readiness = null, intelligence = nul
             <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#64748b] mt-[3px]">
               Readiness · Skill Gaps · Roadmap for{" "}
               <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">
-                {readinessData?.roleTitle || "No career role selected"}
+                {readinessData?.roleTitle || roleTitle || "No career role selected"}
               </span>{" "}
               {roleVersion ? <span className="text-[#94a3b8]">v{roleVersion}</span> : null}
             </p>

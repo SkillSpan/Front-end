@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import CareerGoalControl from './CareerGoalControl';
 import { getCareerRoleSkills, getCareerRoles, getSkillsMatrix, getSavedCareerRoles, setCareerRoleSaved, unwrapApiData } from "../../api";
 // ── Mock Data ────────────────────────────────────────────────────────────────
 // ── Utility helpers ──────────────────────────────────────────────────────────
@@ -348,7 +349,7 @@ function SkillRequirementRow({ skill, expanded, onToggle }) {
   );
 }
 // ── RoleDetailPanel ────────────────────────────────────────────────────────────
-function RoleDetailPanel({ role, onBack, onSaveToggle }) {
+function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSelect, onGoalCalculate, goalBusy }) {
   const [expandedSkill, setExpandedSkill] = useState(null);
   // Requirements are NOT part of the list payload: they come from
   // `/career-roles/{id}/skills`, joined with the learner's own levels. Before
@@ -461,6 +462,8 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
             {role.isSaved ? "Saved" : "Save Role"}
           </button>
         </div>
+
+        {onGoalSelect && <CareerGoalControl key={role.id} role={role} currentGoalId={currentGoalId} onSelect={onGoalSelect} onCalculate={onGoalCalculate} busy={goalBusy} />}
 
         {/* Readiness Context */}
         <div className="mt-[20px] grid grid-cols-3 gap-[16px]">
@@ -1224,7 +1227,7 @@ function CompareView({ roles, onSelect }) {
     </div>
   );
 }
-export default function CareerRolesView({ initialRoles = null, onSearch, searchDebounceMs = 300, pageSize = 15 }) {
+export default function CareerRolesView({ initialRoles = null, onSearch, searchDebounceMs = 300, pageSize = 15, currentGoalId = null, onGoalSelect, onGoalCalculate, goalBusy = false }) {
   // One mapping, used by the initial props and by every server result. It was
   // duplicated inline (two identical 700-character expressions) which is how the
   // two copies drifted apart.
@@ -1516,7 +1519,7 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
             </p>
           </div>
         ) : selectedRole ? (
-          <RoleDetailPanel role={selectedRole} onBack={() => setSelectedRoleId(null)} onSaveToggle={toggleSave} />
+          <RoleDetailPanel role={selectedRole} onBack={() => setSelectedRoleId(null)} onSaveToggle={toggleSave} currentGoalId={currentGoalId} onGoalSelect={onGoalSelect} onGoalCalculate={onGoalCalculate} goalBusy={goalBusy} />
         ) : activeTab === "browse" ? (
           <BrowseRoles
             roles={visibleRoles}

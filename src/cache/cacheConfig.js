@@ -134,7 +134,7 @@ export const INVALIDATION_MAP = [
   { match: /^\/api\/v1\/projects(\/|$)/, invalidate: ['projects', 'dashboard'] },
   { match: /^\/api\/v1\/recommendations\//, invalidate: ['recommendations'] },
   { match: /^\/api\/v1\/(evidence|skills|intelligence|readiness|baseline-assessments)(\/|$)/, invalidate: ['recommendations', 'projects'] },
-  { match: /^\/api\/v1\/profile(\/|$)/, invalidate: ['profile', 'recommendations'] },
+  { match: /^\/api\/v1\/profile(\/|$)/, invalidate: ['profile', 'recommendations', 'projects'] },
 ];
 
 const stripQuery = (path = '') => String(path).split('?')[0].split('#')[0];
