@@ -58,3 +58,25 @@ describe('learner projects — Check match', () => {
     await waitFor(() => expect(screen.getByText(/0 eligible/)).toBeInTheDocument());
   });
 });
+
+describe('project skill comparison details', () => {
+  it('maps returned skills into matched and gap counts', async () => {
+    matchProject.mockResolvedValue({ data: { score: 21.67, eligibility_state: 'eligible', skill_results: [
+      { skill_id: 1, skill_name: 'SQL', current_level: 5, minimum_level: 2, gap: 0, status: 'met' },
+      { skill_id: 2, skill_name: 'UX Research', current_level: 0, minimum_level: 2, gap: 2, status: 'missing_non_critical' },
+      { skill_id: 3, skill_name: 'Wireframing', current_level: 0, minimum_level: 2, gap: 2, status: 'missing_non_critical' },
+    ] } });
+    render(<ProjectsView initialProjects={[PROJECT]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Check match' }));
+    await waitFor(() => expect(screen.getByText('1/3')).toBeInTheDocument());
+    expect(screen.queryByText('0/0')).toBeNull();
+  });
+  it('does not claim zero gaps when comparison details are missing', async () => {
+    matchProject.mockResolvedValue({ data: { score: 21.67, eligibility_state: 'eligible', skill_results: [] } });
+    render(<ProjectsView initialProjects={[PROJECT]} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Check match' }));
+    await waitFor(() => expect(screen.getByText(/1 eligible/)).toBeInTheDocument());
+    expect(screen.queryByText('0/0')).toBeNull();
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(2);
+  });
+});
