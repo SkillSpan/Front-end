@@ -672,8 +672,8 @@ export const calculateReadiness = (payload) =>
 // is the normal first-run state, not a failure, so it resolves to `null` instead
 // of rejecting: callers can then keep the rest of the page and show "not
 // calculated yet" rather than an error banner. Every other status still throws.
-export const getLatestReadiness = () =>
-  request('/api/v1/readiness/latest', { method: 'GET', withAuth: true })
+export const getLatestReadiness = ({ careerRoleId } = {}) =>
+  request(`/api/v1/readiness/latest${careerRoleId == null ? '' : `?career_role_id=${encodeURIComponent(careerRoleId)}`}`, { method: 'GET', withAuth: true })
     .catch((error) => {
       if (error?.status === 404) return null;
       throw error;
@@ -733,8 +733,8 @@ export const calculateIntelligence = (payload = {}, options = {}) =>
 // Same contract as getLatestReadiness: 404 = "no intelligence snapshot yet"
 // (IntelligenceController::latest), which is a first-run state. Resolves to
 // `null`; any other failure still propagates.
-export const getLatestIntelligence = () =>
-  request('/api/v1/intelligence/latest', { withAuth: true })
+export const getLatestIntelligence = ({ careerRoleId } = {}) =>
+  request(`/api/v1/intelligence/latest${careerRoleId == null ? '' : `?career_role_id=${encodeURIComponent(careerRoleId)}`}`, { withAuth: true })
     .catch((error) => {
       if (error?.status === 404) return null;
       throw error;
