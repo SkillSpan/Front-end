@@ -78,6 +78,8 @@ describe('learner skill matrix page', () => {
     await waitFor(() => expect(screen.getByTestId('app-layout')).toBeInTheDocument());
     // The taxonomy is on screen; an empty matrix is a state, not a crash.
     expect(screen.getByText('SKILL TAXONOMY')).toBeInTheDocument();
+    expect(screen.queryByText(/initialized from US-ASM-01/)).toBeNull();
+    expect(screen.getByText(/0 skills · 0 assessment-derived · 0 self-assessed/)).toBeInTheDocument();
   });
 
   it('renders with matrix rows whose level is a string', async () => {

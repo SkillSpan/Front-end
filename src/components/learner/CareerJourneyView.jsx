@@ -277,7 +277,7 @@ function NBABanner({ action }) {
               {action.unlocksWhat ? (
                 <div className="flex-1 min-w-[180px] bg-[rgba(59,139,255,0.1)] border border-[rgba(59,139,255,0.2)] rounded-[10px] px-[14px] py-[10px]">
                   <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] font-semibold uppercase tracking-widest text-[rgba(124,168,255,0.5)] mb-[5px]">
-                    Completing this unlocks
+                    Next action in your plan
                   </p>
                   <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#7ca8ff]">{action.unlocksWhat}</p>
                 </div>
@@ -1098,7 +1098,7 @@ function ActionCard({ action }) {
           {action.unlocksWhat && (
             <div className="bg-[rgba(59,139,255,0.05)] border border-[rgba(59,139,255,0.15)] rounded-[10px] px-[14px] py-[10px]">
               <p className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[rgba(59,139,255,0.6)] uppercase tracking-wide mb-[3px]">
-                Completing this unlocks
+                Next action in your plan
               </p>
               <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#3b8bff]">{action.unlocksWhat}</p>
             </div>
@@ -1339,7 +1339,7 @@ function normaliseRoadmapActions(roadmap, skillGaps) {
     };
   });
 
-  // "Completing this unlocks" is the next action in the learner's order; the
+  // Show the next action in sequence without implying a prerequisite; the
   // API does not model unlocks explicitly.
   const ordered = rows.slice().sort((a, b) => a.priority - b.priority);
   return ordered.map((row, index) => ({

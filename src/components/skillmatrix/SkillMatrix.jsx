@@ -768,7 +768,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
           <div className="sm-main-head">
             <div>
               <h1>My Skill Matrix</h1>
-              <p>{skillIds.length} skills · initialized from US-ASM-01 baseline assessment</p>
+              <p>{skillIds.length} skills · {assessmentCount} assessment-derived · {selfCount} self-assessed</p>
             </div>
             <div className="sm-head-actions">
               <div className="sm-tabs">
@@ -838,9 +838,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
 
           <div className="sm-info-banner">
             <span>
-              <b>AC-09 — Assessment Initialization:</b> These skills were automatically initialized from your baseline
-              assessment results (US-ASM-01). Assessment-derived skills carry a higher confidence score than
-              self-assessed entries (BR-08). You can add new skills from the taxonomy or adjust self-assessed levels.
+              <b>Skill sources:</b> Assessment-derived entries come from assessment results. Self-assessed entries are levels you provide. You can add skills from the taxonomy or adjust self-assessed levels.
             </span>
           </div>
         </main>

@@ -156,7 +156,7 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
     return () => { aliveRef.current = false; };
   }, []);
 
-  const user = profile || authUser || {};
+  const user = { ...authUser, ...profile, name: profile?.name || profile?.full_name || authUser?.name || authUser?.full_name || 'Learner' };
   const readinessScore = Number(readiness?.score ?? readiness?.readiness_score ?? 0) || 0;
   const rolePayload = activeCareerRole?.career_role ?? activeCareerRole?.role ?? activeCareerRole;
   const roleLabel = rolePayload?.title || readiness?.role_title || readiness?.roleTitle || '';

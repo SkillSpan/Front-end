@@ -7,8 +7,9 @@ const api = vi.hoisted(() => Object.fromEntries([
   'getCareerRoleById', 'fetchProfileAvatarUrl', 'updateProfile', 'calculateIntelligence',
 ].map((name) => [name, vi.fn()])));
 vi.mock('../../../api', () => ({ ...api, unwrapApiData: (p) => p?.data ?? p }));
-vi.mock('../../auth/AuthContext', () => ({ useAuth: () => ({ authUser: { name: 'Learner' } }) }));
-vi.mock('../../dashboard/AppLayout', () => ({ default: ({ children, roleLabel, onNavigate }) => <>
+vi.mock('../../auth/AuthContext', () => ({ useAuth: () => ({ authUser: { name: 'Ahmed' } }) }));
+vi.mock('../../dashboard/AppLayout', () => ({ default: ({ children, roleLabel, onNavigate, user }) => <>
+  <p data-testid="account-name">{user?.name}</p>
   <p data-testid="current-role-label">{roleLabel}</p>
   <button onClick={() => onNavigate('career-journey')}>Open Journey</button>
   <button onClick={() => onNavigate('projects')}>Open Projects</button>
@@ -60,6 +61,7 @@ describe('career goal persistence and workspace refresh', () => {
     fireEvent.click(within(screen.getByTestId('role-99')).getByRole('button', { name: 'Set as Career Goal' }));
     await waitFor(() => expect(screen.getByTestId('current-role-label')).toHaveTextContent('Data Analyst'));
     await screen.findByText('Career goal saved. Your analysis is available in Career Journey.');
+    expect(screen.getByTestId('account-name')).toHaveTextContent('Ahmed');
     expect(api.updateProfile).toHaveBeenCalledWith({ primary_career_role_id: 99 });
     expect(api.getLatestReadiness).toHaveBeenLastCalledWith({ careerRoleId: 99 });
     expect(api.getLatestIntelligence).toHaveBeenLastCalledWith({ careerRoleId: 99 });
