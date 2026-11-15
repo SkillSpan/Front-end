@@ -182,6 +182,8 @@ describe('CareerJourneyView with a real backend payload', () => {
     expect(screen.getByText(/Priority 9\.5/)).toBeTruthy();
     // "Completing this unlocks" is the next action, not a mock string.
     expect(screen.getByText('Build a SQL reporting drill')).toBeTruthy();
+    expect(screen.queryByText('Completing this unlocks')).toBeNull();
+    expect(screen.getByText('Next action in your plan')).toBeTruthy();
   });
 
   it('renders skill gaps without NaN and buckets them from the API status', () => {
