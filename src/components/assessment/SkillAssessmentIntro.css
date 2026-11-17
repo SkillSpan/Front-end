@@ -670,3 +670,8 @@
     padding-right: max(64px, calc((100vw - 380px - 772px) / 2));
   }
 }
+.assessment-auth-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.assessment-auth-actions button { cursor: pointer; border-radius: 8px; padding: 10px 16px; font-weight: 600; min-height: 44px; }
+.assessment-auth-actions .assessment-auth-primary { background: #4338ca; border: 1px solid #4338ca; color: white; }
+.assessment-auth-actions .assessment-auth-secondary { background: white; border: 1px solid #4338ca; color: #4338ca; }
+.assessment-auth-actions button:focus-visible { outline: 3px solid #818cf8; outline-offset: 3px; }

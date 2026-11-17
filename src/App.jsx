@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState, useCallback } from 'react'
+import { getAssessmentReturn, consumeAssessmentReturn } from './utils/assessmentAuthReturn'
 import { safeRedirect } from './utils/safeRedirect'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import './App.css'
@@ -67,7 +68,7 @@ function LoginPage({ initialRole = 'student' }) {
   return (
     <Login
       initialRole={initialRole}
-      onSwitchToRegister={() => navigate('/get-started')}
+      onSwitchToRegister={() => navigate(getAssessmentReturn() ? '/register/account' : '/get-started')}
       onBack={() => navigate('/')}
       onForgotPassword={(role) =>
         navigate(role === 'company' ? '/company/forgot-password' : '/forgot-password')
@@ -77,7 +78,7 @@ function LoginPage({ initialRole = 'student' }) {
         // cookie: HomeRoute reads it to decide which dashboard a signed-in
         // visitor belongs to (see below).
         login({ ...user, organizations: organizations || [] })
-        navigate(role === 'company' ? '/company/dashboard' : '/dashboard')
+        navigate(role === 'company' ? '/company/dashboard' : (consumeAssessmentReturn() || '/dashboard'))
       }}
       onNewGoogleUser={(credential) =>
         navigate('/register/status', { state: { googleCredential: credential } })

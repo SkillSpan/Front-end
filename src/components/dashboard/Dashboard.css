@@ -1006,3 +1006,10 @@
   background: rgba(99, 102, 241, 0.2);
   color: #c7d2fe;
 }
+
+/* Keep support text readable beside fixed-size controls on narrow screens. */
+@media (max-width: 640px) {
+  .dash-support-banner { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: start; gap: 12px; padding: 14px; }
+  .dash-support-banner .dash-support-text { min-width: 0; overflow-wrap: break-word; }
+  .dash-support-banner .btn-pill { grid-column: 1 / -1; width: 100%; white-space: normal; }
+}

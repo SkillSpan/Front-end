@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { rememberAssessmentReturn, getAssessmentReturn, readAssessmentSpecialization } from '../../utils/assessmentAuthReturn';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import SkillAssessmentIntro from './SkillAssessmentIntro';
 import SkillAssessmentStarting from './SkillAssessmentStarting';
@@ -105,7 +106,7 @@ function AssessmentWizard({ onFinish }) {
   // it did before this endpoint existed).
   const [assessmentId, setAssessmentId] = useState(loadAssessmentId);
   const [specializations, setSpecializations] = useState([]);
-  const [specializationId, setSpecializationId] = useState('');
+  const [specializationId, setSpecializationId] = useState(() => readAssessmentSpecialization() || getAssessmentReturn()?.specializationId || '');
   // false until GET /reference/specializations has answered (either way).
   const [specializationsLoaded, setSpecializationsLoaded] = useState(false);
   // Why the specialization picker is missing (shown to the learner) - '' when fine.
@@ -386,7 +387,7 @@ function AssessmentWizard({ onFinish }) {
               onStartOver={startOver}
             />
           ) : (
-            <SkillAssessmentIntro rolesError={rolesError} rolesUnauthorized={rolesUnauthorized} onRolesRetry={() => setRolesRetry((value) => value + 1)} onSignIn={() => navigate('/login')} onStart={startAssessment} specializationsProblem={specializationsProblem} specializations={specializations} specializationId={specializationId} onSpecializationChange={handleSpecializationChange} rolesLoading={rolesLoading} careerRoles={careerRoles} careerRoleId={careerRoleId} onCareerRoleChange={(v) => { setCareerRoleId(v); setStartError(''); }} startError={startError} starting={starting} />
+            <SkillAssessmentIntro rolesError={rolesError} rolesUnauthorized={rolesUnauthorized} onRolesRetry={() => setRolesRetry((value) => value + 1)} onSignIn={() => { rememberAssessmentReturn(specializationId); navigate('/login'); }} onCreateAccount={() => { rememberAssessmentReturn(specializationId); navigate('/register/account'); }} onStart={startAssessment} specializationsProblem={specializationsProblem} specializations={specializations} specializationId={specializationId} onSpecializationChange={handleSpecializationChange} rolesLoading={rolesLoading} careerRoles={careerRoles} careerRoleId={careerRoleId} onCareerRoleChange={(v) => { setCareerRoleId(v); setStartError(''); }} startError={startError} starting={starting} />
           )
         }
       />

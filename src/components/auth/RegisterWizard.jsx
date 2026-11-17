@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { consumeAssessmentReturn } from '../../utils/assessmentAuthReturn';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import RegisterStep1 from './RegisterStep1';
 import RegisterStep2 from './RegisterStep2';
@@ -186,8 +187,8 @@ function RegisterWizard() {
             // The Baseline Skill Assessment comes right after Profile
             // Setup (see LearnerProfileSetup's own sidebar stepper, which
             // already lists Assessment as the next step).
-            onComplete={() => navigate('/register/assessment')}
-            onSkip={() => navigate('/register/assessment')}
+            onComplete={() => navigate(consumeAssessmentReturn() || '/register/assessment')}
+            onSkip={() => navigate(consumeAssessmentReturn() || '/register/assessment')}
           />
         }
       />

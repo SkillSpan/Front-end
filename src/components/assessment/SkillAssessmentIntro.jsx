@@ -67,6 +67,7 @@ const SkillAssessmentIntro = ({
   rolesUnauthorized = false,
   onRolesRetry,
   onSignIn,
+  onCreateAccount,
   careerRoles = [],
   careerRoleId = '',
   onCareerRoleChange,
@@ -237,9 +238,12 @@ const SkillAssessmentIntro = ({
             {rolesError && !rolesLoading && (
               <div role="alert" className="assessment-career-role-error">
                 <p>{rolesError}</p>
-                <button type="button" onClick={rolesUnauthorized ? onSignIn : onRolesRetry}>
+                <div className="assessment-auth-actions">
+                <button className="assessment-auth-primary" type="button" onClick={rolesUnauthorized ? onSignIn : onRolesRetry}>
                   {rolesUnauthorized ? 'Sign in' : 'Retry loading roles'}
                 </button>
+                {rolesUnauthorized && <button type="button" className="assessment-auth-secondary" onClick={onCreateAccount}>Create account</button>}
+                </div>
               </div>
             )}
             {startError && (
