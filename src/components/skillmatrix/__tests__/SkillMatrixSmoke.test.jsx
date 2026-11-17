@@ -132,7 +132,7 @@ describe('learner skill matrix page', () => {
     // 3.5 rounds up to the Advanced band, and the card renders instead of
     // pushing the whole page to a blank screen.
     expect(card.textContent).toContain('Lv 3.5/5');
-    expect(card.textContent).toContain('Advanced');
+    expect(card.textContent).toContain('Recorded level 3.5/5');
     expect(card.querySelector('[class~="lvl-3.5"]')).not.toBeNull();
   });
 
@@ -153,6 +153,7 @@ describe('learner skill matrix page', () => {
     for (const value of [0, 1, 2.5, 3.5, '3.50', '2.50', 5, 0, null, undefined, NaN, 'abc']) {
       expect(levelInfo(value)).toBeTruthy();
       expect(typeof levelInfo(value).name).toBe('string');
+      expect(levelInfo(value).name).not.toMatch(/Expert|No Experience/);
     }
   });
 });
