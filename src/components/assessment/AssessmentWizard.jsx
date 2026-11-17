@@ -112,6 +112,9 @@ function AssessmentWizard({ onFinish }) {
   const [specializationsProblem, setSpecializationsProblem] = useState('');
   const [careerRoles, setCareerRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(false);
+  const [rolesError, setRolesError] = useState('');
+  const [rolesUnauthorized, setRolesUnauthorized] = useState(false);
+  const [rolesRetry, setRolesRetry] = useState(0);
   const [careerRoleId, setCareerRoleId] = useState('');
   const [startError, setStartError] = useState('');
   const [starting, setStarting] = useState(false);
@@ -186,16 +189,28 @@ function AssessmentWizard({ onFinish }) {
     }
     let active = true;
     setRolesLoading(true);
+    setRolesError('');
+    setRolesUnauthorized(false);
     getCareerRoles({ page: 1, perPage: 100, specializationId: useSpecializationFlow ? Number(specializationId) : undefined })
       .then((payload) => {
         if (!active) return;
         const rows = toRows(payload).filter((role) => role?.id != null && (!role.status || String(role.status).toLowerCase() === 'approved'));
         setCareerRoles(useSpecializationFlow ? onlyRolesOfSpecialization(rows, specializationId) : rows);
       })
-      .catch(() => { if (active) setCareerRoles([]); })
+      .catch((error) => {
+        if (!active) return;
+        setCareerRoles([]);
+        const unauthorized = error?.status === 401;
+        setRolesUnauthorized(unauthorized);
+        setRolesError(unauthorized
+          ? 'Sign in to load career roles and start your assessment. Your session may have expired.'
+          : error?.status === 403
+            ? 'Your account does not have access to this assessment. Check your account permissions.'
+            : 'Career roles could not be loaded. Check your connection and try again.');
+      })
       .finally(() => { if (active) setRolesLoading(false); });
     return () => { active = false; };
-  }, [specializationsLoaded, useSpecializationFlow, specializationId]);
+  }, [specializationsLoaded, useSpecializationFlow, specializationId, rolesRetry]);
 
   const handleSpecializationChange = (value) => {
     setSpecializationId(value);
@@ -371,7 +386,7 @@ function AssessmentWizard({ onFinish }) {
               onStartOver={startOver}
             />
           ) : (
-            <SkillAssessmentIntro onStart={startAssessment} specializationsProblem={specializationsProblem} specializations={specializations} specializationId={specializationId} onSpecializationChange={handleSpecializationChange} rolesLoading={rolesLoading} careerRoles={careerRoles} careerRoleId={careerRoleId} onCareerRoleChange={(v) => { setCareerRoleId(v); setStartError(''); }} startError={startError} starting={starting} />
+            <SkillAssessmentIntro rolesError={rolesError} rolesUnauthorized={rolesUnauthorized} onRolesRetry={() => setRolesRetry((value) => value + 1)} onSignIn={() => navigate('/login')} onStart={startAssessment} specializationsProblem={specializationsProblem} specializations={specializations} specializationId={specializationId} onSpecializationChange={handleSpecializationChange} rolesLoading={rolesLoading} careerRoles={careerRoles} careerRoleId={careerRoleId} onCareerRoleChange={(v) => { setCareerRoleId(v); setStartError(''); }} startError={startError} starting={starting} />
           )
         }
       />

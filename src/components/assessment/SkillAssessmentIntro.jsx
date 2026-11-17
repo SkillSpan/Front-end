@@ -63,6 +63,10 @@ const SkillAssessmentIntro = ({
   specializationId = '',
   onSpecializationChange,
   rolesLoading = false,
+  rolesError = '',
+  rolesUnauthorized = false,
+  onRolesRetry,
+  onSignIn,
   careerRoles = [],
   careerRoleId = '',
   onCareerRoleChange,
@@ -223,12 +227,20 @@ const SkillAssessmentIntro = ({
             <p className="assessment-career-role-hint">
               Your questions are tailored to the role you choose.
             </p>
-            {!needsSpecialization && !rolesLoading && careerRoles.length === 0 && (
+            {!needsSpecialization && !rolesLoading && !rolesError && careerRoles.length === 0 && (
               <p role="status" className="assessment-career-role-status">
                 {hasSpecializations
                   ? 'No career roles are available for this specialization yet.'
                   : 'No career roles loaded. Check your login and API connection.'}
               </p>
+            )}
+            {rolesError && !rolesLoading && (
+              <div role="alert" className="assessment-career-role-error">
+                <p>{rolesError}</p>
+                <button type="button" onClick={rolesUnauthorized ? onSignIn : onRolesRetry}>
+                  {rolesUnauthorized ? 'Sign in' : 'Retry loading roles'}
+                </button>
+              </div>
             )}
             {startError && (
               <p role="alert" className="assessment-career-role-error">{startError}</p>
@@ -238,7 +250,7 @@ const SkillAssessmentIntro = ({
             type="button"
             className="assessment-intro-start"
             onClick={onStart}
-            disabled={starting || needsSpecialization || !careerRoleId}
+            disabled={starting || rolesLoading || !!rolesError || needsSpecialization || !careerRoleId}
           >
             {starting ? 'Preparing your questions...' : 'Start Assessment'}
             {!starting && <ChevronRightIcon />}
