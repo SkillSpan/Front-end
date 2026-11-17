@@ -4,7 +4,7 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import RegisterStep1 from './RegisterStep1';
 import RegisterStep2 from './RegisterStep2';
 import RegisterStep3 from './RegisterStep3';
-import EmailVerification from './EmailVerified';
+import EmailVerification from './EmailVerification';
 import OtpVerification from './OtpVerification';
 import LearnerProfileSetup from '../assessment/LearnerProfileSetup';
 import AssessmentWizard from '../assessment/AssessmentWizard';

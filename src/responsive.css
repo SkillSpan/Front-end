@@ -1050,3 +1050,23 @@ html:has(
 ) {
   overscroll-behavior-y: none;
 }
+
+/* Shared scroll containers must expose their native scrollbars. */
+html:root :is(.sidebar-left, .reset-sidebar, .sa-sidebar, .cl-sidebar, .cfp-sidebar,
+ .company-step1-sidebar, .company-step2-sidebar, .company-step3-sidebar, .company-step4-sidebar, .company-step5-sidebar,
+ .form-right, .form-right-verify, .profile-setup-sidebar, .profile-setup-form-panel,
+ .app-content, .company-step1-form-sec, .company-step2-form-sec, .company-step3-form-sec, .company-step4-form-sec, .company-step5-form-sec) { scrollbar-width: auto; }
+@media (max-height: 760px) {
+  html:root :is(.register-card, .login-card, .forgot-card, .verify-card) > :is(.form-right, .form-right-verify) {
+    justify-content: flex-start !important;
+    padding-top: 32px !important;
+    padding-bottom: 32px !important;
+    min-height: 100dvh;
+    height: auto;
+    max-height: none;
+  }
+  html:root .register-card .form-right > :is(.resend-wrapper, .login-prompt, .otp-resend) {
+    position: static !important;
+    margin-top: 20px !important;
+  }
+}
