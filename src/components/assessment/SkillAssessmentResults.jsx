@@ -104,7 +104,7 @@ const SkillAssessmentResults = ({ onFinish }) => {
           </section>
 
           <section className="assessment-results-card assessment-results-readiness">
-            <div className="assessment-results-card-title">Readiness Score</div>
+            <div className="assessment-results-card-title">Assessment Score</div>
 
             <div className="assessment-results-score-row">
               <div className="assessment-results-ring-wrap">

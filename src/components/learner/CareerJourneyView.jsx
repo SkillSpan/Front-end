@@ -660,11 +660,11 @@ function SkillGapTab({ gaps }) {
         <InfoIcon />
         <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.6]">
           <strong className="font-['Inter:Semi_Bold',sans-serif] text-[#0a0b14]">
-            Confidence reflects evidence quality.
+            Confidence depends on the evaluation source.
           </strong>{" "}
-          High = multiple verified sources · Medium = one verified or pending verification · Low = self-assessment only.
-          Low-confidence levels are flagged — submitting an assessment or project raises accuracy and roadmap
-          reliability. Missing optional evidence does not count as zero; available evidence is re-weighted (BR-09).
+          For baseline assessments, confidence measures answered question weight relative to the assigned question weight.
+          A value of 100% means full answer coverage, including incorrect answers. Other evaluations may use evidence-based confidence.
+          High, Medium, and Low summarize the recorded percentage; they do not establish mastery or the number of verified sources.
         </p>
       </div>
 
@@ -860,7 +860,7 @@ function SkillGapTab({ gaps }) {
                             {gap.confidence != null && <Bar pct={gap.confidence * 100} color={ct.bar} h={4} />}
                             {gap.confidence != null && gap.confidence < 0.65 && (
                               <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[6px] italic leading-[1.5]">
-                                Submit an assessment or project to raise confidence and improve roadmap accuracy.
+                                Review the evaluation source and answer coverage before interpreting this skill level.
                               </p>
                             )}
                           </div>
