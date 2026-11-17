@@ -160,7 +160,7 @@ const SkillAssessmentCompletion = ({ onViewProfile }) => {
                   <ChartIcon />
                 </span>
                 <strong>{result.score}%</strong>
-                <span>Readiness</span>
+                <span>Assessment score</span>
               </div>
             )}
           </div>
