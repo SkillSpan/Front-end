@@ -28,12 +28,14 @@ describe('custom university and specialization', () => {
     if (!idField) throw new Error('Student ID input not found');
     fireEvent.change(idField, { target: { value: 'aa' } });
     const selects = container.querySelectorAll('select');
-    fireEvent.change(selects[0], { target: { value: 'second_year' } });
-    fireEvent.change(selects[1], { target: { value: String(new Date().getFullYear()) } });
+    fireEvent.change(selects[0], { target: { value: 'graduate' } });
+    expect(screen.getByText('Graduation Year')).toBeTruthy();
+    expect(screen.queryByText('Expected Graduation')).toBeNull();
+    fireEvent.change(selects[1], { target: { value: '2015' } });
     const submit = screen.getByRole('button', { name: /Proceed to Assessment/ });
     expect(submit).not.toBeDisabled();
     fireEvent.click(submit);
-    await waitFor(() => expect(api.createProfile).toHaveBeenCalledWith(expect.objectContaining({ university_name: 'qena university', specialization: 'Custom Department', student_university_number: 'aa' })));
+    await waitFor(() => expect(api.createProfile).toHaveBeenCalledWith(expect.objectContaining({ university_name: 'qena university', specialization: 'Custom Department', student_university_number: 'aa', academic_level: 'graduate', expected_graduation: 2015 })));
     expect(done).toHaveBeenCalled();
   });
 });

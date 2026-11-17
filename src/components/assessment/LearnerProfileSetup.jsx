@@ -63,7 +63,7 @@ const CURRENT_YEAR = new Date().getFullYear();
 // Starts at 2015 so learners who already graduated years ago can still
 // pick their real graduation year, and still runs a few years into the
 // future for people who haven't graduated yet.
-const GRADUATION_START_YEAR = 2015;
+const GRADUATION_START_YEAR = 1900;
 const GRADUATION_YEARS = Array.from(
   { length: CURRENT_YEAR + 6 - GRADUATION_START_YEAR + 1 },
   (_, i) => GRADUATION_START_YEAR + i
@@ -466,6 +466,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
                   value={academicLevel}
                   onChange={(e) => {
                     setAcademicLevel(e.target.value);
+                    if (e.target.value === 'graduate' && Number(expectedGraduation) > CURRENT_YEAR) setExpectedGraduation('');
                     markTouched();
                   }}
                 >
@@ -482,7 +483,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
                 className={`profile-setup-field ${touched && !expectedGraduation ? 'field-error' : ''}`}
               >
                 <label>
-                  Expected Graduation<span className="required-star">*</span>
+                  {academicLevel === 'graduate' ? 'Graduation Year' : 'Expected Graduation'}<span className="required-star">*</span>
                 </label>
                 <select
                   value={expectedGraduation}
@@ -492,7 +493,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
                   }}
                 >
                   <option value="">Select year</option>
-                  {GRADUATION_YEARS.map((year) => (
+                  {GRADUATION_YEARS.filter((year) => academicLevel !== 'graduate' || year <= CURRENT_YEAR).map((year) => (
                     <option key={year} value={year}>
                       {year}
                     </option>

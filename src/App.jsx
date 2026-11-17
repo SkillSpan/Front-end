@@ -4,6 +4,7 @@ import { safeRedirect } from './utils/safeRedirect'
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import './App.css'
 import Landing from './landing/LandingPage'
+import RouteScrollReset from './components/RouteScrollReset'
 import { AuthProvider, useAuth } from './components/auth/AuthContext'
 import { signOutToLanding, isDeliberateSignOut, clearDeliberateSignOut } from './components/auth/signOut'
 import { EvidenceProvider } from './components/evidence/EvidenceContext'
@@ -409,6 +410,7 @@ function AppRoutes() {
       key={transitionKey(location.pathname)}
     >
       <Suspense fallback={<RouteFallback />}>
+      <RouteScrollReset />
       <Routes>
       <Route path="/" element={<HomeRoute />} />
       <Route path="/login" element={<LoginPage />} />
