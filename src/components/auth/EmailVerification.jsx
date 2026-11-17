@@ -5,7 +5,8 @@ const EmailVerification = ({ onContinueToSetup, onResendEmail }) => {
   const [timer, setTimer] = useState(0);
   const [message, setMessage] = useState({ text: '', type: '' });
 
-  const canResend = timer === 0;
+  const [resending, setResending] = useState(false);
+  const canResend = timer === 0 && !resending;
 
   useEffect(() => {
     if (timer <= 0) return;
@@ -15,19 +16,20 @@ const EmailVerification = ({ onContinueToSetup, onResendEmail }) => {
     return () => clearInterval(interval);
   }, [timer]);
 
-  const handleResend = () => {
+  const handleResend = async () => {
     if (!canResend) return;
-    setTimer(60);
-    if (typeof onResendEmail === 'function') {
-      onResendEmail();
+    setResending(true);
+    setMessage({ text: '', type: '' });
+    try {
+      if (typeof onResendEmail !== 'function') throw new Error('Unable to resend the code. Please try again.');
+      await onResendEmail();
+      setTimer(60);
+      setMessage({ text: 'A new verification code has been sent to your email.', type: 'success' });
+    } catch (error) {
+      setMessage({ text: error?.message || 'Unable to resend the code. Please try again.', type: 'error' });
+    } finally {
+      setResending(false);
     }
-    setMessage({
-      text: 'A new verification code has been sent to your email!',
-      type: 'success',
-    });
-    setTimeout(() => {
-      setMessage({ text: '', type: '' });
-    }, 4000);
   };
 
   return (
@@ -79,9 +81,9 @@ const EmailVerification = ({ onContinueToSetup, onResendEmail }) => {
 
           <h1 className="verification-title">Check your email</h1>
           <p className="verification-desc">
-            We sent a verification link to your email address.
+            We sent a verification code to your email address.
             <br />
-            Click it to activate your account
+            Enter the code on the next screen to verify your account.
           </p>
 
           {message.text && (
@@ -91,7 +93,7 @@ const EmailVerification = ({ onContinueToSetup, onResendEmail }) => {
           )}
 
           <button className="btn-continue-setup" onClick={onContinueToSetup}>
-            Continue to Setup
+            Enter Verification Code
           </button>
 
           <div className="resend-wrapper">
@@ -99,12 +101,12 @@ const EmailVerification = ({ onContinueToSetup, onResendEmail }) => {
               <p className="resend-text">
                 Didn't receive it?{' '}
                 <button type="button" className="btn-resend-link" onClick={handleResend}>
-                  Resend email
+                  Resend code
                 </button>
               </p>
             ) : (
               <p className="resend-text disabled">
-                Didn't receive it? Resend email in <span className="timer-count">{timer}s</span>
+                {resending ? 'Sending verification code…' : <>Didn't receive it? Resend code in <span className="timer-count">{timer}s</span></>}
               </p>
             )}
           </div>
