@@ -854,7 +854,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
 
           <div className="sm-info-banner">
             <span>
-              <b>Skill sources:</b> Assessment-derived entries come from assessment results. Self-assessed entries are levels you provide. You can add skills from the taxonomy or adjust self-assessed levels.
+              <b>Skill sources:</b> Assessment-derived entries come from assessment results. Self-assessed entries are levels you provide. Assessment levels describe performance on assessed questions, not professional expertise. A zero score does not establish that you have no experience. You can add skills from the taxonomy or adjust self-assessed levels.
             </span>
           </div>
         </main>

@@ -24,13 +24,7 @@ const ACCENT_PALETTE = ['#8b5cf6', '#3b82f6', '#14b8a6', '#f59e0b', '#3b82f6', '
 // backend yet (see api.js) - this tries a handful of plausible field names
 // for the skill name and its 0-4 level so the real matrix can be shown as
 // soon as it's reachable, without ever throwing on an unexpected shape.
-const levelLabel = (level) => {
-  if (level < 1) return 'No Experience';
-  if (level < 2) return 'Beginner';
-  if (level < 3) return 'Developing';
-  if (level < 4) return 'Intermediate';
-  return 'Advanced';
-};
+const levelLabel = (level) => `Assessment level ${Math.max(0, Math.min(5, Number(level) || 0))}/5`;
 
 const SkillAssessmentResults = ({ onFinish }) => {
   // The scored result saved by AssessmentWizard after the real submit call.
@@ -63,7 +57,7 @@ const SkillAssessmentResults = ({ onFinish }) => {
 
         <h1 className="assessment-results-title">Your initial skill profile</h1>
         <p className="assessment-results-subtitle">
-          Based on your baseline assessment responses — these are your starting proficiency levels.
+          Based on your baseline assessment responses. These scores describe performance on the assessed questions; they do not certify professional expertise.
         </p>
 
         <div className="assessment-results-grid">
@@ -81,7 +75,7 @@ const SkillAssessmentResults = ({ onFinish }) => {
                   <div className="assessment-results-skill-row">
                     <span className="assessment-results-skill-name">{s.skill}</span>
                     <div className="assessment-results-skill-dots">
-                      {Array.from({ length: Math.max(1, Math.round(s.level)) }).map((_, i) => (
+                      {Array.from({ length: Math.max(0, Math.round(s.level)) }).map((_, i) => (
                         <span key={i} style={{ background: s.accent }} />
                       ))}
                     </div>
