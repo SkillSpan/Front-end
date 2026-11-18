@@ -126,6 +126,18 @@ function openTab(name) {
 }
 
 describe('CareerJourneyView with a real backend payload', () => {
+  it('uses server component weights and explains provisional results', () => {
+    const readiness = {
+      ...READINESS, score: 57.5, is_provisional: true,
+      practical_experience_component: null, assessment_reliability_component: null,
+      effective_weights: { skill_match: 0.9, profile_completeness: 0.1 },
+    };
+    render(<CareerJourneyView readiness={readiness} intelligence={INTELLIGENCE} />);
+    expect(screen.getByText(/Provisional result: unavailable components/)).toBeTruthy();
+    expect(screen.getAllByText('Weight: 90% of score').length).toBeGreaterThan(0);
+    expect(screen.queryByText('Assessment Reliability')).toBeNull();
+  });
+
   it('renders the readiness score from the flat readiness resource', () => {
     render(<CareerJourneyView readiness={READINESS} intelligence={INTELLIGENCE} roleTitle="Data Analyst" />);
 
