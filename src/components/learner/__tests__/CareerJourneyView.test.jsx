@@ -126,6 +126,16 @@ function openTab(name) {
 }
 
 describe('CareerJourneyView with a real backend payload', () => {
+  it('distinguishes canonical evidence confidence from legacy answer coverage', () => {
+    render(<CareerJourneyView readiness={READINESS} intelligence={{ ...INTELLIGENCE,
+      skill_gaps: [{ ...INTELLIGENCE.skill_gaps[0], confidence: 30,
+        confidence_algorithm_version: 'skill-confidence-v2-baseline' }],
+    }} />);
+    openTab('Skill Gaps');
+    expect(screen.getAllByText(/Moderate/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/separately from answer coverage/)).toBeTruthy();
+  });
+
   it('uses server component weights and explains provisional results', () => {
     const readiness = {
       ...READINESS, score: 57.5, is_provisional: true,

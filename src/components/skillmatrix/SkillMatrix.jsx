@@ -136,7 +136,13 @@ function pickFirstUnowned(taxonomy, skills) {
 }
 
 const PALETTE = ['#4f46e5', '#7c3aed', '#059669', '#ea580c', '#e11d48', '#0891b2', '#ca8a04', '#9333ea'];
-function confidenceToLabel(score) {
+function confidenceToLabel(score, algorithmVersion) {
+  if (algorithmVersion === 'skill-confidence-v2-baseline') {
+    if (score >= 80) return 'High';
+    if (score >= 60) return 'Good';
+    if (score >= 30) return 'Moderate';
+    return 'Low';
+  }
   if (score >= 70) return 'High';
   if (score >= 40) return 'Medium';
   return 'Low';
@@ -461,12 +467,12 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
           .filter((row) => !learnerId || String(row.learner_id) === String(learnerId))
           .forEach((row) => {
             nextSkills[row.skill_id] = {
-              source: row.source_type === 'assessment' ? 'assessment' : 'self',
+              source: row.source_type === 'assessment' ? 'assessment' : row.source_type === 'evidence_aggregate' ? 'evidence' : 'self',
               // The API sends `level` as a decimal STRING ("3.50"). It is used
               // in arithmetic below (`card.level / 5`, `i < card.level`), and a
               // string either concatenates or yields NaN there.
               level: Number(row.level) || 0,
-              confidence: confidenceToLabel(row.confidence_score ?? 0),
+              confidence: confidenceToLabel(row.confidence_score ?? 0, row.algorithm_version),
             };
             nextRowIds[row.skill_id] = row.id;
           });
@@ -487,6 +493,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   const skillIds = Object.keys(skills);
   const assessmentCount = skillIds.filter((id) => skills[id].source === 'assessment').length;
   const selfCount = skillIds.filter((id) => skills[id].source === 'self').length;
+  const evidenceCount = skillIds.filter((id) => skills[id].source === 'evidence').length;
   const avgProficiency = skillIds.length
     ? (skillIds.reduce((sum, id) => sum + (Number(skills[id].level) || 0), 0) / skillIds.length).toFixed(1)
     : '0.0';
@@ -537,7 +544,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
 
   const cards = useMemo(() => {
     return skillIds
-      .filter((id) => (tab === 'all' ? true : tab === 'assessment' ? skills[id].source === 'assessment' : skills[id].source === 'self'))
+      .filter((id) => tab === 'all' || skills[id].source === tab)
       .map((id) => {
         const meta = findSkillInTaxonomy(taxonomy, id);
         return meta ? { id, ...meta, ...skills[id] } : null;
@@ -784,13 +791,14 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
           <div className="sm-main-head">
             <div>
               <h1>My Skill Matrix</h1>
-              <p>{skillIds.length} skills · {assessmentCount} assessment-derived · {selfCount} self-assessed</p>
+              <p>{skillIds.length} skills · {assessmentCount} assessment-derived · {selfCount} self-assessed{evidenceCount > 0 ? ` · ${evidenceCount} evidence-based` : ""}</p>
             </div>
             <div className="sm-head-actions">
               <div className="sm-tabs">
                 <button type="button" className={`sm-tab${tab === 'all' ? ' active' : ''}`} onClick={() => setTab('all')}>All Skills</button>
                 <button type="button" className={`sm-tab${tab === 'assessment' ? ' active' : ''}`} onClick={() => setTab('assessment')}>Assessment</button>
                 <button type="button" className={`sm-tab${tab === 'self' ? ' active' : ''}`} onClick={() => setTab('self')}>Self-Assessed</button>
+                {evidenceCount > 0 && <button type="button" className={`sm-tab${tab === 'evidence' ? ' active' : ''}`} onClick={() => setTab('evidence')}>Evidence</button>}
               </div>
               <button type="button" className="btn-add-skill" onClick={() => openAddSkill(pickFirstUnowned(visibleTaxonomy, skills))}>
                 + Add Skill
@@ -840,10 +848,12 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
                   <div className="sm-card-bottom">
                     {card.source === 'assessment' ? (
                       <span className="sm-source-badge src-assessment">⟳ Assessment</span>
+                    ) : card.source === 'evidence' ? (
+                      <span className="sm-source-badge src-assessment">✓ Evidence-based</span>
                     ) : (
                       <span className="sm-source-badge src-self">🕐 Self-assessed</span>
                     )}
-                    <span className={`sm-confidence conf-${card.confidence}`}>
+                    <span className={`sm-confidence conf-${['Good', 'Moderate'].includes(card.confidence) ? 'Medium' : card.confidence}`}>
                       <span className="cdot" /> {card.confidence} confidence
                     </span>
                   </div>
@@ -854,7 +864,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
 
           <div className="sm-info-banner">
             <span>
-              <b>Skill sources:</b> Assessment-derived entries come from assessment results. Self-assessed entries are levels you provide. Assessment levels describe performance on assessed questions, not professional expertise. A zero score does not establish that you have no experience. You can add skills from the taxonomy or adjust self-assessed levels.
+              <b>Skill sources:</b> Assessment-derived entries come from assessment results. Evidence-based entries combine approved evidence sources. Evidence confidence reflects support, verification and recency, not answer completion or professional mastery. Self-assessed entries are levels you provide. Assessment levels describe performance on assessed questions, not professional expertise. A zero score does not establish that you have no experience. You can add skills from the taxonomy or adjust self-assessed levels.
             </span>
           </div>
         </main>

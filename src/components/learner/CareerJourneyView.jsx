@@ -114,6 +114,8 @@ const CT = {
   "Not available": { text: "text-[#94a3b8]", dot: "bg-[#d1d5db]", bar: "#d1d5db" },
   High: { text: "text-[#059669]", dot: "bg-[#059669]", bar: "#059669" },
   Medium: { text: "text-[#f59e0b]", dot: "bg-[#f59e0b]", bar: "#f59e0b" },
+  Moderate: { text: "text-[#f59e0b]", dot: "bg-[#f59e0b]", bar: "#f59e0b" },
+  Good: { text: "text-[#0284c7]", dot: "bg-[#0284c7]", bar: "#0284c7" },
   Low: { text: "text-[#ef4444]", dot: "bg-[#ef4444]", bar: "#ef4444" },
   "Self-Assessment Only": { text: "text-[#94a3b8]", dot: "bg-[#d1d5db]", bar: "#d1d5db" },
 };
@@ -662,9 +664,10 @@ function SkillGapTab({ gaps }) {
           <strong className="font-['Inter:Semi_Bold',sans-serif] text-[#0a0b14]">
             Confidence depends on the evaluation source.
           </strong>{" "}
-          For baseline assessments, confidence measures answered question weight relative to the assigned question weight.
-          A value of 100% means full answer coverage, including incorrect answers. Other evaluations may use evidence-based confidence.
-          High, Medium, and Low summarize the recorded percentage; they do not establish mastery or the number of verified sources.
+          Legacy baseline results may report answer coverage, including incorrect answers.
+          Evidence-based evaluations measure source support, verification and recency separately from answer coverage.
+          Their confidence bands are Low (below 30%), Moderate (30–59%), Good (60–79%) and High (80–100%).
+          Confidence does not establish professional mastery.
         </p>
       </div>
 
@@ -706,7 +709,7 @@ function SkillGapTab({ gaps }) {
                 {bk.items.map((gap) => {
                   const isExp = expanded === gap.skillId;
                   const mc = gap.match >= 100 ? "#059669" : gap.match >= 70 ? "#f59e0b" : "#ef4444";
-                  const ct = CT[gap.confidenceLabel];
+                  const ct = CT[gap.confidenceLabel] ?? CT["Not available"];
                   return (
                     <div
                       key={gap.skillId}
@@ -1164,11 +1167,9 @@ function normaliseSkillGaps(skillGaps) {
       confidenceLabel:
         confidence == null
           ? "Not available"
-          : confidence >= 80
-            ? "High"
-            : confidence >= 50
-              ? "Medium"
-              : "Low",
+          : gap.confidence_algorithm_version === "skill-confidence-v2-baseline"
+            ? confidence >= 80 ? "High" : confidence >= 60 ? "Good" : confidence >= 30 ? "Moderate" : "Low"
+            : confidence >= 80 ? "High" : confidence >= 50 ? "Medium" : "Low",
       // met ⇒ strength; a critical shortfall ⇒ priority; anything else ⇒ developing.
       bucket: status === "met" || gapValue <= 0 ? "strength" : isCritical ? "priority-gap" : "developing",
       explanation: gap.explanation || "",
