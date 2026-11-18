@@ -20,7 +20,7 @@ describe('roadmap learning', () => {
     updateRoadmapProgress.mockResolvedValue({ data: { learning_resource_id: 7, progress_value: 100, verification_state: 'pending' } });
     render(<RoadmapLearningPanel action={action} onClose={() => {}} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Start learning' }));
-    expect(await screen.findByRole('link', { name: /Open resource/ })).toHaveAttribute('rel', 'noopener noreferrer');
+    expect(await screen.findByRole('link', { name: /Resume learning/ })).toHaveAttribute('rel', 'noopener noreferrer');
     expect(startRoadmapResource).toHaveBeenCalledWith(3, 7);
     fireEvent.change(screen.getByLabelText(/Self-reported progress/), { target: { value: '100' } });
     fireEvent.change(screen.getByLabelText('Completion evidence'), { target: { value: 'Query and explanation' } });
@@ -34,6 +34,16 @@ describe('roadmap learning', () => {
     render(<RoadmapLearningPanel action={action} onClose={() => {}} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Start learning' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('superseded');
-    expect(screen.queryByRole('link', { name: /Open resource/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Resume learning/ })).not.toBeInTheDocument();
+  });
+  it('resumes a saved resource without posting start again or changing progress', async () => {
+    getRoadmapResources.mockResolvedValue({ data: { resources: [resource], activity: { learning_resource_id: 7, progress_value: '25.00', verification_state: 'unverified' } } });
+    render(<RoadmapLearningPanel action={action} onClose={() => {}} />);
+    const resume = await screen.findByRole('link', { name: /Resume learning/ });
+    expect(resume).toHaveAttribute('href', resource.url);
+    expect(resume).toHaveAttribute('target', '_blank');
+    expect(screen.getByLabelText(/Self-reported progress/)).toHaveValue(25);
+    expect(screen.queryByRole('button', { name: /Resume learning/ })).not.toBeInTheDocument();
+    expect(startRoadmapResource).not.toHaveBeenCalled();
   });
 });

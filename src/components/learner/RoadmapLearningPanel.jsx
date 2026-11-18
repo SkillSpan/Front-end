@@ -30,7 +30,7 @@ export default function RoadmapLearningPanel({ action, onClose }) {
       const response = await startRoadmapResource(action.id, resource.id);
       const data = response.data ?? response;
       setActivity(data.activity);
-      setNotice("Learning started. Use Open resource below; opening it does not mark this action complete.");
+      setNotice("Learning started. Use Resume learning below; opening it does not mark this action complete.");
     } catch (e) { setError(e.message || "Unable to start learning."); }
     finally { setBusy(false); }
   }
@@ -54,7 +54,9 @@ export default function RoadmapLearningPanel({ action, onClose }) {
       <p>{resource.provider} · {resource.language || "Language not specified"} · Free</p>
       <p>Suggested resource level: {resource.level ?? "Not specified"}/5. Choose a resource that matches your background.</p>
       {resource.prerequisites && <p>Prerequisites: {resource.prerequisites}</p>}
-      <button type="button" className="rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50" disabled={busy || Boolean(activity && activity.learning_resource_id !== resource.id)} onClick={() => start(resource)}>{activity?.learning_resource_id === resource.id ? "Resume learning" : "Start learning"}</button>
+      {activity?.learning_resource_id === resource.id
+        ? (/^https:\/\//i.test(resource.url) && <a className="inline-block rounded bg-blue-700 px-4 py-2 text-white" href={resource.url} target="_blank" rel="noopener noreferrer">Resume learning ↗</a>)
+        : <button type="button" className="rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50" disabled={busy || Boolean(activity)} onClick={() => start(resource)}>Start learning</button>}
       {activity?.learning_resource_id === resource.id && /^https:\/\//i.test(resource.url) && <a className="inline-block ml-4 py-2 text-blue-700 underline" href={resource.url} target="_blank" rel="noopener noreferrer">Open resource ↗</a>}
     </article>)}
     {activity && <form onSubmit={save} className="space-y-3">
