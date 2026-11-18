@@ -953,3 +953,7 @@ export const markConversationRead = (id) => request(`/api/v1/conversations/${id}
 export const hideConversation = (id) => request(`/api/v1/conversations/${id}`, { method: 'DELETE', withAuth: true });
 export const getConversationStatus = (id) => request(`/api/v1/conversations/${id}/status`, { withAuth: true });
 export const createConversation = (connectionId, payload = {}) => request(`/api/v1/connections/${connectionId}/conversations`, { method: 'POST', body: payload, withAuth: true });
+
+export const getRoadmapResources = (id) => request(`/api/v1/roadmap-actions/${id}/resources`, { withAuth: true });
+export const startRoadmapResource = (id, resourceId) => request(`/api/v1/roadmap-actions/${id}/start`, { method: 'POST', body: { learning_resource_id: resourceId }, withAuth: true });
+export const updateRoadmapProgress = (id, payload) => request(`/api/v1/roadmap-actions/${id}/progress`, { method: 'PATCH', body: payload, withAuth: true });
