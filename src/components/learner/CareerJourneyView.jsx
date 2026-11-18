@@ -1222,7 +1222,10 @@ function normaliseReadiness(readiness, roleTitle = "") {
   const weightTotal = available.reduce((sum, component) => sum + component.weight, 0);
 
   const components = available.map((component) => {
-    const effectiveWeight = weightTotal > 0 ? component.weight / weightTotal : 0;
+    const serverWeight = readiness.effective_weights?.[component.key];
+    const effectiveWeight = Number.isFinite(serverWeight)
+      ? serverWeight
+      : weightTotal > 0 ? component.weight / weightTotal : 0;
     return {
       key: component.key,
       label: component.label,
@@ -1249,7 +1252,9 @@ function normaliseReadiness(readiness, roleTitle = "") {
     band: normaliseBand(readiness.band),
     roleTitle: roleTitle || readiness.role_title || "",
     roleVersion: readiness.career_role_version ?? "",
-    explanation: readiness.explanation || "",
+    explanation: readiness.explanation || (readiness.is_provisional
+      ? "Provisional result: unavailable components are excluded and available weights are rebalanced."
+      : ""),
     components,
     warning: readiness.critical_cap_applied
       ? {
