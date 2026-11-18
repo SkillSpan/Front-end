@@ -1,4 +1,5 @@
 import { useState } from "react";
+import RoadmapLearningPanel from "./RoadmapLearningPanel";
 // ═══════════════════════════════════════════════════════════════════════════════
 // MOCK DATA
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -212,7 +213,7 @@ function Gauge({ score, band, size = 180 }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // NBA BANNER
 // ═══════════════════════════════════════════════════════════════════════════════
-function NBABanner({ action }) {
+function NBABanner({ action, onStart }) {
   // `phase_name` is what normaliseRoadmapActions() produces; `phaseName` was the
   // mock-model spelling this banner was originally written against. Accept both
   // so the banner cannot render "Phase 1 · undefined" against a real payload.
@@ -312,6 +313,7 @@ function NBABanner({ action }) {
               </p>
             </div>
             <button
+              onClick={() => onStart(action)}
               className="w-full mt-[2px] py-[9px] rounded-[9px] text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white shadow-[0_4px_16px_rgba(59,139,255,0.4)] hover:shadow-[0_6px_20px_rgba(59,139,255,0.5)] transition-all"
               style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}
             >
@@ -959,7 +961,7 @@ function MilestoneCard({ m }) {
   );
 }
 // ── Action card ────────────────────────────────────────────────────────────────
-function ActionCard({ action }) {
+function ActionCard({ action, onStart }) {
   const [open, setOpen] = useState(action.isNBA ?? false);
   const st = ST[action.status] ?? ST["Not Started"];
   const tm = TM[action.type] ?? { emoji: "📌", label: "Action" };
@@ -978,6 +980,7 @@ function ActionCard({ action }) {
               : "border-[#e8eaf0]"
       }`}
     >
+      {action.type === "Learning Resource" && !isBlocked && !isDone && <button type="button" onClick={() => onStart(action)} className="m-3 rounded bg-blue-700 px-4 py-2 text-white">View learning resources</button>}
       {action.isNBA && (
         <div className="h-[3px] w-full" style={{ background: "linear-gradient(90deg,#3b8bff,#7c3aed)" }} />
       )}
@@ -1354,7 +1357,7 @@ function normaliseRoadmapActions(roadmap, skillGaps) {
   }));
 }
 
-function RoadmapTab({ actions, milestones = [], roadmap = null }) {
+function RoadmapTab({ actions, milestones = [], roadmap = null, onStart }) {
   const [filterPhase, setFilterPhase] = useState("all");
   const [showMilestones, setShowMilestones] = useState(true);
   const phases = [...new Set([...actions.map((a) => a.phase), ...milestones.map((m) => m.phase)].filter((phase) => phase !== null && phase !== undefined))]
@@ -1527,7 +1530,7 @@ function RoadmapTab({ actions, milestones = [], roadmap = null }) {
         </p>
         <div className="flex flex-col gap-[10px]">
           {displayActions.map((a) => (
-            <ActionCard key={a.id} action={a} />
+            <ActionCard key={a.id} action={a} onStart={onStart} />
           ))}
         </div>
       </div>
@@ -2211,6 +2214,12 @@ export default function CareerJourneyView({ readiness = null, intelligence = nul
   // The roadmap only carries `next_best_action_id`, never a nested object, so the
   // banner is driven by the action flagged during normalisation.
   const nextBestAction = roadmapActions.find((action) => action.isNBA) ?? roadmapActions[0] ?? null;
+  const [learningAction, setLearningAction] = useState(null);
+  const [actionNotice, setActionNotice] = useState("");
+  const startLearning = (action) => {
+    if (action.type !== "Learning Resource") { setActionNotice("This action does not have a learning resource workflow yet."); return; }
+    setActionNotice(""); setLearningAction(action);
+  };
   const [tab, setTab] = useState("readiness");
   const [demoState, setDemoState] = useState("loaded");
   const isLoaded = demoState === "loaded";
@@ -2270,6 +2279,8 @@ export default function CareerJourneyView({ readiness = null, intelligence = nul
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-[32px] py-[20px]">
+        {actionNotice && <p role="status">{actionNotice}</p>}
+        {learningAction && <RoadmapLearningPanel key={learningAction.id} action={learningAction} onClose={() => setLearningAction(null)} />}
         {demoState === "loading" && <LoadingState />}
         {isError && <ErrorState variant={demoState} />}
         {isIncomplete && <IncompleteState variant={demoState} />}
@@ -2278,12 +2289,12 @@ export default function CareerJourneyView({ readiness = null, intelligence = nul
           <>
             {tab === "readiness" && (
               <>
-                {nextBestAction ? <NBABanner action={nextBestAction} /> : null}
+                {nextBestAction ? <NBABanner action={nextBestAction} onStart={startLearning} /> : null}
                 {readinessData ? <ReadinessTab data={readinessData} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No saved readiness result is available for this account yet. Complete the assessment and try again to load a real result from the server.</div>}
               </>
             )}
             {tab === "skill-gap" && (skillGapRows.length > 0 ? <SkillGapTab gaps={skillGapRows} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Skill gap data is not available from the server yet.</div>)}
-            {tab === "roadmap" && (roadmapActions.length > 0 ? <RoadmapTab actions={roadmapActions} milestones={roadmapMilestones} roadmap={roadmap} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No saved roadmap is available from the server yet.</div>)}
+            {tab === "roadmap" && (roadmapActions.length > 0 ? <RoadmapTab actions={roadmapActions} milestones={roadmapMilestones} roadmap={roadmap} onStart={startLearning} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No saved roadmap is available from the server yet.</div>)}
           </>
         )}
       </div>
