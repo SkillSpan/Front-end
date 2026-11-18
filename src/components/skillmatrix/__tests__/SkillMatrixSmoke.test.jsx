@@ -64,6 +64,27 @@ const TAXONOMY = {
 };
 
 describe('learner skill matrix page', () => {
+  it('shows mixed evidence with canonical confidence instead of self-assessment', async () => {
+    mocks.getSkillsMatrix.mockResolvedValue({ data: [{
+      learner_id: 68, skill_id: 10, level: '2.80', confidence_score: 50,
+      source_type: 'evidence_aggregate', algorithm_version: 'skill-confidence-v2-baseline',
+    }] });
+    render(<MemoryRouter><SkillMatrix onNavigate={vi.fn()} /></MemoryRouter>);
+    expect(await screen.findByText('✓ Evidence-based')).toBeInTheDocument();
+    expect(screen.getByText(/Moderate confidence/)).toBeInTheDocument();
+    expect(screen.getByText(/1 evidence-based/)).toBeInTheDocument();
+  });
+
+  it('shows 30 percent canonical assessment support as moderate confidence', async () => {
+    mocks.getSkillsMatrix.mockResolvedValue({ data: [{
+      learner_id: 68, skill_id: 10, level: 2, confidence_score: 30,
+      source_type: 'assessment', algorithm_version: 'skill-confidence-v2-baseline',
+    }] });
+    render(<MemoryRouter><SkillMatrix onNavigate={vi.fn()} /></MemoryRouter>);
+    expect(await screen.findByText(/Moderate confidence/)).toBeInTheDocument();
+    expect(screen.queryByText(/High confidence/)).toBeNull();
+  });
+
   beforeEach(() => {
     Object.values(mocks).forEach((fn) => fn.mockReset());
     mocks.getStoredUser.mockReturnValue({ id: 68, name: 'Demo Learner' });
