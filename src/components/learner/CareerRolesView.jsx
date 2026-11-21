@@ -1,475 +1,118 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import CareerGoalControl from './CareerGoalControl';
+import { getCareerRoleSkills, getCareerRoles, getSkillsMatrix, getSavedCareerRoles, setCareerRoleSaved, unwrapApiData } from "../../api";
 // ── Mock Data ────────────────────────────────────────────────────────────────
-const MOCK_ROLES = [
-  {
-    id: "role-se",
-    title: "Software Engineer",
-    category: "Engineering",
-    version: "v2.3",
-    effectiveDate: "2026-01-15",
-    status: "approved",
-    readinessScore: 67,
-    isSaved: true,
-    isSuggested: true,
-    suggestionReason: "Your Python and React skills align strongly with 9 of 12 required competencies for this role.",
-    demand: {
-      demandLevel: "High",
-      demandValue: 84,
-      source: "LinkedIn Labor Insights",
-      collectionDate: "2026-08-01",
-      validUntil: "2027-01-31",
-      isExpired: false,
-    },
-    skillRequirements: [
-      {
-        skillId: "s1",
-        skillName: "Python",
-        category: "Programming",
-        requiredLevel: 4,
-        maxLevel: 4,
-        currentLevel: 3,
-        importanceWeight: 0.9,
-        isCritical: true,
-        prerequisites: [],
-      },
-      {
-        skillId: "s2",
-        skillName: "React",
-        category: "Frontend",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 2,
-        importanceWeight: 0.8,
-        isCritical: true,
-        prerequisites: ["JavaScript"],
-      },
-      {
-        skillId: "s3",
-        skillName: "System Design",
-        category: "Architecture",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 2,
-        importanceWeight: 0.75,
-        isCritical: false,
-        prerequisites: [],
-      },
-      {
-        skillId: "s4",
-        skillName: "SQL",
-        category: "Databases",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 3,
-        importanceWeight: 0.7,
-        isCritical: false,
-        prerequisites: [],
-      },
-      {
-        skillId: "s5",
-        skillName: "Git & CI/CD",
-        category: "DevOps",
-        requiredLevel: 2,
-        maxLevel: 4,
-        currentLevel: 2,
-        importanceWeight: 0.6,
-        isCritical: false,
-        prerequisites: [],
-      },
-      {
-        skillId: "s6",
-        skillName: "REST API Design",
-        category: "Backend",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 2,
-        importanceWeight: 0.65,
-        isCritical: false,
-        prerequisites: ["HTTP"],
-      },
-    ],
-  },
-  {
-    id: "role-da",
-    title: "Data Analyst",
-    category: "Analytics",
-    version: "v1.8",
-    effectiveDate: "2026-02-01",
-    status: "approved",
-    readinessScore: 52,
-    isSaved: true,
-    isSuggested: true,
-    suggestionReason:
-      "Your Pandas and Tableau evidence suggests strong analytical capability matching 7 of 11 required skills.",
-    demand: {
-      demandLevel: "High",
-      demandValue: 78,
-      source: "Glassdoor Market Data",
-      collectionDate: "2026-07-15",
-      validUntil: "2027-01-15",
-      isExpired: false,
-    },
-    skillRequirements: [
-      {
-        skillId: "d1",
-        skillName: "SQL",
-        category: "Databases",
-        requiredLevel: 4,
-        maxLevel: 4,
-        currentLevel: 3,
-        importanceWeight: 0.95,
-        isCritical: true,
-        prerequisites: [],
-      },
-      {
-        skillId: "d2",
-        skillName: "Python / Pandas",
-        category: "Programming",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 2,
-        importanceWeight: 0.85,
-        isCritical: true,
-        prerequisites: ["Python"],
-      },
-      {
-        skillId: "d3",
-        skillName: "Tableau",
-        category: "Visualization",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 0,
-        importanceWeight: 0.8,
-        isCritical: false,
-        prerequisites: [],
-      },
-      {
-        skillId: "d4",
-        skillName: "Statistics",
-        category: "Mathematics",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 2,
-        importanceWeight: 0.75,
-        isCritical: false,
-        prerequisites: [],
-      },
-      {
-        skillId: "d5",
-        skillName: "Excel / Sheets",
-        category: "Productivity",
-        requiredLevel: 2,
-        maxLevel: 4,
-        currentLevel: 3,
-        importanceWeight: 0.5,
-        isCritical: false,
-        prerequisites: [],
-      },
-    ],
-  },
-  {
-    id: "role-ml",
-    title: "ML Engineer",
-    category: "Machine Learning",
-    version: "v1.2",
-    effectiveDate: "2026-03-10",
-    status: "approved",
-    readinessScore: 38,
-    isSaved: false,
-    isSuggested: true,
-    suggestionReason:
-      "Your Python proficiency and interest in ML projects places you on a viable path to this role with targeted upskilling.",
-    demand: {
-      demandLevel: "High",
-      demandValue: 91,
-      source: "Indeed Job Market Index",
-      collectionDate: "2026-06-01",
-      validUntil: "2026-11-30",
-      isExpired: false,
-    },
-    skillRequirements: [
-      {
-        skillId: "m1",
-        skillName: "Python",
-        category: "Programming",
-        requiredLevel: 4,
-        maxLevel: 4,
-        currentLevel: 3,
-        importanceWeight: 0.95,
-        isCritical: true,
-        prerequisites: [],
-      },
-      {
-        skillId: "m2",
-        skillName: "Machine Learning",
-        category: "AI/ML",
-        requiredLevel: 4,
-        maxLevel: 4,
-        currentLevel: 1,
-        importanceWeight: 0.95,
-        isCritical: true,
-        prerequisites: ["Python", "Statistics"],
-      },
-      {
-        skillId: "m3",
-        skillName: "Deep Learning / PyTorch",
-        category: "AI/ML",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 0,
-        importanceWeight: 0.85,
-        isCritical: true,
-        prerequisites: ["Machine Learning"],
-      },
-      {
-        skillId: "m4",
-        skillName: "MLOps",
-        category: "DevOps",
-        requiredLevel: 2,
-        maxLevel: 4,
-        currentLevel: 0,
-        importanceWeight: 0.7,
-        isCritical: false,
-        prerequisites: ["CI/CD"],
-      },
-      {
-        skillId: "m5",
-        skillName: "Statistics",
-        category: "Mathematics",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 2,
-        importanceWeight: 0.8,
-        isCritical: false,
-        prerequisites: [],
-      },
-    ],
-  },
-  {
-    id: "role-pm",
-    title: "Product Manager",
-    category: "Product",
-    version: "v2.0",
-    effectiveDate: "2025-11-01",
-    status: "approved",
-    readinessScore: 44,
-    isSaved: false,
-    demand: {
-      demandLevel: "Medium",
-      demandValue: 62,
-      source: "LinkedIn Labor Insights",
-      collectionDate: "2026-05-01",
-      validUntil: "2026-10-31",
-      isExpired: false,
-    },
-    skillRequirements: [
-      {
-        skillId: "p1",
-        skillName: "Product Strategy",
-        category: "Strategy",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 1,
-        importanceWeight: 0.9,
-        isCritical: true,
-        prerequisites: [],
-      },
-      {
-        skillId: "p2",
-        skillName: "User Research",
-        category: "UX",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 1,
-        importanceWeight: 0.85,
-        isCritical: false,
-        prerequisites: [],
-      },
-      {
-        skillId: "p3",
-        skillName: "Data Analysis",
-        category: "Analytics",
-        requiredLevel: 2,
-        maxLevel: 4,
-        currentLevel: 2,
-        importanceWeight: 0.7,
-        isCritical: false,
-        prerequisites: [],
-      },
-      {
-        skillId: "p4",
-        skillName: "Roadmapping",
-        category: "Planning",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 1,
-        importanceWeight: 0.8,
-        isCritical: false,
-        prerequisites: [],
-      },
-    ],
-  },
-  {
-    id: "role-devops",
-    title: "DevOps Engineer",
-    category: "Infrastructure",
-    version: "v1.5",
-    effectiveDate: "2026-01-20",
-    status: "approved",
-    readinessScore: 29,
-    isSaved: false,
-    demand: {
-      demandLevel: "Medium",
-      demandValue: 58,
-      source: "Stack Overflow Developer Survey",
-      collectionDate: "2026-04-01",
-      validUntil: "2026-09-30",
-      isExpired: true,
-    },
-    skillRequirements: [
-      {
-        skillId: "dv1",
-        skillName: "Kubernetes",
-        category: "Infrastructure",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 0,
-        importanceWeight: 0.9,
-        isCritical: true,
-        prerequisites: ["Docker"],
-      },
-      {
-        skillId: "dv2",
-        skillName: "Terraform",
-        category: "IaC",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 0,
-        importanceWeight: 0.85,
-        isCritical: false,
-        prerequisites: [],
-      },
-      {
-        skillId: "dv3",
-        skillName: "CI/CD Pipelines",
-        category: "DevOps",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 2,
-        importanceWeight: 0.8,
-        isCritical: true,
-        prerequisites: [],
-      },
-      {
-        skillId: "dv4",
-        skillName: "Linux",
-        category: "Systems",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 1,
-        importanceWeight: 0.75,
-        isCritical: false,
-        prerequisites: [],
-      },
-      {
-        skillId: "dv5",
-        skillName: "Cloud (AWS/GCP)",
-        category: "Cloud",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 0,
-        importanceWeight: 0.85,
-        isCritical: true,
-        prerequisites: [],
-      },
-    ],
-  },
-  {
-    id: "role-ds",
-    title: "Data Scientist",
-    category: "Data Science",
-    version: "v2.1",
-    effectiveDate: "2026-02-15",
-    status: "approved",
-    readinessScore: 41,
-    isSaved: false,
-    demand: {
-      demandLevel: "High",
-      demandValue: 86,
-      source: "Bureau of Labor Statistics",
-      collectionDate: "2026-07-01",
-      validUntil: "2027-06-30",
-      isExpired: false,
-    },
-    skillRequirements: [
-      {
-        skillId: "ds1",
-        skillName: "Python",
-        category: "Programming",
-        requiredLevel: 4,
-        maxLevel: 4,
-        currentLevel: 3,
-        importanceWeight: 0.9,
-        isCritical: true,
-        prerequisites: [],
-      },
-      {
-        skillId: "ds2",
-        skillName: "Statistics & Probability",
-        category: "Mathematics",
-        requiredLevel: 4,
-        maxLevel: 4,
-        currentLevel: 2,
-        importanceWeight: 0.9,
-        isCritical: true,
-        prerequisites: [],
-      },
-      {
-        skillId: "ds3",
-        skillName: "Machine Learning",
-        category: "AI/ML",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 1,
-        importanceWeight: 0.85,
-        isCritical: true,
-        prerequisites: ["Statistics"],
-      },
-      {
-        skillId: "ds4",
-        skillName: "Data Visualization",
-        category: "Analytics",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 2,
-        importanceWeight: 0.7,
-        isCritical: false,
-        prerequisites: [],
-      },
-      {
-        skillId: "ds5",
-        skillName: "SQL",
-        category: "Databases",
-        requiredLevel: 3,
-        maxLevel: 4,
-        currentLevel: 3,
-        importanceWeight: 0.75,
-        isCritical: false,
-        prerequisites: [],
-      },
-    ],
-  },
-];
 // ── Utility helpers ──────────────────────────────────────────────────────────
 function demandColor(level) {
   if (level === "High") return { bg: "bg-[rgba(5,150,105,0.1)]", text: "text-[#059669]", dot: "bg-[#059669]" };
   if (level === "Medium") return { bg: "bg-[rgba(245,158,11,0.1)]", text: "text-[#f59e0b]", dot: "bg-[#f59e0b]" };
   return { bg: "bg-[rgba(100,116,139,0.1)]", text: "text-[#64748b]", dot: "bg-[#64748b]" };
 }
+// Labour-market demand is OPTIONAL in the API payload. `career-roles` returns
+// id/title/version and nothing else (see CareerRoleController::index), and
+// `/career-roles/{id}` is just id/title/version/effective_date/status — neither
+// carries a demand block. The role mapping therefore stores `demand: role.demand
+// ?? null`, and reading `role.demand.demandLevel` threw
+// "Cannot read properties of null (reading 'demandLevel')" on every card.
+// One neutral shape is used everywhere instead of eight separate null checks.
+const EMPTY_DEMAND = Object.freeze({
+  demandLevel: null,
+  demandValue: null,
+  source: null,
+  collectionDate: null,
+  validUntil: null,
+  isExpired: false,
+});
+const demandOf = (role) => role?.demand ?? EMPTY_DEMAND;
+// A role with no market data must not look like a real "Low demand" reading.
+const hasDemand = (demand) =>
+  Boolean(demand) && demand.demandLevel != null && demand.demandLevel !== "";
+// Skill requirements come from a SEPARATE endpoint (`/career-roles/{id}/skills`)
+// and the list payload carries no `skillRequirements` field at all, so the same
+// crash sits one line further down (`role.skillRequirements.filter`). Treated as
+// "not loaded yet" rather than as an error.
+const skillRequirementsOf = (role) =>
+  Array.isArray(role?.skillRequirements) ? role.skillRequirements : [];
+// Skills are rated 1..5 in the backend; the bars need a denominator.
+const SKILL_MAX_LEVEL = 5;
+
+/**
+ * Turn `/career-roles/{id}/skills` + the learner's matrix into the shape the
+ * requirement rows render.
+ *
+ * The career-roles payload carries no `skillRequirements`, and nothing ever
+ * called the skills endpoint, so every role opened with an empty requirement
+ * table and "Skills Met 0/0". `/career-roles/{id}/skills` sends
+ * `{ skills: [{ skill_id, skill_name, required_level, importance_weight,
+ * is_critical, prerequisites }] }` and no per-learner level at all — the
+ * learner side comes from `/skills/matrix` and is joined on `skill_id` here.
+ * A learner with no row for a skill is at level 0, which is the honest answer,
+ * not a missing value.
+ */
+function buildSkillRequirements(payload, matrix) {
+  const rows = unwrapApiData(payload);
+  const skills = Array.isArray(rows) ? rows : rows?.skills ?? [];
+  const levels = matrix instanceof Map ? matrix : new Map();
+
+  return skills.map((skill) => {
+    const id = skill.skill_id ?? skill.skillId ?? skill.id;
+    const current = Number(levels.get(id) ?? levels.get(String(id)) ?? 0) || 0;
+    return {
+      skillId: id,
+      skillName: skill.skill_name ?? skill.skillName ?? skill.name ?? "Unnamed skill",
+      requiredLevel: Number(skill.required_level ?? skill.requiredLevel ?? 0) || 0,
+      currentLevel: current,
+      maxLevel: SKILL_MAX_LEVEL,
+      importanceWeight: Number(skill.importance_weight ?? skill.importanceWeight ?? 0) || 0,
+      isCritical: Boolean(skill.is_critical ?? skill.isCritical),
+      prerequisites: skill.prerequisites ?? [],
+    };
+  });
+}
+
+/**
+ * `Map<skill_id, level>` from `/skills/matrix`, whose rows carry `skill.id`.
+ *
+ * If an id appears more than once it is NOT overwritten in row order: the
+ * backend used to return every learner's rows to an admin, so the same skill
+ * could arrive three times with different levels and the last row silently
+ * won. Taking the highest keeps the result deterministic and never lowers a
+ * level the learner actually has.
+ */
+function levelsBySkill(payload) {
+  const rows = unwrapApiData(payload);
+  const list = Array.isArray(rows) ? rows : rows?.data ?? [];
+  const map = new Map();
+  for (const row of list) {
+    const id = row?.skill?.id ?? row?.skill_id;
+    if (id == null) continue;
+    const level = Number(row.level ?? 0) || 0;
+    map.set(id, Math.max(map.get(id) ?? 0, level));
+  }
+  return map;
+}
 function readinessColor(score) {
   if (score >= 70) return "#059669";
   if (score >= 50) return "#f59e0b";
   return "#ef4444";
+}
+/**
+ * Readiness for a list of requirements: Σ(min(1, current/required) × weight) /
+ * Σ weight, as a whole percent — or `null` when there is nothing to measure
+ * against, so the caller can show "—" instead of a misleading 0%.
+ *
+ * Extracted so the role card and the detail panel cannot drift apart. The card
+ * used to read `role.readinessScore`, a field `/career-roles` never sends, so
+ * every card showed 0% even for a role the detail panel scored 83%.
+ */
+function computeReadiness(requirements) {
+  if (!Array.isArray(requirements) || requirements.length === 0) return null;
+  const total = requirements.reduce((sum, s) => sum + (s.importanceWeight || 1), 0);
+  const earned = requirements.reduce((sum, s) => {
+    const ratio = s.requiredLevel > 0 ? Math.min(1, s.currentLevel / s.requiredLevel) : 1;
+    return sum + ratio * (s.importanceWeight || 1);
+  }, 0);
+  return Math.round((earned / total) * 100);
 }
 function skillGapColor(current, required) {
   if (current >= required) return { bar: "bg-[#059669]", text: "text-[#059669]" };
@@ -521,14 +164,35 @@ function ReadinessGauge({ score, size = 100 }) {
 }
 // ── DemandIndicator ───────────────────────────────────────────────────────────
 function DemandIndicator({ demand }) {
-  const c = demandColor(demand.demandLevel);
+  const d = demand ?? EMPTY_DEMAND;
+  // No market data is the normal case today, not an error: render the panel
+  // with an explicit "not available yet" line so the page still reads correctly.
+  if (!hasDemand(d)) {
+    return (
+      <div
+        data-testid="demand-unavailable"
+        className="border border-dashed border-[#e8eaf0] rounded-[12px] p-[16px] bg-[#fafbff]"
+      >
+        <div className="flex items-center justify-between mb-[8px]">
+          <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
+            Labor-Market Demand
+          </span>
+        </div>
+        <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b]">
+          Labor-market demand data is not available for this role yet. Everything else on this
+          page is unaffected.
+        </p>
+      </div>
+    );
+  }
+  const c = demandColor(d.demandLevel);
   return (
     <div className="border border-[#e8eaf0] rounded-[12px] p-[16px] bg-white">
       <div className="flex items-center justify-between mb-[12px]">
         <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
           Labor-Market Demand
         </span>
-        {demand.isExpired && (
+        {d.isExpired && (
           <span className="bg-[rgba(239,68,68,0.08)] text-[#ef4444] text-[11px] font-['Inter:Medium',sans-serif] font-medium px-[8px] py-[3px] rounded-full">
             Data Expired
           </span>
@@ -538,28 +202,28 @@ function DemandIndicator({ demand }) {
         <div className={`flex items-center gap-[6px] px-[10px] py-[4px] rounded-full ${c.bg}`}>
           <span className={`w-[6px] h-[6px] rounded-full ${c.dot}`} />
           <span className={`font-['Inter:Semi_Bold',sans-serif] font-semibold text-[12px] ${c.text}`}>
-            {demand.demandLevel} Demand
+            {d.demandLevel} Demand
           </span>
         </div>
         <span className="font-['Inter:Bold',sans-serif] font-bold text-[14px] text-[#0a0b14]">
-          {demand.demandValue}%
+          {d.demandValue}%
         </span>
       </div>
       <div className="w-full bg-[#f1f3fa] rounded-full h-[6px] mb-[12px]">
-        <div className={`h-[6px] rounded-full ${c.dot}`} style={{ width: `${demand.demandValue}%` }} />
+        <div className={`h-[6px] rounded-full ${c.dot}`} style={{ width: `${d.demandValue}%` }} />
       </div>
       <div className="flex items-start gap-[4px] flex-wrap">
         <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Source:</span>
-        <span className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b]">{demand.source}</span>
+        <span className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b]">{d.source}</span>
         <span className="text-[11px] text-[#94a3b8]">·</span>
         <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-          Collected {demand.collectionDate}
+          Collected {d.collectionDate}
         </span>
         <span className="text-[11px] text-[#94a3b8]">·</span>
         <span
-          className={`text-[11px] font-['Inter:Medium',sans-serif] font-medium ${demand.isExpired ? "text-[#ef4444]" : "text-[#94a3b8]"}`}
+          className={`text-[11px] font-['Inter:Medium',sans-serif] font-medium ${d.isExpired ? "text-[#ef4444]" : "text-[#94a3b8]"}`}
         >
-          {demand.isExpired ? "Expired" : `Valid until ${demand.validUntil}`}
+          {d.isExpired ? "Expired" : `Valid until ${d.validUntil}`}
         </span>
       </div>
     </div>
@@ -685,11 +349,47 @@ function SkillRequirementRow({ skill, expanded, onToggle }) {
   );
 }
 // ── RoleDetailPanel ────────────────────────────────────────────────────────────
-function RoleDetailPanel({ role, onBack, onSaveToggle }) {
+function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSelect, onGoalCalculate, goalBusy }) {
   const [expandedSkill, setExpandedSkill] = useState(null);
-  const criticalMet = role.skillRequirements.filter((s) => s.isCritical && s.currentLevel >= s.requiredLevel).length;
-  const criticalTotal = role.skillRequirements.filter((s) => s.isCritical).length;
-  const skillsMet = role.skillRequirements.filter((s) => s.currentLevel >= s.requiredLevel).length;
+  // Requirements are NOT part of the list payload: they come from
+  // `/career-roles/{id}/skills`, joined with the learner's own levels. Before
+  // this every detail page showed an empty table and 0/0 counts.
+  const [fetched, setFetched] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (role?.id == null) { setFetched(null); return; }
+    let alive = true;
+    setLoading(true);
+    setFetched(null);
+    (async () => {
+      // The matrix is only needed for "skills met"; a failure there must not
+      // hide the requirements themselves, so it degrades to level 0.
+      const [skillsResult, matrixResult] = await Promise.allSettled([
+        getCareerRoleSkills(role.id),
+        getSkillsMatrix(),
+      ]);
+      if (!alive) return;
+      if (skillsResult.status === "fulfilled") {
+        const matrix = matrixResult.status === "fulfilled" ? levelsBySkill(matrixResult.value) : new Map();
+        setFetched(buildSkillRequirements(skillsResult.value, matrix));
+      } else {
+        setFetched([]);
+      }
+      setLoading(false);
+    })();
+    return () => { alive = false; };
+  }, [role?.id]);
+
+  // Props win when a caller already supplied them; otherwise the fetched rows.
+  const requirements = fetched ?? skillRequirementsOf(role);
+  const criticalMet = requirements.filter((s) => s.isCritical && s.currentLevel >= s.requiredLevel).length;
+  const criticalTotal = requirements.filter((s) => s.isCritical).length;
+  const skillsMet = requirements.filter((s) => s.currentLevel >= s.requiredLevel).length;
+  // Readiness is derived from what the learner actually has against the role, so
+  // an empty requirement list cannot show a misleading 0%: with nothing to
+  // measure against, there is no score to report.
+  const readiness = computeReadiness(requirements);
   return (
     <div className="flex-1 overflow-y-auto">
       {/* Detail Header */}
@@ -741,6 +441,7 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
             </h2>
           </div>
           <button
+            disabled={role.isSaving}
             onClick={() => onSaveToggle(role.id)}
             className={`flex items-center gap-[6px] px-[14px] py-[8px] rounded-[10px] text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold transition-all shrink-0 ${
               role.isSaved
@@ -762,20 +463,25 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
           </button>
         </div>
 
+        {onGoalSelect && <CareerGoalControl key={role.id} role={role} currentGoalId={currentGoalId} onSelect={onGoalSelect} onCalculate={onGoalCalculate} busy={goalBusy} />}
+
         {/* Readiness Context */}
         <div className="mt-[20px] grid grid-cols-3 gap-[16px]">
           <div className="col-span-1 flex flex-col items-center justify-center bg-[#f8f9ff] rounded-[12px] p-[20px] border border-[#eef0f8]">
             <div className="relative mb-[8px]">
-              <ReadinessGauge score={role.readinessScore} size={80} />
+              <ReadinessGauge score={readiness ?? 0} size={80} />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center mt-[4px]">
                   <span
+                    data-testid="role-readiness"
                     className="font-['Inter:Bold',sans-serif] font-bold text-[18px]"
-                    style={{ color: readinessColor(role.readinessScore) }}
+                    style={{ color: readiness == null ? "#94a3b8" : readinessColor(readiness) }}
                   >
-                    {role.readinessScore}
+                    {readiness == null ? "—" : readiness}
                   </span>
-                  <span className="font-['Inter:Regular',sans-serif] text-[10px] text-[#94a3b8] block">/ 100</span>
+                  <span className="font-['Inter:Regular',sans-serif] text-[10px] text-[#94a3b8] block">
+                    {readiness == null ? "" : "/ 100"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -783,7 +489,11 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
               Role Readiness
             </p>
             <p className="font-['Inter:Regular',sans-serif] text-[11px] text-[#94a3b8] text-center mt-[2px]">
-              Based on current evidence snapshot
+              {loading
+                ? "Loading skill requirements…"
+                : requirements.length === 0
+                  ? "No requirements published for this role yet"
+                  : "Your level against this role's required skills"}
             </p>
           </div>
           <div className="col-span-2 grid grid-cols-2 gap-[12px]">
@@ -792,7 +502,7 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
               <p className="font-['Inter:Bold',sans-serif] font-bold text-[20px] text-[#0a0b14]">
                 {skillsMet}
                 <span className="text-[14px] text-[#64748b] font-['Inter:Regular',sans-serif] font-normal">
-                  /{role.skillRequirements.length}
+                  /{requirements.length}
                 </span>
               </p>
             </div>
@@ -817,13 +527,13 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
                   Overall progress toward role readiness
                 </p>
                 <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">
-                  {role.readinessScore}%
+                  {readiness == null ? "—" : `${readiness}%`}
                 </p>
               </div>
               <div className="w-full bg-[#f1f3fa] rounded-full h-[8px]">
                 <div
                   className="h-[8px] rounded-full bg-gradient-to-r from-[#3b8bff] to-[#7c3aed] transition-all"
-                  style={{ width: `${role.readinessScore}%` }}
+                  style={{ width: `${readiness ?? 0}%` }}
                 />
               </div>
             </div>
@@ -851,26 +561,59 @@ function RoleDetailPanel({ role, onBack, onSaveToggle }) {
             <span className="w-[28px] text-right">Wt.</span>
           </div>
         </div>
-        {role.skillRequirements
-          .slice()
-          .sort((a, b) => b.importanceWeight - a.importanceWeight)
-          .map((skill) => (
-            <SkillRequirementRow
-              key={skill.skillId}
-              skill={skill}
-              expanded={expandedSkill === skill.skillId}
-              onToggle={() => setExpandedSkill(expandedSkill === skill.skillId ? null : skill.skillId)}
-            />
-          ))}
+        {requirements.length === 0 ? (
+          <p data-testid="requirements-unavailable" className="px-[20px] py-[20px] text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b]">
+            {loading
+              ? "Loading skill requirements…"
+              : "Skill requirements have not been published for this role yet."}
+          </p>
+        ) : (
+          requirements
+            .slice()
+            .sort((a, b) => b.importanceWeight - a.importanceWeight)
+            .map((skill) => (
+              <SkillRequirementRow
+                key={skill.skillId}
+                skill={skill}
+                expanded={expandedSkill === skill.skillId}
+                onToggle={() => setExpandedSkill(expandedSkill === skill.skillId ? null : skill.skillId)}
+              />
+            ))
+        )}
       </div>
     </div>
   );
 }
 // ── RoleCard ──────────────────────────────────────────────────────────────────
-function RoleCard({ role, onSelect, onSaveToggle }) {
-  const c = demandColor(role.demand.demandLevel);
-  const criticalTotal = role.skillRequirements.filter((s) => s.isCritical).length;
-  const criticalMet = role.skillRequirements.filter((s) => s.isCritical && s.currentLevel >= s.requiredLevel).length;
+function RoleCard({ role, onSelect, onSaveToggle, requirements: loadedRequirements = null }) {
+  const demand = demandOf(role);
+  const c = demandColor(demand.demandLevel);
+  // The card used to read only `role.skillRequirements` (never sent by
+  // `/career-roles`) and `role.readinessScore` (also never sent), which is why
+  // every card showed 0 required / 0 critical / 0% no matter who was signed in.
+  // Requirements are resolved by the parent — fetched once for the page — and
+  // readiness is the SAME computation the detail panel uses.
+  const requirements = Array.isArray(loadedRequirements)
+    ? loadedRequirements
+    : skillRequirementsOf(role);
+  // `skills_count` IS sent by /career-roles and is the honest total even before
+  // the requirement rows arrive; the per-card fetch refines it.
+  const publishedCount = Number(role.skills_count ?? role.skillsCount);
+  const skillCount = requirements.length > 0
+    ? requirements.length
+    : Number.isFinite(publishedCount) && publishedCount > 0
+      ? publishedCount
+      : null;
+  const criticalTotal = requirements.filter((s) => s.isCritical).length;
+  const criticalMet = requirements.filter((s) => s.isCritical && s.currentLevel >= s.requiredLevel).length;
+  // Fall back to the server's number only if it ever starts sending one.
+  // Guarded on the key EXISTING: a role the grid has not scored yet must show
+  // "—", and `Number(undefined)` is NaN but `Number(null)` is 0 — which is how
+  // an unfetched card ended up rendering a confident 0%.
+  const serverValue = role.readinessScore ?? role.readiness_score;
+  const computed = computeReadiness(requirements);
+  const readinessScore = computed
+    ?? (serverValue != null && Number.isFinite(Number(serverValue)) ? Number(serverValue) : null);
   return (
     <div className="bg-white border border-[#e8eaf0] rounded-[16px] p-[20px] flex flex-col gap-[16px] hover:border-[#c7d2e8] hover:shadow-[0_4px_20px_rgba(59,139,255,0.06)] transition-all group">
       <div className="flex items-start justify-between gap-[8px]">
@@ -895,6 +638,8 @@ function RoleCard({ role, onSelect, onSaveToggle }) {
           </h3>
         </div>
         <button
+          disabled={role.isSaving}
+          aria-label={role.isSaved ? `Unsave ${role.title}` : `Save ${role.title}`}
           onClick={(e) => {
             e.stopPropagation();
             onSaveToggle(role.id);
@@ -919,16 +664,17 @@ function RoleCard({ role, onSelect, onSaveToggle }) {
         <div className="flex items-center justify-between mb-[6px]">
           <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Your Readiness</span>
           <span
+            data-testid="card-readiness"
             className="font-['Inter:Bold',sans-serif] font-bold text-[13px]"
-            style={{ color: readinessColor(role.readinessScore) }}
+            style={{ color: readinessScore == null ? "#94a3b8" : readinessColor(readinessScore) }}
           >
-            {role.readinessScore}%
+            {readinessScore == null ? "—" : `${readinessScore}%`}
           </span>
         </div>
         <div className="w-full bg-[#f1f3fa] rounded-full h-[6px]">
           <div
             className="h-[6px] rounded-full bg-gradient-to-r from-[#3b8bff] to-[#7c3aed] transition-all"
-            style={{ width: `${role.readinessScore}%` }}
+            style={{ width: `${readinessScore ?? 0}%` }}
           />
         </div>
       </div>
@@ -937,22 +683,25 @@ function RoleCard({ role, onSelect, onSaveToggle }) {
       <div className="flex items-center gap-[12px] pt-[4px] border-t border-[#f1f3fa]">
         <div className="flex-1">
           <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Skills required</p>
-          <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
-            {role.skillRequirements.length}
+          <p data-testid="card-skill-count" className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
+            {skillCount ?? "—"}
           </p>
         </div>
         <div className="flex-1">
           <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Critical skills</p>
           <p
-            className={`font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] ${criticalMet === criticalTotal ? "text-[#059669]" : "text-[#ef4444]"}`}
+            data-testid="card-critical-count"
+            className={`font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] ${
+              requirements.length === 0 ? "text-[#94a3b8]" : criticalMet === criticalTotal ? "text-[#059669]" : "text-[#ef4444]"
+            }`}
           >
-            {criticalMet}/{criticalTotal}
+            {requirements.length === 0 ? "—" : `${criticalMet}/${criticalTotal}`}
           </p>
         </div>
         <div className={`flex items-center gap-[4px] px-[8px] py-[3px] rounded-full ${c.bg}`}>
           <span className={`w-[5px] h-[5px] rounded-full ${c.dot}`} />
           <span className={`text-[10px] font-['Inter:Medium',sans-serif] font-medium ${c.text}`}>
-            {role.demand.demandLevel}
+            {hasDemand(demand) ? demand.demandLevel : "No demand data"}
           </span>
         </div>
       </div>
@@ -967,11 +716,17 @@ function RoleCard({ role, onSelect, onSaveToggle }) {
   );
 }
 // ── BrowseRoles view ──────────────────────────────────────────────────────────
-function BrowseRoles({ roles, onSelect, onSaveToggle, filter, onFilterChange, search, onSearchChange }) {
+function BrowseRoles({
+  roles, onSelect, onSaveToggle, filter, onFilterChange, search, onSearchChange,
+  searching = false, searchError = "", searchActive = false, total = null, page = 1, pageSize = 15, onPageChange,
+  requirementsById = {},
+}) {
   const categories = ["All", ...Array.from(new Set(roles.map((r) => r.category)))];
-  const filtered = roles.filter(
-    (r) => (filter === "All" || r.category === filter) && r.title.toLowerCase().includes(search.toLowerCase()),
-  );
+  // The text term is NOT filtered here any more — the server already did it over
+  // the whole catalog. Filtering again in memory was the original bug: it could
+  // only ever see the rows that had been fetched.
+  const filtered = roles.filter((r) => filter === "All" || r.category === filter);
+  const pageCount = total != null ? Math.max(1, Math.ceil(total / pageSize)) : 1;
   return (
     <div>
       {/* Search + Filter bar */}
@@ -1012,12 +767,64 @@ function BrowseRoles({ roles, onSelect, onSaveToggle, filter, onFilterChange, se
         </div>
       </div>
 
+      {/* Result count / loading / error, tied to the real query */}
+      {(searchActive || searching || searchError) && (
+        <p data-testid="search-status" className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] mb-[12px]">
+          {searchError
+            ? searchError
+            : searching
+              ? "Searching all career roles…"
+              : `${total ?? filtered.length} role${(total ?? filtered.length) === 1 ? "" : "s"} found`}
+        </p>
+      )}
+
       {/* Role Cards Grid */}
-      <div className="grid grid-cols-3 gap-[16px] mb-[32px]">
-        {filtered.map((role) => (
-          <RoleCard key={role.id} role={role} onSelect={() => onSelect(role.id)} onSaveToggle={onSaveToggle} />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        // Only reached when the BACKEND returned nothing for this term — the
+        // list is no longer pre-filtered in memory, so an empty array really
+        // means "no match anywhere in the catalog".
+        <div data-testid="career-roles-no-results" className="flex flex-col items-center justify-center py-[56px] text-center">
+          <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#0a0b14] mb-[6px]">
+            No career roles match your search
+          </h3>
+          <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] max-w-[360px]">
+            {search.trim()
+              ? `Nothing matched “${search.trim()}”. Try a shorter term or check the spelling.`
+              : "Try a different filter."}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-[16px] mb-[32px]">
+          {filtered.map((role) => (
+            <RoleCard key={role.id} role={role} onSelect={() => onSelect(role.id)} onSaveToggle={onSaveToggle} requirements={requirementsById[role.id] ?? null} />
+          ))}
+        </div>
+      )}
+
+      {/* Pagination — server-side, because the list is only one page at a time */}
+      {pageCount > 1 && (
+        <div className="flex items-center justify-center gap-[8px] mb-[32px]">
+          <button
+            type="button"
+            onClick={() => onPageChange?.(page - 1)}
+            disabled={page <= 1 || searching}
+            className="px-[12px] py-[7px] rounded-[8px] text-[12px] font-['Inter:Medium',sans-serif] font-medium bg-white border border-[#e8eaf0] text-[#64748b] disabled:opacity-40"
+          >
+            Previous
+          </button>
+          <span data-testid="page-indicator" className="text-[12px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b]">
+            Page {page} of {pageCount}
+          </span>
+          <button
+            type="button"
+            onClick={() => onPageChange?.(page + 1)}
+            disabled={page >= pageCount || searching}
+            className="px-[12px] py-[7px] rounded-[8px] text-[12px] font-['Inter:Medium',sans-serif] font-medium bg-white border border-[#e8eaf0] text-[#64748b] disabled:opacity-40"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* Suggested Roles Section */}
       <SuggestedRolesSection roles={roles} onSelect={onSelect} onSaveToggle={onSaveToggle} />
@@ -1047,7 +854,8 @@ function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
 
       <div className="flex flex-col gap-[10px]">
         {suggested.map((role) => {
-          const c = demandColor(role.demand.demandLevel);
+          const demand = demandOf(role);
+          const c = demandColor(demand.demandLevel);
           return (
             <div
               key={role.id}
@@ -1066,7 +874,7 @@ function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
                   <span
                     className={`text-[10px] font-['Inter:Medium',sans-serif] font-medium px-[6px] py-[2px] rounded-full ${c.bg} ${c.text}`}
                   >
-                    {role.demand.demandLevel} Demand
+                    {hasDemand(demand) ? `${demand.demandLevel} Demand` : "No demand data"}
                   </span>
                 </div>
                 <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] truncate">
@@ -1142,8 +950,9 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
       </div>
       <div className="flex flex-col gap-[12px]">
         {saved.map((role) => {
-          const c = demandColor(role.demand.demandLevel);
-          const skillsMet = role.skillRequirements.filter((s) => s.currentLevel >= s.requiredLevel).length;
+          const demand = demandOf(role);
+          const c = demandColor(demand.demandLevel);
+          const skillsMet = skillRequirementsOf(role).filter((s) => s.currentLevel >= s.requiredLevel).length;
           return (
             <div
               key={role.id}
@@ -1177,14 +986,15 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                         <div className="w-[100px] bg-[#f1f3fa] rounded-full h-[6px]">
                           <div
                             className="h-[6px] rounded-full bg-gradient-to-r from-[#3b8bff] to-[#7c3aed]"
-                            style={{ width: `${role.readinessScore}%` }}
+                            style={{ width: `${role.readinessScore ?? 0}%` }}
                           />
                         </div>
                         <span
+                          data-testid="saved-role-readiness"
                           className="font-['Inter:Bold',sans-serif] font-bold text-[14px]"
                           style={{ color: readinessColor(role.readinessScore) }}
                         >
-                          {role.readinessScore}%
+                          {role.readinessScore == null ? "—" : `${role.readinessScore}%`}
                         </span>
                       </div>
                     </div>
@@ -1192,8 +1002,8 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                       <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[4px]">
                         Skills Met
                       </p>
-                      <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#0a0b14]">
-                        {skillsMet}/{role.skillRequirements.length}
+                      <p data-testid="saved-role-skills-met" className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#0a0b14]">
+                        {role.readinessScore == null ? "—" : `${skillsMet}/${skillRequirementsOf(role).length}`}
                       </p>
                     </div>
                     <div>
@@ -1203,7 +1013,7 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                       <div className={`flex items-center gap-[4px] px-[8px] py-[2px] rounded-full ${c.bg}`}>
                         <span className={`w-[5px] h-[5px] rounded-full ${c.dot}`} />
                         <span className={`text-[11px] font-['Inter:Medium',sans-serif] font-medium ${c.text}`}>
-                          {role.demand.demandLevel}
+                          {hasDemand(demand) ? demand.demandLevel : "No data"}
                         </span>
                       </div>
                     </div>
@@ -1217,6 +1027,7 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                     View Details
                   </button>
                   <button
+                    disabled={role.isSaving}
                     onClick={() => onSaveToggle(role.id)}
                     className="px-[14px] py-[8px] rounded-[10px] text-[13px] font-['Inter:Medium',sans-serif] font-medium text-[#94a3b8] bg-[#f8f9fd] hover:bg-[rgba(239,68,68,0.06)] hover:text-[#ef4444] transition-colors border border-[#e8eaf0]"
                   >
@@ -1239,7 +1050,7 @@ function CompareView({ roles, onSelect }) {
   function toggleSelect(id) {
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < 3 ? [...prev, id] : prev));
   }
-  const allSkillNames = Array.from(new Set(compareRoles.flatMap((r) => r.skillRequirements.map((s) => s.skillName))));
+  const allSkillNames = Array.from(new Set(compareRoles.flatMap((r) => skillRequirementsOf(r).map((s) => s.skillName))));
   return (
     <div>
       {/* Role selector */}
@@ -1370,7 +1181,7 @@ function CompareView({ roles, onSelect }) {
                         {skillName}
                       </td>
                       {compareRoles.map((role) => {
-                        const skill = role.skillRequirements.find((s) => s.skillName === skillName);
+                        const skill = skillRequirementsOf(role).find((s) => s.skillName === skillName);
                         if (!skill)
                           return (
                             <td key={role.id} className="px-[16px] py-[11px] text-center text-[#d1d5db]">
@@ -1416,27 +1227,236 @@ function CompareView({ roles, onSelect }) {
     </div>
   );
 }
-export default function CareerRolesView({ initialRoles = null, onRoleSave }) {
-  const [roles, setRoles] = useState(() => initialRoles?.length ? initialRoles : MOCK_ROLES);
+export default function CareerRolesView({ initialRoles = null, onSearch, searchDebounceMs = 300, pageSize = 15, currentGoalId = null, onGoalSelect, onGoalCalculate, goalBusy = false }) {
+  // One mapping, used by the initial props and by every server result. It was
+  // duplicated inline (two identical 700-character expressions) which is how the
+  // two copies drifted apart.
+  const normalizeRole = (role) => ({
+    ...role,
+    id: role.id ?? role.uuid,
+    title: role.title ?? role.name ?? role.role_title ?? "Untitled role",
+    category: role.category ?? role.industry ?? "Other",
+    // NOT defaulted to 0 any more: /career-roles sends no readiness at all, and
+    // turning "absent" into 0 here is what made every card claim 0%. Left
+    // undefined so the card can tell "not scored yet" from "scored zero".
+    readinessScore: role.readinessScore ?? role.readiness_score,
+    description: role.description ?? role.summary ?? "",
+    skills: role.skills ?? role.required_skills ?? [],
+    isSaved: Boolean(role.isSaved ?? role.is_saved),
+    demand: role.demand ?? null,
+    version: role.version ?? role.role_version ?? null,
+  });
+
+  const roles = (initialRoles ?? []).map(normalizeRole);
   const [activeTab, setActiveTab] = useState("browse");
   const [selectedRoleId, setSelectedRoleId] = useState(null);
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
-  const savedCount = roles.filter((r) => r.isSaved).length;
-  function toggleSave(id) {
-    setRoles((prev) => prev.map((r) => (r.id === id ? { ...r, isSaved: !r.isSaved } : r)));
-    const next = roles.find((r) => r.id === id);
-    if (onRoleSave && next) onRoleSave(id, !next.isSaved);
+  // Which page the list currently shows, and how many results the last query
+  // matched across the WHOLE catalog (not just the page on screen).
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(null);
+  const [searchResults, setSearchResults] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [selectedRoleSnapshot, setSelectedRoleSnapshot] = useState(null);
+  // What the tabs render: server results once a search has run, otherwise the
+  // list the workspace loaded on mount. Defined up here because selectRole
+  // needs it to resolve the row that was clicked.
+  const [savedRoles, setSavedRoles] = useState([]);
+  const [savedLoaded, setSavedLoaded] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saveMessage, setSaveMessage] = useState("");
+  const [savingIds, setSavingIds] = useState(new Set());
+  const pendingSaves = useRef(new Set());
+  const [savedLoadAttempt, setSavedLoadAttempt] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const payload = unwrapApiData(await getSavedCareerRoles());
+        if (!Array.isArray(payload)) throw new Error("Invalid saved roles response");
+        if (!cancelled) {
+          setSavedRoles(payload.map(normalizeRole));
+          setSavedLoaded(true);
+        }
+      } catch {
+        if (!cancelled) setSaveError("Saved roles could not be loaded. Please retry.");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [savedLoadAttempt]);
+  // Saved state is independent of the current catalogue/search page.
+  const withSavedState = (role) => role && ({
+    ...role,
+    isSaved: savedRoles.some((r) => String(r.id) === String(role.id)),
+    isSaving: !savedLoaded || savingIds.has(String(role.id)),
+  });
+  const visibleRoles = (searchResults ?? roles).map(withSavedState);
+  const savedCount = savedRoles.length;
+  async function toggleSave(id) {
+    const key = String(id);
+    if (!savedLoaded || pendingSaves.current.has(key)) return;
+    const role = visibleRoles.find((r) => String(r.id) === key)
+      ?? savedRoles.find((r) => String(r.id) === key) ?? selectedRoleSnapshot;
+    if (!role || String(role.id) !== key) return;
+    const saved = !savedRoles.some((r) => String(r.id) === key);
+    pendingSaves.current.add(key);
+    setSavingIds(new Set(pendingSaves.current));
+    setSaveError("");
+    setSaveMessage("");
+    try {
+      await setCareerRoleSaved(id, saved);
+      setSavedRoles((prev) => saved
+        ? [...prev.filter((r) => String(r.id) !== key), role]
+        : prev.filter((r) => String(r.id) !== key));
+      setSaveMessage(saved ? "Role saved." : "Role removed from saved roles.");
+    } catch {
+      setSaveError("The role could not be updated. Please try again.");
+    } finally {
+      pendingSaves.current.delete(key);
+      setSavingIds(new Set(pendingSaves.current));
+    }
   }
   function selectRole(id) {
     setSelectedRoleId(id);
+    // Keep what was clicked, so the panel survives a later search that no
+    // longer contains this row.
+    const found = visibleRoles.find((r) => r.id === id) ?? roles.find((r) => r.id === id) ?? null;
+    setSelectedRoleSnapshot(found);
   }
-  const selectedRole = roles.find((r) => r.id === selectedRoleId) ?? null;
   const tabs = [
     { key: "browse", label: "Browse Roles" },
     { key: "saved", label: "Saved Roles", count: savedCount },
     { key: "compare", label: "Compare Readiness" },
   ];
+
+  /*
+   * Search runs on the SERVER.
+   *
+   * It used to filter `roles` in memory, which only ever held the first page
+   * (15 rows, `?page=1&per_page=15`), so a role on page 2 or 3 could not be
+   * found no matter what was typed — and typing sent no request at all. The
+   * filter now goes to the API, before pagination, so it covers every role.
+   *
+   * When `onSearch` is supplied the owner does the fetching instead (keeps one
+   * source of truth); otherwise this component fetches for itself.
+   */
+  const fetchRoles = onSearch ?? (async (term, nextPage) => {
+    const payload = await getCareerRoles({ page: nextPage, perPage: pageSize, search: term });
+    return payload;
+  });
+  const firstRun = useRef(true);
+  const requestSeq = useRef(0);
+
+  useEffect(() => {
+    const term = search.trim();
+    // Nothing to do until the user actually searches: keep showing the list the
+    // workspace already loaded instead of refetching the same page.
+    if (firstRun.current && term === "") { firstRun.current = false; return; }
+    firstRun.current = false;
+
+    const seq = ++requestSeq.current;
+    setSearching(true);
+    setSearchError("");
+
+    const timer = setTimeout(async () => {
+      try {
+        const payload = await fetchRoles(term, page);
+        // A slower earlier response must not overwrite a newer one.
+        if (seq !== requestSeq.current) return;
+        const rows = unwrapApiData(payload);
+        const list = Array.isArray(rows) ? rows : rows?.data ?? [];
+        setSearchResults(list.map(normalizeRole));
+        setTotal(Number(rows?.total ?? list.length));
+      } catch {
+        if (seq !== requestSeq.current) return;
+        // Leave the previous results on screen; a failed search is not an empty result.
+        setSearchError("Search could not be completed. Please try again.");
+      } finally {
+        if (seq === requestSeq.current) setSearching(false);
+      }
+    }, searchDebounceMs);
+
+    return () => clearTimeout(timer);
+  }, [search, page]);
+
+  // Changing the term starts over at page 1 — otherwise page 3 of the old query
+  // would silently apply to the new one.
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  // What the tabs below render: server results once a search has run, otherwise
+  // the list the workspace loaded on mount.
+  /*
+   * Look the selection up in what is ON SCREEN, not just in the page the
+   * workspace loaded on mount.
+   *
+   * This used to search `roles` (the first 15). A role found by SEARCH can live
+   * on page 2 and therefore is not in `roles`, so clicking "View Role Details"
+   * ran setSelectedRoleId, found nothing, and looked completely dead — no
+   * panel, no URL change, no request, no error. That silent no-op is exactly
+   * what was reported.
+   *
+   * `selectedRoleSnapshot` covers the last case: if a new search drops the
+   * selected role from the results while its detail is open, the panel would
+   * otherwise vanish mid-read.
+   */
+  const selectedRole = selectedRoleId == null ? null : withSavedState(
+    visibleRoles.find((r) => r.id === selectedRoleId) ??
+    roles.find((r) => r.id === selectedRoleId) ??
+    savedRoles.find((r) => r.id === selectedRoleId) ??
+    selectedRoleSnapshot);
+
+  /*
+   * Requirement + level map for EVERY CARD ON SCREEN.
+   *
+   * A card used to get its numbers from `role.skillRequirements` and
+   * `role.readinessScore` — neither of which `/career-roles` sends — so the grid
+   * showed "0 required / 0/0 critical / 0%" for every role, while opening one
+   * showed the real 3/5 and 83%. The data was never missing; the list simply
+   * never asked for it.
+   *
+   * One `/skills/matrix` call for the whole page, one `/career-roles/{id}/skills`
+   * per card (they are small and the page size is 15). A card whose request
+   * fails keeps `—` rather than a fake 0%.
+   */
+  const [pageRequirements, setPageRequirements] = useState({});
+  const requirementRoles = activeTab === "browse" ? visibleRoles : savedRoles;
+  const cardIds = requirementRoles.map((r) => r.id).join(",");
+  const savedRolesWithMetrics = savedRoles.map((role) => ({
+    ...withSavedState(role),
+    skillRequirements: pageRequirements[role.id] ?? [],
+    readinessScore: computeReadiness(pageRequirements[role.id]),
+  }));
+  useEffect(() => {
+    if (!requirementRoles.length) return undefined;
+    let cancelled = false;
+    (async () => {
+      const [matrixResult, ...roleResults] = await Promise.allSettled([
+        getSkillsMatrix(),
+        ...requirementRoles.map((r) => getCareerRoleSkills(r.id)),
+      ]);
+      if (cancelled) return;
+      const levels = matrixResult.status === "fulfilled"
+        ? levelsBySkill(matrixResult.value)
+        : new Map();
+      const next = {};
+      roleResults.forEach((result, index) => {
+        // A failed fetch stays absent, so the card renders "—" and not 0%.
+        if (result.status !== "fulfilled") return;
+        const rows = buildSkillRequirements(result.value, levels);
+        if (rows.length) next[requirementRoles[index].id] = rows;
+      });
+      setPageRequirements(next);
+    })();
+    return () => { cancelled = true; };
+    // Re-runs when the visible page changes, not on every unrelated render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardIds]);
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Page header */}
@@ -1477,21 +1497,50 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave }) {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-[32px] pb-[32px]">
-        {selectedRole ? (
-          <RoleDetailPanel role={selectedRole} onBack={() => setSelectedRoleId(null)} onSaveToggle={toggleSave} />
+        {saveError && <div role="alert" className="mb-4 text-red-700">{saveError}{!savedLoaded && <button type="button" className="ml-2 underline" onClick={() => { setSaveError(""); setSavedLoadAttempt((n) => n + 1); }}>Retry saved roles</button>}</div>}
+        {saveMessage && <div role="status" className="mb-4 text-green-700">{saveMessage}</div>}
+        {roles.length === 0 && visibleRoles.length === 0 && savedRoles.length === 0 ? (
+          // Previously this rendered nothing at all: the header and tabs stayed
+          // up over a blank panel. A missing roles list is a "nothing to show
+          // yet" state, not an error — say so instead of leaving the page empty.
+          <div data-testid="career-roles-empty" className="flex flex-col items-center justify-center py-[64px] text-center">
+            <div className="w-[56px] h-[56px] rounded-[14px] bg-[rgba(59,139,255,0.08)] flex items-center justify-center mb-[16px]">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="7" width="18" height="13" rx="2" stroke="#3b8bff" strokeWidth="1.5" />
+                <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" stroke="#3b8bff" strokeWidth="1.5" />
+              </svg>
+            </div>
+            <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[16px] text-[#0a0b14] mb-[6px]">
+              No career roles to show yet
+            </h3>
+            <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] max-w-[360px]">
+              Career roles will appear here once they are published. Your readiness and skill
+              evidence are not affected.
+            </p>
+          </div>
+        ) : selectedRole ? (
+          <RoleDetailPanel role={selectedRole} onBack={() => setSelectedRoleId(null)} onSaveToggle={toggleSave} currentGoalId={currentGoalId} onGoalSelect={onGoalSelect} onGoalCalculate={onGoalCalculate} goalBusy={goalBusy} />
         ) : activeTab === "browse" ? (
           <BrowseRoles
-            roles={roles}
+            roles={visibleRoles}
             onSelect={selectRole}
             onSaveToggle={toggleSave}
             filter={filter}
             onFilterChange={setFilter}
             search={search}
-            onSearchChange={setSearch}
+            onSearchChange={handleSearchChange}
+            searching={searching}
+            searchError={searchError}
+            searchActive={searchResults !== null}
+            total={total}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            requirementsById={pageRequirements}
           />
         ) : activeTab === "saved" ? (
           <SavedRolesView
-            roles={roles}
+            roles={savedRolesWithMetrics}
             onSelect={(id) => {
               selectRole(id);
             }}
@@ -1499,7 +1548,7 @@ export default function CareerRolesView({ initialRoles = null, onRoleSave }) {
             onCompare={() => setActiveTab("compare")}
           />
         ) : (
-          <CompareView roles={roles} onSelect={selectRole} />
+          <CompareView roles={savedRolesWithMetrics} onSelect={selectRole} />
         )}
       </div>
     </div>

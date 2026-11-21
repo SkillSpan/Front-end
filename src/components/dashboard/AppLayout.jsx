@@ -1,5 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './Dashboard.css';
+
+// A fresh `[]` default would give the prop a new identity on every render and
+// make the sync below look like a change every time.
+const EMPTY_NOTIFICATIONS = [];
+import { getLearnerMessages, markAllNotificationsRead, markNotificationRead, logoutUser, logoutAllDevices, unwrapApiData } from '../../api';
+import LogoutModal from './LogoutModal';
+import { useI18n } from '../../i18n/useI18n';
 
 const Icon = {
   grid: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
@@ -14,19 +21,24 @@ const Icon = {
   talent: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 20v-1.5a4.5 4.5 0 0 0-9 0V20"/><circle cx="11.5" cy="8" r="3.5"/><path d="M17 7a3 3 0 0 1 0 6M19 20v-1.5a4.5 4.5 0 0 0-2.5-4"/></svg>,
   search: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>,
   bell: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M9.5 20a2.5 2.5 0 0 0 5 0"/></svg>,
+  support: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a8 8 0 1 1-3.2-6.4"/><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>,
+  user: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>,
+  mail: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>,
 };
 
 const NAV_ITEMS = [
-  { key: 'dashboard', label: 'Dashboard', icon: Icon.grid },
-  { key: 'career-journey', label: 'Career Journey', icon: Icon.journey },
-  { key: 'roles', label: 'Career Roles', icon: Icon.briefcase },
-  { key: 'skill-matrix', label: 'My Skill Matrix', icon: Icon.matrix },
-  { key: 'evidence', label: 'Add Evidence', icon: Icon.plus },
-  { key: 'projects', label: 'Projects', icon: Icon.folder },
-  { key: 'record', label: 'My Record', icon: Icon.record },
-  { key: 'assistant', label: 'AI Assistant', icon: Icon.bolt },
-  { key: 'mentor', label: 'Mentoring', icon: Icon.mentor },
-  { key: 'talent', label: 'Talent', icon: Icon.talent },
+  { key: 'dashboard', labelKey: 'nav.dashboard', icon: Icon.grid },
+  { key: 'career-journey', labelKey: 'nav.careerJourney', icon: Icon.journey },
+  { key: 'roles', labelKey: 'nav.roles', icon: Icon.briefcase },
+  { key: 'skill-matrix', labelKey: 'nav.skillMatrix', icon: Icon.matrix },
+  { key: 'evidence', labelKey: 'nav.evidence', icon: Icon.plus },
+  { key: 'projects', labelKey: 'nav.projects', icon: Icon.folder },
+  { key: 'record', labelKey: 'nav.record', icon: Icon.record },
+  { key: 'assistant', labelKey: 'nav.assistant', icon: Icon.bolt },
+  { key: 'support', labelKey: 'nav.support', icon: Icon.support },
+  { key: 'profile', labelKey: 'nav.profile', icon: Icon.user },
+  { key: 'mentor', labelKey: 'nav.mentor', icon: Icon.mentor },
+  { key: 'talent', labelKey: 'nav.talent', icon: Icon.talent },
 ];
 
 function initials(name) {
@@ -34,10 +46,58 @@ function initials(name) {
   return name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
 }
 
+/*
+ * The messages bell sits beside the notifications bell and behaves the same
+ * way — a count and a popover — but it has one honest difference: a message
+ * carries no read flag. The backend is read-only and never records that the
+ * learner looked at it, and it must not start doing so, because that would be
+ * a read receipt shown to the company.
+ *
+ * So "new" here means "arrived since you last opened the Messages page",
+ * remembered on this device only. Nothing is written back to the server, and a
+ * fresh device simply shows the messages it has not seen yet.
+ */
+const MESSAGES_SEEN_PREFIX = 'skillspan.messages.seenAt';
+
+function messagesSeenKey(user) {
+  return `${MESSAGES_SEEN_PREFIX}.${user?.id ?? user?.user_id ?? user?.email ?? 'me'}`;
+}
+
+function readMessagesSeenAt(user) {
+  try {
+    const n = Number(window.localStorage.getItem(messagesSeenKey(user)));
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function messageRows(payload) {
+  const raw = unwrapApiData(payload);
+  if (Array.isArray(raw)) return raw;
+  if (Array.isArray(raw?.data)) return raw.data;
+  return [];
+}
+
+function messageWhen(iso) {
+  if (!iso) return '';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const minutes = Math.round((Date.now() - date.getTime()) / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+}
+
 export default function AppLayout({
   active,
   onNavigate,
   user,
+  avatarUrl = null,
   onLogout,
   readinessScore = 0,
   roleLabel = '',
@@ -45,9 +105,173 @@ export default function AppLayout({
   contentClassName = '',
   flushContent = false,
   notificationCount = 0,
+  notifications = EMPTY_NOTIFICATIONS,
+  supportWaiting = false,
+  onRefreshNotifications,
 }) {
+  const { t } = useI18n();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const go = (key) => onNavigate?.(key);
+  const [localNotifications, setLocalNotifications] = useState(notifications);
+  const [unreadCount, setUnreadCount] = useState(notificationCount);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Company messages, shown in the top bar next to the notifications bell.
+  const [messages, setMessages] = useState([]);
+  const [messagesOpen, setMessagesOpen] = useState(false);
+  const [messagesSeenAt, setMessagesSeenAt] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    getLearnerMessages({ page: 1, perPage: 20 })
+      .then((payload) => {
+        if (alive) setMessages(messageRows(payload));
+      })
+      // A learner who is not allowed the inbox (or is offline) simply has no
+      // badge. The bell still opens and explains itself.
+      .catch(() => {
+        if (alive) setMessages([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // Child effects run first, so opening /messages (which stamps the seen
+  // marker on mount) clears the badge in the same pass instead of one render
+  // later.
+  useEffect(() => {
+    setMessagesSeenAt(readMessagesSeenAt(user));
+  }, [user?.id, user?.user_id, user?.email]);
+
+  const unseenMessages = messages.filter((m) => {
+    const at = Date.parse(m?.created_at || '');
+    return Number.isFinite(at) && at > messagesSeenAt;
+  }).length;
+
+  const markMessagesSeen = () => {
+    const now = Date.now();
+    try {
+      window.localStorage.setItem(messagesSeenKey(user), String(now));
+    } catch {
+      // Private mode: the badge just stays until the next full page load.
+    }
+    setMessagesSeenAt(now);
+  };
+
+  // Reading the inbox is the thing that clears the badge. Doing it here rather
+  // than inside MessagesView keeps one owner for the marker, and `active` is
+  // already the prop that says which page is open.
+  useEffect(() => {
+    if (active === 'messages') markMessagesSeen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  // Logging out is destructive enough to deserve a confirmation: the button
+  // sits right next to the user avatar in the top bar, and one stray click used
+  // to end the session with no way back.
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [logoutError, setLogoutError] = useState('');
+
+  // Adopt a refreshed list from the shell. The old condition only copied the
+  // very first payload (`localNotifications.length === 0`), so a second refresh
+  // — a support reply, for instance — never reached the popover even though the
+  // badge moved. Compared by signature, because the parent may hand over a new
+  // array on every render.
+  const incomingSignature = notifications.map((n) => `${n.id}:${n.is_read ? 1 : 0}`).join('|');
+  const [appliedSignature, setAppliedSignature] = useState(incomingSignature);
+  if (incomingSignature !== appliedSignature) {
+    setAppliedSignature(incomingSignature);
+    setLocalNotifications(notifications);
+    setUnreadCount(notificationCount);
+  }
+
+  // A support reply is announced with the link `/support/requests/<id>`. The
+  // Support view is one screen with the thread list inside it, so the id
+  // collapses onto the nav key instead of becoming a dead route.
+  const go = (key) => {
+    const raw = String(key ?? '');
+    const supportReply = /^support\/requests\/\d+$/.exec(raw);
+    onNavigate?.(supportReply ? 'support' : raw);
+  };
+
+  // Revoke the token server-side, then let the shell clear the local session
+  // and navigate. A 401 means the token was already dead — same end state, so
+  // it is not surfaced. Mirrors the flow already used on the landing page.
+  const handleConfirmLogout = async () => {
+    setLogoutError('');
+    try {
+      await logoutUser();
+    } catch (err) {
+      if (err?.status && err.status !== 401) {
+        setLogoutError(err.message || 'Something went wrong while logging out. Please try again.');
+        return;
+      }
+    }
+    setLogoutOpen(false);
+    onLogout?.();
+  };
+
+  const handleConfirmLogoutAllDevices = async () => {
+    setLogoutError('');
+    try {
+      await logoutAllDevices();
+    } catch (err) {
+      if (err?.status && err.status !== 401) {
+        setLogoutError(err.message || 'Something went wrong while logging out. Please try again.');
+        return;
+      }
+    }
+    setLogoutOpen(false);
+    onLogout?.();
+  };
+
+  const handleSearchSubmit = (e) => {
+    if (e.key === 'Enter' && searchTerm.trim()) {
+      go(`projects?search=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllNotificationsRead();
+      setUnreadCount(0);
+      setLocalNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      onRefreshNotifications?.();
+    } catch {
+      // Swallowed safely
+    }
+  };
+
+  const handleNotificationClick = async (notif) => {
+    try {
+      if (!notif.is_read) {
+        await markNotificationRead(notif.id);
+        setUnreadCount((c) => Math.max(0, c - 1));
+        setLocalNotifications((prev) => prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n)));
+      }
+    } catch {
+      // Ignore network error on read mark
+    }
+    setNotificationsOpen(false);
+    if (notif.link) {
+      if (notif.link.startsWith('/')) {
+        const cleanKey = notif.link.replace(/^\//, '').split('?')[0];
+        go(cleanKey);
+      } else {
+        window.location.href = notif.link;
+      }
+    } else {
+      go('record');
+    }
+  };
+
+  const isItemActive = (itemKey) => {
+    if (active === itemKey) return true;
+    if ((active === 'career-roles' || active === 'roles') && (itemKey === 'roles' || itemKey === 'career-roles')) return true;
+    if (active === 'evidence' && itemKey === 'evidence') return true;
+    if (active === 'record' && itemKey === 'record') return true;
+    return false;
+  };
 
   return (
     <div className="app-shell">
@@ -62,16 +286,25 @@ export default function AppLayout({
             <button
               key={item.key}
               type="button"
-              className={`app-nav-item${active === item.key ? ' active' : ''}`}
+              className={`app-nav-item${isItemActive(item.key) ? ' active' : ''}`}
               onClick={() => go(item.key)}
             >
               <span className="nav-icon">{item.icon}</span>
-              <span className="nav-label">{item.label}</span>
+              <span className="nav-label">{t(item.labelKey)}</span>
+              {/* Somebody replied in the support thread and is waiting for an
+                  answer — visible without opening the bell. */}
+              {item.key === 'support' && supportWaiting && (
+                <span
+                  className="ss-nav-waiting-dot"
+                  role="img"
+                  aria-label={t('topbar.supportWaiting')}
+                />
+              )}
             </button>
           ))}
         </nav>
 
-        <div className="app-sidebar-footer">
+        <div className="app-sidebar-footer" onClick={() => go('career-journey')} style={{ cursor: 'pointer' }}>
           <div className="footer-label">Readiness Score</div>
           <div className="footer-score">{readinessScore}/100</div>
           <div className="footer-role">{roleLabel || 'Career profile'}</div>
@@ -82,30 +315,145 @@ export default function AppLayout({
         <header className="app-topbar">
           <div className="app-search">
             {Icon.search}
-            <input aria-label="Search" placeholder="Search skills, projects, resources..." />
+            <input
+              aria-label={t('topbar.search')}
+              placeholder={t('topbar.search')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={handleSearchSubmit}
+            />
           </div>
           <div className="app-topbar-right">
             <div className="app-notification-wrap">
-              <button type="button" className="app-bell" aria-label="Notifications" onClick={() => setNotificationsOpen((v) => !v)}>
+              <button
+                type="button"
+                className="app-bell"
+                data-testid="topbar-messages"
+                aria-label={t('topbar.messages')}
+                title={t('topbar.messages')}
+                onClick={() => setMessagesOpen((v) => !v)}
+              >
+                {Icon.mail}
+                {unseenMessages > 0 && <span className="badge">{unseenMessages > 9 ? '9+' : unseenMessages}</span>}
+              </button>
+              {messagesOpen && (
+                <div className="app-notification-popover app-message-popover" role="dialog" aria-label={t('topbar.messages')}>
+                  <div className="notif-header">
+                    <strong>{t('topbar.messages')}{unseenMessages > 0 ? ` (${unseenMessages})` : ''}</strong>
+                  </div>
+                  {messages.length > 0 ? (
+                    <div className="notif-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                      {messages.slice(0, 5).map((m) => (
+                        <div
+                          key={m.id}
+                          className={`notif-item${Date.parse(m.created_at || '') > messagesSeenAt ? ' unread' : ''}`}
+                          onClick={() => {
+                            setMessagesOpen(false);
+                            markMessagesSeen();
+                            go('messages');
+                          }}
+                        >
+                          <div className="notif-title">{m?.from?.organization_name || t('topbar.messagesUnknownSender')}</div>
+                          <div className="notif-body" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                            {m?.message || ''}
+                          </div>
+                          <div className="notif-time">{messageWhen(m.created_at)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin: '8px 0', color: '#64748b', fontSize: '0.8rem' }}>{t('topbar.emptyMessages')}</p>
+                  )}
+                  <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #f1f2f9' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMessagesOpen(false);
+                        markMessagesSeen();
+                        go('messages');
+                      }}
+                    >
+                      {t('topbar.openMessages')} →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="app-notification-wrap">
+              <button
+                type="button"
+                className="app-bell"
+                aria-label={t('topbar.notifications')}
+                onClick={() => setNotificationsOpen((v) => !v)}
+              >
                 {Icon.bell}
-                {notificationCount > 0 && <span className="badge">{notificationCount > 9 ? '9+' : notificationCount}</span>}
+                {unreadCount > 0 && <span className="badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
               </button>
               {notificationsOpen && (
-                <div className="app-notification-popover">
-                  <strong>Notifications</strong>
-                  <p>No new notifications to review.</p>
-                  <button type="button" onClick={() => { setNotificationsOpen(false); go('record'); }}>Open My Record</button>
+                <div className="app-notification-popover" role="dialog" aria-label="Notifications list">
+                  <div className="notif-header">
+                    <strong>{t('topbar.notifications')} ({unreadCount})</strong>
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleMarkAllRead}
+                        style={{ background: 'transparent', border: 'none', color: '#4f46e5', fontSize: '0.72rem', cursor: 'pointer', padding: 0 }}
+                      >
+                        {t('topbar.markAllRead')}
+                      </button>
+                    )}
+                  </div>
+                  {localNotifications && localNotifications.length > 0 ? (
+                    <div className="notif-list" style={{ maxHeight: '280px', overflowY: 'auto' }}>
+                      {localNotifications.slice(0, 6).map((n) => (
+                        <div
+                          key={n.id}
+                          className={`notif-item${!n.is_read ? ' unread' : ''}`}
+                          onClick={() => handleNotificationClick(n)}
+                        >
+                          <div className="notif-title">{n.title || 'Notification'}</div>
+                          <div className="notif-body">{n.body || ''}</div>
+                          {n.created_at && (
+                            <div className="notif-time">{new Date(n.created_at).toLocaleDateString()}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin: '8px 0', color: '#64748b', fontSize: '0.8rem' }}>{t('topbar.emptyNotifications')}</p>
+                  )}
+                  <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #f1f2f9', display: 'flex', justifyContent: 'space-between' }}>
+                    <button type="button" onClick={() => { setNotificationsOpen(false); go('record'); }}>
+                      Open My Record →
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
             <button type="button" className="app-assistant-top" onClick={() => go('assistant')}>
-              {Icon.bolt}<span>Assistant</span>
+              {Icon.bolt}<span>{t('topbar.assistant')}</span>
             </button>
-            <div className="app-user">
-              <span className="app-user-avatar">{initials(user?.name || user?.full_name)}</span>
+            <button
+              type="button"
+              className="app-icon-btn"
+              onClick={() => go('settings')}
+              aria-label={t('topbar.settings')}
+              title={t('topbar.settings')}
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+              </svg>
+            </button>
+            <div className="app-user" onClick={() => go('profile')} title={t('topbar.viewProfile')}>
+              {avatarUrl ? (
+                <img className="app-user-avatar" src={avatarUrl} alt="" />
+              ) : (
+                <span className="app-user-avatar">{initials(user?.name || user?.full_name)}</span>
+              )}
               <span className="app-user-name">{user?.name || user?.full_name || 'Learner'}</span>
             </div>
-            <button type="button" className="app-logout" onClick={onLogout}>Log out</button>
+            <button type="button" className="app-logout" onClick={() => setLogoutOpen(true)}>{t('topbar.logout')}</button>
           </div>
         </header>
 
@@ -113,6 +461,14 @@ export default function AppLayout({
           {children}
         </main>
       </div>
+
+      <LogoutModal
+        isOpen={logoutOpen}
+        onClose={() => { setLogoutOpen(false); setLogoutError(''); }}
+        onConfirm={handleConfirmLogout}
+        onConfirmAllDevices={handleConfirmLogoutAllDevices}
+        error={logoutError}
+      />
     </div>
   );
 }

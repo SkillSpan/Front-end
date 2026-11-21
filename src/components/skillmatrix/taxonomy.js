@@ -65,16 +65,24 @@ export const TAXONOMY = [
 ];
 
 export const LEVELS = [
-  { value: 0, label: 'None', name: 'No Experience', desc: "Haven't used this yet" },
-  { value: 1, label: 'Beg', name: 'Beginner', desc: 'Tutorials, basic awareness' },
-  { value: 2, label: 'Dev', name: 'Developing', desc: 'Some hands-on practice' },
-  { value: 3, label: 'Int', name: 'Intermediate', desc: 'Comfortable in real tasks' },
-  { value: 4, label: 'Adv', name: 'Advanced', desc: 'Complex solutions, mentors others' },
-  { value: 5, label: 'Exp', name: 'Expert', desc: 'Deep expertise, sets best practice' },
+  { value: 0, label: '0/5', name: 'Recorded level 0/5', desc: 'A recorded score on the 0–5 scale; interpret it using the source of this entry.' },
+  { value: 1, label: '1/5', name: 'Recorded level 1/5', desc: 'A recorded score on the 0–5 scale; interpret it using the source of this entry.' },
+  { value: 2, label: '2/5', name: 'Recorded level 2/5', desc: 'A recorded score on the 0–5 scale; interpret it using the source of this entry.' },
+  { value: 3, label: '3/5', name: 'Recorded level 3/5', desc: 'A recorded score on the 0–5 scale; interpret it using the source of this entry.' },
+  { value: 4, label: '4/5', name: 'Recorded level 4/5', desc: 'A recorded score on the 0–5 scale; interpret it using the source of this entry.' },
+  { value: 5, label: '5/5', name: 'Recorded level 5/5', desc: 'A recorded score on the 0–5 scale; interpret it using the source of this entry.' },
 ];
 
+// Levels arrive from the backend as the string form of a DECIMAL, e.g.
+// "3.50" or "2.50" (the column is `level` on a 0.00-5.00 scale). This used to
+// index the array with that raw number: LEVELS[3.5] is undefined, so the page
+// crashed on `.name` and rendered completely blank. Round to the nearest whole
+// band first, and never return undefined for a non-numeric value.
 export function levelInfo(value) {
-  return LEVELS[Math.max(0, Math.min(5, value))];
+  const n = Number(value);
+  const index = Number.isFinite(n) ? Math.round(Math.max(0, Math.min(5, n))) : 0;
+  const recorded = Number.isFinite(n) ? Math.max(0, Math.min(5, n)) : 0;
+  return { ...(LEVELS[index] ?? LEVELS[0]), name: `Recorded level ${recorded}/5` };
 }
 
 export function findSkillById(id) {

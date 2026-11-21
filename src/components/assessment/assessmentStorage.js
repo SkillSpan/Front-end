@@ -94,3 +94,34 @@ export const saveSubmissionResult = (result) => {
 };
 
 export const clearSubmissionResult = () => saveSubmissionResult(null);
+
+// ---------------------------------------------------------------------------
+// Server-provided question set (role-specific)
+// ---------------------------------------------------------------------------
+// POST /api/v1/baseline-assessments returns the questions selected for the
+// learner's chosen career role (frozen server-side in a snapshot). They are
+// cached here so every screen (quiz, resume, completion, results) renders the
+// SAME role-specific questions - see assessmentQuestions.js, which turns this
+// raw payload into the shape the screens use.
+
+const QUESTION_BANK_KEY = 'skillspan_assessment_questions';
+
+export const loadQuestionBankRaw = () => {
+  try {
+    const raw = sessionStorage.getItem(QUESTION_BANK_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveQuestionBankRaw = (assessment) => {
+  try {
+    if (assessment) sessionStorage.setItem(QUESTION_BANK_KEY, JSON.stringify(assessment));
+    else sessionStorage.removeItem(QUESTION_BANK_KEY);
+  } catch {
+    // Best effort only.
+  }
+};
+
+export const clearQuestionBank = () => saveQuestionBankRaw(null);

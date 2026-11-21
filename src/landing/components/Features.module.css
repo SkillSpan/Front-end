@@ -1,0 +1,131 @@
+.features { overflow: hidden; }
+.features::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(40% 40% at 85% 10%, rgba(158, 81, 250, 0.22), transparent 70%), radial-gradient(40% 40% at 10% 90%, rgba(41, 168, 255, 0.16), transparent 70%);
+}
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+.card {
+  position: relative; display: flex; flex-direction: column; border-radius: var(--radius-lg); overflow: hidden;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  transition: border-color 0.35s ease, box-shadow 0.35s ease, background-color 0.35s ease;
+}
+.card:hover { border-color: rgba(120, 160, 255, 0.4); box-shadow: 0 24px 50px -30px rgba(41, 168, 255, 0.6); }
+.c_assess, .c_simulation, .c_ai, .c_talent { grid-column: span 2; }
+.visual { position: relative; height: 168px; margin: 0.75rem 0.75rem 0; border-radius: 16px; overflow: hidden;
+  background: radial-gradient(120% 100% at 50% 0%, rgba(41, 168, 255, 0.14), transparent 70%), rgba(6, 10, 42, 0.6);
+  border: 1px solid rgba(222, 231, 255, 0.07); display: grid; place-items: center; padding: 1rem; }
+.body { position: relative; padding: 1.25rem 1.4rem 1.5rem; }
+.titleRow { display: flex; align-items: center; gap: 0.7rem; }
+.icon { flex: none; display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: rgba(41, 168, 255, 0.14); color: var(--blue-400); font-size: 1rem; }
+.body h3 { font-size: var(--fs-h3); font-weight: 600; letter-spacing: -0.01em; color: #fff; line-height: 1.3; }
+.body p { color: var(--text-dim); font-size: 0.9375rem; line-height: 1.6; margin-top: 0.6rem; }
+
+/* — assess — */
+.vAssess { width: 100%; display: grid; gap: 0.75rem; }
+.skill { display: grid; grid-template-columns: 8.5rem 1fr 2rem; align-items: center; gap: 0.75rem; font-size: 0.82rem; color: var(--text-dim); }
+.skill b { color: #fff; font-variant-numeric: tabular-nums; text-align: end; }
+.track { height: 8px; border-radius: 8px; background: rgba(222,231,255,0.08); overflow: hidden; }
+.track i { display: block; height: 100%; width: var(--w); border-radius: inherit; background: var(--grad-brand); }
+.live .track i { animation: grow 2.4s var(--ease-out) both; }
+@keyframes grow { from { width: 0; } }
+
+/* — readiness — */
+.vReady { position: relative; display: grid; place-items: center; }
+.vReady svg { width: 120px; height: 120px; transform: rotate(-90deg); }
+.ringBg { fill: none; stroke: rgba(222,231,255,0.1); stroke-width: 9; }
+.ring { fill: none; stroke: var(--blue-400); stroke-width: 9; stroke-linecap: round; stroke-dasharray: 314; stroke-dashoffset: 104; filter: drop-shadow(0 0 8px rgba(41,168,255,0.7)); }
+.live .ring { animation: ring 2.2s var(--ease-out) both; }
+@keyframes ring { from { stroke-dashoffset: 314; } }
+.readyNum { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -62%); text-align: center; }
+.readyNum strong { font-size: 1.85rem; font-weight: 600; letter-spacing: -0.02em; } .readyNum small { color: var(--text-faint); }
+.readyLabel { font-size: 0.75rem; color: var(--success); margin-top: 0.3rem; }
+
+/* — roadmap — */
+.vRoad { position: relative; width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); align-items: start; }
+.roadLine { position: absolute; top: 8px; inset-inline: 12%; height: 2px; background: rgba(222,231,255,0.12); }
+.roadLine i { display: block; height: 100%; width: 42%; background: var(--grad-brand); box-shadow: 0 0 10px var(--blue-400); }
+:global(.landing-root[dir='rtl']) .roadLine i { margin-inline-start: auto; }
+.live .roadLine i { animation: road 4s ease-in-out infinite alternate; }
+@keyframes road { from { width: 8%; } to { width: 72%; } }
+.phase { position: relative; display: grid; justify-items: center; gap: 0.5rem; font-size: 0.68rem; color: var(--text-faint); text-align: center; }
+.pdot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(222,231,255,0.25); background: var(--navy-950); }
+.done .pdot { border-color: var(--blue-400); background: var(--blue-400); box-shadow: 0 0 12px var(--blue-400); }
+.done small { color: var(--blue-100); }
+
+/* — projects — */
+.vProj { width: 100%; display: grid; gap: 0.5rem; }
+.projCard { display: flex; align-items: center; gap: 0.7rem; padding: 0.55rem 0.7rem; border-radius: 12px; background: rgba(222,231,255,0.05); border: 1px solid rgba(222,231,255,0.08); font-size: 0.78rem; }
+.projCard b { display: block; color: #fff; font-weight: 600; } .projCard small { color: var(--text-faint); }
+.projIcon { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: rgba(249,171,31,0.15); color: var(--amber-400); flex: none; }
+.live .projCard { animation: slideIn 0.9s var(--ease-out) both; animation-delay: calc(var(--i) * 0.15s); }
+@keyframes slideIn { from { opacity: 0; transform: translateY(14px); } }
+
+/* — simulation — */
+.vSim { width: 100%; height: 100%; border-radius: 12px; background: #050a24; border: 1px solid rgba(222,231,255,0.08); padding: 0 0.9rem 0.8rem; font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size: 0.78rem; color: var(--blue-100); position: relative; text-align: left; }
+.simBar { display: flex; align-items: center; gap: 6px; padding: 0.55rem 0; margin-bottom: 0.4rem; border-bottom: 1px solid rgba(222,231,255,0.06); }
+.simBar i { width: 8px; height: 8px; border-radius: 50%; background: rgba(222,231,255,0.2); }
+.simBar i:first-child { background: #ef4444aa; } .simBar i:nth-child(2) { background: #fbbf24aa; } .simBar i:nth-child(3) { background: #22c55eaa; }
+.simBar span { margin-left: auto; color: var(--text-faint); font-size: 0.7rem; }
+.vSim p { margin: 0.25rem 0; white-space: nowrap; overflow: hidden; }
+.simOk { color: var(--success); }
+.live .vSim p { animation: type 1.2s steps(30) both; animation-delay: calc(var(--i) * 1.1s); }
+@keyframes type { from { width: 0; } to { width: 100%; } }
+.caret { display: inline-block; width: 8px; height: 14px; background: var(--blue-400); }
+.live .caret { animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* — mentor — */
+.vMentor { display: flex; align-items: flex-end; gap: 0.8rem; width: 100%; }
+.avatars { display: flex; flex-direction: column; gap: 0.4rem; }
+.avatars span { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 0.85rem; background: linear-gradient(135deg, #29a8ff, #9e51fa); box-shadow: 0 0 0 3px rgba(2,7,32,0.8); }
+.avatars span:last-child { background: linear-gradient(135deg, #f9ab1f, #ef4444); }
+.bubble { position: relative; padding: 0.75rem 0.9rem; border-radius: 14px 14px 14px 4px; background: rgba(41,168,255,0.12); border: 1px solid rgba(41,168,255,0.25); font-size: 0.82rem; color: var(--blue-100); }
+:global(.landing-root[dir='rtl']) .bubble { border-radius: 14px 14px 4px 14px; }
+.live .bubble { animation: pop 0.8s var(--ease-out) both 0.3s; }
+@keyframes pop { from { opacity: 0; transform: scale(0.85) translateY(10px); } }
+
+/* — ai — */
+.vAi { width: 100%; display: grid; gap: 0.6rem; font-size: 0.85rem; }
+.msg { max-width: 82%; padding: 0.6rem 0.85rem; border-radius: 14px; }
+.me { justify-self: end; background: var(--grad-cta); color: #fff; border-end-end-radius: 4px; }
+.bot { justify-self: start; display: flex; align-items: center; gap: 0.5rem; background: rgba(222,231,255,0.06); border: 1px solid rgba(222,231,255,0.1); border-end-start-radius: 4px; color: var(--blue-100); }
+.spark { color: var(--amber-400); }
+.typing { display: none; gap: 3px; }
+.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--blue-400); animation: dots 1s infinite; }
+.typing i:nth-child(2) { animation-delay: 0.15s; } .typing i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes dots { 50% { opacity: 0.2; transform: translateY(-3px); } }
+.bot { position: relative; }
+.live .typing { display: inline-flex; position: absolute; inset-inline-start: 2.2rem; top: 50%; translate: 0 -50%; animation: fadeOut 0.3s 1.4s forwards; }
+.live .answer { animation: fadeIn 0.5s 1.5s both; }
+@keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+@keyframes fadeIn { from { opacity: 0; } }
+
+/* — talent — */
+.vTalent { width: 100%; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 0.9rem; }
+.profile { display: flex; align-items: center; gap: 0.7rem; padding: 0.7rem; border-radius: 14px; background: rgba(222,231,255,0.05); border: 1px solid rgba(222,231,255,0.1); }
+.pAvatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #29a8ff, #9e51fa); flex: none; }
+.pLine, .pLine2 { display: block; height: 7px; border-radius: 6px; background: rgba(222,231,255,0.25); width: 70px; }
+.pLine2 { width: 46px; margin-top: 6px; background: rgba(222,231,255,0.12); }
+.match { margin-inline-start: auto; font-size: 0.72rem; color: var(--success); white-space: nowrap; }
+.match strong { font-size: 1.05rem; }
+.arrows { display: flex; gap: 4px; color: var(--blue-400); }
+.arrows i { width: 8px; height: 8px; border-top: 2px solid currentColor; border-right: 2px solid currentColor; transform: rotate(45deg); opacity: 0.5; }
+:global(.landing-root[dir='rtl']) .arrows i { transform: rotate(-135deg); }
+.live .arrows i { animation: flow 1.4s infinite; } .live .arrows i:nth-child(2) { animation-delay: 0.2s; } .live .arrows i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes flow { 50% { opacity: 1; } }
+.companies { display: grid; gap: 0.4rem; }
+.companies span { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; font-size: 0.8rem; background: rgba(249,171,31,0.14); color: var(--amber-400); border: 1px solid rgba(249,171,31,0.3); }
+.live .companies span { animation: pop 0.7s var(--ease-out) both; animation-delay: calc(0.6s + var(--i) * 0.15s); }
+.talentLine { grid-column: 1 / -1; font-size: 0.75rem; color: var(--text-faint); }
+
+
+@media (max-width: 1080px) { .grid { grid-template-columns: repeat(2, 1fr); grid-auto-flow: row dense; } }
+@media (max-width: 640px) {
+  .grid { grid-template-columns: 1fr; }
+  .c_assess, .c_simulation, .c_ai, .c_talent { grid-column: auto; }
+  .skill { grid-template-columns: 6.5rem 1fr 1.8rem; }
+  .vTalent { gap: 0.5rem; }
+  .profile { gap: 0.5rem; padding: 0.55rem; }
+  .pLine { width: 40px; } .pLine2 { width: 28px; }
+}

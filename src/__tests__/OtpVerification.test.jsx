@@ -51,7 +51,7 @@ describe('OtpVerification', () => {
 
   it('calls resendOtp with the user email when resend is clicked', async () => {
     const resendSpy = vi.spyOn(api, 'resendOtp').mockResolvedValue({ data: {} });
-    render(<OtpVerification userEmail="student@example.com" />);
+    render(<OtpVerification userEmail="student@example.com" initialResendTimer={0} />);
 
     fireEvent.click(screen.getByText(/resend code/i));
 

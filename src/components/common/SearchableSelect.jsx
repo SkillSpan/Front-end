@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import './SearchableSelect.css';
 
 // ---------------------------------------------------------------------------
@@ -26,6 +26,9 @@ const SearchableSelect = ({
   hasError = false,
   allowClear = false,
   clearLabel = 'All',
+  // When true, picking the clear option ("All countries") resets the value
+  // but keeps the panel open so the full list is shown right away.
+  keepOpenOnClear = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -57,9 +60,12 @@ const SearchableSelect = ({
     };
   }, [open]);
 
+  // The API can return the same university name for several countries/rows;
+  // duplicates would collide as React keys, so list each name once.
+  const uniqueOptions = useMemo(() => Array.from(new Set(options || [])), [options]);
   const filtered = query.trim()
-    ? options.filter((o) => o.toLowerCase().includes(query.trim().toLowerCase()))
-    : options;
+    ? uniqueOptions.filter((o) => o.toLowerCase().includes(query.trim().toLowerCase()))
+    : uniqueOptions;
 
   const handleToggle = () => {
     if (disabled || loading) return;
@@ -112,7 +118,14 @@ const SearchableSelect = ({
             {allowClear && !query.trim() && (
               <li
                 className={`searchable-select-option searchable-select-clear ${!value ? 'selected' : ''}`}
-                onClick={() => handleSelect('')}
+                onClick={() => {
+                  if (keepOpenOnClear) {
+                    onChange('');
+                    setQuery('');
+                  } else {
+                    handleSelect('');
+                  }
+                }}
               >
                 {clearLabel}
               </li>

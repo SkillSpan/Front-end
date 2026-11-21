@@ -1,1 +1,42 @@
 import '@testing-library/jest-dom/vitest';
+// vitest compiles JSX with the classic runtime for modules that do not import
+// React (most components here). Expose React globally so those modules can
+// render in tests without each one adding an unused import.
+import React from 'react';
+import { afterEach } from 'vitest';
+import { configure } from '@testing-library/react';
+import { clearQueryCache } from '../cache/queryCache';
+
+// Every preview-mode API call sleeps 220 ms (`previewCall`). Under a full-suite
+// run the workers compete for the CPU and a single 220 ms wait can easily cross
+// the 1 s default, so tests that pass alone fail only when everything runs at
+// once — the worst kind of flake, because it looks like a real regression.
+// Three seconds is still far below any real hang.
+configure({ asyncUtilTimeout: 3000 });
+
+// The API cache lives for the whole page; every test starts from an empty one.
+afterEach(() => clearQueryCache());
+
+globalThis.React = React;
+
+// jsdom implements no layout, so `scrollIntoView` is missing entirely and any
+// component that scrolls a list throws on mount. The chat view does exactly
+// that after every message.
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {};
+}
+
+// jsdom ships no matchMedia, and three different places read it at module load:/n// the theme preference, the landing's motion switch and its pointer-capability
+// check. Default answer: the query does not match.
+if (typeof window !== 'undefined' && !window.matchMedia) {
+  window.matchMedia = (query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener() {},
+    removeEventListener() {},
+    addListener() {},
+    removeListener() {},
+    dispatchEvent: () => false,
+  });
+}

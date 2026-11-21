@@ -36,19 +36,22 @@
 }
 
 .assessment-brand-badge {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-.assessment-brand-badge svg {
-  width: 14px;
-  height: 14px;
-  color: #fff;
+.assessment-brand-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .assessment-topbar-divider {
@@ -506,3 +509,169 @@
     margin: 8px 0 0;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Career role picker - explicit colors so the control is always       */
+/* readable (the app-wide dark theme sets a white body text color,     */
+/* which made the select's text invisible on its white background).    */
+/* ------------------------------------------------------------------ */
+
+.assessment-career-role-picker {
+  margin: 8px 0 18px;
+  max-width: 460px;
+  color: #10132a;
+}
+
+.assessment-career-role-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #10132a;
+}
+
+.assessment-career-role-required {
+  color: #dc2626;
+}
+
+.assessment-career-role-select-wrap {
+  position: relative;
+}
+
+.assessment-career-role-select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 44px 14px 16px;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #6b7280;
+  background-color: #ffffff;
+  border: 2px solid #c7d0e4;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.assessment-career-role-select.has-value {
+  color: #10132a;
+  border-color: #4f6df5;
+}
+
+.assessment-career-role-select:hover {
+  border-color: #4f6df5;
+}
+
+.assessment-career-role-select:focus {
+  outline: none;
+  border-color: #4f6df5;
+  box-shadow: 0 0 0 4px rgba(79, 109, 245, 0.18);
+}
+
+.assessment-career-role-select[aria-invalid='true'] {
+  border-color: #dc2626;
+}
+
+.assessment-career-role-select option {
+  color: #10132a;
+  background-color: #ffffff;
+  font-weight: 500;
+}
+
+.assessment-career-role-select option[value=''] {
+  color: #6b7280;
+}
+
+.assessment-career-role-chevron {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 20px;
+  height: 20px;
+  transform: translateY(-50%);
+  color: #4f6df5;
+  pointer-events: none;
+}
+
+.assessment-career-role-chevron svg {
+  width: 100%;
+  height: 100%;
+}
+
+.assessment-career-role-hint {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: #5b6072;
+}
+
+.assessment-career-role-status {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: #92400e;
+  background: #fef3c7;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.assessment-career-role-error {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #b91c1c;
+  background: #fee2e2;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.assessment-intro-start:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Desktop: app-style layout                                            */
+/* The page itself never scrolls (so there is no bounce): the top bar   */
+/* and the dark sidebar stay put and only the right column scrolls.     */
+/* Below 1081px the page stacks and scrolls normally (see responsive.css) */
+/* ------------------------------------------------------------------ */
+@media (min-width: 1081px) {
+  .assessment-intro-page {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .assessment-intro-page .assessment-intro-body {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .assessment-intro-page .assessment-intro-body > .assessment-intro-sidebar {
+    position: static;
+    align-self: stretch;
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* The right column is the scroller, so it spans the full remaining width
+     (scrollbar at the window edge) and the 900px content column is centred
+     with padding instead of max-width/margin. */
+  .assessment-intro-page .assessment-intro-main {
+    max-width: none;
+    margin: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-left: max(64px, calc((100vw - 380px - 772px) / 2));
+    padding-right: max(64px, calc((100vw - 380px - 772px) / 2));
+  }
+}
+.assessment-auth-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.assessment-auth-actions button { cursor: pointer; border-radius: 8px; padding: 10px 16px; font-weight: 600; min-height: 44px; }
+.assessment-auth-actions .assessment-auth-primary { background: #4338ca; border: 1px solid #4338ca; color: white; }
+.assessment-auth-actions .assessment-auth-secondary { background: white; border: 1px solid #4338ca; color: #4338ca; }
+.assessment-auth-actions button:focus-visible { outline: 3px solid #818cf8; outline-offset: 3px; }

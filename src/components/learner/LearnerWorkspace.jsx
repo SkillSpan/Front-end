@@ -1,12 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import CareerJourneyView from './CareerJourneyView';
 import CareerRolesView from './CareerRolesView';
+import CareerGoalControl from './CareerGoalControl';
 import ProjectsView from './ProjectsView';
 import ProjectDetailsView from './ProjectDetailsView';
 import AssistantView from './AssistantView';
+import MessagesView from './MessagesView';
 import MentorView from './MentorView';
+import SupportView from './SupportView';
+import ProfileView from './ProfileView';
+import SettingsView from './SettingsView';
+import SupportFab from './SupportFab';
+import SupportWaitingToast, { SUPPORT_CREATED_EVENT } from './SupportWaitingToast';
 import TalentDiscoveryView from './TalentDiscoveryView';
-import { getApplications, getCareerRoles, getLatestReadiness, getNotifications, getProfile, getProjects, getRecommendations, getUnreadNotificationCount, unwrapApiData } from '../../api';
+import { getApplications, getCareerRoles, getLatestReadiness, getLatestIntelligence, getNotifications, getProfile, getProjects, getRecommendations, getUnreadNotificationCount, getCareerRoleById, fetchProfileAvatarUrl, unwrapApiData, updateProfile, calculateIntelligence } from '../../api';
 import { useAuth } from '../auth/AuthContext';
 import AppLayout from '../dashboard/AppLayout';
 import './learner-workspace.css';
@@ -27,71 +34,242 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
   const [projects, setProjects] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [readiness, setReadiness] = useState(null);
+  const [activeCareerRole, setActiveCareerRole] = useState(null);
+  const [intelligence, setIntelligence] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const [unread, setUnread] = useState(0);
+  const [notifications, setNotifications] = useState([]);
   const [projectDetails, setProjectDetails] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  // `{ id, name }` while the "someone is waiting for you" banner is up.
+  const [supportToast, setSupportToast] = useState(null);
+  const [goalBusy, setGoalBusy] = useState(false);
+  const goalAction = useRef(false);
+
+  const loadWorkspace = async (aliveRef) => {
+    // The profile owns the current goal. Read it before fetching role-scoped
+    // decisions so an older role's latest result cannot masquerade as this goal.
+    const [pr] = await Promise.allSettled([getProfile()]);
+    if (aliveRef && !aliveRef.current) return;
+    const profileData = pr.status === 'fulfilled' ? unwrapApiData(pr.value) : null;
+    const goalId = profileData?.primary_career_role_id ?? null;
+    const scope = { careerRoleId: goalId };
+    const results = await Promise.allSettled([
+      getCareerRoles({ page: 1, perPage: 15 }), getProjects(), getRecommendations({ page: 1, perPage: 15 }),
+      goalId == null ? Promise.resolve(null) : getLatestReadiness(scope),
+      goalId == null ? Promise.resolve(null) : getLatestIntelligence(scope),
+      getUnreadNotificationCount(), getApplications({ page: 1, perPage: 20 }), getNotifications({ page: 1, perPage: 10 })
+    ]);
+    if (aliveRef && !aliveRef.current) return;
+    const [rr, pj, rec, rd, intel, un, , notifs] = results;
+    if (pr.status === 'fulfilled') {
+      const row = unwrapApiData(pr.value);
+      setProfile(row);
+      if (row?.has_avatar) {
+        fetchProfileAvatarUrl().then((url) =>
+          setAvatarUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return url;
+          }),
+        );
+      }
+    }
+    if (rr.status === 'fulfilled') setRoles(collection(rr.value));
+    if (pj.status === 'fulfilled') setProjects(collection(pj.value));
+    if (rec.status === 'fulfilled') setRecommendations(collection(rec.value));
+    // `getLatestReadiness` / `getLatestIntelligence` resolve to `null` when the
+    // learner has no snapshot yet (the API answers 404). That is not a load
+    // failure — it must not land in `apiError`, and it must not stop the rest of
+    // the workspace from rendering.
+    const readinessData = rd.status === 'fulfilled' && rd.value != null ? unwrapApiData(rd.value) : null;
+    const intelligenceData = intel.status === 'fulfilled' && intel.value != null ? unwrapApiData(intel.value) : null;
+    const currentReadiness = goalId != null && String(readinessData?.career_role_id ?? readinessData?.careerRoleId) === String(goalId) ? readinessData : null;
+    const currentIntelligence = goalId != null && String(intelligenceData?.role_id ?? intelligenceData?.career_role_id) === String(goalId) ? intelligenceData : null;
+    setReadiness(currentReadiness);
+    setIntelligence(currentIntelligence);
+    if (goalId != null) {
+      try {
+        const goal = unwrapApiData(await getCareerRoleById(goalId));
+        if (aliveRef && !aliveRef.current) return;
+        setActiveCareerRole(goal);
+      } catch { setActiveCareerRole(null); }
+    } else { setActiveCareerRole(null); }
+    if (un.status === 'fulfilled') {
+      const value = unwrapApiData(un.value); setUnread(Number(value?.count ?? value?.unread_count ?? value ?? 0) || 0);
+    }
+    // The bell popover used to be rendered empty because these rows were
+    // fetched and then dropped: the count arrived, the list did not. A support
+    // reply is delivered through exactly this list, so it has to be bound.
+    if (notifs && notifs.status === 'fulfilled') setNotifications(collection(notifs.value));
+    const rejected = [pr, ...results].filter(x => x.status === 'rejected');
+    setApiError(rejected.length ? 'Some workspace data could not be loaded from the server. Demo data will not be shown as a fallback.' : '');
+    return { analysisReady: Boolean(currentReadiness || currentIntelligence), partial: rejected.length > 0 };
+  };
+
+  const selectCareerGoal = async (role) => {
+    if (goalAction.current) throw new Error('A career-goal update is already in progress.');
+    const id = Number(role.id);
+    if (!Number.isSafeInteger(id) || id <= 0) throw new Error('This career role is not available.');
+    goalAction.current = true;
+    setGoalBusy(true);
+    try {
+      const savedProfile = unwrapApiData(await updateProfile({ primary_career_role_id: id }));
+      if (Number(savedProfile?.primary_career_role_id) !== id) throw new Error('The saved career goal could not be confirmed. Refresh and try again.');
+      setProfile(savedProfile);
+      setActiveCareerRole(role);
+      setReadiness(null);
+      setIntelligence(null);
+      setProjects([]);
+      setRecommendations([]);
+      setProjectDetails(false);
+      return await loadWorkspace();
+    } finally {
+      goalAction.current = false;
+      setGoalBusy(false);
+    }
+  };
+
+  const calculateGoalAnalysis = async (role) => {
+    if (goalAction.current) throw new Error('A career-goal update is already in progress.');
+    if (profile?.primary_career_role_id == null || String(role.id) !== String(profile.primary_career_role_id)) throw new Error('Select this role as your career goal first.');
+    goalAction.current = true;
+    setGoalBusy(true);
+    try {
+      // Profile changes already dispatch the backend recalculation hook.
+      // This is an explicit retry, never a duplicate automatic calculation.
+      await calculateIntelligence({ career_role_id: Number(role.id) }, { timeoutMs: 45000 });
+      return await loadWorkspace();
+    } finally {
+      goalAction.current = false;
+      setGoalBusy(false);
+    }
+  };
 
   useEffect(() => {
-    let alive = true;
+    const aliveRef = { current: true };
     (async () => {
       setLoading(true); setApiError('');
-      const results = await Promise.allSettled([
-        getProfile(), getCareerRoles({ page: 1, perPage: 50 }), getProjects(), getRecommendations({ page: 1, perPage: 50 }),
-        getLatestReadiness(), getUnreadNotificationCount(), getApplications({ page: 1, perPage: 20 }), getNotifications({ page: 1, perPage: 10 })
-      ]);
-      if (!alive) return;
-      const [pr, rr, pj, rec, rd, un] = results;
-      if (pr.status === 'fulfilled') setProfile(unwrapApiData(pr.value));
-      if (rr.status === 'fulfilled') setRoles(collection(rr.value));
-      if (pj.status === 'fulfilled') setProjects(collection(pj.value));
-      if (rec.status === 'fulfilled') setRecommendations(collection(rec.value));
-      if (rd.status === 'fulfilled') setReadiness(unwrapApiData(rd.value));
-      if (un.status === 'fulfilled') {
-        const value = unwrapApiData(un.value); setUnread(Number(value?.count ?? value?.unread_count ?? value ?? 0) || 0);
-      }
-      const rejected = results.filter(x => x.status === 'rejected');
-      if (rejected.length) setApiError('بعض بيانات لوحة التحكم لم تتوفر من الخادم، لذلك تم الإبقاء على الواجهة الاحتياطية دون كسر الصفحة.');
-      setLoading(false);
+      try { await loadWorkspace(aliveRef); }
+      finally { if (aliveRef.current) setLoading(false); }
     })();
-    return () => { alive = false; };
+    return () => { aliveRef.current = false; };
   }, []);
 
-  const user = profile || authUser || {};
+  const user = { ...authUser, ...profile, name: profile?.name || profile?.full_name || authUser?.name || authUser?.full_name || 'Learner' };
   const readinessScore = Number(readiness?.score ?? readiness?.readiness_score ?? 0) || 0;
-  const roleLabel = readiness?.roleTitle || readiness?.role_title || roles[0]?.title || '';
+  const rolePayload = activeCareerRole?.career_role ?? activeCareerRole?.role ?? activeCareerRole;
+  const roleLabel = rolePayload?.title || readiness?.role_title || readiness?.roleTitle || '';
   const title = useMemo(() => user?.name || user?.full_name || 'Learner', [user]);
+
+  useEffect(() => {
+    setView(initialView);
+  }, [initialView]);
 
   const go = (key) => {
     setProjectDetails(false);
-    if (key === 'dashboard') return onNavigate?.('dashboard');
-    if (key === 'skill-matrix') return onNavigate?.('skill-matrix');
-    if (key === 'evidence') return onNavigate?.('evidence');
-    if (key === 'record') return onNavigate?.('record');
+    if (onNavigate) {
+      return onNavigate(key);
+    }
     if (key === 'roles') return setView('career-roles');
     setView(key);
   };
 
+  const refreshNotifications = useCallback(async () => {
+    try {
+      const [countPayload, listPayload] = await Promise.all([
+        getUnreadNotificationCount(),
+        getNotifications({ page: 1, perPage: 10 }),
+      ]);
+      const value = unwrapApiData(countPayload);
+      setUnread(Number(value?.count ?? value?.unread_count ?? value ?? 0) || 0);
+      setNotifications(collection(listPayload));
+    } catch {
+      // A failed refresh leaves the previous list on screen — better than blanking it.
+    }
+  }, []);
+
+  // A support reply lands while the learner is elsewhere in the app. Polling the
+  // bell means it shows up without a reload; a minute is plenty for a badge and
+  // two cheap requests.
+  useEffect(() => {
+    const timer = setInterval(() => { refreshNotifications(); }, 60000);
+    return () => clearInterval(timer);
+  }, [refreshNotifications]);
+
+  // SupportView owns the composer, this shell owns the screen. The view
+  // announces a created request and the banner is rendered here, so it keeps
+  // sitting on top even if the learner navigates away from Support.
+  useEffect(() => {
+    const onCreated = (event) => {
+      const detail = event?.detail || {};
+      setSupportToast({ id: detail.id ?? Date.now(), name: detail.name || '' });
+    };
+    window.addEventListener(SUPPORT_CREATED_EVENT, onCreated);
+    return () => window.removeEventListener(SUPPORT_CREATED_EVENT, onCreated);
+  }, []);
+
+  const dismissSupportToast = useCallback(() => setSupportToast(null), []);
+
+  // Revoke the avatar blob URL when the workspace unmounts.
+  useEffect(() => {
+    return () => {
+      setAvatarUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+    };
+  }, []);
+
+  // A support reply arrives as an unread notification whose link is
+  // `support/requests/<id>`. Unread is the whole signal: somebody wrote and is
+  // now waiting for the learner to answer.
+  const supportWaiting = useMemo(
+    () =>
+      notifications.some(
+        (row) => !row.is_read && /^\/?support\/requests\/\d+/.test(String(row.link || '')),
+      ),
+    [notifications],
+  );
+
+  // `/readiness` and `/intelligence` carry no role title, so the header label
+  // comes from the role payload the workspace already resolved.
+  const journey = <div className="flex h-full flex-col">
+    <div className="mx-8 mt-5 rounded-xl border border-slate-200 bg-white p-4 text-sm">
+      <p>{profile?.primary_career_role_id == null ? 'Choose a career goal to start your career journey.' : `Current career goal: ${roleLabel || 'Selected role'}`}</p>
+      <button type="button" onClick={() => go('roles')} className="mt-2 font-semibold text-blue-700">{profile?.primary_career_role_id == null ? 'Choose Career Goal' : 'Change Career Goal'}</button>
+      {profile?.primary_career_role_id != null && rolePayload?.id != null && <CareerGoalControl key={profile.primary_career_role_id} role={rolePayload} currentGoalId={profile.primary_career_role_id} onCalculate={calculateGoalAnalysis} busy={goalBusy} />}
+    </div>
+    <div className="min-h-0 flex-1"><CareerJourneyView readiness={readiness} intelligence={intelligence} roleTitle={roleLabel} /></div>
+  </div>;
+
   const content = () => {
-    if (view === 'dashboard') return <CareerJourneyView readiness={readiness} />;
-    if (view === 'career-journey') return <CareerJourneyView readiness={readiness} />;
-    if (view === 'career-roles') return <CareerRolesView initialRoles={roles} />;
-    if (view === 'projects') return projectDetails ? <ProjectDetailsView onBack={() => setProjectDetails(false)} /> : <ProjectsView initialProjects={projects.length ? projects : recommendations} onOpenDetails={() => setProjectDetails(true)} />;
-    if (view === 'assistant') return <AssistantView />;
-    if (view === 'mentor') return <MentorView />;
+    if (view === 'dashboard' || view === 'career-journey' || view === 'evidence' || view === 'record') return journey;
+    if (view === 'career-roles') return <CareerRolesView initialRoles={roles} currentGoalId={profile?.primary_career_role_id} onGoalSelect={selectCareerGoal} onGoalCalculate={calculateGoalAnalysis} goalBusy={goalBusy || !profile} />;
+    if (view === 'projects') return projectDetails ? <ProjectDetailsView projectId={selectedProjectId} onBack={() => setProjectDetails(false)} /> : <ProjectsView key={profile?.primary_career_role_id ?? 'no-goal'} roleLabel={roleLabel} initialProjects={projects} onOpenDetails={(id) => { setSelectedProjectId(id); setProjectDetails(true); }} />;
+    if (view === 'assistant') return <AssistantView onNavigate={go} />;
+    if (view === 'messages') return <MessagesView />;
+    if (view === 'support') return <SupportView />;
+    if (view === 'profile') return <ProfileView readinessScore={readinessScore} roleLabel={roleLabel} />;
+    if (view === 'settings') return <SettingsView onLogout={() => onLogout?.()} />;
+    if (view === 'mentor') return <div role="alert" className="m-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">Mentor access is restricted to authorized Mentor accounts. Your learner workspace cannot access the student list. Sign in with an authorized Mentor account.</div>;
     if (view === 'talent') return <TalentDiscoveryView />;
-    if (view === 'evidence') return <CareerJourneyView readiness={readiness} />;
-    if (view === 'record') return <CareerJourneyView readiness={readiness} />;
-    return <CareerJourneyView readiness={readiness} />;
+    return journey;
   };
 
   return (
+    <>
     <AppLayout
       active={view === 'career-roles' ? 'roles' : view}
       onNavigate={go}
       user={user}
+      avatarUrl={avatarUrl}
       readinessScore={readinessScore}
       roleLabel={roleLabel}
       notificationCount={unread}
+      notifications={notifications}
+      supportWaiting={supportWaiting}
+      onRefreshNotifications={refreshNotifications}
       onLogout={async () => { onLogout?.(); }}
       flushContent
       contentClassName={view === 'assistant' ? 'workspace-assistant-content' : 'workspace-content'}
@@ -100,5 +278,16 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
       {apiError && <div className="learner-api-note">{apiError}</div>}
       <div className="learner-content">{content()}</div>
     </AppLayout>
+    {/* Straight to a human, from any screen — asking the assistant a question
+        only to be handed off is a detour nobody should have to take. */}
+    {view !== 'support' && (
+      <SupportFab onClick={() => go('support')} waiting={supportWaiting} />
+    )}
+    <SupportWaitingToast
+      toast={supportToast}
+      onOpen={() => { setSupportToast(null); go('support'); }}
+      onClose={dismissSupportToast}
+    />
+    </>
   );
 }

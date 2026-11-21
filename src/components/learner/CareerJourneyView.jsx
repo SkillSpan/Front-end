@@ -1,393 +1,13 @@
 import { useState } from "react";
+import RoadmapLearningPanel from "./RoadmapLearningPanel";
 // ═══════════════════════════════════════════════════════════════════════════════
 // MOCK DATA
 // ═══════════════════════════════════════════════════════════════════════════════
-const READINESS = {
-  score: 67,
-  band: "Progressing",
-  roleTitle: "Software Engineer",
-  roleVersion: "v2.3",
-  algorithmVersion: "v1.4.2",
-  configVersion: "v2.1",
-  calculatedAt: "2026-09-09T14:32:00Z",
-  decisionVersion: "dec-2026090914",
-  explanation:
-    "Your readiness is driven by a strong Skill Match (74%), but limited Practical Experience (52%) and a critical Python deficiency are the main limiters. Closing the Python gap is the highest-leverage move — it removes the critical flag, unlocks Phase 3, and adds an estimated +8 pts to your score.",
-  warning: {
-    skillName: "Python",
-    currentLevel: 3,
-    requiredLevel: 4,
-    capApplied: 75,
-    uncappedScore: 73,
-    explanation:
-      "Python is a critical skill for Software Engineer (Level 4 required, you have Level 3). A cap of 75 is configured — your score of 67 is currently below the cap so it is not yet restricting you, but it will apply if your overall score reaches 75 before this gap is resolved.",
-  },
-  components: [
-    {
-      key: "skillMatch",
-      label: "Skill Match",
-      abbr: "SM",
-      score: 74,
-      weight: 0.65,
-      contribution: 48.1,
-      color: "#3b8bff",
-      icon: "◈",
-      explanation:
-        "Your validated skill levels vs. the required levels. Python and React are the two largest gaps reducing this component. Each level gained in a high-importance skill has an outsized effect here.",
-    },
-    {
-      key: "practicalExp",
-      label: "Practical Experience",
-      abbr: "PE",
-      score: 52,
-      weight: 0.2,
-      contribution: 10.4,
-      color: "#7c3aed",
-      icon: "◉",
-      explanation:
-        "Verified project and applied-experience evidence relevant to this role. 2 active projects count; no completed SkillSpan simulations yet. Completing one simulation adds significant points here.",
-    },
-    {
-      key: "assessmentRel",
-      label: "Assessment Reliability",
-      abbr: "AR",
-      score: 68,
-      weight: 0.1,
-      contribution: 6.8,
-      color: "#f59e0b",
-      icon: "◑",
-      explanation:
-        "How well-verified your skill levels are across the required set. Most skills have at least one verified source; Python and React have pending verification items that would raise this score.",
-    },
-    {
-      key: "profileComp",
-      label: "Profile Completeness",
-      abbr: "PC",
-      score: 80,
-      weight: 0.05,
-      contribution: 4.0,
-      color: "#059669",
-      icon: "◐",
-      explanation:
-        "Whether your profile contains the information needed for a reliable calculation. Adding detailed work-experience history will push this to 100%.",
-    },
-  ],
-};
-const GAPS = [
-  {
-    skillId: "s1",
-    skillName: "Python",
-    category: "Programming",
-    currentLevel: 3,
-    requiredLevel: 4,
-    maxLevel: 5,
-    gap: 1,
-    match: 75,
-    importance: 0.9,
-    isCritical: true,
-    confidence: 0.82,
-    confidenceLabel: "High",
-    evidenceSummary: "2 assessments (verified) · 1 project (verified)",
-    explanation:
-      "Highest-weight critical skill. 1 level away from the requirement. Complete the Python Intermediate Assessment to close this gap and remove the critical deficiency flag.",
-    bucket: "priority-gap",
-  },
-  {
-    skillId: "s2",
-    skillName: "React",
-    category: "Frontend",
-    currentLevel: 2,
-    requiredLevel: 3,
-    maxLevel: 5,
-    gap: 1,
-    match: 67,
-    importance: 0.8,
-    isCritical: true,
-    confidence: 0.61,
-    confidenceLabel: "Medium",
-    evidenceSummary: "1 self-assessment · 1 project (pending verification)",
-    explanation:
-      "Critical skill with medium confidence. A verified assessment would improve level accuracy and roadmap reliability for this skill.",
-    bucket: "priority-gap",
-  },
-  {
-    skillId: "s3",
-    skillName: "System Design",
-    category: "Architecture",
-    currentLevel: 2,
-    requiredLevel: 3,
-    maxLevel: 5,
-    gap: 1,
-    match: 67,
-    importance: 0.75,
-    isCritical: false,
-    confidence: 0.4,
-    confidenceLabel: "Low",
-    evidenceSummary: "1 self-assessment only — no verified evidence",
-    explanation:
-      "Low confidence: self-assessment only. Complete a practice task or simulation to produce verified evidence and raise roadmap accuracy.",
-    bucket: "developing",
-  },
-  {
-    skillId: "s4",
-    skillName: "REST API Design",
-    category: "Backend",
-    currentLevel: 2,
-    requiredLevel: 3,
-    maxLevel: 5,
-    gap: 1,
-    match: 67,
-    importance: 0.65,
-    isCritical: false,
-    confidence: 0.55,
-    confidenceLabel: "Medium",
-    evidenceSummary: "1 project submission (verified)",
-    explanation:
-      "Partially verified through the E-commerce REST API project. A second project raises confidence to High.",
-    bucket: "developing",
-  },
-  {
-    skillId: "s5",
-    skillName: "SQL",
-    category: "Databases",
-    currentLevel: 3,
-    requiredLevel: 3,
-    maxLevel: 5,
-    gap: 0,
-    match: 100,
-    importance: 0.7,
-    isCritical: false,
-    confidence: 0.91,
-    confidenceLabel: "High",
-    evidenceSummary: "3 assessments (verified) · 2 projects (verified)",
-    explanation: "Requirement met with high confidence. No action needed.",
-    bucket: "strength",
-  },
-  {
-    skillId: "s6",
-    skillName: "Git & CI/CD",
-    category: "DevOps",
-    currentLevel: 2,
-    requiredLevel: 2,
-    maxLevel: 5,
-    gap: 0,
-    match: 100,
-    importance: 0.6,
-    isCritical: false,
-    confidence: 0.78,
-    confidenceLabel: "High",
-    evidenceSummary: "2 projects (verified)",
-    explanation: "Requirement met. Practical use confirmed via project submissions.",
-    bucket: "strength",
-  },
-];
-const MILESTONES = [
-  {
-    phase: 1,
-    title: "Foundations Cleared",
-    badge: "🏁",
-    description: "Core baseline knowledge verified. Phase 2 actions are unlocked.",
-    criteria: ["CS Fundamentals Assessment ≥ 70%", "At least one baseline skill level confirmed"],
-    status: "Achieved",
-    achievedDate: "15 Aug 2026",
-    unlocksPhase: 2,
-  },
-  {
-    phase: 2,
-    title: "Core Skills Verified",
-    badge: "⚡",
-    description: "All critical skill gaps resolved to required level. Practical tracks unlock.",
-    criteria: [
-      "Python: Level 4 (Assessment ≥ 80%)",
-      "React: Level 3 (Assessment ≥ 75%)",
-      "Both critical skills marked Verified",
-    ],
-    status: "In Progress",
-    unlocksPhase: 3,
-  },
-  {
-    phase: 3,
-    title: "Applied Practice Complete",
-    badge: "🔬",
-    description: "Practical experience verified through projects and simulations.",
-    criteria: [
-      "≥1 verified Simulation Project evaluated",
-      "REST API practice task submitted",
-      "System Design verified evidence collected",
-    ],
-    status: "Locked",
-    unlocksPhase: 4,
-  },
-  {
-    phase: 4,
-    title: "Career Ready",
-    badge: "🎯",
-    description: "Final readiness score reaches the Ready band. Eligible for talent-matching.",
-    criteria: [
-      "Final Readiness Score ≥ 85 (Ready band)",
-      "≥1 Real Project submitted and evaluated",
-      "All critical skills at Required level",
-    ],
-    status: "Locked",
-  },
-];
-const ACTIONS = [
-  {
-    id: "a0",
-    type: "Assessment",
-    phase: 1,
-    phaseName: "Foundations",
-    objective: "Verify baseline CS proficiency",
-    targetSkill: "CS Fundamentals",
-    priority: 0,
-    currentLevel: 3,
-    requiredLevel: 3,
-    gap: 0,
-    isCritical: false,
-    importance: 0.5,
-    prerequisites: [],
-    completionCriteria: "Score ≥ 70% on CS Fundamentals Baseline Assessment",
-    status: "Completed",
-    estimatedEffort: "2 h",
-    estimatedDuration: "3 days",
-    explanation: "Confirmed your baseline knowledge. Contributed to Assessment Reliability.",
-    unlocksWhat: "Achieved Phase 1 Milestone",
-  },
-  {
-    id: "a1",
-    type: "Assessment",
-    phase: 2,
-    phaseName: "Core Skills",
-    objective: "Assess and validate Python intermediate proficiency",
-    targetSkill: "Python",
-    priority: 1,
-    currentLevel: 3,
-    requiredLevel: 4,
-    gap: 1,
-    isCritical: true,
-    importance: 0.9,
-    prerequisites: [],
-    completionCriteria: "Score ≥ 80% on the Python Intermediate Assessment",
-    status: "Not Started",
-    estimatedEffort: "4 h study + 1.5 h assessment",
-    estimatedDuration: "1–2 weeks",
-    explanation:
-      "Highest-weight critical skill with no prerequisites — you can start immediately. Closing this gap has the largest single impact on your readiness.",
-    isNBA: true,
-    unlocksWhat: "Removes critical Python flag · Unlocks Phase 3 · +8 pts est. readiness",
-  },
-  {
-    id: "a2",
-    type: "Learning Resource",
-    phase: 2,
-    phaseName: "Core Skills",
-    objective: "Complete React Fundamentals → Intermediate learning path",
-    targetSkill: "React",
-    priority: 2,
-    currentLevel: 2,
-    requiredLevel: 3,
-    gap: 1,
-    isCritical: true,
-    importance: 0.8,
-    prerequisites: ["JavaScript ES6+ (Level 2+)"],
-    completionCriteria: "Complete all modules and pass the integrated quiz ≥ 75%",
-    status: "Not Started",
-    estimatedEffort: "12 h",
-    estimatedDuration: "2–3 weeks",
-    explanation: "Building the React knowledge base before the assessment produces a more reliable result.",
-    unlocksWhat: "Unlocks React Intermediate Assessment",
-  },
-  {
-    id: "a3",
-    type: "Assessment",
-    phase: 2,
-    phaseName: "Core Skills",
-    objective: "Assess React intermediate proficiency",
-    targetSkill: "React",
-    priority: 3,
-    currentLevel: 2,
-    requiredLevel: 3,
-    gap: 1,
-    isCritical: true,
-    importance: 0.8,
-    prerequisites: ["a2 — React Learning Resource"],
-    completionCriteria: "Score ≥ 75% on the React Intermediate Assessment",
-    status: "Not Started",
-    estimatedEffort: "2 h",
-    estimatedDuration: "1 week",
-    explanation: "Validates your React level and removes the low-confidence flag from this critical skill.",
-    unlocksWhat: "Closes React gap · +6 pts est. readiness",
-  },
-  {
-    id: "a4",
-    type: "Practice Task",
-    phase: 3,
-    phaseName: "Applied Practice",
-    objective: "Build a REST API using Python with SQL integration",
-    targetSkill: "REST API Design",
-    priority: 4,
-    currentLevel: 2,
-    requiredLevel: 3,
-    gap: 1,
-    isCritical: false,
-    importance: 0.65,
-    prerequisites: ["a1 — Python Assessment"],
-    completionCriteria: "Submit working API with documented endpoints, passing test suite, peer review ≥ 3/5",
-    status: "Not Started",
-    estimatedEffort: "10–15 h",
-    estimatedDuration: "2 weeks",
-    explanation:
-      "Applies Python in a practical context and closes the REST API Design gap. Improves Practical Experience component.",
-    unlocksWhat: "Closes REST API gap · Improves Practical Experience",
-  },
-  {
-    id: "a5",
-    type: "Simulation Project",
-    phase: 3,
-    phaseName: "Applied Practice",
-    objective: "System Design Simulation: Scalable Chat Architecture",
-    targetSkill: "System Design",
-    priority: 5,
-    currentLevel: 2,
-    requiredLevel: 3,
-    gap: 1,
-    isCritical: false,
-    importance: 0.75,
-    prerequisites: ["a4 — REST API Practice Task"],
-    completionCriteria: "Submit design document and receive evaluator score ≥ 3.5/5",
-    status: "Blocked",
-    estimatedEffort: "8–12 h",
-    estimatedDuration: "2 weeks",
-    explanation:
-      "System Design confidence is currently low (self-assessment only). The simulation creates the first verified evidence for this skill.",
-    unlocksWhat: "First verified System Design evidence · Unlocks Phase 4",
-  },
-  {
-    id: "a6",
-    type: "Real Project",
-    phase: 4,
-    phaseName: "Career Readiness",
-    objective: "Complete a full-stack real-world Software Engineering project",
-    targetSkill: "Full-Stack Dev",
-    priority: 6,
-    currentLevel: 2,
-    requiredLevel: 4,
-    gap: 2,
-    isCritical: false,
-    importance: 0.85,
-    prerequisites: ["a3", "a4", "a5"],
-    completionCriteria: "Deliver a production-grade feature with code review and evaluator sign-off",
-    status: "Not Started",
-    estimatedEffort: "40–60 h",
-    estimatedDuration: "6–8 weeks",
-    explanation: "Capstone milestone combining Python, React, and API skills in a deployed production context.",
-    unlocksWhat: "Achieves Ready band (85%+) · Qualifies for talent-matching",
-  },
-];
 // ═══════════════════════════════════════════════════════════════════════════════
 // DESIGN TOKENS
 // ═══════════════════════════════════════════════════════════════════════════════
 const BAND = {
+  "Not available": { text: "text-[#94a3b8]", bg: "bg-slate-100", border: "border-slate-200", stop0: "#94a3b8", stop1: "#64748b" },
   "Not Started": {
     text: "text-[#94a3b8]",
     bg: "bg-[rgba(148,163,184,0.08)]",
@@ -492,8 +112,11 @@ const TM = {
   "Real Project": { emoji: "🚀", label: "Real Project" },
 };
 const CT = {
+  "Not available": { text: "text-[#94a3b8]", dot: "bg-[#d1d5db]", bar: "#d1d5db" },
   High: { text: "text-[#059669]", dot: "bg-[#059669]", bar: "#059669" },
   Medium: { text: "text-[#f59e0b]", dot: "bg-[#f59e0b]", bar: "#f59e0b" },
+  Moderate: { text: "text-[#f59e0b]", dot: "bg-[#f59e0b]", bar: "#f59e0b" },
+  Good: { text: "text-[#0284c7]", dot: "bg-[#0284c7]", bar: "#0284c7" },
   Low: { text: "text-[#ef4444]", dot: "bg-[#ef4444]", bar: "#ef4444" },
   "Self-Assessment Only": { text: "text-[#94a3b8]", dot: "bg-[#d1d5db]", bar: "#d1d5db" },
 };
@@ -590,7 +213,12 @@ function Gauge({ score, band, size = 180 }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // NBA BANNER
 // ═══════════════════════════════════════════════════════════════════════════════
-function NBABanner({ action }) {
+function NBABanner({ action, onStart }) {
+  // `phase_name` is what normaliseRoadmapActions() produces; `phaseName` was the
+  // mock-model spelling this banner was originally written against. Accept both
+  // so the banner cannot render "Phase 1 · undefined" against a real payload.
+  const phaseName = action.phase_name ?? action.phaseName ?? `Phase ${action.phase}`;
+  const typeMeta = TM[action.type] ?? { label: action.type ?? "Action" };
   return (
     <div
       className="relative overflow-hidden rounded-[20px] mb-[20px]"
@@ -614,7 +242,7 @@ function NBABanner({ action }) {
             </span>
           </div>
           <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.35)]">
-            Phase {action.phase} · {action.phaseName} · {TM[action.type].label}
+            Phase {action.phase} · {phaseName} · {typeMeta.label}
           </span>
           {action.isCritical && (
             <span className="text-[10px] font-['Inter:Medium',sans-serif] font-medium text-[#ef4444] bg-[rgba(239,68,68,0.2)] px-[8px] py-[2px] rounded-full">
@@ -636,16 +264,27 @@ function NBABanner({ action }) {
                   Why this is next
                 </p>
                 <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.65)]">
-                  Highest-weight critical skill · No prerequisites · Can start immediately · Largest single readiness
-                  impact
+                  {[
+                    action.priorityScore != null
+                      ? `Priority ${Number(action.priorityScore).toFixed(1)}`
+                      : null,
+                    (action.prerequisites ?? []).length > 0
+                      ? `${action.prerequisites.length} prerequisite${action.prerequisites.length > 1 ? "s" : ""}`
+                      : "No prerequisites",
+                    action.status,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </p>
               </div>
-              <div className="flex-1 min-w-[180px] bg-[rgba(59,139,255,0.1)] border border-[rgba(59,139,255,0.2)] rounded-[10px] px-[14px] py-[10px]">
-                <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] font-semibold uppercase tracking-widest text-[rgba(124,168,255,0.5)] mb-[5px]">
-                  Completing this unlocks
-                </p>
-                <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#7ca8ff]">{action.unlocksWhat}</p>
-              </div>
+              {action.unlocksWhat ? (
+                <div className="flex-1 min-w-[180px] bg-[rgba(59,139,255,0.1)] border border-[rgba(59,139,255,0.2)] rounded-[10px] px-[14px] py-[10px]">
+                  <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] font-semibold uppercase tracking-widest text-[rgba(124,168,255,0.5)] mb-[5px]">
+                    Next action in your plan
+                  </p>
+                  <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#7ca8ff]">{action.unlocksWhat}</p>
+                </div>
+              ) : null}
             </div>
           </div>
           {/* CTA */}
@@ -654,7 +293,7 @@ function NBABanner({ action }) {
               className="w-[42px] h-[42px] rounded-[12px] flex items-center justify-center text-[20px]"
               style={{ background: "rgba(59,139,255,0.15)" }}
             >
-              {TM[action.type].emoji}
+              {typeMeta.emoji}
             </div>
             <div>
               <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.3)] mb-[2px]">
@@ -674,6 +313,7 @@ function NBABanner({ action }) {
               </p>
             </div>
             <button
+              onClick={() => onStart(action)}
               className="w-full mt-[2px] py-[9px] rounded-[9px] text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white shadow-[0_4px_16px_rgba(59,139,255,0.4)] hover:shadow-[0_6px_20px_rgba(59,139,255,0.5)] transition-all"
               style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}
             >
@@ -717,26 +357,28 @@ function ReadinessTab({ data }) {
             <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.6]">
               {data.warning.explanation}
             </p>
-            <div className="flex gap-[14px] mt-[8px] text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-              <span>
-                Current:{" "}
-                <strong className="text-[#ef4444] font-['Inter:Semi_Bold',sans-serif]">
-                  L{data.warning.currentLevel}
-                </strong>
-              </span>
-              <span>
-                Required:{" "}
-                <strong className="text-[#0a0b14] font-['Inter:Semi_Bold',sans-serif]">
-                  L{data.warning.requiredLevel}
-                </strong>
-              </span>
-              <span>
-                Gap:{" "}
-                <strong className="text-[#ef4444] font-['Inter:Semi_Bold',sans-serif]">
-                  −{data.warning.requiredLevel - data.warning.currentLevel}
-                </strong>
-              </span>
-            </div>
+            {data.warning.currentLevel != null && data.warning.requiredLevel != null ? (
+              <div className="flex gap-[14px] mt-[8px] text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
+                <span>
+                  Current:{" "}
+                  <strong className="text-[#ef4444] font-['Inter:Semi_Bold',sans-serif]">
+                    L{data.warning.currentLevel}
+                  </strong>
+                </span>
+                <span>
+                  Required:{" "}
+                  <strong className="text-[#0a0b14] font-['Inter:Semi_Bold',sans-serif]">
+                    L{data.warning.requiredLevel}
+                  </strong>
+                </span>
+                <span>
+                  Gap:{" "}
+                  <strong className="text-[#ef4444] font-['Inter:Semi_Bold',sans-serif]">
+                    −{Number(data.warning.requiredLevel) - Number(data.warning.currentLevel)}
+                  </strong>
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
       )}
@@ -847,12 +489,6 @@ function ReadinessTab({ data }) {
             {/* Header row */}
             <div className="flex items-start justify-between gap-[8px]">
               <div className="flex items-center gap-[8px]">
-                <div
-                  className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center text-[15px] shrink-0"
-                  style={{ background: `${c.color}15` }}
-                >
-                  {c.icon}
-                </div>
                 <div>
                   <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14] leading-tight">
                     {c.label}
@@ -965,7 +601,12 @@ function ReadinessTab({ data }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 function SkillGapTab({ gaps }) {
   const [expanded, setExpanded] = useState(null);
-  const wtMatch = gaps.reduce((a, g) => a + g.match * g.importance, 0) / gaps.reduce((a, g) => a + g.importance, 0);
+  // Weights can all be zero on a role whose skills carry no importance yet —
+  // dividing by that total would render "NaN%".
+  const weightTotal = gaps.reduce((a, g) => a + g.requiredLevel * g.importance, 0);
+  const wtMatch = weightTotal > 0
+    ? 100 * gaps.reduce((a, g) => a + Math.min(g.currentLevel, g.requiredLevel) * g.importance, 0) / weightTotal
+    : 100;
   const buckets = [
     {
       key: "priority-gap",
@@ -1023,11 +664,12 @@ function SkillGapTab({ gaps }) {
         <InfoIcon />
         <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.6]">
           <strong className="font-['Inter:Semi_Bold',sans-serif] text-[#0a0b14]">
-            Confidence reflects evidence quality.
+            Confidence depends on the evaluation source.
           </strong>{" "}
-          High = multiple verified sources · Medium = one verified or pending verification · Low = self-assessment only.
-          Low-confidence levels are flagged — submitting an assessment or project raises accuracy and roadmap
-          reliability. Missing optional evidence does not count as zero; available evidence is re-weighted (BR-09).
+          Legacy baseline results may report answer coverage, including incorrect answers.
+          Evidence-based evaluations measure source support, verification and recency separately from answer coverage.
+          Their confidence bands are Low (below 30%), Moderate (30–59%), Good (60–79%) and High (80–100%).
+          Confidence does not establish professional mastery.
         </p>
       </div>
 
@@ -1069,7 +711,7 @@ function SkillGapTab({ gaps }) {
                 {bk.items.map((gap) => {
                   const isExp = expanded === gap.skillId;
                   const mc = gap.match >= 100 ? "#059669" : gap.match >= 70 ? "#f59e0b" : "#ef4444";
-                  const ct = CT[gap.confidenceLabel];
+                  const ct = CT[gap.confidenceLabel] ?? CT["Not available"];
                   return (
                     <div
                       key={gap.skillId}
@@ -1160,7 +802,7 @@ function SkillGapTab({ gaps }) {
                                 {gap.confidenceLabel}
                               </p>
                               <p className="text-[9px] font-['Inter:Regular',sans-serif] text-[#d1d5db]">
-                                {Math.round(gap.confidence * 100)}%
+                                {gap.confidence == null ? "—" : `${Math.round(gap.confidence * 100)}%`}
                               </p>
                             </div>
                           </div>
@@ -1201,8 +843,8 @@ function SkillGapTab({ gaps }) {
                               <div className="flex items-start gap-[6px] mt-[8px] bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.15)] rounded-[8px] px-[10px] py-[8px]">
                                 <span className="text-[11px] text-[#ef4444]">⚑</span>
                                 <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#ef4444]">
-                                  Critical skill — a severe deficiency can trigger a readiness cap (currently:{" "}
-                                  {READINESS.warning?.capApplied})
+                                  Critical skill — a severe deficiency can cap the overall readiness score.
+                                  The applied cap, when there is one, is shown on the Readiness tab.
                                 </p>
                               </div>
                             )}
@@ -1217,13 +859,13 @@ function SkillGapTab({ gaps }) {
                             <div className="flex items-center gap-[5px] mb-[6px]">
                               <span className={`w-[6px] h-[6px] rounded-full ${ct.dot}`} />
                               <p className={`text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold ${ct.text}`}>
-                                {gap.confidenceLabel} ({Math.round(gap.confidence * 100)}%)
+                                {gap.confidenceLabel} ({gap.confidence == null ? "—" : `${Math.round(gap.confidence * 100)}%`})
                               </p>
                             </div>
-                            <Bar pct={gap.confidence * 100} color={ct.bar} h={4} />
-                            {gap.confidence < 0.65 && (
+                            {gap.confidence != null && <Bar pct={gap.confidence * 100} color={ct.bar} h={4} />}
+                            {gap.confidence != null && gap.confidence < 0.65 && (
                               <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[6px] italic leading-[1.5]">
-                                Submit an assessment or project to raise confidence and improve roadmap accuracy.
+                                Review the evaluation source and answer coverage before interpreting this skill level.
                               </p>
                             )}
                           </div>
@@ -1243,16 +885,9 @@ function SkillGapTab({ gaps }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ROADMAP TAB — phases + milestones + actions
 // ═══════════════════════════════════════════════════════════════════════════════
-const PHASES_META = [
-  { id: 1, name: "Foundations", focus: "Baseline knowledge · Prerequisites · Initial assessments" },
-  { id: 2, name: "Core Skills", focus: "Critical gaps · Required proficiency improvements" },
-  { id: 3, name: "Applied Practice", focus: "Practice tasks · Simulations · Practical projects" },
-  { id: 4, name: "Career Readiness", focus: "Real projects · Career preparation · Final milestones" },
-];
 // ── Milestone card ────────────────────────────────────────────────────────────
 function MilestoneCard({ m }) {
-  const ms = MS[m.status];
-  const pt = PT[m.phase];
+  const ms = MS[m.status] ?? MS["Not Started"];
   return (
     <div
       className={`rounded-[14px] border-2 ${ms.border} p-[18px] flex gap-[14px]`}
@@ -1326,11 +961,10 @@ function MilestoneCard({ m }) {
   );
 }
 // ── Action card ────────────────────────────────────────────────────────────────
-function ActionCard({ action }) {
+function ActionCard({ action, onStart }) {
   const [open, setOpen] = useState(action.isNBA ?? false);
-  const st = ST[action.status];
-  const tm = TM[action.type];
-  const pt = PT[action.phase];
+  const st = ST[action.status] ?? ST["Not Started"];
+  const tm = TM[action.type] ?? { emoji: "📌", label: "Action" };
   const isBlocked = action.status === "Blocked";
   const isDone = action.status === "Completed";
   return (
@@ -1346,6 +980,7 @@ function ActionCard({ action }) {
               : "border-[#e8eaf0]"
       }`}
     >
+      {action.type === "Learning Resource" && !isBlocked && !isDone && <button type="button" onClick={() => onStart(action)} className="m-3 rounded bg-blue-700 px-4 py-2 text-white">View learning resources</button>}
       {action.isNBA && (
         <div className="h-[3px] w-full" style={{ background: "linear-gradient(90deg,#3b8bff,#7c3aed)" }} />
       )}
@@ -1469,7 +1104,7 @@ function ActionCard({ action }) {
           {action.unlocksWhat && (
             <div className="bg-[rgba(59,139,255,0.05)] border border-[rgba(59,139,255,0.15)] rounded-[10px] px-[14px] py-[10px]">
               <p className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[rgba(59,139,255,0.6)] uppercase tracking-wide mb-[3px]">
-                Completing this unlocks
+                Next action in your plan
               </p>
               <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#3b8bff]">{action.unlocksWhat}</p>
             </div>
@@ -1479,9 +1114,255 @@ function ActionCard({ action }) {
     </div>
   );
 }
-function RoadmapTab({ actions, milestones }) {
+// ── Roadmap v1 → this tab's model ─────────────────────────────────────────────
+// The API speaks enums: `phase` is `foundations | core_skills |
+// applied_practice | career_readiness`, `type` is `assessment | resource |
+// practice | simulated_project | real_project`, `status` is `not_started |
+// in_progress | blocked | completed | skipped`, and effort arrives as
+// `estimated_hours` / `estimated_duration_weeks`.
+//
+// This tab was written against a mock model instead: phases 1-4, Title Case
+// types and statuses, `priority`, `targetSkill`, and a `milestones` array that
+// the API never sends. With real data `PT[phase]` and `TM[type]` were
+// `undefined`, so the tab could not render at all — and the caller's
+// `Array.isArray(roadmapMilestones)` gate showed "No saved roadmap" even when
+// the backend had one. Normalise once here and leave the presentation alone.
+// ── Skill gaps → this tab's model ─────────────────────────────────────────────
+// Same class of mismatch as the roadmap: the API sends `current_level`,
+// `required_level`, `match_score` (0-100), `importance_weight`, `is_critical`,
+// `confidence` (0-100) and `status` (`met | partial | gap`). The tab reads
+// camelCase plus a `bucket` and a `confidenceLabel` that no endpoint produces,
+// so the weighted match rendered "NaN%", all three buckets were empty, and
+// expanding a critical gap threw on an undefined `data` reference.
+const MAX_SKILL_LEVEL = 5;
+const GAP_STATUS_LABEL = {
+  met: "Requirement met",
+  partial: "Partially met",
+  gap: "Below requirement",
+};
+
+function normaliseSkillGaps(skillGaps) {
+  return (Array.isArray(skillGaps) ? skillGaps : []).map((gap) => {
+    const currentLevel = Number(gap.current_level) || 0;
+    const requiredLevel = Number(gap.required_level) || 0;
+    const gapValue = gap.gap != null ? Number(gap.gap) : Math.max(0, requiredLevel - currentLevel);
+    const match =
+      gap.match_score != null
+        ? Math.round(Number(gap.match_score))
+        : Math.round(requiredLevel > 0 ? Math.min(1, currentLevel / requiredLevel) * 100 : 100);
+    const confidence =
+      gap.confidence == null ? null : Math.min(100, Math.max(0, Number(gap.confidence)));
+    const status = String(gap.status || "").toLowerCase();
+    const isCritical = Boolean(gap.is_critical);
+
+    return {
+      skillId: gap.skill_id,
+      skillName: gap.skill_name || `Skill #${gap.skill_id}`,
+      category: GAP_STATUS_LABEL[status] ?? "",
+      currentLevel,
+      requiredLevel,
+      maxLevel: MAX_SKILL_LEVEL,
+      gap: gapValue,
+      match,
+      importance: Number(gap.importance_weight) || 0,
+      isCritical,
+      confidence: confidence == null ? null : confidence / 100,
+      confidenceLabel:
+        confidence == null
+          ? "Not available"
+          : gap.confidence_algorithm_version === "skill-confidence-v2-baseline"
+            ? confidence >= 80 ? "High" : confidence >= 60 ? "Good" : confidence >= 30 ? "Moderate" : "Low"
+            : confidence >= 80 ? "High" : confidence >= 50 ? "Medium" : "Low",
+      // met ⇒ strength; a critical shortfall ⇒ priority; anything else ⇒ developing.
+      bucket: status === "met" || gapValue <= 0 ? "strength" : isCritical ? "priority-gap" : "developing",
+      explanation: gap.explanation || "",
+    };
+  });
+}
+
+// ── Readiness result → this tab's model ───────────────────────────────────────
+// The endpoint returns four FLAT component scores (0-100) plus band/version
+// metadata. The tab wants a `components` array with a weight, a point
+// contribution, a label and a colour, plus a `warning` object for the
+// critical-skill cap — none of which the API sends. The weights below are the
+// documented ones (the tab prints the same formula), and they are renormalised
+// over the components that actually returned a score, exactly as
+// ReadinessService does, so the contribution column adds up to the headline.
+const READINESS_COMPONENTS = [
+  { key: "skill_match", field: "skill_match_component", label: "Skill Match", abbr: "SM", color: "#3b8bff", icon: "🎯", weight: 0.65 },
+  { key: "practical_experience", field: "practical_experience_component", label: "Practical Experience", abbr: "PE", color: "#7c3aed", icon: "🛠", weight: 0.2 },
+  { key: "assessment_reliability", field: "assessment_reliability_component", label: "Assessment Reliability", abbr: "AR", color: "#f59e0b", icon: "📋", weight: 0.1 },
+  { key: "profile_completeness", field: "profile_completeness_component", label: "Profile Completeness", abbr: "PC", color: "#059669", icon: "👤", weight: 0.05 },
+];
+
+// The backend emits its band as a config key (`config/readiness.php › bands`),
+// not as a display label. With a raw key `BAND[data.band]` was `undefined` and
+// the tab threw on `bt.text` before it could paint anything.
+const READINESS_BAND = {
+  foundation_needed: "Not Started",
+  developing: "Developing",
+  moderate_readiness: "Progressing",
+  near_ready: "Advanced",
+  highly_ready: "Ready",
+};
+
+function normaliseBand(raw) {
+  const value = String(raw ?? "").trim();
+  if (!value) return "Not available";
+  if (BAND[value]) return value;
+  return READINESS_BAND[value.toLowerCase()] ?? "Not available";
+}
+
+function normaliseReadiness(readiness, roleTitle = "") {
+  if (!readiness) return null;
+
+  const available = READINESS_COMPONENTS.map((component) => ({
+    ...component,
+    score: readiness[component.field],
+  }))
+    .filter((component) => component.score != null)
+    .map((component) => ({ ...component, score: Number(component.score) || 0 }));
+
+  const weightTotal = available.reduce((sum, component) => sum + component.weight, 0);
+
+  const components = available.map((component) => {
+    const serverWeight = readiness.effective_weights?.[component.key];
+    const effectiveWeight = Number.isFinite(serverWeight)
+      ? serverWeight
+      : weightTotal > 0 ? component.weight / weightTotal : 0;
+    return {
+      key: component.key,
+      label: component.label,
+      abbr: component.abbr,
+      color: component.color,
+      icon: component.icon,
+      score: Math.round(component.score),
+      weight: effectiveWeight,
+      contribution: component.score * effectiveWeight,
+      explanation: "",
+    };
+  });
+
+  const criticalNames = Array.isArray(readiness.critical_skill_names) ? readiness.critical_skill_names : [];
+  const worstCritical = (Array.isArray(readiness.skill_results) ? readiness.skill_results : [])
+    .filter((skill) => skill.is_critical)
+    .sort((a, b) => Number(b.gap) - Number(a.gap))[0];
+  // `critical_skill_readiness_cap` is the resource's field name; the cap value
+  // lives inside the snapshot's `critical_skill_rule.cap`.
+  const cap = readiness.critical_skill_readiness_cap ?? readiness.critical_skill_cap;
+
+  return {
+    score: Math.round(Number(readiness.score) || 0),
+    band: normaliseBand(readiness.band),
+    roleTitle: roleTitle || readiness.role_title || "",
+    roleVersion: readiness.career_role_version ?? "",
+    explanation: readiness.explanation || (readiness.is_provisional
+      ? "Provisional result: unavailable components are excluded and available weights are rebalanced."
+      : ""),
+    components,
+    warning: readiness.critical_cap_applied
+      ? {
+          skillName: criticalNames.join(", ") || "A critical skill",
+          capApplied: cap != null ? `${Math.round(Number(cap))} pts` : "applied",
+          explanation:
+            "A critical skill is below the minimum match, so the overall score was capped.",
+          currentLevel: worstCritical?.current_level ?? null,
+          requiredLevel: worstCritical?.required_level ?? null,
+        }
+      : null,
+    calculatedAt: readiness.calculated_at || null,
+    algorithmVersion: readiness.algorithm_version || "",
+    configVersion: readiness.configuration_version || "",
+    decisionVersion: readiness.decision_id || "",
+  };
+}
+
+const PHASE_ORDER = {
+  foundations: 1,
+  core_skills: 2,
+  applied_practice: 3,
+  career_readiness: 4,
+};
+const PHASE_LABEL = {
+  foundations: "Foundations",
+  core_skills: "Core Skills",
+  applied_practice: "Applied Practice",
+  career_readiness: "Career Readiness",
+};
+const ACTION_TYPE_LABEL = {
+  assessment: "Assessment",
+  resource: "Learning Resource",
+  practice: "Practice Task",
+  simulated_project: "Simulation Project",
+  real_project: "Real Project",
+};
+const ACTION_STATUS_LABEL = {
+  not_started: "Not Started",
+  in_progress: "In Progress",
+  blocked: "Blocked",
+  completed: "Completed",
+  skipped: "Skipped",
+};
+
+function normaliseRoadmapActions(roadmap, skillGaps) {
+  const actions = Array.isArray(roadmap?.actions) ? roadmap.actions : [];
+  const gapBySkillId = new Map(
+    (Array.isArray(skillGaps) ? skillGaps : []).map((gap) => [String(gap.skill_id), gap]),
+  );
+
+  const rows = actions.map((action) => {
+    const gap = gapBySkillId.get(String(action.target_skill_id));
+    const phaseOrder = PHASE_ORDER[action.phase] ?? 1;
+    // The action card dereferences `prerequisites.length`, and the API only
+    // sends ids — resolve them to names (or a placeholder) so the card cannot
+    // throw on a real payload.
+    const prerequisiteIds = action.blocking_prerequisite_skill_ids ?? action.prerequisite_skill_ids ?? [];
+
+    return {
+      id: action.id,
+      phase: phaseOrder,
+      phase_name: PHASE_LABEL[action.phase] ?? `Phase ${phaseOrder}`,
+      type: ACTION_TYPE_LABEL[action.type] ?? "Learning Resource",
+      status: ACTION_STATUS_LABEL[action.status] ?? "Not Started",
+      objective: action.title || action.objective || action.description || "Roadmap action",
+      description: action.description || action.objective || "",
+      // The roadmap only carries `target_skill_id`; the name and the gap come
+      // from the skill-gap block of the same decision, when it is present.
+      targetSkill: gap?.skill_name || (action.target_skill_id ? `Skill #${action.target_skill_id}` : "General"),
+      gap: gap ? Number(gap.gap) || 0 : undefined,
+      isCritical: Boolean(gap?.is_critical),
+      isNBA:
+        roadmap?.next_best_action_id != null &&
+        String(action.id) === String(roadmap.next_best_action_id),
+      estimatedEffort:
+        action.estimated_hours != null ? `${Number(action.estimated_hours)} h` : "",
+      estimatedDuration:
+        action.estimated_duration_weeks != null ? `${Number(action.estimated_duration_weeks)} wk` : "",
+      priority: action.order_index ?? 0,
+      priorityScore: action.priority_score ?? null,
+      prerequisites: (Array.isArray(prerequisiteIds) ? prerequisiteIds : []).map(
+        (id) => gapBySkillId.get(String(id))?.skill_name || `Skill #${id}`,
+      ),
+      completionCriteria: action.completion_criteria,
+      explanation: action.explanation,
+    };
+  });
+
+  // Show the next action in sequence without implying a prerequisite; the
+  // API does not model unlocks explicitly.
+  const ordered = rows.slice().sort((a, b) => a.priority - b.priority);
+  return ordered.map((row, index) => ({
+    ...row,
+    unlocksWhat: ordered[index + 1]?.objective ?? "",
+  }));
+}
+
+function RoadmapTab({ actions, milestones = [], roadmap = null, onStart }) {
   const [filterPhase, setFilterPhase] = useState("all");
   const [showMilestones, setShowMilestones] = useState(true);
+  const phases = [...new Set([...actions.map((a) => a.phase), ...milestones.map((m) => m.phase)].filter((phase) => phase !== null && phase !== undefined))]
+    .sort((a, b) => Number(a) - Number(b))
+    .map((id) => ({ id, name: actions.find((a) => a.phase === id)?.phase_name ?? milestones.find((m) => m.phase === id)?.phase_name ?? `Phase ${id}` }));
   const done = actions.filter((a) => a.status === "Completed").length;
   const curPhase = actions.find((a) => a.status !== "Completed")?.phase ?? 4;
   const displayActions = (filterPhase === "all" ? actions : actions.filter((a) => a.phase === filterPhase))
@@ -1495,16 +1376,16 @@ function RoadmapTab({ actions, milestones }) {
         <div className="flex items-center justify-between mb-[14px]">
           <div>
             <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#0a0b14]">
-              Career Roadmap — Software Engineer v2.3
+              Career Roadmap
             </h3>
             <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[2px]">
-              Phase {curPhase}: {PHASES_META.find((p) => p.id === curPhase)?.name} · {done}/{actions.length} actions
+              Phase {curPhase}: {phases.find((p) => String(p.id) === String(curPhase))?.name} · {done}/{actions.length} actions
               complete
             </p>
           </div>
           <div className="text-right">
             <p className="font-['Inter:Bold',sans-serif] font-bold text-[24px] text-[#0a0b14] leading-none">
-              {Math.round((done / actions.length) * 100)}%
+              {Math.round((done / Math.max(actions.length, 1)) * 100)}%
             </p>
             <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">overall progress</p>
           </div>
@@ -1513,13 +1394,13 @@ function RoadmapTab({ actions, milestones }) {
         <div className="w-full bg-[#f1f3fa] rounded-full h-[8px] mb-[16px]">
           <div
             className="h-[8px] rounded-full transition-all"
-            style={{ width: `${(done / actions.length) * 100}%`, background: "linear-gradient(90deg,#3b8bff,#7c3aed)" }}
+            style={{ width: `${(done / Math.max(actions.length, 1)) * 100}%`, background: "linear-gradient(90deg,#3b8bff,#7c3aed)" }}
           />
         </div>
 
         {/* 4 phase cards */}
         <div className="grid grid-cols-4 gap-[10px]">
-          {PHASES_META.map((p) => {
+          {phases.map((p) => {
             const pt2 = PT[p.id];
             const pa = actions.filter((a) => a.phase === p.id);
             const pd = pa.filter((a) => a.status === "Completed").length;
@@ -1588,7 +1469,7 @@ function RoadmapTab({ actions, milestones }) {
       {/* Filter + milestone toggle */}
       <div className="flex items-center gap-[8px] flex-wrap justify-between">
         <div className="flex items-center gap-[6px] flex-wrap">
-          {["all", 1, 2, 3, 4].map((f) => {
+          {["all", ...phases.map((p) => p.id)].map((f) => {
             const active = filterPhase === f;
             const pt2 = f !== "all" ? PT[f] : null;
             return (
@@ -1612,21 +1493,24 @@ function RoadmapTab({ actions, milestones }) {
                     : undefined
                 }
               >
-                {f === "all" ? "All actions" : `Phase ${f} — ${PHASES_META.find((p) => p.id === f)?.name}`}
+                {f === "all" ? "All actions" : `Phase ${f} — ${phases.find((p) => String(p.id) === String(f))?.name}`}
               </button>
             );
           })}
         </div>
-        <button
-          onClick={() => setShowMilestones(!showMilestones)}
-          className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#3b8bff] hover:underline whitespace-nowrap"
-        >
-          {showMilestones ? "Hide milestones" : "Show milestones"}
-        </button>
+        {milestones.length > 0 && (
+          <button
+            onClick={() => setShowMilestones(!showMilestones)}
+            className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#3b8bff] hover:underline whitespace-nowrap"
+          >
+            {showMilestones ? "Hide milestones" : "Show milestones"}
+          </button>
+        )}
       </div>
 
-      {/* Milestones section */}
-      {showMilestones && (
+      {/* Milestones section — the API sends no milestones, so this only renders
+          when one was supplied. */}
+      {showMilestones && milestones.length > 0 && (
         <div>
           <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#94a3b8] uppercase tracking-wide mb-[10px]">
             Phase milestones — completion gates
@@ -1646,16 +1530,42 @@ function RoadmapTab({ actions, milestones }) {
         </p>
         <div className="flex flex-col gap-[10px]">
           {displayActions.map((a) => (
-            <ActionCard key={a.id} action={a} />
+            <ActionCard key={a.id} action={a} onStart={onStart} />
           ))}
         </div>
       </div>
 
+      {/* Footer — the version, effort and date come from the roadmap row. The
+          previous text was hard-coded ("rm-2026090914 · 10 h/week"). */}
       <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] italic px-[2px] leading-[1.6]">
-        Roadmap version <span className="font-['Inter:Medium',sans-serif] font-medium not-italic">rm-2026090914</span> ·
-        10 h/week availability · Prerequisite ordering enforced (BR-14) · Generated{" "}
-        {new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+        {roadmap?.roadmap_version ? (
+          <>
+            Roadmap version{" "}
+            <span className="font-['Inter:Medium',sans-serif] font-medium not-italic">
+              {roadmap.roadmap_version}
+            </span>
+            {" · "}
+          </>
+        ) : null}
+        {roadmap?.estimated_total_hours != null
+          ? `${Number(roadmap.estimated_total_hours)} h of work`
+          : "Effort not estimated"}
+        {roadmap?.estimated_duration_weeks != null
+          ? ` over ${Number(roadmap.estimated_duration_weeks)} weeks`
+          : ""}
+        {roadmap?.generated_at
+          ? ` · Generated ${new Date(roadmap.generated_at).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })}`
+          : ""}
       </p>
+      {Array.isArray(roadmap?.limitations) && roadmap.limitations.length > 0 && (
+        <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] px-[2px] leading-[1.6]">
+          {roadmap.limitations.join(" · ")}
+        </p>
+      )}
     </div>
   );
 }
@@ -2082,7 +1992,7 @@ function IncompleteState({ variant }) {
   );
 }
 // 4. HISTORICAL VERSION STATE ─────────────────────────────────────────────────
-function HistoricalState({ onViewLatest }) {
+function HistoricalState({ readiness = null, onViewLatest }) {
   const HIST = [
     { v: "v2.3", date: "9 Sep 2026", score: 67, band: "Progressing", algo: "v1.4.2", cfg: "v2.1", isViewing: true },
     { v: "v2.2", date: "2 Aug 2026", score: 58, band: "Developing", algo: "v1.3.1", cfg: "v2.0", isViewing: false },
@@ -2279,27 +2189,39 @@ function HistoricalState({ onViewLatest }) {
 
       {/* Historical readiness content — read-only */}
       <div className="opacity-65 pointer-events-none select-none">
-        <ReadinessTab data={readiness || READINESS} />
+        {readiness ? <ReadinessTab data={readiness} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No saved readiness result is available for this account yet. Complete the assessment and try again to load a real result from the server.</div>}
       </div>
     </div>
   );
 }
-const DEMO_STATES = [
-  { key: "loaded", label: "Normal" },
-  { key: "loading", label: "Loading" },
-  { key: "empty", label: "Empty" },
-  { key: "incomplete", label: "Incomplete" },
-  { key: "no-evidence", label: "No Evidence" },
-  { key: "invalid-config", label: "Invalid Config" },
-  { key: "unavailable", label: "Unavailable" },
-  { key: "timeout", label: "Timeout" },
-  { key: "error", label: "Error" },
-  { key: "historical", label: "Historical" },
-];
-export default function CareerJourneyView({ readiness = null }) {
+
+export default function CareerJourneyView({ readiness = null, intelligence = null, roleTitle = null }) {
+  const roadmap = intelligence?.roadmap ?? intelligence?.data?.roadmap ?? null;
+  const skillGaps = intelligence?.skill_gaps ?? intelligence?.skillGaps ?? intelligence?.data?.skill_gaps ?? null;
+  // `/readiness` and `/intelligence` both carry a readiness block; prefer the
+  // dedicated endpoint and fall back to the intelligence payload.
+  const readinessSource =
+    readiness ?? intelligence?.readiness ?? intelligence?.data?.readiness ?? null;
+  // Everything below is normalised once: the tabs render lookups that only
+  // resolve for the mock model, while the API sends flat readiness fields and
+  // snake_case enums.
+  const roleVersion =
+    readinessSource?.role_version ?? readinessSource?.roleVersion ?? intelligence?.role_version ?? "";
+  const readinessData = normaliseReadiness(readinessSource, roleTitle || readinessSource?.role_title || "");
+  const skillGapRows = normaliseSkillGaps(skillGaps);
+  const roadmapActions = normaliseRoadmapActions(roadmap, skillGaps);
+  const roadmapMilestones = Array.isArray(roadmap?.milestones) ? roadmap.milestones : [];
+  // The roadmap only carries `next_best_action_id`, never a nested object, so the
+  // banner is driven by the action flagged during normalisation.
+  const nextBestAction = roadmapActions.find((action) => action.isNBA) ?? roadmapActions[0] ?? null;
+  const [learningAction, setLearningAction] = useState(null);
+  const [actionNotice, setActionNotice] = useState("");
+  const startLearning = (action) => {
+    if (action.type !== "Learning Resource") { setActionNotice("This action does not have a learning resource workflow yet."); return; }
+    setActionNotice(""); setLearningAction(action);
+  };
   const [tab, setTab] = useState("readiness");
   const [demoState, setDemoState] = useState("loaded");
-  const nba = ACTIONS.find((a) => a.isNBA);
   const isLoaded = demoState === "loaded";
   const TABS = [
     { key: "readiness", label: "Readiness Score" },
@@ -2321,9 +2243,9 @@ export default function CareerJourneyView({ readiness = null }) {
             <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#64748b] mt-[3px]">
               Readiness · Skill Gaps · Roadmap for{" "}
               <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">
-                Software Engineer
+                {readinessData?.roleTitle || roleTitle || "No career role selected"}
               </span>{" "}
-              <span className="text-[#94a3b8]">v2.3</span>
+              {roleVersion ? <span className="text-[#94a3b8]">v{roleVersion}</span> : null}
             </p>
           </div>
           {demoState === "historical" && (
@@ -2357,20 +2279,22 @@ export default function CareerJourneyView({ readiness = null }) {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-[32px] py-[20px]">
+        {actionNotice && <p role="status">{actionNotice}</p>}
+        {learningAction && <RoadmapLearningPanel key={learningAction.id} action={learningAction} onClose={() => setLearningAction(null)} />}
         {demoState === "loading" && <LoadingState />}
         {isError && <ErrorState variant={demoState} />}
         {isIncomplete && <IncompleteState variant={demoState} />}
-        {demoState === "historical" && <HistoricalState onViewLatest={() => setDemoState("loaded")} />}
+        {demoState === "historical" && <HistoricalState readiness={readinessData} onViewLatest={() => setDemoState("loaded")} />}
         {isLoaded && (
           <>
             {tab === "readiness" && (
               <>
-                <NBABanner action={nba} />
-                <ReadinessTab data={readiness || READINESS} />
+                {nextBestAction ? <NBABanner action={nextBestAction} onStart={startLearning} /> : null}
+                {readinessData ? <ReadinessTab data={readinessData} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No saved readiness result is available for this account yet. Complete the assessment and try again to load a real result from the server.</div>}
               </>
             )}
-            {tab === "skill-gap" && <SkillGapTab gaps={GAPS} />}
-            {tab === "roadmap" && <RoadmapTab actions={ACTIONS} milestones={MILESTONES} />}
+            {tab === "skill-gap" && (skillGapRows.length > 0 ? <SkillGapTab gaps={skillGapRows} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Skill gap data is not available from the server yet.</div>)}
+            {tab === "roadmap" && (roadmapActions.length > 0 ? <RoadmapTab actions={roadmapActions} milestones={roadmapMilestones} roadmap={roadmap} onStart={startLearning} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No saved roadmap is available from the server yet.</div>)}
           </>
         )}
       </div>

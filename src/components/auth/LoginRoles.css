@@ -1,0 +1,122 @@
+/* LoginRoles.css - role switch for the shared /login screen.
+   Loaded after Login.css; selectors carry an extra class where Login.css
+   already styles the same element, so these win regardless of bundle order.
+   The accent is driven by data-role on .login-card. */
+
+.login-card {
+  --login-accent: #2563eb;
+  --login-accent-hover: #1d4ed8;
+  --login-accent-soft: #dbeafe;
+  --login-accent-text: #1d4ed8;
+}
+
+.login-card[data-role='company'] {
+  --login-accent: #6d5be8;
+  --login-accent-hover: #5b49d6;
+  --login-accent-soft: #ddd6fe;
+  --login-accent-text: #5b49d6;
+}
+
+/* Brand: logo chip + wordmark on one line */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 10px;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(1.34);
+  display: block;
+}
+
+/* Role switch - same width as .login-form (670px) so it lines up with the fields */
+.role-switch {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  max-width: 670px;
+  padding: 4px;
+  margin-bottom: 18px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.role-switch-btn {
+  flex: 1;
+  padding: 9px 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+
+.role-switch-btn:hover {
+  color: #334155;
+}
+
+.role-switch-btn.is-active {
+  background: #ffffff;
+  border-color: var(--login-accent-soft);
+  color: var(--login-accent-text);
+}
+
+.role-switch-btn:focus-visible {
+  outline: 2px solid var(--login-accent);
+  outline-offset: 2px;
+}
+
+/* The submit button carries the role accent. Login.css scopes the original
+   colour to .login-wrapper .login-card .btn-login, so this needs the extra
+   [data-role] to outrank it. */
+.login-wrapper[data-role] .login-card .btn-login {
+  background-color: var(--login-accent);
+}
+
+.login-wrapper[data-role] .login-card .btn-login:hover:not(:disabled) {
+  background-color: var(--login-accent-hover);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+}
+
+.login-wrapper[data-role='company'] .login-card .btn-login:hover:not(:disabled) {
+  box-shadow: 0 8px 20px rgba(109, 91, 232, 0.3);
+}
+
+/* Company sidebar keeps the same layout with a violet cast */
+.login-wrapper[data-role='company'] .login-card .sidebar-left {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(124, 108, 246, 0.4), transparent 42%),
+    radial-gradient(circle at 85% 65%, rgba(59, 130, 246, 0.18), transparent 45%),
+    #150e2a !important;
+}
+
+@media (max-width: 640px) {
+  .role-switch {
+    margin-bottom: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .role-switch-btn {
+    transition: none;
+  }
+}

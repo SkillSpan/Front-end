@@ -811,3 +811,30 @@
   .skillmatrix-app-content .sm-body{display:block}
   .skillmatrix-app-content .sm-panel{position:fixed;inset:auto 0 0 64px;width:auto;max-height:82vh;overflow:auto;z-index:250}
 }
+
+/* Edit-skill panel: keep Save / Cancel / Delete pinned to the bottom of the
+   panel so they are visible on short screens without scrolling the panel. */
+.sm-panel-actions {
+  position: sticky;
+  bottom: -22px; /* cancels the panel's bottom padding so it sits flush */
+  margin: 12px -22px -22px;
+  padding: 10px 22px 16px;
+  background: #fff;
+  border-top: 1px solid #eceffa;
+  z-index: 2;
+}
+
+.sm-panel-actions .btn-save-skill {
+  margin-top: 0;
+}
+
+.sm-panel-actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.sm-panel-actions-row .btn-cancel-skill {
+  margin-top: 0;
+  flex: 1;
+}

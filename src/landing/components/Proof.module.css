@@ -1,0 +1,20 @@
+.note { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.6rem; margin: -1.75rem auto 2.5rem; font-size: var(--fs-small); color: var(--ink-3); text-align: center; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line-light); border-radius: var(--radius-lg); background: #fff; box-shadow: 0 20px 44px -34px rgba(11, 20, 64, 0.35); }
+.stat { display: grid; justify-items: center; gap: 0.25rem; padding: 2rem 1rem; text-align: center; }
+.stat + .stat { border-inline-start: 1px solid var(--line-light); }
+.stat strong { font-size: clamp(1.9rem, 1.4rem + 1.4vw, 2.5rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
+.stat span { font-size: 0.9375rem; color: var(--ink-2); }
+.quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 1.5rem; }
+.quote { position: relative; margin: 0; display: flex; flex-direction: column; gap: 1.25rem; padding: 1.75rem; border-radius: var(--radius-lg); background: var(--lavender); border: 1px solid var(--line-light); }
+.mark { font-size: 3rem; line-height: 0.6; height: 1.25rem; font-family: Georgia, serif; background: var(--grad-brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.quote blockquote { margin: 0; font-size: 1rem; line-height: 1.65; color: var(--ink); }
+.quote figcaption { margin-top: auto; display: flex; align-items: center; gap: 0.75rem; }
+.av { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 600; background: var(--grad-brand); }
+.quote b { display: block; font-size: 0.9375rem; font-weight: 600; color: var(--ink); }
+.quote small { display: block; font-size: 0.8125rem; color: var(--ink-3); }
+@media (max-width: 900px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .stat:nth-child(3) { border-inline-start: 0; }
+  .stat:nth-child(n + 3) { border-top: 1px solid var(--line-light); }
+  .quotes { grid-template-columns: 1fr; }
+}

@@ -332,7 +332,8 @@
   color: #0b1c5c;
 }
 
-/* تصميم رسالة الخطأ الأنيقة تحت الزر */
+
+
 .elegant-error-msg {
   color: #dc2626;
   font-size: 0.88rem;
@@ -342,7 +343,8 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
-/* إطار ولون خفيف لمربعات الإدخال عند حدوث خطأ */
+
+
 .otp-box-error {
   border-color: #ef4444 !important;
   background-color: #fef2f2 !important;
@@ -525,4 +527,22 @@
     border-radius: 10px;
     border-width: 2px;
   }
+}
+/* Keep the back action below Verify code, including short desktop viewports.
+   This selector also overrides the shared auth layout's pinned footer. */
+.register-card .form-right.otp-container .otp-footer-links:has(.edit-email-btn) {
+  position: static !important;
+  inset: auto !important;
+  flex: 0 0 auto;
+  width: 100%;
+  margin: 16px 0 0 !important;
+  text-align: center;
+}
+
+.register-card .form-right.otp-container .edit-email-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 16px;
 }

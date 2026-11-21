@@ -1,21 +1,23 @@
 import { useState } from 'react'
 import './CompanyRegister.css'
 import { ShieldCheckIcon, FileDocIcon, InfoIcon } from './CompanyIcons'
+import { COMPANY_DOCUMENT_MIME_TYPES, COMPANY_DOCUMENT_MAX_BYTES, COMPANY_DOCUMENT_MAX_MB } from '../../config'
 
 function CompanyStep3({ onNextSuccess, onBack, onNavigateToLogin, initialData }) {
   const [uploadedFile, setUploadedFile] = useState(initialData?.proofFile || null)
   const [optionalFile, setOptionalFile] = useState(initialData?.additionalFile || initialData?.additionalDoc || null)
   const [fileError, setFileError] = useState('')
 
-  const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
-  const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+  // Shared with the Organization Profile documents card (src/config.js).
+  const ALLOWED_TYPES = COMPANY_DOCUMENT_MIME_TYPES
+  const MAX_SIZE = COMPANY_DOCUMENT_MAX_BYTES
 
   const validateFile = (file) => {
     if (!ALLOWED_TYPES.includes(file.type)) {
       return 'Only PDF, PNG, JPG, and JPEG files are allowed.'
     }
     if (file.size > MAX_SIZE) {
-      return 'File size must be 5MB or less.'
+      return `File size must be ${COMPANY_DOCUMENT_MAX_MB}MB or less.`
     }
     return ''
   }

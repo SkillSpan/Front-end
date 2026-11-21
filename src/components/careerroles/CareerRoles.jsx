@@ -190,7 +190,6 @@ function SuggestedPanel({ roles, onViewDetails }) {
   return (
     <div className="cr-suggested">
       <div className="cr-suggested-head">
-        <span className="cr-suggested-star">{Icon.star}</span>
         <div>
           <h3>Suggested for You</h3>
           <p>Based on your current skill matrix — you choose, we explain</p>
@@ -632,8 +631,8 @@ export default function CareerRoles({ user, onLogout, onNavigate }) {
       onNavigate={(key) => (NAV_ROUTES[key] ? onNavigate(key) : null)}
       user={user}
       onLogout={onLogout}
-      readinessScore={67}
-      roleLabel="Software Engineer"
+      readinessScore={Number(user?.readiness_score ?? user?.readinessScore ?? 0) || 0}
+      roleLabel={user?.career_role?.title ?? user?.career_role_title ?? user?.role_title ?? ''}
     >
       <h1 className="cr-title">Career Roles</h1>
       <p className="cr-subtitle">Explore roles, understand requirements, and track your readiness.</p>

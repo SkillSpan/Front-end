@@ -1,5 +1,6 @@
 
-/* ---------- تخطيط الجانب الأيمن (خاص بهذه الخطوة فقط) ---------- */
+
+
 .form-right:has(.options-container) {
   justify-content: flex-start;
   padding: 40px 48px 72px 48px;
@@ -27,7 +28,8 @@
   }
 }
 
-/* ---------- الهيدر: STEP 2 OF 3 / 66% ---------- */
+
+
 .form-right:has(.options-container) .step-header {
   font-size: 1.5rem;
   font-weight: 700;
@@ -40,7 +42,8 @@
   color: #f5a623;
 }
 
-/* ---------- شريط التقدم: 3 مقاطع منفصلة ---------- */
+
+
 .form-right:has(.options-container) .progress-bar {
   height: 8px;
   border-radius: 0;
@@ -60,7 +63,8 @@
 .form-right:has(.options-container) .progress-fill {
   border-radius: 0;
   background-color: transparent;
-  /* نفس تقسيم المقاطع لكن بلون أصفر، ومحاذي لمقاطع الشريط الأساسي */
+  
+
   background-image: linear-gradient(
     to right,
     #f5a623 0 30.38%,
@@ -73,7 +77,8 @@
   background-repeat: no-repeat;
 }
 
-/* ---------- العناوين ---------- */
+
+
 .form-right:has(.options-container) .form-heading {
   margin-bottom: 0;
 }
@@ -101,7 +106,8 @@
   margin: 0;
 }
 
-/* ---------- البطاقات ---------- */
+
+
 .options-container {
   display: flex;
   flex-direction: column;
@@ -164,7 +170,8 @@
   color: #d1d5db;
 }
 
-/* ---------- الأيقونات (تستبدل الإيموجي بصور) ---------- */
+
+
 .option-icon {
   width: 48px;
   height: 48px;
@@ -175,7 +182,8 @@
   background-size: 44px auto;
   border-radius: 0;
   box-shadow: none;
-  /* إخفاء الإيموجي الموجود في JSX */
+  
+
   font-size: 0;
   line-height: 0;
   color: transparent;
@@ -194,12 +202,14 @@
   background-image: url('/image/professional.png');
 }
 
-/* الأيقونة تصبح بيضاء عند اختيار البطاقة الداكنة */
+
+
 .option-card.selected-card .option-icon {
   filter: brightness(0) invert(1);
 }
 
-/* ---------- أزرار Back / Next (حجم ثابت في المنتصف حسب التصميم) ---------- */
+
+
 .action-buttons {
   display: flex;
   justify-content: center;
@@ -254,7 +264,8 @@
   box-shadow: 0 8px 20px rgba(29, 114, 184, 0.35);
 }
 
-/* ---------- شاشات صغيرة ---------- */
+
+
 @media (max-width: 850px) {
   .form-right:has(.options-container) {
     padding: 30px 24px;

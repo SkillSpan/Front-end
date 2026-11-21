@@ -1,0 +1,23 @@
+.stage { --R: 205px; position: relative; width: min(520px, 100%); aspect-ratio: 1; display: grid; place-items: center; }
+.aura { position: absolute; inset: 14%; border-radius: 50%; background: radial-gradient(circle, rgba(124, 108, 255, 0.55) 0%, rgba(41, 168, 255, 0.18) 45%, transparent 70%); filter: blur(10px); animation: breathe 6s ease-in-out infinite; }
+.ringOuter, .ring, .ringDash { position: absolute; border-radius: 50%; }
+.ringOuter { inset: 3%; border: 1px solid rgba(200, 212, 255, 0.10); }
+.ring { inset: 13%; border: 2px solid transparent; background: conic-gradient(from 0deg, #29a8ff, #8a6dff, #f9ab1f, #29a8ff) border-box; -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; box-shadow: 0 0 40px rgba(124, 108, 255, 0.45); animation: spin 14s linear infinite; }
+.ringDash { inset: 8%; border: 1.5px dashed rgba(200, 212, 255, 0.28); animation: spin 40s linear infinite reverse; }
+.person { position: relative; z-index: 2; width: 42%; margin-top: 0; filter: drop-shadow(0 24px 30px rgba(2, 7, 32, 0.55)); animation: bob 5s ease-in-out infinite; }
+.person img { width: 100%; height: auto; display: block; -webkit-mask-image: linear-gradient(to bottom, #000 62%, rgba(0,0,0,0.55) 78%, transparent 96%); mask-image: linear-gradient(to bottom, #000 62%, rgba(0,0,0,0.55) 78%, transparent 96%); }
+.person::after { content: ''; position: absolute; left: -10%; right: -10%; bottom: -4%; height: 30%; background: radial-gradient(ellipse at center bottom, rgba(124,108,255,0.35), transparent 70%); filter: blur(14px); pointer-events: none; }
+.star { position: absolute; z-index: 3; width: 13%; top: 4%; right: 12%; filter: drop-shadow(0 0 14px rgba(249, 171, 31, 0.8)); animation: twinkle 3s ease-in-out infinite; }
+.orbit { position: absolute; inset: 0; z-index: 4; animation: spin 36s linear infinite; }
+.slot { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform: rotate(var(--a)) translateY(calc(var(--R) * -1)); }
+.chip { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%) rotate(calc(var(--a) * -1)); }
+.chip { display: grid; justify-items: center; align-content: center; gap: 5px; box-sizing: border-box; width: 96px; height: 78px; padding: 8px 6px; text-align: center; border-radius: 16px; background: rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.22); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 12px 28px -12px rgba(2, 7, 32, 0.8); animation: counter 36s linear infinite; }
+.chip img { width: 34px; height: 34px; object-fit: contain; }
+.chip span { font-size: 0.6875rem; font-weight: 600; color: #fff; line-height: 1.2; max-width: 100%; overflow-wrap: anywhere; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes counter { from { transform: translate(-50%, -50%) rotate(calc(var(--a) * -1)); } to { transform: translate(-50%, -50%) rotate(calc(var(--a) * -1 - 360deg)); } }
+@keyframes bob { 50% { transform: translateY(-8px); } }
+@keyframes breathe { 50% { transform: scale(1.06); opacity: 0.85; } }
+@keyframes twinkle { 50% { transform: scale(1.12) rotate(8deg); } }
+@media (max-width: 560px) { .stage { --R: 38vw; width: 92vw; } .chip { width: 76px; height: 64px; padding: 6px 4px; } .chip img { width: 26px; height: 26px; } .chip span { font-size: 0.625rem; } }
+@media (prefers-reduced-motion: reduce) { .ring, .ringDash, .orbit, .chip, .person, .aura, .star { animation: none; } }

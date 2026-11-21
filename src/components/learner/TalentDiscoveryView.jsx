@@ -1,258 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { getTalentDiscovery, createMentorConnection, unwrapApiData } from "../../api";
 // ── Mock Data ─────────────────────────────────────────────────────────────────
-const COMPANY = {
-  name: "TechVenture Inc.",
-  rep: "Jordan Blake",
-  initials: "JB",
-  interests: ["Software Engineering", "Full-Stack Development", "ML Engineering"],
-};
-const STUDENTS = [
-  {
-    id: "t1",
-    displayName: "Lena Kim",
-    initials: "LK",
-    track: "Software Engineering",
-    phase: "Phase 2 — Applied",
-    readiness: 73,
-    topSkills: [
-      { name: "TypeScript", level: 4, maxLevel: 4, category: "Frontend", verified: true, evidenceCount: 6 },
-      { name: "React", level: 4, maxLevel: 4, category: "Frontend", verified: true, evidenceCount: 5 },
-      { name: "System Design", level: 2, maxLevel: 4, category: "Architecture", verified: true, evidenceCount: 2 },
-      { name: "Node.js", level: 3, maxLevel: 4, category: "Backend", verified: true, evidenceCount: 4 },
-      { name: "CI/CD", level: 2, maxLevel: 4, category: "DevOps", verified: false, evidenceCount: 1 },
-    ],
-    projects: [
-      {
-        id: "p1",
-        title: "E-Commerce Platform Rebuild",
-        role: "Frontend Lead",
-        outcomes: ["Reduced page load by 42%", "Delivered 3 weeks ahead of schedule", "98% test coverage achieved"],
-        skills: ["React", "TypeScript", "GraphQL"],
-        completedDate: "Sep 2025",
-        verified: true,
-        sponsorOrg: "RetailCo Digital",
-      },
-      {
-        id: "p2",
-        title: "Real-Time Analytics Dashboard",
-        role: "Full-Stack Developer",
-        outcomes: ["Built streaming data pipeline", "Handled 50k concurrent users"],
-        skills: ["Node.js", "WebSockets", "PostgreSQL"],
-        completedDate: "Jul 2025",
-        verified: true,
-        sponsorOrg: "DataStream Labs",
-      },
-    ],
-    evalSummary: {
-      authorized: true,
-      overallRating: 4.4,
-      criteriaScores: [
-        { label: "Technical Quality", score: 4.6 },
-        { label: "Problem Solving", score: 4.3 },
-        { label: "Collaboration", score: 4.5 },
-        { label: "Communication", score: 4.2 },
-      ],
-      reviewedBy: "Senior Engineering Panel",
-      reviewDate: "Oct 2025",
-      notes: "Strong frontend fundamentals with demonstrated delivery. Growing system design capability.",
-    },
-    visibility: "full",
-    consent: "open",
-    contactable: true,
-    matchScore: 91,
-    availableFrom: "Jan 2026",
-    location: "Remote / Dubai",
-    hiddenFields: [],
-  },
-  {
-    id: "t2",
-    displayName: "Marcus Chen",
-    initials: "MC",
-    track: "Full-Stack Development",
-    phase: "Phase 3 — Specialized",
-    readiness: 79,
-    topSkills: [
-      { name: "Python", level: 4, maxLevel: 4, category: "Backend", verified: true, evidenceCount: 8 },
-      { name: "Django", level: 4, maxLevel: 4, category: "Backend", verified: true, evidenceCount: 7 },
-      { name: "PostgreSQL", level: 3, maxLevel: 4, category: "Database", verified: true, evidenceCount: 5 },
-      { name: "Docker", level: 3, maxLevel: 4, category: "DevOps", verified: true, evidenceCount: 4 },
-      { name: "Vue.js", level: 3, maxLevel: 4, category: "Frontend", verified: true, evidenceCount: 3 },
-    ],
-    projects: [
-      {
-        id: "p3",
-        title: "API Gateway Microservices Migration",
-        role: "Backend Lead",
-        outcomes: ["Migrated 12 services", "Reduced API latency by 35%", "Zero-downtime deployment"],
-        skills: ["Python", "Django", "Docker", "Kubernetes"],
-        completedDate: "Oct 2025",
-        verified: true,
-        sponsorOrg: "CloudScale Ventures",
-      },
-    ],
-    evalSummary: {
-      authorized: true,
-      overallRating: 4.7,
-      criteriaScores: [
-        { label: "Technical Quality", score: 4.8 },
-        { label: "Problem Solving", score: 4.7 },
-        { label: "Collaboration", score: 4.6 },
-        { label: "Communication", score: 4.5 },
-      ],
-      reviewedBy: "Backend Architecture Panel",
-      reviewDate: "Oct 2025",
-      notes: "Exceptional backend engineering. High-quality code and strong architectural thinking.",
-    },
-    visibility: "full",
-    consent: "open",
-    contactable: true,
-    matchScore: 88,
-    availableFrom: "Feb 2026",
-    location: "Remote / Singapore",
-    hiddenFields: [],
-  },
-  {
-    id: "t3",
-    displayName: "Elena Rodriguez",
-    initials: "ER",
-    track: "ML Engineering",
-    phase: "Phase 2 — Applied",
-    readiness: 68,
-    topSkills: [
-      { name: "Python", level: 4, maxLevel: 4, category: "Core", verified: true, evidenceCount: 9 },
-      { name: "PyTorch", level: 3, maxLevel: 4, category: "ML", verified: true, evidenceCount: 4 },
-      { name: "MLOps", level: 2, maxLevel: 4, category: "DevOps", verified: true, evidenceCount: 2 },
-      { name: "Feature Engineering", level: 3, maxLevel: 4, category: "ML", verified: true, evidenceCount: 5 },
-      { name: "Model Deployment", level: 2, maxLevel: 4, category: "DevOps", verified: false, evidenceCount: 1 },
-    ],
-    projects: [
-      {
-        id: "p4",
-        title: "NLP Sentiment Classification Pipeline",
-        role: "ML Engineer",
-        outcomes: ["91.3% accuracy on benchmark", "Deployed to production serving 10k req/day"],
-        skills: ["PyTorch", "Python", "FastAPI"],
-        completedDate: "Aug 2025",
-        verified: true,
-        sponsorOrg: "Lingua AI",
-      },
-    ],
-    evalSummary: {
-      authorized: false,
-      overallRating: 0,
-      criteriaScores: [],
-      reviewedBy: "",
-      reviewDate: "",
-      notes: "",
-    },
-    visibility: "full",
-    consent: "open",
-    contactable: true,
-    matchScore: 76,
-    availableFrom: "Mar 2026",
-    location: "Remote / London",
-    hiddenFields: [],
-  },
-  {
-    id: "t4",
-    displayName: "— (Limited Visibility)",
-    initials: "??",
-    track: "Data Science",
-    phase: "Phase 1 — Foundation",
-    readiness: 58,
-    topSkills: [
-      { name: "Python", level: 3, maxLevel: 4, category: "Core", verified: true, evidenceCount: 4 },
-      { name: "Statistics", level: 2, maxLevel: 4, category: "Analysis", verified: true, evidenceCount: 2 },
-      { name: "SQL", level: 3, maxLevel: 4, category: "Database", verified: true, evidenceCount: 3 },
-    ],
-    projects: [],
-    evalSummary: { authorized: false, overallRating: 0, criteriaScores: [], reviewedBy: "", reviewDate: "", notes: "" },
-    visibility: "partial",
-    consent: "limited",
-    contactable: false,
-    matchScore: 62,
-    availableFrom: "Unknown",
-    location: "— (hidden)",
-    hiddenFields: ["name", "location", "contact", "projects"],
-  },
-  {
-    id: "t5",
-    displayName: "Priya Sharma",
-    initials: "PS",
-    track: "UX / Product Design",
-    phase: "Phase 3 — Specialized",
-    readiness: 81,
-    topSkills: [
-      { name: "Figma", level: 4, maxLevel: 4, category: "Design", verified: true, evidenceCount: 10 },
-      { name: "User Research", level: 3, maxLevel: 4, category: "Research", verified: true, evidenceCount: 6 },
-      { name: "Design Systems", level: 4, maxLevel: 4, category: "Design", verified: true, evidenceCount: 8 },
-      { name: "Prototyping", level: 4, maxLevel: 4, category: "Design", verified: true, evidenceCount: 9 },
-      { name: "Accessibility", level: 3, maxLevel: 4, category: "Standards", verified: true, evidenceCount: 4 },
-    ],
-    projects: [
-      {
-        id: "p5",
-        title: "Design System Accessibility Audit",
-        role: "Lead Designer",
-        outcomes: [
-          "WCAG 2.1 AA compliance achieved",
-          "40% reduction in accessibility issues",
-          "Documentation published",
-        ],
-        skills: ["Figma", "Accessibility", "Design Systems"],
-        completedDate: "Nov 2025",
-        verified: true,
-        sponsorOrg: "GovTech UAE",
-      },
-    ],
-    evalSummary: {
-      authorized: true,
-      overallRating: 4.8,
-      criteriaScores: [
-        { label: "Design Quality", score: 4.9 },
-        { label: "Research Rigor", score: 4.7 },
-        { label: "Delivery", score: 4.8 },
-        { label: "Collaboration", score: 4.8 },
-      ],
-      reviewedBy: "Design Leadership Panel",
-      reviewDate: "Nov 2025",
-      notes: "Outstanding design system work. Exceptional attention to accessibility and inclusive design principles.",
-    },
-    visibility: "full",
-    consent: "open",
-    contactable: true,
-    matchScore: 83,
-    availableFrom: "Dec 2025",
-    location: "Remote / Abu Dhabi",
-    hiddenFields: [],
-  },
-  {
-    id: "t6",
-    displayName: "— (Restricted)",
-    initials: "🔒",
-    track: "DevOps Engineering",
-    phase: "Phase 2 — Applied",
-    readiness: 0,
-    topSkills: [],
-    projects: [],
-    evalSummary: { authorized: false, overallRating: 0, criteriaScores: [], reviewedBy: "", reviewDate: "", notes: "" },
-    visibility: "locked",
-    consent: "restricted",
-    contactable: false,
-    matchScore: 0,
-    availableFrom: "—",
-    location: "—",
-    hiddenFields: ["all"],
-  },
-];
-const TRACKS = [
-  "Software Engineering",
-  "Full-Stack Development",
-  "ML Engineering",
-  "Data Science",
-  "UX / Product Design",
-  "DevOps Engineering",
-];
+const COMPANY = { name: "Talent Discovery", rep: "Live recommendations" };
 // ── Atoms ─────────────────────────────────────────────────────────────────────
 function Sk({ w, h, r = 6 }) {
   return <div className="shimmer" style={{ width: w, height: h, borderRadius: r, flexShrink: 0 }} />;
@@ -970,6 +719,42 @@ function ContactDialog({ student, onClose, onConfirm, sent }) {
 }
 // ── Main TalentDiscoveryView ──────────────────────────────────────────────────
 export default function TalentDiscoveryView() {
+  const [students, setStudents] = useState([]);
+  const [loadingStudents, setLoadingStudents] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [contactError, setContactError] = useState("");
+  const [contactSubmitting, setContactSubmitting] = useState(false);
+  useEffect(() => {
+    let active = true;
+    getTalentDiscovery({ page: 1, perPage: 50 }).then((payload) => {
+      if (!active) return;
+      const value = unwrapApiData(payload);
+      const rows = Array.isArray(value) ? value : Array.isArray(value?.data) ? value.data : Array.isArray(value?.recommendations) ? value.recommendations : [];
+      setStudents(rows.map((row) => {
+        const person = row.student ?? row.learner ?? row.user ?? row;
+        const name = person.name ?? person.full_name ?? person.display_name ?? "Learner";
+        const readinessVal = Number(row.readiness?.score ?? row.readiness_score ?? row.readiness ?? person.readiness?.score ?? person.readiness_score ?? 0) || 0;
+        const rawSkills = Array.isArray(row.top_skills) ? row.top_skills : Array.isArray(row.skills) ? row.skills : [];
+        const skills = rawSkills.map(s => ({
+          name: s.name || s.skill_name || 'Skill',
+          level: Number(s.level ?? 1),
+          maxLevel: Number(s.max_level ?? 5),
+          verified: Boolean(s.verified ?? s.is_verified ?? false)
+        }));
+        return {
+          ...row,
+          id: String(row.id ?? person.id ?? person.user_id ?? ""),
+          displayName: name,
+          track: row.track ?? row.career_role?.title ?? row.role_title ?? "Not specified",
+          readiness: readinessVal,
+          matchScore: Number(row.match_score ?? row.matchScore ?? readinessVal) || 0,
+          visibility: row.visibility ?? "visible",
+          skills
+        };
+      }).filter((row) => row.id));
+    }).catch((error) => { if (active) setLoadError(error?.message || "Unable to load talent recommendations."); }).finally(() => { if (active) setLoadingStudents(false); });
+    return () => { active = false; };
+  }, []);
   const [scene, setScene] = useState("normal");
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [contactSent, setContactSent] = useState(false);
@@ -977,14 +762,25 @@ export default function TalentDiscoveryView() {
   const [minReadiness, setMinReadiness] = useState(0);
   const [sortBy, setSortBy] = useState("match");
   const [searchQ, setSearchQ] = useState("");
-  const selectedStudent = STUDENTS.find((s) => s.id === selectedStudentId) ?? null;
+  const selectedStudent = students.find((s) => s.id === selectedStudentId) ?? null;
   const showContact = scene === "contact-dialog" || scene === "contact-sent";
-  const displayedStudents = useMemo(() => {
-    if (scene === "loading" || scene === "error") return [];
-    let list = [...STUDENTS];
-    if (scene === "unauthorized") {
-      list = list.map((s) => (s.id === "t4" || s.id === "t6" ? s : s));
+  const sendContactRequest = async () => {
+    if (!selectedStudent || contactSubmitting) return;
+    setContactSubmitting(true);
+    setContactError("");
+    try {
+      await createMentorConnection({ student_id: selectedStudent.id });
+      setContactSent(true);
+      setScene("contact-sent");
+    } catch (error) {
+      setContactError(error?.message || "Unable to send the connection request to the server.");
+    } finally {
+      setContactSubmitting(false);
     }
+  };
+  const displayedStudents = useMemo(() => {
+    if (loadingStudents) return [];
+    let list = [...students];
     if (searchQ) {
       list = list.filter(
         (s) =>
@@ -1000,29 +796,8 @@ export default function TalentDiscoveryView() {
     }
     if (sortBy === "match") list.sort((a, b) => b.matchScore - a.matchScore);
     else if (sortBy === "readiness") list.sort((a, b) => b.readiness - a.readiness);
-    return scene === "empty" ? [] : list;
-  }, [scene, searchQ, trackFilter, minReadiness, sortBy]);
-  const applyScene = (s) => {
-    setScene(s);
-    setContactSent(false);
-    if (s === "profile") setSelectedStudentId("t1");
-    else if (s === "unauthorized") setSelectedStudentId("t4");
-    else if (s === "contact-dialog") setSelectedStudentId("t1");
-    else if (s === "contact-sent") {
-      setSelectedStudentId("t1");
-      setContactSent(true);
-    } else setSelectedStudentId(null);
-  };
-  const DEMO_BUTTONS = [
-    { label: "Normal", s: "normal" },
-    { label: "Loading", s: "loading" },
-    { label: "Empty Results", s: "empty" },
-    { label: "Error", s: "error" },
-    { label: "Profile Open", s: "profile" },
-    { label: "Unauthorized", s: "unauthorized" },
-    { label: "Contact Dialog", s: "contact-dialog" },
-    { label: "Contact Sent", s: "contact-sent" },
-  ];
+    return list;
+  }, [students, scene, searchQ, trackFilter, minReadiness, sortBy, loadingStudents]);
   return (
     <div className="flex flex-col flex-1 min-h-0 min-w-0 overflow-hidden bg-[#f1f3fa]">
       {/* Header */}
@@ -1050,6 +825,7 @@ export default function TalentDiscoveryView() {
         </div>
       </div>
 
+      {contactError && <div role="alert" className="mx-5 mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{contactError}</div>}
       {/* Body */}
       <div className="flex flex-1 min-h-0 min-w-0 overflow-hidden relative">
         {/* Filter Sidebar */}
@@ -1081,7 +857,7 @@ export default function TalentDiscoveryView() {
               Career Track
             </p>
             <div className="flex flex-col gap-[5px]">
-              {TRACKS.map((t) => (
+              {Array.from(new Set(students.map((student) => student.track).filter(Boolean))).map((t) => (
                 <button
                   key={t}
                   onClick={() =>
@@ -1272,7 +1048,7 @@ export default function TalentDiscoveryView() {
               setScene("profile");
               setContactSent(false);
             }}
-            onConfirm={() => setContactSent(true)}
+            onConfirm={sendContactRequest}
             sent={contactSent}
           />
         )}

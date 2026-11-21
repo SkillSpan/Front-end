@@ -1,0 +1,148 @@
+/* Global theme tokens.
+   The accent variables used to live only in profile-settings.css, which is a
+   lazily-loaded chunk - so on the dashboard (a different chunk) `var(--accent)`
+   resolved to nothing. They are declared here, on the entry, so every screen
+   can use them. Values match ACCENT_SWATCHES in preferences/constants.js. */
+
+:root {
+  --accent: #3b8bff;
+  --accent-strong: #2563eb;
+  --accent-soft: rgba(59, 139, 255, 0.12);
+}
+
+:root[data-accent='blue'] {
+  --accent: #3b8bff;
+  --accent-strong: #2563eb;
+  --accent-soft: rgba(59, 139, 255, 0.12);
+}
+
+:root[data-accent='violet'] {
+  --accent: #7c3aed;
+  --accent-strong: #6d28d9;
+  --accent-soft: rgba(124, 58, 237, 0.12);
+}
+
+:root[data-accent='emerald'] {
+  --accent: #059669;
+  --accent-strong: #047857;
+  --accent-soft: rgba(5, 150, 105, 0.12);
+}
+
+:root[data-accent='amber'] {
+  --accent: #f59e0b;
+  --accent-strong: #d97706;
+  --accent-soft: rgba(245, 158, 11, 0.14);
+}
+
+/* Dark shell. Was also defined inside profile-settings.css, which meant the
+   dashboard only looked dark after that chunk had been loaded once. */
+:root[data-theme='dark'] .app-shell {
+  background: #0b1020;
+}
+
+/* Same reason: the sidebar and the topbar are part of the shell, not of the
+   settings screen. Kept in sync with profile-settings.css. */
+:root[data-theme='dark'] .app-content.workspace-content {
+  background: #0b1020;
+}
+
+/* The rail used to be a lighter slab (#101731) against the #0b1020 canvas, so
+   the app read as three stacked surfaces. It now shares the page ink and is
+   separated only by a hairline rule. */
+:root[data-theme='dark'] .app-sidebar {
+  background: #0b1020;
+  border-right-color: rgba(255, 255, 255, 0.07);
+  color: #e8ecf8;
+}
+
+/* The rail scrolls on short screens; the default scrollbar is a bright white
+   strip on the dark shell. */
+:root[data-theme='dark'] .app-nav {
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+}
+
+:root[data-theme='dark'] .app-content {
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+:root[data-theme='dark'] .app-sidebar-brand .white {
+  color: #e8ecf8;
+}
+
+:root[data-theme='dark'] .app-nav-item {
+  color: #9fb0d0;
+}
+
+:root[data-theme='dark'] .app-nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+:root[data-theme='dark'] .app-nav-item.active {
+  background: var(--accent-soft);
+  color: color-mix(in srgb, var(--accent) 70%, #ffffff);
+}
+
+/* Same as the rail: the topbar sat on its own lighter shade, so the header read
+   as a band pasted over the page. One ink, one hairline. */
+:root[data-theme='dark'] .app-topbar {
+  background: #0b1020;
+  border-bottom-color: rgba(255, 255, 255, 0.07);
+  color: #e8ecf8;
+}
+
+:root[data-theme='dark'] .app-topbar .app-user-name {
+  color: #e8ecf8;
+}
+
+:root[dir='rtl'] .app-sidebar {
+  border-right: 0;
+  border-left: 1px solid #e8eaf0;
+}
+
+:root[data-theme='dark'][dir='rtl'] .app-sidebar {
+  border-left-color: rgba(255, 255, 255, 0.07);
+}
+
+/* Alert / notice boxes. Several in-app views use the Tailwind semantic colours
+   (bg-amber-50, bg-red-50, ...) for inline notices; on the dark canvas those
+   pastel fills turn into bright blocks. Same hue, dark tint. */
+:root[data-theme='dark'] .app-content .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.14) !important;
+}
+:root[data-theme='dark'] .app-content .border-amber-200 {
+  border-color: rgba(245, 158, 11, 0.32) !important;
+}
+:root[data-theme='dark'] .app-content .text-amber-900 {
+  color: #fcd34d !important;
+}
+:root[data-theme='dark'] .app-content .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.13) !important;
+}
+:root[data-theme='dark'] .app-content .border-red-200 {
+  border-color: rgba(239, 68, 68, 0.32) !important;
+}
+:root[data-theme='dark'] .app-content .text-red-900,
+:root[data-theme='dark'] .app-content .text-red-800 {
+  color: #fca5a5 !important;
+}
+:root[data-theme='dark'] .app-content .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.13) !important;
+}
+:root[data-theme='dark'] .app-content .border-emerald-200 {
+  border-color: rgba(16, 185, 129, 0.32) !important;
+}
+:root[data-theme='dark'] .app-content .text-emerald-900,
+:root[data-theme='dark'] .app-content .text-emerald-800 {
+  color: #6ee7b7 !important;
+}
+:root[data-theme='dark'] .app-content .bg-blue-50 {
+  background-color: rgba(59, 139, 255, 0.13) !important;
+}
+:root[data-theme='dark'] .app-content .border-blue-200 {
+  border-color: rgba(59, 139, 255, 0.3) !important;
+}
+:root[data-theme='dark'] .app-content .text-blue-900,
+:root[data-theme='dark'] .app-content .text-blue-800 {
+  color: #93c5fd !important;
+}

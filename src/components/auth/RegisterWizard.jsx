@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { consumeAssessmentReturn } from '../../utils/assessmentAuthReturn';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import RegisterStep1 from './RegisterStep1';
 import RegisterStep2 from './RegisterStep2';
 import RegisterStep3 from './RegisterStep3';
-import EmailVerification from './EmailVerified';
+import EmailVerification from './EmailVerification';
 import OtpVerification from './OtpVerification';
 import LearnerProfileSetup from '../assessment/LearnerProfileSetup';
 import AssessmentWizard from '../assessment/AssessmentWizard';
@@ -30,7 +31,7 @@ import { useAuth } from './AuthContext';
 function RegisterWizard() {
   const location = useLocation();
   const [registerData, setRegisterData] = useState({});
-  // أخطاء بدها تنعرض بـ Step 1 (مثلاً الإيميل مستخدم من قبل - بنعرفها بس بآخر خطوة)
+  // Errors to display in Step 1 (for example, an email already in use may only be detected in the final step)
   const [step1Errors, setStep1Errors] = useState({});
   const [googleCredential] = useState(() => location.state?.googleCredential || null);
   const navigate = useNavigate();
@@ -58,8 +59,8 @@ function RegisterWizard() {
     navigate('/register/status');
   };
 
-  // الباك إند بيرفض الإيميل (مستخدم من قبل...) عند الطلب النهائي بـ Step 3،
-  // فبنرجّع المستخدم لـ Step 1 وبنعرض الخطأ تحت حقل الإيميل.
+  // The backend may reject an email (for example, if it is already in use) during the final Step 3 request,
+  // so return the user to Step 1 and display the error under the email field.
   const handleEmailError = (message) => {
     setStep1Errors({ email: message });
     navigate('/register/account');
@@ -186,8 +187,8 @@ function RegisterWizard() {
             // The Baseline Skill Assessment comes right after Profile
             // Setup (see LearnerProfileSetup's own sidebar stepper, which
             // already lists Assessment as the next step).
-            onComplete={() => navigate('/register/assessment')}
-            onSkip={() => navigate('/register/assessment')}
+            onComplete={() => navigate(consumeAssessmentReturn() || '/register/assessment')}
+            onSkip={() => navigate(consumeAssessmentReturn() || '/register/assessment')}
           />
         }
       />
@@ -195,7 +196,7 @@ function RegisterWizard() {
         path="assessment/*"
         element={
           <AssessmentWizard
-            // بعد ما يخلّص (أو يطلع من) الـ Assessment بيروح على الـ Dashboard.
+            // After the user completes or exits the assessment, navigate to the dashboard.
             onFinish={() => navigate('/dashboard', { replace: true })}
           />
         }

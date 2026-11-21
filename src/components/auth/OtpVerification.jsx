@@ -2,18 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import { verifyOtp, resendOtp } from '../../api';
 import './OtpVerification.css';
 
-// ملاحظة: الصفحتين اللي بتستدعوا هاد الكومبوننت (RegisterWizard.jsx و
-// CompanyWizard.jsx) بيبعتوا الإيميل باسم `userEmail` مش `email` - قبل
-// التعديل كان الكومبوننت يقرأ `email` فقط، فكانت الخانة تظهر فاضية دايماً.
-// هيك صار المستخدم يضطر يكتب إيميله يدوياً، وأي غلطة إملائية = الكود يروح
-// لعنوان غلط. الحل: نقرأ `userEmail` (ونخلي `email` احتياطي لأي استدعاء
-// مستقبلي).
-const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBack, onContinueToLogin }) => {
+// Note: both pages that call this component (RegisterWizard.jsx and
+// CompanyWizard.jsx) pass the email as `userEmail`, not `email`. Before
+// this fix, the component read only `email`, so the field was always empty.
+// That forced users to type their email manually, and a typo sent the code
+// to the wrong address. The fix reads `userEmail` and keeps `email` as a fallback
+// for future callers.
+const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBack, onContinueToLogin, initialResendTimer = 60 }) => {
   const confirmedEmail = userEmail || legacyEmail || '';
   const [emailInput, setEmailInput] = useState(confirmedEmail);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(600);
-  const [resendTimer, setResendTimer] = useState(60);
+  const [resendTimer, setResendTimer] = useState(initialResendTimer);
   const [isResendState, setIsResendState] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [error, setError] = useState('');
@@ -21,7 +21,7 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
   const [isResending, setIsResending] = useState(false);
   const inputRefs = useRef([]);
 
-  // نحدّث الحقل تلقائياً إذا وصل الإيميل بعد أول رندر
+  // Update the field automatically if the email arrives after the first render
   useEffect(() => {
     if (confirmedEmail) setEmailInput(confirmedEmail);
   }, [confirmedEmail]);

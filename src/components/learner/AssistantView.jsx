@@ -1,32 +1,35 @@
 import { useState, useRef, useEffect } from "react";
-import { askAssistant, reportAssistantInteraction, unwrapApiData } from "../../api";
+import { askAssistant, reportAssistantInteraction, createSupportRequest, unwrapApiData } from "../../api";
+import { useAuth } from "../auth/AuthContext";
+import { clearAssistantChat, loadAssistantChat, saveAssistantChat } from "./assistantChatStorage";
 import { getTextDirection, getTextLanguage } from "../../utils/textDirection";
 // ═══════════════════════════════════════════════════════════════════════════════
-// MOCK DATA
+// Sample context is shown only when explicitly enabled for development.
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
 // ═══════════════════════════════════════════════════════════════════════════════
 const SUGGESTED = [
-  { label: "Why is my readiness 67?", scenario: "readiness", intent: "explain_readiness" },
+  { label: "Help me understand my readiness results", scenario: "readiness", intent: "explain_readiness" },
   { label: "What should I do next?", scenario: "roadmap", intent: "explain_next_best_action" },
   { label: "Explain my Python skill gap", scenario: "skill-gap", intent: "explain_skill_gap" },
-  { label: "Why was the REST API recommended?", scenario: "project-rec", intent: "explain_project_recommendation" },
+  { label: "Explain my project recommendations", scenario: "project-rec", intent: "explain_project_recommendation" },
 ];
 
 function inferAssistantIntent(question) {
   const q = question.toLowerCase();
-  if (/readiness|score|جاهزي|درجة/.test(q)) return "explain_readiness";
-  if (/skill gap|skill.?gap|missing skill|skills? .*missing|فجوة|مهار/.test(q)) return "explain_skill_gap";
-  if (/roadmap|career path|مسار|خطة/.test(q)) return "explain_roadmap";
-  if (/next|do next|should i do|التالي|الخطوة/.test(q)) return "explain_next_best_action";
-  if (/how do i (build|implement|fix|use)|implementation|build this|implement this|كيف (أبني|أنفذ|أصلح|أستخدم)|تنفيذ/.test(q)) return "project_bounded_help";
-  if (/project|recommended|recommendation|مشروع|موصى/.test(q)) return "explain_project_recommendation";
+  if (/readiness|score/.test(q)) return "explain_readiness";
+  if (/skill gap|skill.?gap|missing skill|skills? .*missing/.test(q)) return "explain_skill_gap";
+  if (/roadmap|career path/.test(q)) return "explain_roadmap";
+  if (/next|do next|should i do/.test(q)) return "explain_next_best_action";
+  if (/how do i (build|implement|fix|use)|implementation|build this|implement this/.test(q)) return "project_bounded_help";
+  if (/project|recommended|recommendation/.test(q)) return "explain_project_recommendation";
   return "explain_readiness";
 }
-const CONTEXT_PILLS = [
+const CONTEXT_PILLS = DEMO_MODE ? [
   { icon: "📊", label: "Readiness 67/100", color: "#3b8bff" },
   { icon: "🎯", label: "Software Engineer", color: "#7c3aed" },
   { icon: "🗺️", label: "Phase 3 Roadmap", color: "#059669" },
   { icon: "🔧", label: "3 projects matched", color: "#f59e0b" },
-];
+] : [];
 const CONVOS = {
   welcome: [],
   readiness: [
@@ -246,7 +249,7 @@ function ReadinessResponseCard({ p }) {
         </div>
         <div>
           <p className="font-['Inter:Bold',sans-serif] text-[14px] text-white leading-none">{band}</p>
-          <p className="text-[10px] text-[rgba(255,255,255,0.45)] mt-[2px]">Software Engineer v2.3</p>
+          <p className="text-[10px] text-[rgba(255,255,255,0.45)] mt-[2px]">{DEMO_MODE ? "Software Engineer v2.3" : "Live career context"}</p>
           <div className="flex items-center gap-[4px] mt-[6px]">
             <span className="w-[6px] h-[6px] rounded-full bg-[#f59e0b]" />
             <span className="text-[9px] text-[rgba(255,255,255,0.5)]">2 components below 65</span>
@@ -623,7 +626,7 @@ function ReportMenu({ onReport, onClose }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // MESSAGE BUBBLE
 // ═══════════════════════════════════════════════════════════════════════════════
-function MessageBubble({ msg, onReport }) {
+function MessageBubble({ msg, onReport, onHandoff, onOpenSupport }) {
   const [showReport, setShowReport] = useState(false);
   const isUser = msg.role === "user";
   const textDirection = getTextDirection(msg.text);
@@ -673,6 +676,21 @@ function MessageBubble({ msg, onReport }) {
                 __html: msg.text.replace(/\*\*(.+?)\*\*/g, '<strong dir="auto" style="font-weight:700;color:white;unicode-bidi:isolate">$1</strong>'),
               }}
             />
+          )}
+          {msg.role === "assistant" && msg.handoffAvailable && !msg.handoffCreated && (
+            <button type="button" onClick={() => onHandoff(msg.id)} className="mt-[10px] rounded-[8px] border border-[rgba(59,139,255,0.35)] bg-[rgba(59,139,255,0.12)] px-[10px] py-[7px] text-[11px] text-[#a9c8ff] hover:bg-[rgba(59,139,255,0.2)]">Contact human support</button>
+          )}
+          {msg.handoffCreated && (
+            <div className="mt-[8px] flex flex-wrap items-center gap-[8px]">
+              <p className="text-[10px] text-[#a9c8ff]">Support request #{msg.supportRequestId} created ({msg.supportStatus || "pending"}).</p>
+              <button
+                type="button"
+                onClick={() => onOpenSupport?.()}
+                className="rounded-[8px] border border-[rgba(59,139,255,0.35)] bg-[rgba(59,139,255,0.12)] px-[10px] py-[5px] text-[10px] text-[#a9c8ff] hover:bg-[rgba(59,139,255,0.2)]"
+              >
+                Open the thread →
+              </button>
+            </div>
           )}
           {msg.type === "readiness" && msg.payload && <ReadinessResponseCard p={msg.payload} />}
           {msg.type === "skill-gap" && msg.payload && <SkillGapResponseCard p={msg.payload} />}
@@ -772,7 +790,7 @@ function ContextPanel() {
         </div>
         <div className="flex items-center gap-[5px] mt-[8px]">
           <span className="w-[5px] h-[5px] rounded-full bg-[#34d399] pulse-glow shrink-0" />
-          <span className="text-[9px] text-[rgba(255,255,255,0.35)]">Context up to date · 9 Sep 2026</span>
+          <span className="text-[9px] text-[rgba(255,255,255,0.35)]">{DEMO_MODE ? "Context up to date · 9 Sep 2026" : "Context is based on available account data"}</span>
         </div>
       </div>
 
@@ -832,20 +850,38 @@ const DEMOS = [
   { key: "uncertainty", label: "Uncertainty" },
   { key: "unavailable", label: "Unavailable" },
 ];
-export default function AssistantView() {
-  const [messages, setMessages] = useState([]);
+export default function AssistantView({ onNavigate }) {
+  const { authUser } = useAuth();
+  const userId = authUser?.id ?? null;
+  // Restored from the browser so a reload (or a trip to another screen and
+  // back) no longer wipes the conversation. Demo scenarios are never stored.
+  const [messages, setMessages] = useState(() => (DEMO_MODE ? [] : loadAssistantChat(userId)));
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [scenario, setScenario] = useState("welcome");
   const [fresh, setFresh] = useState(true);
+  const [confirmClear, setConfirmClear] = useState(false);
   const bottomRef = useRef(null);
   const textRef = useRef(null);
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
+  // Mirror every change to storage; the empty case removes the entry instead of
+  // leaving a hollow record behind.
+  useEffect(() => {
+    if (DEMO_MODE) return;
+    saveAssistantChat(userId, messages);
+  }, [messages, userId]);
+  function clearConversation() {
+    setMessages([]);
+    clearAssistantChat(userId);
+    setFresh(true);
+    setScenario("welcome");
+    setConfirmClear(false);
+  }
   function loadScenario(key) {
     setScenario(key);
-    setMessages(CONVOS[key]);
+    setMessages(DEMO_MODE ? (CONVOS[key] || []) : []);
     setFresh(key === "welcome");
     setTyping(false);
   }
@@ -874,6 +910,8 @@ export default function AssistantView() {
       setMessages((prev) => [...prev, {
         id: payload.interaction_id ?? payload.id ?? `a${Date.now()}`,
         interactionId: payload.interaction_id ?? payload.id,
+        intent: selectedIntent,
+        handoffAvailable: payload.handoff_available === true,
         role: "assistant",
         type: "text",
         ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
@@ -903,10 +941,27 @@ export default function AssistantView() {
     }
   }
   async function handleReport(id, reason) {
-    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, reported: true, reportReason: reason } : m)));
-    const item = messages.find((m) => m.id === id);
-    if (item?.interactionId) {
-      try { await reportAssistantInteraction(item.interactionId, { reason }); } catch { /* reporting is best effort */ }
+    const item = messages.find((m) => String(m.id) === String(id));
+    if (!item?.interactionId) return;
+    try {
+      await reportAssistantInteraction(item.interactionId, { report_status: reason });
+      setMessages((prev) => prev.map((m) => (String(m.id) === String(id) ? { ...m, reported: true, reportReason: reason } : m)));
+    } catch (error) {
+      setMessages((prev) => [...prev, { id: `report-error-${Date.now()}`, role: "assistant", type: "text", ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), text: error?.message || "Could not submit the report. Please try again." }]);
+    }
+  }
+  async function handleHandoff(id) {
+    const item = messages.find((m) => String(m.id) === String(id));
+    if (!item?.handoffAvailable || !item.interactionId) return;
+    const transcript = messages.filter((m) => m.role === "user" || m.role === "assistant").slice(-40)
+      .filter((m) => String(m.text || "").trim())
+      .map((m) => ({ role: m.role === "user" ? "learner" : "assistant", body: String(m.text).slice(0, 4000) }));
+    try {
+      const response = await createSupportRequest({ reason: "insufficient_context", source_interaction_id: Number(item.interactionId), transcript });
+      const request = unwrapApiData(response) || {};
+      setMessages((prev) => prev.map((m) => String(m.id) === String(id) ? { ...m, handoffCreated: true, supportRequestId: request.id, supportStatus: request.status } : m));
+    } catch (error) {
+      setMessages((prev) => [...prev, { id: `handoff-error-${Date.now()}`, role: "assistant", type: "text", ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), text: error?.message || "Could not contact support. Please try again." }]);
     }
   }
   return (
@@ -932,9 +987,48 @@ export default function AssistantView() {
             <div className="flex items-center gap-[5px] px-[10px] py-[5px] bg-[rgba(5,150,105,0.1)] border border-[rgba(5,150,105,0.2)] rounded-full">
               <span className="w-[5px] h-[5px] rounded-full bg-[#34d399] shrink-0 pulse-glow" />
               <span className="text-[9px] font-['Inter:Medium',sans-serif] text-[#34d399]">
-                Career context loaded — Software Engineer v2.3
+                Career context will appear when your profile data is available.
               </span>
             </div>
+
+            {/* The conversation is kept in the browser, so the learner needs a
+                way to throw it away without hunting for a settings screen. */}
+            {messages.length > 0 &&
+              (confirmClear ? (
+                <div className="flex items-center gap-[6px] h-[28px] pl-[9px] pr-[4px] rounded-[8px] bg-[rgba(239,68,68,0.12)] border border-[rgba(239,68,68,0.35)]">
+                  <span className="text-[10px] text-[#fca5a5] whitespace-nowrap">Delete this chat?</span>
+                  <button
+                    type="button"
+                    onClick={clearConversation}
+                    className="h-[20px] px-[8px] rounded-[6px] bg-[#ef4444] text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmClear(false)}
+                    className="h-[20px] px-[6px] rounded-[6px] text-[10px] text-[rgba(255,255,255,0.6)] hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmClear(true)}
+                  aria-label="Delete conversation"
+                  title="Delete conversation"
+                  className="flex items-center gap-[5px] h-[28px] px-[9px] rounded-[8px] border border-[rgba(255,255,255,0.12)] text-[10px] font-['Inter:Medium',sans-serif] text-[rgba(255,255,255,0.55)] hover:text-white hover:border-[rgba(239,68,68,0.45)] hover:bg-[rgba(239,68,68,0.12)] transition-colors"
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M3 6h18" />
+                    <path d="M8 6V4h8v2" />
+                    <path d="M19 6l-1 14H6L5 6" />
+                    <path d="M10 11v5M14 11v5" />
+                  </svg>
+                  Delete chat
+                </button>
+              ))}
           </div>
         </div>
       </div>
@@ -987,7 +1081,7 @@ export default function AssistantView() {
             )}
 
             {messages.map((m) => (
-              <MessageBubble key={m.id} msg={m} onReport={handleReport} />
+              <MessageBubble key={m.id} msg={m} onReport={handleReport} onHandoff={handleHandoff} onOpenSupport={() => onNavigate?.('support')} />
             ))}
             {typing && <Typing />}
             <div ref={bottomRef} />

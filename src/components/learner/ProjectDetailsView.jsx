@@ -1,58 +1,61 @@
-import { useState } from "react";
-// ═══════════════════════════════════════════════════════════════════════════════
-// MOCK DATA
-// ═══════════════════════════════════════════════════════════════════════════════
-const PROJECT = {
-  id: "p1",
-  title: "Build a REST API with Python & PostgreSQL",
-  description:
-    "Design, implement, and document a production-grade REST API for a task-management service using FastAPI and PostgreSQL. Covers authentication, CRUD operations, pagination, rate limiting, and OpenAPI documentation. You will work independently with weekly async check-ins from a senior engineer at DataFlow Systems.",
-  type: "Practice Task",
-  typeEmoji: "🔧",
-  difficulty: "Intermediate",
-  matchScore: 91,
-  estimatedHours: "12–16 h",
-  estimatedDuration: "2–3 weeks",
-  startDate: "1 Oct 2026",
-  endDate: "21 Oct 2026",
-  workMode: "Async / Remote",
-  sponsor: "DataFlow Systems",
-  sponsorRole: "Senior Engineer",
-  openSpots: 4,
-  totalSpots: 6,
-  deadline: "29 Sep 2026",
-  objectives: [
-    "Design a normalized PostgreSQL schema for a task-management domain",
-    "Implement a FastAPI application with JWT authentication and RBAC",
-    "Build full CRUD endpoints with pagination, filtering, and sorting",
-    "Write an OpenAPI specification and integrate Swagger UI",
-    "Set up basic CI with GitHub Actions and containerize with Docker",
-  ],
-  requirements: [
-    { skillName: "Python", minLevel: 3, maxLevel: 5, yourLevel: 3, isCritical: false },
-    { skillName: "SQL", minLevel: 3, maxLevel: 5, yourLevel: 3, isCritical: false },
-    { skillName: "REST API Design", minLevel: 2, maxLevel: 5, yourLevel: 2, isCritical: false },
-    { skillName: "Git & CI/CD", minLevel: 2, maxLevel: 5, yourLevel: 2, isCritical: false },
-    { skillName: "System Design", minLevel: 2, maxLevel: 5, yourLevel: 2, isCritical: true },
-  ],
-  learningOutcomes: [
-    { skill: "Python", gain: "+1 Level (L3→L4)", impact: "High" },
-    { skill: "REST API Design", gain: "+1 Level (L2→L3)", impact: "High" },
-    { skill: "SQL", gain: "Verified Evidence", impact: "Medium" },
-    { skill: "Git & CI/CD", gain: "Verified Evidence", impact: "Low" },
-  ],
-  eligibilityNote:
-    "You meet all minimum skill requirements. Python (L3) and SQL (L3) satisfy the entry thresholds. System Design (L2) meets the minimum (L2) for this project.",
-  phase: 3,
-  phaseName: "Applied Practice",
-  tags: ["Python", "FastAPI", "PostgreSQL", "REST", "Docker", "CI/CD"],
-};
+import { applyToProject, withdrawApplication, getProject, getRecommendations, submitRecommendationFeedback, unwrapApiData } from "../../api";
+import { useEffect, useMemo, useState } from "react";
+import { applicationStatusLabel } from "../../utils/projectMapping";
+
+function normalizeProject(raw) {
+  const p = unwrapApiData(raw) || raw || {};
+  const rawRequirements = p.required_skills ?? p.requiredSkills ?? p.requirements ?? [];
+  const requirements = (Array.isArray(rawRequirements) ? rawRequirements : []).map((item) => ({
+    skillName: item.skill_name ?? item.skill?.name ?? item.name ?? "Skill",
+    minLevel: Number(item.minimum_required_level ?? item.minimum_level ?? item.minLevel ?? 1),
+    maxLevel: 5,
+    yourLevel: Number(item.current_level ?? item.your_level ?? item.yourLevel ?? 0),
+    isCritical: Boolean(item.is_critical_entry ?? item.is_critical ?? item.isCritical),
+  }));
+  const rawOutcomes = p.learning_outcomes ?? p.learningOutcomes ?? [];
+  const outcomes = Array.isArray(rawOutcomes) ? rawOutcomes : [];
+  const dates = (value) => value ? new Date(value).toLocaleDateString() : "Not specified";
+  const startDate = dates(p.start_date ?? p.startDate);
+  const endDate = dates(p.end_date ?? p.endDate);
+  return {
+    ...p,
+    id: p.id ?? p.project_id ?? p.uuid ?? null,
+    title: p.title ?? p.name ?? "Untitled project",
+    description: p.description ?? "",
+    type: p.type ?? p.project_type ?? "Real Project",
+    difficulty: p.difficulty ?? "Not specified",
+    matchScore: Number(p.match_score ?? p.matchScore ?? 0),
+    estimatedHours: p.estimated_hours ?? p.estimatedHours ?? "Not specified",
+    estimatedDuration: p.estimated_duration ?? p.duration ?? (p.duration_days ? `${p.duration_days} days` : "Not specified"),
+    startDate, endDate,
+    workMode: p.work_mode ?? p.workMode ?? "Not specified",
+    sponsor: p.organization?.title ?? p.organization?.name ?? "Not specified",
+    sponsorRole: p.role ?? p.career_role?.title ?? "Not specified",
+    openSpots: p.capacity_state?.seats_remaining ?? p.capacity_state?.remaining ?? p.open_spots ?? null,
+    totalSpots: p.capacity_state?.capacity ?? p.capacity ?? null,
+    deadline: dates(p.application_deadline ?? p.deadline),
+    objectives: Array.isArray(p.objectives) ? p.objectives : (typeof p.objectives === "string" ? p.objectives.split(/\r?\n/).filter(Boolean) : []),
+    requirements,
+    learningOutcomes: outcomes.map((o) => typeof o === "string" ? { skill: o, gain: "Not specified", impact: "Not specified" } : ({ skill: o.skill ?? o.name ?? o.title ?? "Learning outcome", gain: o.gain ?? o.outcome ?? "Not specified", impact: o.impact ?? "Not specified" })),
+    // GET /projects/{id} sends eligibility: { eligible, reasons[], skill_failures[] }.
+    isEligible: p.eligibility?.eligible ?? null,
+    eligibilityNote: (Array.isArray(p.eligibility?.reasons) && p.eligibility.reasons.filter(Boolean).join(" "))
+      || p.eligibility?.message || p.eligibility_reason || "Eligibility details were not provided by the server.",
+    phase: p.roadmap_phase ?? p.phase ?? "—",
+    phaseName: p.roadmap_phase_name ?? p.phase_name ?? "",
+    tags: p.tags ?? [],
+    application_id: p.application_id ?? p.application?.id ?? null,
+  };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATOMS
 // ═══════════════════════════════════════════════════════════════════════════════
+// eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function Sk({ w = "100%", h = 14, r = 8 }) {
   return <div className="shimmer" style={{ width: w, height: h, borderRadius: r }} />;
 }
+// eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function Bar({ pct, color, h = 5 }) {
   return (
     <div className="w-full rounded-full bg-[#f1f3fa] overflow-hidden" style={{ height: h }}>
@@ -83,7 +86,7 @@ function StatusPill({ status }) {
     Rejected: { bg: "rgba(239,68,68,0.08)", border: "rgba(239,68,68,0.2)", dot: "#ef4444", text: "#ef4444" },
     Withdrawn: { bg: "rgba(148,163,184,0.08)", border: "rgba(148,163,184,0.2)", dot: "#94a3b8", text: "#94a3b8" },
   };
-  const c = cfg[status];
+  const c = cfg[status] ?? cfg.Submitted;
   return (
     <span
       className="inline-flex items-center gap-[5px] text-[12px] font-['Inter:Semi_Bold',sans-serif] font-semibold px-[10px] py-[4px] rounded-full border"
@@ -135,15 +138,12 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
 
         <div className="flex items-start gap-[16px]">
           {/* Icon */}
-          <div className="w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-[22px] shrink-0 bg-[rgba(59,139,255,0.08)] border border-[rgba(59,139,255,0.15)]">
-            {project.typeEmoji}
-          </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-[12px]">
               <div>
                 <div className="flex items-center gap-[6px] mb-[4px]">
                   <span className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#3b8bff] bg-[rgba(59,139,255,0.1)] px-[7px] py-[1px] rounded-full">
-                    ⚡ Recommended #1
+                    Project details
                   </span>
                   <span className="text-[10px] font-['Inter:Medium',sans-serif] font-medium text-[#7c3aed] bg-[rgba(124,58,237,0.08)] px-[7px] py-[1px] rounded-full">
                     Phase {project.phase} · {project.phaseName}
@@ -224,18 +224,19 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
             {/* Meta chips */}
             <div className="flex items-center gap-[8px] mt-[8px] flex-wrap">
               {[
-                { l: project.type, ic: "🔧" },
-                { l: project.difficulty, ic: "⚡" },
-                { l: project.estimatedHours, ic: "⏱" },
-                { l: project.estimatedDuration, ic: "📅" },
-                { l: project.workMode, ic: "💻" },
-                { l: `${project.openSpots} spots left`, ic: "👥" },
-              ].map((m) => (
+                { l: project.type },
+                { l: project.difficulty },
+                { l: project.estimatedHours },
+                { l: project.estimatedDuration },
+                { l: project.workMode },
+                { l: project.openSpots != null ? `${project.openSpots} spots left` : null },
+              ]
+                .filter((m, i, all) => m.l && m.l !== "Not specified" && all.findIndex((x) => x.l === m.l) === i)
+                .map((m) => (
                 <span
                   key={m.l}
                   className="flex items-center gap-[4px] text-[11px] font-['Inter:Regular',sans-serif] text-[#64748b] bg-[#f8f9fd] border border-[#eef0f8] px-[8px] py-[3px] rounded-full"
                 >
-                  <span>{m.ic}</span>
                   {m.l}
                 </span>
               ))}
@@ -249,17 +250,31 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
         {/* Left: main content */}
         <div className="flex-1 overflow-y-auto px-[32px] py-[24px] flex flex-col gap-[24px]">
           {/* Eligibility banner */}
-          <div className="flex items-start gap-[10px] bg-[rgba(5,150,105,0.06)] border border-[rgba(5,150,105,0.18)] rounded-[12px] px-[16px] py-[12px]">
-            <span className="text-[16px] mt-[1px]">✓</span>
-            <div>
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#059669] mb-[2px]">
-                You are eligible for this project
-              </p>
-              <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.5]">
-                {project.eligibilityNote}
-              </p>
+          {project.isEligible === false ? (
+            <div className="flex items-start gap-[10px] bg-[rgba(239,68,68,0.06)] border border-[rgba(239,68,68,0.18)] rounded-[12px] px-[16px] py-[12px]">
+              <span className="text-[16px] mt-[1px] text-[#ef4444]">✕</span>
+              <div>
+                <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#ef4444] mb-[2px]">
+                  You are not eligible for this project yet
+                </p>
+                <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.5]">
+                  {project.eligibilityNote}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-start gap-[10px] bg-[rgba(5,150,105,0.06)] border border-[rgba(5,150,105,0.18)] rounded-[12px] px-[16px] py-[12px]">
+              <span className="text-[16px] mt-[1px]">✓</span>
+              <div>
+                <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#059669] mb-[2px]">
+                  You are eligible for this project
+                </p>
+                <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.5]">
+                  {project.eligibilityNote}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* About */}
           <div>
@@ -396,7 +411,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
                 { l: "End", v: project.endDate },
                 { l: "Application deadline", v: project.deadline },
                 { l: "Work mode", v: project.workMode },
-                { l: "Capacity", v: `${project.openSpots} of ${project.totalSpots} spots open` },
+                { l: "Capacity", v: project.openSpots != null && project.totalSpots != null ? `${project.openSpots} of ${project.totalSpots} spots open` : "Not specified" },
                 { l: "Sponsor", v: project.sponsor },
               ].map((s) => (
                 <div key={s.l} className="bg-[#f8f9fd] border border-[#eef0f8] rounded-[10px] p-[10px]">
@@ -409,9 +424,6 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
 
           {/* Sponsor */}
           <div className="bg-white border border-[#e8eaf0] rounded-[12px] p-[16px] flex items-center gap-[14px]">
-            <div className="w-[42px] h-[42px] rounded-[12px] bg-[rgba(59,139,255,0.08)] border border-[rgba(59,139,255,0.12)] flex items-center justify-center text-[16px] shrink-0">
-              🏢
-            </div>
             <div>
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
                 {project.sponsor}
@@ -462,14 +474,15 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
 
           {/* Deadline urgency */}
           <div className="flex items-center gap-[8px] bg-[rgba(245,158,11,0.07)] border border-[rgba(245,158,11,0.2)] rounded-[10px] px-[12px] py-[10px]">
-            <span className="text-[14px]">⏰</span>
             <div>
               <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#f59e0b]">
                 Deadline: {project.deadline}
               </p>
-              <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-                {project.openSpots} spots remaining
-              </p>
+              {project.openSpots != null && (
+                <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
+                  {project.openSpots} spots remaining
+                </p>
+              )}
             </div>
           </div>
 
@@ -542,9 +555,6 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
           </button>
         </div>
         <div className="flex items-center gap-[8px]">
-          <div className="w-[36px] h-[36px] rounded-[10px] bg-[rgba(59,139,255,0.08)] border border-[rgba(59,139,255,0.15)] flex items-center justify-center text-[15px] shrink-0">
-            {project.typeEmoji}
-          </div>
           <div>
             <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Applying to</p>
             <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#0a0b14]">
@@ -652,7 +662,7 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
               Back
             </button>
             <button
-              onClick={valid ? onSubmit : undefined}
+              onClick={valid ? () => onSubmit({ motivation, availability: hours }) : undefined}
               className={`flex-1 py-[11px] rounded-[11px] text-[14px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white transition-all ${valid ? "shadow-[0_4px_16px_rgba(59,139,255,0.3)] hover:shadow-[0_6px_20px_rgba(59,139,255,0.4)]" : "opacity-40 cursor-not-allowed"}`}
               style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}
             >
@@ -667,17 +677,25 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // APPLY CONFIRMATION
 // ═══════════════════════════════════════════════════════════════════════════════
-function ApplyConfirmScreen({ project, onConfirm, onBack }) {
+function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
   const [submitting, setSubmitting] = useState(false);
-  function handleConfirm() {
+  const [submitError, setSubmitError] = useState("");
+  async function handleConfirm() {
+    if (!project?.id || submitting) return;
     setSubmitting(true);
-    setTimeout(() => {
+    setSubmitError("");
+    try {
+      const response = await applyToProject(project.id, { application_data: applicationData || {} });
+      onConfirm(unwrapApiData(response));
+    } catch (error) {
+      setSubmitError(error?.message || "Unable to submit the request to the server.");
+    } finally {
       setSubmitting(false);
-      onConfirm();
-    }, 1400);
+    }
   }
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      {submitError && <div role="alert" className="mx-8 mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{submitError}</div>}
       <div className="bg-white border-b border-[#e8eaf0] px-[32px] py-[16px] shrink-0">
         <button
           onClick={onBack}
@@ -728,9 +746,6 @@ function ApplyConfirmScreen({ project, onConfirm, onBack }) {
 
           {/* Project card */}
           <div className="bg-white border border-[#e8eaf0] rounded-[14px] p-[18px] flex items-start gap-[14px]">
-            <div className="w-[40px] h-[40px] rounded-[10px] bg-[rgba(59,139,255,0.08)] border border-[rgba(59,139,255,0.12)] flex items-center justify-center text-[16px] shrink-0">
-              {project.typeEmoji}
-            </div>
             <div className="flex-1">
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#0a0b14]">
                 {project.title}
@@ -823,18 +838,28 @@ function ApplyConfirmScreen({ project, onConfirm, onBack }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // APPLICATION STATUS SCREEN
 // ═══════════════════════════════════════════════════════════════════════════════
-function AppStatusScreen({ project, status, onWithdraw, onBack }) {
+function AppStatusScreen({ project, status, application = null, onWithdraw, onBack }) {
+  // Dates come from the application record the server returned; a step the
+  // server has not dated yet reads "Pending" instead of an invented date.
+  const formatStepDate = (value) => {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  };
+  const submittedAt = formatStepDate(application?.submitted_at ?? application?.created_at);
+  const reviewedAt = formatStepDate(application?.reviewed_at);
+  const decidedAt = formatStepDate(application?.decided_at ?? application?.decision_at);
   const timeline = [
-    { label: "Application submitted", date: "22 Sep 2026, 14:32", done: true, active: false },
+    { label: "Application submitted", date: submittedAt ?? "Pending", done: true, active: false },
     {
       label: "Under review",
-      date: status !== "Submitted" ? "23 Sep 2026" : "Pending",
+      date: status !== "Submitted" ? reviewedAt ?? "Pending" : "Pending",
       done: status !== "Submitted",
       active: status === "Under Review",
     },
     {
       label: "Decision",
-      date: ["Accepted", "Rejected"].includes(status) ? "25 Sep 2026" : "Pending",
+      date: ["Accepted", "Rejected"].includes(status) ? decidedAt ?? "Pending" : "Pending",
       done: ["Accepted", "Rejected"].includes(status),
       active: false,
     },
@@ -869,9 +894,6 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
           {/* Status hero */}
           {status === "Submitted" && (
             <div className="bg-[rgba(59,139,255,0.05)] border border-[rgba(59,139,255,0.15)] rounded-[16px] p-[22px] flex items-start gap-[14px]">
-              <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(59,139,255,0.12)] border border-[rgba(59,139,255,0.2)] flex items-center justify-center text-[18px] shrink-0">
-                📤
-              </div>
               <div>
                 <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#3b8bff] mb-[4px]">
                   Application submitted successfully
@@ -893,9 +915,6 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
                 style={{ background: "radial-gradient(circle,#059669,transparent 70%)" }}
               />
               <div className="relative flex items-start gap-[14px]">
-                <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(5,150,105,0.2)] border border-[rgba(5,150,105,0.3)] flex items-center justify-center text-[18px] shrink-0">
-                  🎉
-                </div>
                 <div>
                   <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#34d399] mb-[4px]">
                     Congratulations — you've been accepted!
@@ -910,9 +929,6 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
           )}
           {status === "Rejected" && (
             <div className="bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.15)] rounded-[16px] p-[22px] flex items-start gap-[14px]">
-              <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.2)] flex items-center justify-center text-[18px] shrink-0">
-                📋
-              </div>
               <div>
                 <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#ef4444] mb-[4px]">
                   Application not accepted this time
@@ -926,9 +942,6 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
           )}
           {status === "Under Review" && (
             <div className="bg-[rgba(245,158,11,0.05)] border border-[rgba(245,158,11,0.15)] rounded-[16px] p-[22px] flex items-start gap-[14px]">
-              <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(245,158,11,0.12)] border border-[rgba(245,158,11,0.2)] flex items-center justify-center text-[18px] shrink-0">
-                🔍
-              </div>
               <div>
                 <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#f59e0b] mb-[4px]">
                   Your application is under review
@@ -943,9 +956,6 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
 
           {/* Project */}
           <div className="bg-white border border-[#e8eaf0] rounded-[12px] p-[16px] flex items-center gap-[12px]">
-            <div className="w-[36px] h-[36px] rounded-[9px] bg-[rgba(59,139,255,0.08)] border border-[rgba(59,139,255,0.12)] flex items-center justify-center text-[14px] shrink-0">
-              {project.typeEmoji}
-            </div>
             <div className="flex-1 min-w-0">
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14] truncate">
                 {project.title}
@@ -955,7 +965,7 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
               </p>
             </div>
             <div className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] shrink-0">
-              Ref #APP-20260922
+              {application?.id ?? application?.application_id ? `Ref #${application?.id ?? application?.application_id}` : null}
             </div>
           </div>
 
@@ -1041,22 +1051,31 @@ function AppStatusScreen({ project, status, onWithdraw, onBack }) {
 function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
   const [reason, setReason] = useState("");
   const [confirming, setConfirming] = useState(false);
-  function handleConfirm() {
+  const [withdrawError, setWithdrawError] = useState("");
+  async function handleConfirm() {
+    const applicationId = project?.application_id ?? project?.applicationId;
+    if (!applicationId || confirming) {
+      setWithdrawError("The server did not provide the current application ID. No application was withdrawn.");
+      return;
+    }
     setConfirming(true);
-    setTimeout(() => {
-      setConfirming(false);
+    setWithdrawError("");
+    try {
+      await withdrawApplication(applicationId);
       onConfirm();
-    }, 1000);
+    } catch (error) {
+      setWithdrawError(error?.message || "Unable to withdraw the application from the server.");
+    } finally {
+      setConfirming(false);
+    }
   }
   return (
     <div className="flex flex-col h-full overflow-hidden items-center justify-center px-[32px] py-[32px]">
       <div className="max-w-[480px] w-full bg-white border border-[#e8eaf0] rounded-[20px] overflow-hidden">
+        {withdrawError && <div role="alert" className="m-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{withdrawError}</div>}
         <div className="h-[4px] bg-[#ef4444]" />
         <div className="p-[28px] flex flex-col gap-[18px]">
           <div className="flex items-start gap-[12px]">
-            <div className="w-[42px] h-[42px] rounded-[12px] bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.15)] flex items-center justify-center text-[18px] shrink-0">
-              ⚠
-            </div>
             <div>
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#0a0b14] mb-[4px]">
                 Withdraw your application?
@@ -1117,12 +1136,13 @@ function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
 // WITHDRAWN STATE
 // ═══════════════════════════════════════════════════════════════════════════════
 function WithdrawnScreen({ project, onBack }) {
+  // The moment this screen opens is the moment the server confirmed the withdrawal.
+  const [withdrawnAt] = useState(() =>
+    new Date().toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+  );
   return (
     <div className="flex flex-col h-full overflow-hidden items-center justify-center px-[32px] py-[32px]">
       <div className="max-w-[520px] w-full flex flex-col items-center text-center gap-[20px]">
-        <div className="w-[72px] h-[72px] rounded-[20px] bg-[#f1f3fa] border border-[#e8eaf0] flex items-center justify-center text-[28px]">
-          📤
-        </div>
         <div>
           <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[20px] text-[#0a0b14] mb-[6px]">
             Application withdrawn
@@ -1131,7 +1151,7 @@ function WithdrawnScreen({ project, onBack }) {
             Your application to{" "}
             <strong className="font-['Inter:Semi_Bold',sans-serif] text-[#0a0b14]">{project.title}</strong> has been
             withdrawn. This has been recorded on{" "}
-            <strong className="font-['Inter:Semi_Bold',sans-serif]">22 Sep 2026 at 15:04</strong>. You may re-apply if
+            <strong className="font-['Inter:Semi_Bold',sans-serif]">{withdrawnAt}</strong>. You may re-apply if
             spots become available before the deadline.
           </p>
         </div>
@@ -1157,6 +1177,7 @@ function WithdrawnScreen({ project, onBack }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // FAILURE STATES
 // ═══════════════════════════════════════════════════════════════════════════════
+// eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function IneligibleScreen({ project, onBack }) {
   return (
     <div className="flex flex-col h-full overflow-hidden items-center justify-center px-[32px] py-[32px]">
@@ -1164,9 +1185,6 @@ function IneligibleScreen({ project, onBack }) {
         <div className="h-[4px] bg-[#ef4444]" />
         <div className="p-[28px] flex flex-col gap-[18px]">
           <div className="flex items-start gap-[12px]">
-            <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.15)] flex items-center justify-center text-[20px] shrink-0">
-              🚫
-            </div>
             <div>
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#ef4444] mb-[4px]">
                 Not eligible for this project
@@ -1221,6 +1239,7 @@ function IneligibleScreen({ project, onBack }) {
     </div>
   );
 }
+// eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function DuplicateScreen({ project, onViewStatus, onBack }) {
   return (
     <div className="flex flex-col h-full overflow-hidden items-center justify-center px-[32px] py-[32px]">
@@ -1228,9 +1247,6 @@ function DuplicateScreen({ project, onViewStatus, onBack }) {
         <div className="h-[4px] bg-[#f59e0b]" />
         <div className="p-[28px] flex flex-col gap-[18px]">
           <div className="flex items-start gap-[12px]">
-            <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(245,158,11,0.1)] border border-[rgba(245,158,11,0.2)] flex items-center justify-center text-[20px] shrink-0">
-              ⚠
-            </div>
             <div>
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#f59e0b] mb-[4px]">
                 You already have an active application
@@ -1245,10 +1261,10 @@ function DuplicateScreen({ project, onViewStatus, onBack }) {
           <div className="bg-[rgba(245,158,11,0.05)] border border-[rgba(245,158,11,0.15)] rounded-[10px] p-[14px] flex items-center justify-between">
             <div>
               <p className="text-[12px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14] mb-[1px]">
-                Application #APP-20260915
+                {project.application_id ? `Application #${project.application_id}` : "Active application"}
               </p>
               <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-                Submitted 15 Sep 2026 · Under Review
+                Under Review
               </p>
             </div>
             <StatusPill status="Under Review" />
@@ -1273,6 +1289,7 @@ function DuplicateScreen({ project, onViewStatus, onBack }) {
     </div>
   );
 }
+// eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function ExpiredFullScreen({ project, variant, onBack }) {
   const isExpired = variant === "expired";
   return (
@@ -1281,9 +1298,6 @@ function ExpiredFullScreen({ project, variant, onBack }) {
         <div className="h-[4px] bg-[#94a3b8]" />
         <div className="p-[28px] flex flex-col gap-[18px]">
           <div className="flex items-start gap-[12px]">
-            <div className="w-[44px] h-[44px] rounded-[12px] bg-[rgba(148,163,184,0.1)] border border-[rgba(148,163,184,0.2)] flex items-center justify-center text-[20px] shrink-0">
-              {isExpired ? "🔒" : "👥"}
-            </div>
             <div>
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#64748b] mb-[4px]">
                 {isExpired ? "Application period has closed" : "Project is fully booked"}
@@ -1323,154 +1337,87 @@ function ExpiredFullScreen({ project, variant, onBack }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
-const DEMO_SCENARIOS = [
-  { key: "details", label: "Details" },
-  { key: "requirements", label: "Requirements" },
-  { key: "apply-form", label: "Apply Form" },
-  { key: "apply-confirm", label: "Confirm" },
-  { key: "app-status-submitted", label: "Status: Submitted" },
-  { key: "app-status-accepted", label: "Status: Accepted" },
-  { key: "app-status-rejected", label: "Status: Rejected" },
-  { key: "withdraw-confirm", label: "Withdraw" },
-  { key: "withdrawn", label: "Withdrawn" },
-  { key: "saved", label: "Saved Rec" },
-  { key: "hidden", label: "Hidden Rec" },
-  { key: "declined", label: "Declined Rec" },
-  { key: "ineligible", label: "Ineligible" },
-  { key: "duplicate", label: "Duplicate" },
-  { key: "expired", label: "Expired" },
-  { key: "full", label: "Full" },
-];
-export default function ProjectDetailsView({ onBack }) {
+
+export default function ProjectDetailsView({ projectId, onBack }) {
+  const [rawProject, setRawProject] = useState(null);
+  const [loadingProject, setLoadingProject] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const project = useMemo(() => rawProject ? normalizeProject(rawProject) : null, [rawProject]);
+  useEffect(() => {
+    let active = true;
+    if (!projectId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset missing-id error
+      setLoadError("No project was selected for details.");
+      setLoadingProject(false);
+      return () => { active = false; };
+    }
+    setLoadingProject(true);
+    setLoadError("");
+    getProject(projectId).then((data) => {
+      if (active) setRawProject(data);
+    }).catch((error) => {
+      if (active) setLoadError(error?.message || "Unable to load project details from the server.");
+    }).finally(() => { if (active) setLoadingProject(false); });
+    return () => { active = false; };
+  }, [projectId]);
   const [screen, setScreen] = useState("details");
   const [appStatus, setAppStatus] = useState("Submitted");
+  const [applicationData, setApplicationData] = useState({});
+  const [activeApplicationId, setActiveApplicationId] = useState(null);
+  const [submittedApplication, setSubmittedApplication] = useState(null);
+  const [recommendationId, setRecommendationId] = useState(null);
   const [recState, setRecState] = useState("default");
-  const [projectState] = useState("open");
-  const [failureState, setFailureState] = useState("none");
-  const [demoScenario, setDemoScenario] = useState("details");
-  function applyScenario(s) {
-    setDemoScenario(s);
-    setScreen("details");
-    setRecState("default");
-    setFailureState("none");
-    switch (s) {
-      case "details":
-        setScreen("details");
-        break;
-      case "requirements":
-        setScreen("details");
-        break;
-      case "apply-form":
-        setScreen("apply-form");
-        break;
-      case "apply-confirm":
-        setScreen("apply-confirm");
-        break;
-      case "app-status-submitted":
-        setScreen("app-status");
-        setAppStatus("Submitted");
-        break;
-      case "app-status-accepted":
-        setScreen("app-status");
-        setAppStatus("Accepted");
-        break;
-      case "app-status-rejected":
-        setScreen("app-status");
-        setAppStatus("Rejected");
-        break;
-      case "withdraw-confirm":
-        setScreen("withdraw-confirm");
-        break;
-      case "withdrawn":
-        setScreen("withdrawn");
-        break;
-      case "saved":
-        setScreen("details");
-        setRecState("saved");
-        break;
-      case "hidden":
-        setScreen("details");
-        setRecState("hidden");
-        break;
-      case "declined":
-        setScreen("details");
-        setRecState("declined");
-        break;
-      case "ineligible":
-        setScreen("details");
-        setFailureState("ineligible");
-        break;
-      case "duplicate":
-        setScreen("details");
-        setFailureState("duplicate");
-        break;
-      case "expired":
-      case "full":
-        setScreen("details");
-        break;
-    }
-  }
+  const [feedbackError, setFeedbackError] = useState("");
+  useEffect(() => {
+    let active = true;
+    getRecommendations({ page: 1, perPage: 50 }).then((payload) => {
+      const value = unwrapApiData(payload);
+      const rows = Array.isArray(value) ? value : Array.isArray(value?.data) ? value.data : Array.isArray(value?.recommendations) ? value.recommendations : [];
+      const match = rows.find((row) => String(row.project_id ?? row.project?.id ?? row.project?.project_id ?? "") === String(projectId));
+      if (active && match) setRecommendationId(match.id ?? match.recommendation_id ?? null);
+    }).catch(() => { if (active) setRecommendationId(null); });
+    return () => { active = false; };
+  }, [projectId]);
+  const handleRecommendationAction = async (action) => {
+    if (action === "default") { setRecState("default"); return; }
+    if (!recommendationId) { setFeedbackError("No recommendation record exists for this project on the server. The change was not saved."); return; }
+    const eventType = action === "saved" ? "save" : action === "hidden" ? "hide" : "decline";
+    setFeedbackError("");
+    try {
+      await submitRecommendationFeedback(recommendationId, { event_type: eventType });
+      setRecState(action);
+    } catch (error) { setFeedbackError(error?.message || "Unable to save your recommendation feedback."); }
+  };
   const renderContent = () => {
-    // Failure states overlay the details
-    if (screen === "details" && failureState === "ineligible") {
-      return (
-        <IneligibleScreen
-          project={PROJECT}
-          onBack={() => {
-            setFailureState("none");
-            onBack();
-          }}
-        />
-      );
-    }
-    if (screen === "details" && failureState === "duplicate") {
-      return (
-        <DuplicateScreen
-          project={PROJECT}
-          onViewStatus={() => {
-            setFailureState("none");
-            setScreen("app-status");
-            setAppStatus("Under Review");
-          }}
-          onBack={() => setFailureState("none")}
-        />
-      );
-    }
-    if ((demoScenario === "expired" || demoScenario === "full") && screen === "details") {
-      return (
-        <ExpiredFullScreen
-          project={PROJECT}
-          variant={demoScenario === "expired" ? "expired" : "full"}
-          onBack={onBack}
-        />
-      );
-    }
     switch (screen) {
       case "details":
         return (
           <DetailsScreen
-            project={PROJECT}
+            project={project}
             onApply={() => setScreen("apply-form")}
             onBack={onBack}
             recState={recState}
-            onRecAction={setRecState}
+            onRecAction={handleRecommendationAction}
           />
         );
       case "apply-form":
         return (
           <ApplyFormScreen
-            project={PROJECT}
-            onSubmit={() => setScreen("apply-confirm")}
+            project={project}
+            onSubmit={(answers) => { setApplicationData(answers); setScreen("apply-confirm"); }}
             onBack={() => setScreen("details")}
           />
         );
       case "apply-confirm":
         return (
           <ApplyConfirmScreen
-            project={PROJECT}
-            onConfirm={() => {
+            project={project}
+            applicationData={applicationData}
+            onConfirm={(application) => {
+              setActiveApplicationId(application?.id ?? application?.application_id ?? application?.application?.id ?? null);
+              setSubmittedApplication(application?.application ?? application ?? null);
               setScreen("app-status");
-              setAppStatus("Submitted");
+              setAppStatus(applicationStatusLabel(application?.status));
             }}
             onBack={() => setScreen("apply-form")}
           />
@@ -1478,8 +1425,9 @@ export default function ProjectDetailsView({ onBack }) {
       case "app-status":
         return (
           <AppStatusScreen
-            project={PROJECT}
+            project={project}
             status={appStatus}
+            application={submittedApplication}
             onWithdraw={() => setScreen("withdraw-confirm")}
             onBack={() => setScreen("details")}
           />
@@ -1487,19 +1435,22 @@ export default function ProjectDetailsView({ onBack }) {
       case "withdraw-confirm":
         return (
           <WithdrawConfirmScreen
-            project={PROJECT}
+            project={{ ...project, application_id: activeApplicationId ?? project.application_id }}
             onConfirm={() => setScreen("withdrawn")}
             onCancel={() => setScreen("app-status")}
           />
         );
       case "withdrawn":
-        return <WithdrawnScreen project={PROJECT} onBack={() => setScreen("details")} />;
+        return <WithdrawnScreen project={project} onBack={() => setScreen("details")} />;
       default:
         return null;
     }
   };
+  if (loadingProject) return <div role="status" className="p-8 text-sm text-slate-600">Loading project details…</div>;
+  if (loadError || !project) return <div className="p-8" role="alert"><p className="mb-3 text-sm text-red-700">{loadError || "The service did not return project details."}</p><button className="rounded-lg border px-4 py-2" onClick={onBack}>Back to Projects</button></div>;
   return (
     <div className="flex flex-col h-full overflow-hidden bg-[#f1f3fa]">
+      {feedbackError && <p role="alert" className="px-4 py-2 text-sm text-red-700 bg-red-50">{feedbackError}</p>}
       <div className="flex-1 overflow-hidden bg-[#f1f3fa]">{renderContent()}</div>
 
    </div>

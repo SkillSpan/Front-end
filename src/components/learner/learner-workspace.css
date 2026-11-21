@@ -2,3 +2,18 @@
 .learner-loading{position:fixed;right:20px;top:78px;z-index:150;background:#fff;border:1px solid #e8eaf0;border-radius:8px;padding:8px 12px;font-size:12px;color:#64748b;box-shadow:0 3px 12px rgba(0,0,0,.08)}
 .learner-api-note{position:fixed;right:20px;bottom:16px;z-index:150;max-width:460px;background:#fff8e6;border:1px solid #f2d38b;color:#8a6500;border-radius:10px;padding:10px 12px;font-size:11px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
 @media(max-width:700px){.learner-loading{right:10px;top:70px}.learner-api-note{right:10px;left:74px;max-width:none}}
+
+/* Dark theme: the two floating toasts. */
+:root[data-theme="dark"] .learner-loading {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #9fb0d0;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme="dark"] .learner-api-note {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #fcd34d;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}

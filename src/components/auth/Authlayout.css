@@ -1,12 +1,15 @@
 :root {
   --auth-sidebar-width: 380px;
-  --auth-btn-bottom: 72px;   /* بعد الزر الرئيسي عن أسفل الصفحة */
-  --auth-link-bottom: 26px;  /* بعد روابط (Back / Resend) عن أسفل الصفحة */
+  --auth-btn-bottom: 72px;   
+
+  --auth-link-bottom: 26px;  
+
 }
 
 @media (min-width: 901px) {
 
-  /* ---------- 1) السايد بار: العرض + الطول الكامل (كل الصفحات) ---------- */
+  
+
   :is(
     .register-wrapper .register-card,
     .login-wrapper .login-card,
@@ -24,7 +27,8 @@
     align-self: stretch !important;
   }
 
-  /* ---------- نفس شكل السايد بار (Register) على كل الصفحات ---------- */
+  
+
   :is(
     .register-wrapper .register-card,
     .login-wrapper .login-card,
@@ -144,7 +148,8 @@
     height: 28px;
   }
 
-  /* ---------- نفس الشي لسايد بار Reset Password (كلاسات reset-*) ---------- */
+  
+
   .reset-password-wrapper .reset-password-card .reset-brand {
     font-size: 1.85rem;
     font-weight: 800;
@@ -205,7 +210,8 @@
     margin-bottom: 0 !important;
   }
 
-  /* Forgot password (طلب الكود + Check your email) */
+  
+
   .forgot-wrapper .forgot-card .form-right-forgot {
     padding-bottom: var(--auth-btn-bottom) !important;
   }
@@ -236,7 +242,8 @@
     white-space: nowrap;
   }
 
-  /* Reset your password (كلمة السر الجديدة) */
+  
+
   .reset-password-wrapper .reset-password-card .reset-form-inner {
     padding-bottom: var(--auth-btn-bottom) !important;
   }
@@ -252,7 +259,8 @@
     white-space: nowrap;
   }
 
-  /* Check your email (التسجيل) */
+  
+
   .register-card .form-right.verification-container {
     position: relative;
     padding-bottom: var(--auth-btn-bottom) !important;
@@ -268,7 +276,8 @@
     text-align: center;
   }
 
-  /* OTP + Email verified (التسجيل) */
+  
+
   .register-card .form-right:is(.otp-container, .verified-container) {
     position: relative;
     padding-bottom: var(--auth-btn-bottom) !important;
@@ -287,7 +296,8 @@
     text-align: center;
   }
 
-  /* Register Step 1: زر Next أسفل الصفحة + رابط "log in" تحته */
+  
+
   .register-card .form-right:has(.btn-next) {
     position: relative;
     justify-content: flex-start;

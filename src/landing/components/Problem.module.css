@@ -1,0 +1,199 @@
+/* Problem → solution: four bridges. Problem cards are pale and dashed; solutions light up deep indigo. */
+.problem { overflow: hidden; }
+.bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.bg span { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55; }
+.bg span:first-child { width: 520px; height: 520px; right: -8%; top: 22%; background: radial-gradient(circle, rgba(158, 81, 250, 0.28), transparent 65%); }
+.bg span:last-child { width: 460px; height: 460px; left: -10%; bottom: -6%; background: radial-gradient(circle, rgba(41, 168, 255, 0.25), transparent 65%); }
+
+/* legend: Without → With */
+.legend {
+  display: grid; grid-template-columns: 1fr 140px 1fr; align-items: center;
+  max-width: 1040px; margin: 2.75rem auto 1.25rem;
+  font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+}
+:global(.landing-root[dir='rtl']) .legend { letter-spacing: 0; font-size: 0.8125rem; }
+.legend span { display: inline-flex; align-items: center; gap: 0.55rem; }
+.legend i { width: 8px; height: 8px; border-radius: 50%; }
+.legendOff { color: var(--ink-3); }
+.legendOff i { border: 1.5px dashed var(--ink-3); }
+.legendOn { color: var(--blue-600); }
+.legendOn i { background: var(--grad-brand); box-shadow: 0 0 10px rgba(41, 168, 255, 0.8); }
+.legendLine { height: 1px; margin-inline: 18px; background: linear-gradient(90deg, rgba(122, 129, 159, 0.4), rgba(41, 168, 255, 0.9)); }
+:global(.landing-root[dir='rtl']) .legendLine { background: linear-gradient(-90deg, rgba(122, 129, 159, 0.4), rgba(41, 168, 255, 0.9)); }
+
+.rows { list-style: none; margin: 0 auto; padding: 0; max-width: 1040px; display: grid; gap: 1.25rem; }
+.row {
+  display: grid; grid-template-columns: 1fr 140px 1fr; align-items: stretch;
+  outline: none; cursor: default;
+}
+.row:focus-visible .solutionCard { box-shadow: 0 0 0 3px rgba(41, 168, 255, 0.6); }
+
+/* --- problem card --- */
+.problemCard {
+  position: relative; display: grid; grid-template-columns: auto 1fr; column-gap: 0.9rem; align-content: start;
+  padding: 1.35rem 1.4rem; border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1.5px dashed #c9cde0;
+  color: var(--ink-2);
+  opacity: 0; transform: translate3d(0, 14px, 0);
+  transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
+}
+.problemCard h3 { grid-column: 2; margin: 0; font-size: 1.0625rem; font-weight: 600; color: #5d6485; text-decoration: line-through; text-decoration-color: rgba(240, 87, 122, 0.55); text-decoration-thickness: 1.5px; }
+.problemCard p { grid-column: 2; margin: 0.3rem 0 0; font-size: 0.9375rem; line-height: 1.55; color: var(--ink-3); }
+.num { position: absolute; top: 0.9rem; inset-inline-end: 1.1rem; font-size: 0.75rem; font-weight: 600; color: #b3b8cf; font-variant-numeric: tabular-nums; }
+.glyph {
+  grid-row: span 3; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px;
+  color: #9aa0bb; background: #eceef6; border: 1px solid #e0e3ef;
+}
+.pStat { grid-column: 2; display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.9rem; padding-top: 0.8rem; border-top: 1px dashed #d6d9e7; }
+.pStat b { font-size: 1.25rem; font-weight: 600; color: #8a90ab; letter-spacing: -0.02em; }
+.pStat span { font-size: 0.8125rem; color: var(--ink-3); }
+
+/* --- the bridge --- */
+.bridge { position: relative; align-self: center; height: 48px; margin-inline: 6px; }
+.bridge svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+:global(.landing-root[dir='rtl']) .bridge { transform: scaleX(-1); }
+.deck { fill: none; stroke: #cfd4e8; stroke-width: 1.5; stroke-dasharray: 3 5; }
+.beam {
+  fill: none; stroke: url(#none); stroke: #29a8ff; stroke-width: 2.5; stroke-linecap: round;
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  filter: drop-shadow(0 0 5px rgba(41, 168, 255, 0.9));
+}
+.spark, .node { position: absolute; border-radius: 50%; pointer-events: none; }
+.spark {
+  width: 10px; height: 10px; left: 0; top: 0; opacity: 0;
+  background: #fff; box-shadow: 0 0 0 3px rgba(41, 168, 255, 0.45), 0 0 18px 6px rgba(41, 168, 255, 0.85);
+  offset-path: path('M0 36 Q64 -7 128 36'); offset-rotate: 0deg;
+}
+.node {
+  width: 12px; height: 12px; right: -6px; top: calc(36px * 48 / 48 - 6px);
+  background: #dfe3f2; border: 2px solid #fff; box-shadow: 0 0 0 1px #cfd4e8;
+  transition: background 0.4s ease 0.9s, box-shadow 0.4s ease 0.9s;
+}
+
+/* --- solution card --- */
+.solutionCard {
+  position: relative; overflow: hidden; isolation: isolate;
+  display: grid; align-content: start;
+  padding: 1.35rem 1.5rem 1.25rem; border-radius: var(--radius-lg);
+  color: rgba(226, 232, 255, 0.78);
+  background: linear-gradient(150deg, #1a2370 0%, #121b5e 55%, #0b1440 100%);
+  box-shadow: 0 24px 50px -28px rgba(11, 20, 64, 0.7);
+  filter: saturate(0) brightness(1.6) contrast(0.55);
+  opacity: 0.35; transform: translate3d(-10px, 0, 0);
+  transition: filter 0.7s ease, opacity 0.7s ease, transform 0.7s var(--ease-out), box-shadow 0.7s ease;
+}
+:global(.landing-root[dir='rtl']) .solutionCard { transform: translate3d(10px, 0, 0); }
+.solutionCard::before {
+  /* gradient rim */
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; z-index: -1;
+  background: linear-gradient(140deg, rgba(41, 168, 255, 0.9), rgba(158, 81, 250, 0.5) 50%, rgba(249, 171, 31, 0.6));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+.solutionCard::after {
+  /* light sweep when it switches on */
+  content: ''; position: absolute; inset: -40% -60%; z-index: -1; opacity: 0;
+  background: linear-gradient(100deg, transparent 40%, rgba(120, 160, 255, 0.22) 50%, transparent 60%);
+  transform: translate3d(-40%, 0, 0);
+}
+.solutionCard h3 { margin: 0; font-size: 1.125rem; font-weight: 600; color: #fff; letter-spacing: -0.01em; padding-inline-end: 2.5rem; }
+.solutionCard p { margin: 0.35rem 0 0; font-size: 0.9375rem; line-height: 1.55; }
+.check {
+  position: absolute; top: 1.15rem; inset-inline-end: 1.2rem;
+  display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  font-size: 0.8125rem; font-weight: 700; color: #fff;
+  background: var(--grad-brand); box-shadow: 0 0 16px rgba(41, 168, 255, 0.6);
+  transform: scale(0.4); opacity: 0; transition: transform 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) 1.1s, opacity 0.3s ease 1.1s;
+}
+.sFoot { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-top: 1rem; padding-top: 0.9rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+.sStat { display: flex; align-items: baseline; gap: 0.5rem; }
+.sStat b {
+  font-size: 1.75rem; font-weight: 600; letter-spacing: -0.03em; line-height: 1;
+  background: linear-gradient(95deg, #7cc8ff, #b28bff); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.sStat span { font-size: 0.8125rem; color: rgba(226, 232, 255, 0.7); }
+
+/* mini visuals */
+.viz { flex: none; }
+.vizProjects { display: flex; gap: 5px; align-items: flex-end; }
+.vizProjects span { width: 34px; height: 40px; border-radius: 8px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16); position: relative; overflow: hidden; }
+.vizProjects span::before { content: ''; position: absolute; left: 6px; right: 6px; top: 8px; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.3); box-shadow: 0 7px 0 rgba(255, 255, 255, 0.18); }
+.vizProjects i { position: absolute; left: 0; right: 0; bottom: 0; height: 100%; background: linear-gradient(0deg, rgba(41, 168, 255, 0.55), transparent); transform: scaleY(0); transform-origin: bottom; }
+.vizRecord { display: grid; grid-template-columns: repeat(6, 9px); gap: 4px; }
+.vizRecord span { width: 9px; height: 9px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); }
+.vizRoadmap { position: relative; width: 110px; height: 14px; display: flex; justify-content: space-between; align-items: center; }
+.vizRoadmap .track { position: absolute; left: 4px; right: 4px; top: 6px; height: 2px; background: rgba(255, 255, 255, 0.14); border-radius: 2px; overflow: hidden; }
+.vizRoadmap .track i { position: absolute; inset: 0; background: var(--grad-brand); transform: scaleX(0); transform-origin: left; }
+:global(.landing-root[dir='rtl']) .vizRoadmap .track i { transform-origin: right; }
+.vizRoadmap b { position: relative; width: 12px; height: 12px; border-radius: 50%; background: #1a2370; border: 2px solid rgba(255, 255, 255, 0.25); }
+.scoreBg { fill: none; stroke: rgba(255, 255, 255, 0.12); stroke-width: 5; }
+.scoreFg {
+  fill: none; stroke: #29a8ff; stroke-width: 5; stroke-linecap: round;
+  stroke-dasharray: var(--c); stroke-dashoffset: var(--c);
+  transform: rotate(-90deg); transform-origin: 50% 50%;
+  filter: drop-shadow(0 0 4px rgba(41, 168, 255, 0.7));
+}
+
+/* ===== lit: the crossing (runs once per row, replayable on hover) ===== */
+.lit .problemCard { opacity: 1; transform: none; }
+.lit .beam { animation: beam 0.7s cubic-bezier(0.55, 0, 0.3, 1) 0.35s forwards; }
+.lit .spark { animation: cross 0.7s cubic-bezier(0.55, 0, 0.3, 1) 0.35s, ambient 3.6s ease-in-out 2.4s infinite; }
+.lit .node { background: #29a8ff; box-shadow: 0 0 0 4px rgba(41, 168, 255, 0.2), 0 0 14px rgba(41, 168, 255, 0.9); }
+.lit .solutionCard {
+  filter: none; opacity: 1; transform: none;
+  box-shadow: 0 30px 60px -28px rgba(11, 20, 64, 0.75), 0 0 0 1px rgba(41, 168, 255, 0.15), 0 18px 50px -20px rgba(108, 92, 255, 0.45);
+  transition-delay: 0.85s;
+}
+.lit .solutionCard::after { animation: sweep 1.1s ease 0.95s; }
+.lit .check { transform: scale(1); opacity: 1; }
+.lit .vizProjects i { animation: grow 0.6s var(--ease-out) forwards; animation-delay: calc(1.2s + var(--k) * 0.12s); }
+.lit .vizRecord span { animation: tick 0.3s ease forwards; animation-delay: calc(1.15s + var(--k) * 0.05s); }
+.lit .vizRoadmap .track i { animation: track 0.9s var(--ease-out) 1.2s forwards; }
+.lit .vizRoadmap b { animation: phase 0.3s ease forwards; animation-delay: calc(1.2s + var(--k) * 0.22s); }
+.lit .scoreFg { animation: score 1.1s var(--ease-out) 1.15s forwards; }
+
+@keyframes beam { to { stroke-dashoffset: 0; } }
+@keyframes cross { 0% { offset-distance: 0%; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
+@keyframes ambient { 0% { offset-distance: 0%; opacity: 0; } 15% { opacity: 0.9; } 70% { offset-distance: 100%; opacity: 0; } 100% { offset-distance: 100%; opacity: 0; } }
+@keyframes sweep { 0% { opacity: 1; transform: translate3d(-40%, 0, 0); } 100% { opacity: 0; transform: translate3d(40%, 0, 0); } }
+@keyframes grow { to { transform: scaleY(1); } }
+@keyframes tick { to { background: linear-gradient(135deg, #29a8ff, #9e51fa); box-shadow: 0 0 6px rgba(41, 168, 255, 0.6); } }
+@keyframes track { to { transform: scaleX(0.72); } }
+@keyframes phase { to { background: #29a8ff; border-color: #fff; box-shadow: 0 0 8px rgba(41, 168, 255, 0.9); } }
+@keyframes score { to { stroke-dashoffset: var(--off); } }
+
+/* stagger the four rows slightly */
+.row .problemCard { transition-delay: calc(var(--i) * 0.06s); }
+
+/* ===== tablet / phone: stack, vertical bridge ===== */
+@media (max-width: 860px) {
+  .legend { display: none; }
+  .rows { gap: 1.75rem; }
+  .row { grid-template-columns: 1fr; }
+  .bridge { height: 44px; margin: 0 auto; width: 2px; background: repeating-linear-gradient(180deg, #cfd4e8 0 3px, transparent 3px 8px); }
+  :global(.landing-root[dir='rtl']) .bridge { transform: none; }
+  .bridge svg { display: none; }
+  .spark { offset-path: none; left: -4px; }
+  .node { right: auto; left: -5px; top: auto; bottom: -6px; }
+  .lit .spark { animation: drop 0.6s ease-in 0.35s, dropLoop 3.6s ease-in-out 2.4s infinite; }
+  .solutionCard { transform: translate3d(0, -8px, 0); }
+  :global(.landing-root[dir='rtl']) .solutionCard { transform: translate3d(0, -8px, 0); }
+  .lit .solutionCard { transform: none; }
+}
+@keyframes drop { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(40px); opacity: 0; } }
+@keyframes dropLoop { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 0.9; } 60% { transform: translateY(40px); opacity: 0; } 100% { opacity: 0; } }
+
+@media (max-width: 480px) {
+  .problemCard, .solutionCard { padding: 1.15rem 1.15rem; }
+  .sFoot { flex-wrap: wrap; }
+}
+
+/* static (?static=1) / reduced motion: everything already lit, no animation */
+:global(.landing-root.is-static) .row * { animation: none !important; transition: none !important; }
+:global(.landing-root.is-static) .beam { stroke-dashoffset: 0; }
+:global(.landing-root.is-static) .vizProjects i { transform: none; }
+:global(.landing-root.is-static) .vizRecord span { background: linear-gradient(135deg, #29a8ff, #9e51fa); }
+:global(.landing-root.is-static) .vizRoadmap .track i { transform: scaleX(0.72); }
+:global(.landing-root.is-static) .vizRoadmap b { background: #29a8ff; border-color: #fff; }
+:global(.landing-root.is-static) .scoreFg { stroke-dashoffset: var(--off); }

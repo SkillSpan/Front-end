@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 import {
-  SEED_EVIDENCE,
+  MAX_EVIDENCE_DESCRIPTION,
   TYPE_META,
   isHttpUrl,
   validateFile,
@@ -19,13 +19,13 @@ import {
 import { TypeIcon } from "./Shared";
 
 export default function AddEvidence({
-  skill = SEED_EVIDENCE[0],
+  skill = null,
   resubmitRecord = null,
   onCancel = () => {},
   onSubmit = () => {},
 }) {
   const isResubmit = Boolean(resubmitRecord);
-  const activeSkill = resubmitRecord || skill || SEED_EVIDENCE[0];
+  const activeSkill = resubmitRecord || skill || { skill: "", category: "", level: "" };
 
   const resubmitWasFile =
     isResubmit &&
@@ -75,7 +75,10 @@ export default function AddEvidence({
   const meta =
     TYPE_META[evidenceType] || TYPE_META.document;
 
-  const fileExtensions = meta.fileExtensions || [];
+  // TYPE_META stores the list under `accept`; reading `fileExtensions` left the
+  // input's accept attribute empty, so the picker offered every file and the
+  // user only found out on submit.
+  const fileExtensions = meta.accept || [];
 
   /*
    * Determines the correct input mode automatically.
@@ -666,8 +669,7 @@ export default function AddEvidence({
                   </label>
 
                   <span className="text-[11px] text-[#98a2b3]">
-                    {description.length} / min
-                    50 chars
+                    {description.length} / min 50 · max {MAX_EVIDENCE_DESCRIPTION} chars
                   </span>
 
                 </div>
@@ -688,6 +690,7 @@ export default function AddEvidence({
                     );
                   }}
                   rows={5}
+                  maxLength={MAX_EVIDENCE_DESCRIPTION}
                   placeholder="Describe what this evidence demonstrates — what you built, the technologies used, your specific contribution, and the scale or complexity of the project..."
                   className={`figma-input resize-y px-3 py-3 text-sm leading-6 ${
                     errors.description

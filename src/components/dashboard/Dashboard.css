@@ -7,11 +7,15 @@
 }
 
 /* ---------- Sidebar ---------- */
+/* Light surface, navy type: the rail now uses the same white / #e8eaf0 /
+   #3b8bff language as the cards it sits next to instead of a navy slab that
+   read as a separate product. */
 .app-sidebar {
   width: 240px;
   min-width: 240px;
-  background: #0c1224;
-  color: #fff;
+  background: #ffffff;
+  border-right: 1px solid #e8eaf0;
+  color: #0a0b14;
   display: flex;
   flex-direction: column;
   padding: 22px 18px;
@@ -34,8 +38,8 @@
   flex-shrink: 0;
 }
 
-.app-sidebar-brand .white { color: #fff; }
-.app-sidebar-brand .blue { color: #818cf8; }
+.app-sidebar-brand .white { color: #0a0b14; }
+.app-sidebar-brand .blue { color: var(--accent, #3b8bff); }
 
 .app-nav {
   list-style: none;
@@ -53,7 +57,7 @@
   gap: 12px;
   padding: 11px 12px;
   border-radius: 10px;
-  color: #9aa4c4;
+  color: #475569;
   font-size: 0.92rem;
   font-weight: 500;
   cursor: pointer;
@@ -65,13 +69,16 @@
 }
 
 .app-nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #e2e6f5;
+  background: rgba(15, 23, 42, 0.045);
+  color: #0a0b14;
 }
 
+/* Accent-aware: the rail used to hardcode blue here, so picking violet / green /
+   amber in Settings changed the tokens and nothing else. */
 .app-nav-item.active {
-  background: rgba(99, 102, 241, 0.16);
-  color: #fff;
+  background: var(--accent-soft, rgba(59, 139, 255, 0.10));
+  color: var(--accent-strong, #1d4ed8);
+  font-weight: 600;
 }
 
 .app-nav-item .nav-icon {
@@ -89,9 +96,18 @@
 
 .app-sidebar-footer {
   margin-top: auto;
-  background: linear-gradient(135deg, #4338ca, #7c3aed);
+  /* The one dark surface left in the rail — same navy gradient as the
+     "Next Best Action" card on the dashboard, so the accent is shared. */
+  background: linear-gradient(130deg, #0d0f24 0%, #1a1d40 100%);
   border-radius: 14px;
   padding: 16px;
+  box-shadow: 0 8px 20px rgba(13, 15, 36, 0.16);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.app-sidebar-footer:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(13, 15, 36, 0.22);
 }
 
 .app-sidebar-footer .footer-label {
@@ -174,6 +190,45 @@
   border: none;
 }
 
+/* Gear that opens Settings — sits beside the bell so both "account" entry
+   points live in the same corner as the avatar they belong to. */
+.app-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.app-icon-btn:hover {
+  background: #f4f6fb;
+  color: #0a0b14;
+  border-color: #e8eaf0;
+}
+
+:root[data-theme="dark"] .app-icon-btn { color: #9fb0d0; }
+:root[data-theme="dark"] .app-icon-btn:hover { background: rgba(255,255,255,.06); color: #fff; border-color: #24304d; }
+:root[data-theme="dark"] .app-bell { background: #0f1628; color: #c3cfe6; }
+
+/* The Assistant pill kept its light chip (#f4f6fb) on the dark topbar, so it
+   was the brightest thing on the page. Same glass as the bell next to it. */
+:root[data-theme="dark"] .app-assistant-top {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #c7d2fe;
+}
+
+:root[data-theme="dark"] .app-assistant-top:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
 .app-bell .badge {
   position: absolute;
   top: -4px;
@@ -240,6 +295,16 @@
   color: #6a7093;
   font-size: 0.95rem;
   margin: 0 0 24px;
+}
+
+/* The greeting keeps its light-mode ink (#12172c) on the dark shell, which made
+   "Welcome back" almost disappear. Give it the same ink as the panel headings. */
+:root[data-theme="dark"] .dash-title {
+  color: #eef2fb;
+}
+
+:root[data-theme="dark"] .dash-subtitle {
+  color: #9fb0d0;
 }
 
 .dash-top-row {
@@ -517,7 +582,7 @@
 /* Unified authenticated shell */
 .app-sidebar-brand{border:0;background:transparent;cursor:pointer;text-align:left;width:100%;}
 .app-sidebar-brand:focus-visible,.app-nav-item:focus-visible,.app-bell:focus-visible,.app-assistant-top:focus-visible,.app-logout:focus-visible{outline:2px solid #7ca8ff;outline-offset:2px}
-.app-nav{overflow-y:auto;scrollbar-width:thin}
+.app-nav{overflow-y:auto;overflow-x:hidden;scrollbar-width:thin}
 .app-nav-item{font-family:inherit}
 .app-assistant-top{display:inline-flex;align-items:center;gap:7px;border:1px solid #e5e7f0;background:#f4f6fb;color:#4f46e5;border-radius:9px;padding:8px 11px;font-size:.8rem;font-weight:700;cursor:pointer}
 .app-notification-wrap{position:relative}
@@ -525,6 +590,10 @@
 .app-notification-popover strong{display:block;color:#111827;font-size:.9rem;margin-bottom:6px}
 .app-notification-popover p{margin:0 0 12px;color:#6b7280;font-size:.78rem;line-height:1.5}
 .app-notification-popover button{border:0;background:#eef2ff;color:#4338ca;border-radius:8px;padding:8px 10px;font-weight:700;font-size:.75rem;cursor:pointer}
+/* Company messages: same shell as the notifications popover, wider because a
+   message carries a body, not just a title. */
+.app-message-popover{width:320px;max-width:calc(100vw - 32px)}
+.app-message-popover .notif-item{cursor:pointer}
 .app-content-flush{padding:0!important;overflow:hidden!important}
 .app-content.workspace-content{background:#f1f3fa}
 .app-content.workspace-assistant-content{background:#0d0f24}
@@ -560,5 +629,387 @@
   .app-search{display:none}
   .app-topbar-right{margin-left:auto}
   .app-content{padding:14px}
-  .app-notification-popover{right:-8px;width:min(260px,calc(100vw - 82px))}
+  .app-notification-popover{right:-8px;width:min(320px,calc(100vw - 82px))}
+}
+
+/* Interactive Dashboard & Notifications enhancements */
+.dash-stat-card {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.dash-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
+}
+
+.dash-readiness-card {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.dash-readiness-card:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.proj-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.proj-row:hover {
+  background: #f8fafc;
+}
+
+/* Hover used the light tint above, so pointing at a project turned the row
+   into a white block on the dark panel. */
+:root[data-theme="dark"] .proj-row:hover {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.gap-row {
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+.gap-row:hover {
+  background: #f8fafc;
+  opacity: 0.9;
+}
+
+.dash-empty-state {
+  text-align: center;
+  padding: 24px 16px;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+.dash-empty-btn {
+  margin-top: 10px;
+  display: inline-block;
+  color: #4f46e5;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  background: #eef2ff;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  transition: background 0.15s ease;
+}
+.dash-empty-btn:hover {
+  background: #e0e7ff;
+}
+
+.dash-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #64748b;
+  font-size: 0.9rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px dashed #cbd5e1;
+}
+
+.app-notification-popover {
+  width: 320px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.notif-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f1f2f9;
+}
+.notif-item {
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border-left: 3px solid transparent;
+}
+.notif-item.unread {
+  background: #f0f4ff;
+  border-left-color: #4f46e5;
+}
+.notif-item:hover {
+  background: #f4f6fc;
+}
+.notif-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1f2440;
+  margin-bottom: 2px;
+}
+.notif-body {
+  font-size: 0.76rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+.notif-time {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+
+/* =========================================================
+   Support mark (dashboard only)
+========================================================= */
+.dash-support-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  margin-bottom: 8px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #eef4ff 0%, #f5f0ff 100%);
+  border: 1px solid #e0e7ff;
+}
+.dash-support-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #3b8bff;
+  color: #fff;
+  flex: 0 0 auto;
+}
+.dash-support-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.dash-support-text strong {
+  font-size: 0.95rem;
+  color: #1f2440;
+}
+.dash-support-text span {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+.dash-support-banner.is-waiting {
+  background: linear-gradient(135deg, #fff4e5 0%, #ffe9f0 100%);
+  border-color: #ffd9a8;
+}
+.dash-support-banner.is-waiting .dash-support-icon {
+  background: #f59e0b;
+}
+.dash-support-banner .btn-pill {
+  flex: 0 0 auto;
+}
+
+:root[dir="rtl"] .dash-support-banner { text-align: right; }
+
+/* ==========================================
+   Stat cards - "dark glass"
+   The shell is dark in dark mode, so a pure white card read as a hole in the
+   page. These use the same translucent material as the readiness panel, and
+   the icon picks up the accent the user chose in Settings -> Accent colour.
+========================================== */
+
+.dash-stat-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft, rgba(59, 139, 255, 0.12));
+  color: var(--accent, #3b8bff);
+}
+
+:root[data-theme="dark"] .dash-stat-card {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+:root[data-theme="dark"] .dash-stat-card:hover {
+  background: rgba(255, 255, 255, 0.078);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="dark"] .dash-stat-icon {
+  background: color-mix(in srgb, var(--accent, #3b8bff) 22%, transparent);
+}
+
+:root[data-theme="dark"] .dash-stat-num {
+  color: #eef2fb;
+}
+
+:root[data-theme="dark"] .dash-stat-label {
+  color: #8b95ad;
+}
+
+:root[data-theme="dark"] .pill-blue {
+  background: rgba(59, 139, 255, 0.18);
+  color: #93c5fd;
+}
+
+:root[data-theme="dark"] .pill-green {
+  background: rgba(16, 185, 129, 0.18);
+  color: #6ee7b7;
+}
+
+:root[data-theme="dark"] .pill-orange {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+}
+
+/* ==========================================
+   Panels, support mark and topbar search — dark glass
+   The two bottom panels (Top Skill Gaps / Recommended Projects) were still
+   solid #fff, so they read as holes punched in the dark shell. Same material
+   as .dash-stat-card above, so every surface on the page matches.
+========================================== */
+
+:root[data-theme="dark"] .dash-panel {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+:root[data-theme="dark"] .dash-panel-head h3 {
+  color: #eef2fb;
+}
+
+:root[data-theme="dark"] .dash-panel-head a {
+  color: #a5b4fc;
+}
+
+:root[data-theme="dark"] .gap-row {
+  border-radius: 8px;
+}
+
+:root[data-theme="dark"] .gap-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:root[data-theme="dark"] .gap-row-top .name {
+  color: #dfe6f5;
+}
+
+:root[data-theme="dark"] .gap-row-top .lv {
+  color: #8b95ad;
+}
+
+:root[data-theme="dark"] .gap-bar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] .proj-row {
+  border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+:root[data-theme="dark"] .proj-info .p-title {
+  color: #e6ebf7;
+}
+
+:root[data-theme="dark"] .proj-info .p-sub {
+  color: #8b95ad;
+}
+
+:root[data-theme="dark"] .proj-match {
+  color: #a5b4fc;
+}
+
+:root[data-theme="dark"] .dash-empty-state {
+  color: #8b95ad;
+}
+
+:root[data-theme="dark"] .dash-empty-btn {
+  background: rgba(99, 102, 241, 0.2);
+  color: #c7d2fe;
+}
+
+:root[data-theme="dark"] .dash-empty-btn:hover {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+/* Support mark: keep the accent tint, drop the near-white wash. */
+:root[data-theme="dark"] .dash-support-banner {
+  background: linear-gradient(
+    135deg,
+    rgba(59, 139, 255, 0.13) 0%,
+    rgba(139, 92, 246, 0.1) 100%
+  );
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] .dash-support-text strong {
+  color: #eef2fb;
+}
+
+:root[data-theme="dark"] .dash-support-text span {
+  color: #9aa6c0;
+}
+
+:root[data-theme="dark"] .dash-support-banner.is-waiting {
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.14) 0%,
+    rgba(236, 72, 153, 0.1) 100%
+  );
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+:root[data-theme="dark"] .dash-loading {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #8b95ad;
+}
+
+/* Topbar search field. */
+:root[data-theme="dark"] .app-search {
+  background: rgba(255, 255, 255, 0.06);
+  color: #8b95ad;
+}
+
+:root[data-theme="dark"] .app-search input {
+  color: #e8ecf8;
+}
+
+:root[data-theme="dark"] .app-search input::placeholder {
+  color: #7b8aa8;
+}
+
+/* Notification popover — white card in the topbar. */
+:root[data-theme="dark"] .app-notification-popover {
+  background: #151d33;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme="dark"] .app-notification-popover strong {
+  color: #eef2fb;
+}
+
+:root[data-theme="dark"] .app-notification-popover p {
+  color: #9aa6c0;
+}
+
+:root[data-theme="dark"] .app-notification-popover button {
+  background: rgba(99, 102, 241, 0.2);
+  color: #c7d2fe;
+}
+
+/* Keep support text readable beside fixed-size controls on narrow screens. */
+@media (max-width: 640px) {
+  .dash-support-banner { display: grid; grid-template-columns: 40px minmax(0, 1fr); align-items: start; gap: 12px; padding: 14px; }
+  .dash-support-banner .dash-support-text { min-width: 0; overflow-wrap: break-word; }
+  .dash-support-banner .btn-pill { grid-column: 1 / -1; width: 100%; white-space: normal; }
 }

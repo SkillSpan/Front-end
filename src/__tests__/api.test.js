@@ -105,7 +105,7 @@ describe('api.js', () => {
     await loginWithGoogle('the-id-token', true, true);
 
     const [url, options] = fetchMock.mock.calls[0];
-    expect(url).toBe(`${API_BASE_URL}/api/auth/login/google`);
+    expect(url).toBe(`${API_BASE_URL}/api/v1/auth/login/google`);
     expect(JSON.parse(options.body)).toEqual({
       credential: 'the-id-token',
       terms_accepted: true,
@@ -130,22 +130,6 @@ describe('api.js', () => {
       terms_accepted: false,
       privacy_accepted: false,
     });
-  });
-
-  it('loginOrganizationWithGoogle posts only the credential (login-only, no org creation)', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ data: {} }),
-    });
-    vi.stubGlobal('fetch', fetchMock);
-
-    const { loginOrganizationWithGoogle, API_BASE_URL } = await import('../api');
-    await loginOrganizationWithGoogle('org-id-token');
-
-    const [url, options] = fetchMock.mock.calls[0];
-    expect(url).toBe(`${API_BASE_URL}/api/auth/login/organization/google`);
-    expect(JSON.parse(options.body)).toEqual({ credential: 'org-id-token' });
   });
 
   it('loginWithGoogle merges extra fields (e.g. academic_status) when finalizing a redirected sign-up', async () => {

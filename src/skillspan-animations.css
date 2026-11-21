@@ -170,3 +170,254 @@ a:focus-visible,
   direction: ltr;
   unicode-bidi: isolate;
 }
+
+/* =========================================================
+   Support "someone is waiting for you" toast
+   Slides down from the top centre, Facebook-style, and is
+   dismissed by the timer, the close button or Escape.
+========================================================= */
+@keyframes ssToastIn {
+  from { opacity: 0; transform: translate(-50%, -16px) scale(.97); }
+  to   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+@keyframes ssPulseRing {
+  0%   { box-shadow: 0 0 0 0 rgba(59, 139, 255, .45); }
+  70%  { box-shadow: 0 0 0 7px rgba(59, 139, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(59, 139, 255, 0); }
+}
+
+.ss-toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  z-index: 1400;
+  width: min(430px, calc(100vw - 32px));
+  transform: translate(-50%, 0);
+  animation: ssToastIn var(--motion-base) var(--motion-ease) both;
+  will-change: transform, opacity;
+}
+
+.ss-toast-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  overflow: hidden;
+  padding: 13px 13px 13px 15px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, .07);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, .16), 0 2px 6px rgba(15, 23, 42, .06);
+}
+
+.ss-toast-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b8bff, #7c3aed);
+}
+
+.ss-toast-avatar {
+  position: relative;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  background: linear-gradient(135deg, #3b8bff, #7c3aed);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35);
+}
+
+.ss-toast-avatar .ss-toast-online {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid #fff;
+  animation: ssPulseRing 2.2s ease-out infinite;
+}
+
+.ss-toast-body { min-width: 0; flex: 1; }
+.ss-toast-title {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0a0b14;
+  line-height: 1.35;
+}
+.ss-toast-text {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.ss-toast-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.ss-toast-open {
+  height: 26px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #3b8bff, #5b6bf0);
+}
+
+.ss-toast-dismiss {
+  height: 26px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.ss-toast-dismiss:hover { background: #f1f3fa; color: #475569; }
+
+.ss-toast-close {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #b6bdcc;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ss-toast-close:hover { background: #f1f3fa; color: #475569; }
+
+/* "Waiting for you" marker on a support row / nav item. */
+.ss-waiting-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #1d4ed8;
+  background: rgba(59, 139, 255, .1);
+  border: 1px solid rgba(59, 139, 255, .22);
+  white-space: nowrap;
+}
+
+.ss-waiting-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3b8bff;
+  animation: ssPulseRing 1.9s ease-out infinite;
+}
+
+.ss-nav-waiting-dot {
+  width: 7px;
+  height: 7px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #3b8bff;
+  animation: ssPulseRing 1.9s ease-out infinite;
+}
+
+/* =========================================================
+   Standing "talk to a person" button (bottom-right)
+========================================================= */
+.ss-support-fab {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #3b8bff, #7c3aed);
+  box-shadow: 0 10px 26px rgba(59, 139, 255, .32);
+  transition: transform var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+.ss-support-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(59, 139, 255, .42);
+}
+
+.ss-support-fab:active { transform: translateY(0); }
+
+.ss-support-fab:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 3px;
+}
+
+/* Label sits beside the circle and only appears on hover/focus, so the resting
+   button reads as a clean round icon while the name is still discoverable. */
+.ss-support-fab-label {
+  position: absolute;
+  right: 62px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .1px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-fast) var(--motion-ease);
+}
+
+.ss-support-fab:hover .ss-support-fab-label,
+.ss-support-fab:focus-visible .ss-support-fab-label {
+  opacity: 1;
+}
+
+.ss-support-fab-dot {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid #fff;
+  animation: ssPulseRing 1.9s ease-out infinite;
+}
+
+@media (max-width: 640px) {
+  .ss-support-fab { right: 14px; bottom: 14px; width: 48px; height: 48px; }
+}

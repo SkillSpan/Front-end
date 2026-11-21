@@ -15,7 +15,7 @@ const AssessmentCompleteTopbar = () => (
   <header className="assessment-topbar assessment-complete-topbar">
     <div className="assessment-topbar-brand">
       <span className="assessment-brand-badge">
-        <CheckIcon />
+        <img src="/image/logo.png" alt="" />
       </span>
       SkillSpan
       <span className="assessment-topbar-divider" />

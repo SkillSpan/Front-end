@@ -9,7 +9,7 @@ All API paths use `/api/v1/...` and authenticated calls send `Authorization: Bea
 
 The frontend reads both common response forms documented by the handoff: `{ success, data }`, direct `{ data }`, and the paginated career-role shape where the list is `data.data`.
 
-Google login was corrected to `/api/v1/auth/login/google` and organization Google login to `/api/v1/auth/login/organization/google`.
+Google login for individual learners uses `/api/v1/auth/login/google`. Organization login uses `/api/v1/auth/login/organization`; this backend branch does not register `/api/v1/auth/login/organization/google`, so do not call that route.
 
 ## Merged routes
 
