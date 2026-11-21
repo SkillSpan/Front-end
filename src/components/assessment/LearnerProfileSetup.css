@@ -22,7 +22,7 @@
   display: flex;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 50px rgba(43, 127, 255, 0.15), 0 25px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: none;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,7 +78,7 @@
 .profile-setup-dot.dot-1 {
   width: 10px;
   height: 10px;
-  background: #8b5cf6;
+  background: #1667e0;
   top: 4px;
   left: 44px;
 }
@@ -169,7 +169,7 @@
 
 .profile-setup-step.active .profile-setup-step-marker {
   background: #ffffff;
-  color: #1d4ed8;
+  color: #0f52ba;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
 }
 
@@ -236,7 +236,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #64748b;
+  color: #6b7593;
   text-transform: uppercase;
 }
 
@@ -280,7 +280,7 @@
 }
 
 .profile-setup-field label .required-star {
-  color: #ef4444;
+  color: #d13b3b;
   margin-left: 2px;
 }
 
@@ -317,7 +317,7 @@
 
 .profile-setup-field.field-error select,
 .profile-setup-field.field-error input[type='text'] {
-  border-color: #ef4444;
+  border-color: #d13b3b;
 }
 
 .profile-setup-field textarea {
@@ -413,7 +413,7 @@
   font-size: 1rem;
   font-weight: 700;
   color: #ffffff;
-  background: linear-gradient(90deg, #38bdf8 0%, #7c6cf6 55%, #a855f7 100%);
+  background: #38bdf8;
   cursor: pointer;
   transition: opacity 0.2s ease, transform 0.1s ease;
 }
@@ -428,7 +428,7 @@
 
 .profile-setup-submit:disabled {
   background: #e2e8f0;
-  color: #94a3b8;
+  color: #98a1ba;
   cursor: not-allowed;
 }
 

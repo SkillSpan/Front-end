@@ -27,11 +27,16 @@ describe('custom university and specialization', () => {
     const idField = container.querySelector('.profile-setup-field input[placeholder*="student" i]') || student;
     if (!idField) throw new Error('Student ID input not found');
     fireEvent.change(idField, { target: { value: 'aa' } });
-    const selects = container.querySelectorAll('select');
-    fireEvent.change(selects[0], { target: { value: 'graduate' } });
+    const selects = Array.from(container.querySelectorAll('select'));
+    // The profile now also carries a Career Role select, so pick the academic
+    // and graduation selects by the options they offer instead of by index.
+    const levelSelect = selects.find((s) => Array.from(s.options).some((o) => o.value === 'graduate'));
+    const yearSelect = selects.find((s) => Array.from(s.options).some((o) => o.value === '2015'));
+    if (!levelSelect || !yearSelect) throw new Error('Academic level / graduation selects not found');
+    fireEvent.change(levelSelect, { target: { value: 'graduate' } });
     expect(screen.getByText('Graduation Year')).toBeTruthy();
     expect(screen.queryByText('Expected Graduation')).toBeNull();
-    fireEvent.change(selects[1], { target: { value: '2015' } });
+    fireEvent.change(yearSelect, { target: { value: '2015' } });
     const submit = screen.getByRole('button', { name: /Proceed to Assessment/ });
     expect(submit).not.toBeDisabled();
     fireEvent.click(submit);

@@ -5,6 +5,7 @@ import './index.css'
 import './theme-accent.css'
 import './responsive.css'
 import './skillspan-animations.css'
+import './components/auth/authPolish.css'
 import { PreferencesProvider } from './preferences/PreferencesContext.jsx'
 import App from './App.jsx'
 

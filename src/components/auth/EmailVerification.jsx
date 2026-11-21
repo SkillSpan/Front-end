@@ -36,7 +36,7 @@ const EmailVerification = ({ onContinueToSetup, onResendEmail }) => {
     <div className="register-wrapper">
       <div className="register-card">
         <div className="sidebar-left">
-          <div className="sidebar-brand">SkillSpan</div>
+          <div className="sidebar-brand"><span className="brand-skill">Skill</span><span className="brand-span">Span</span></div>
           <div className="sidebar-content">
             <h2>
               Start Your

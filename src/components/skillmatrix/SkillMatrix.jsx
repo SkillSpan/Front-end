@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SkillMatrix.css';
+import { useUiText } from '../../i18n/useUiText';
 import { TAXONOMY as FALLBACK_TAXONOMY, LEVELS, levelInfo } from './taxonomy';
 import { getSkillsMatrix, upsertSkillMatrix, updateSkillMatrixEntry, deleteLearnerSkill, getSkillsTaxonomy, getStoredUser, resolveLearnerId, getProfile, getSpecializations, getCareerRoles, getCareerRoleSkills, getLatestReadiness, getCareerRoleById } from '../../api';
 import AppLayout from '../dashboard/AppLayout';
@@ -97,7 +98,6 @@ function normalizeTaxonomy(raw) {
       // obvious which field name to add above, instead of having to
       // manually expand the {...} in the console.
       const sample = rawCategories[0]?.skills?.[0] || rawCategories[0]?.children?.[0] || rawCategories[0];
-      // eslint-disable-next-line no-console
       console.warn('[SkillMatrix] Taxonomy items had no recognizable id field. Sample item keys:', sample && Object.keys(sample), sample);
     }
 
@@ -135,7 +135,7 @@ function pickFirstUnowned(taxonomy, skills) {
   return taxonomy[0]?.skills[0]?.id;
 }
 
-const PALETTE = ['#4f46e5', '#7c3aed', '#059669', '#ea580c', '#e11d48', '#0891b2', '#ca8a04', '#9333ea'];
+const PALETTE = ['#1667e0', '#5b5bd6', '#15925a', '#ea580c', '#e11d48', '#0891b2', '#ca8a04', '#9333ea'];
 function confidenceToLabel(score, algorithmVersion) {
   if (algorithmVersion === 'skill-confidence-v2-baseline') {
     if (score >= 80) return 'High';
@@ -154,12 +154,12 @@ function labelToConfidence(label) {
   return 30;
 }
 
-const CAT_COLOR = { Programming: '#4f46e5', Web: '#7c3aed', Data: '#059669', Cloud: '#ea580c', Soft: '#e11d48' };
+const CAT_COLOR = { Programming: '#1667e0', Web: '#5b5bd6', Data: '#15925a', Cloud: '#ea580c', Soft: '#e11d48' };
 
 function barColor(level) {
   if (level >= 4) return '#10b981';
   if (level === 3) return '#3b82f6';
-  return '#f59e0b';
+  return '#f9a01f';
 }
 
 // The learner picks a specialization (e.g. "Computer Science", "Marketing")
@@ -243,6 +243,7 @@ function roleSkillRefs(res) {
 }
 
 export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
+  const { L, isRtl, skillLabel } = useUiText();
   const { authUser, logout } = useAuth();
   const navigate = useNavigate();
   const currentUser = authUser || getStoredUser();
@@ -451,6 +452,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
       // backend doesn't actually filter by learner_id - see the note in
       // careerRolesApi.js / api.js - so this client-side filter is the
       // only thing standing between "my skills" and everyone's skills).
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- per-learner matrix fetch: the loading/error reset before the request is the intended sync
       setLoadingMatrix(false);
       setLoadError("We couldn't find your learner id in your session. Try logging out and back in.");
       return undefined;
@@ -692,21 +694,21 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
       contentClassName="skillmatrix-app-content"
     >
     <div className="sm-shell">
-      {loadError && <div className="sm-load-error">{loadError}</div>}
+      {loadError && <div className="sm-load-error">{L(loadError)}</div>}
 
-      {taxonomyError && <div className="sm-load-error">{taxonomyError}</div>}
+      {taxonomyError && <div className="sm-load-error">{L(taxonomyError)}</div>}
 
       <div className={`sm-body${panelSkillId ? ' with-panel' : ''}`}>
         {/* Left: taxonomy */}
         <aside className="sm-taxonomy">
-          <div className="sm-taxonomy-label">SKILL TAXONOMY</div>
+          <div className="sm-taxonomy-label">{L("SKILL TAXONOMY")}</div>
           <div className="sm-search">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.3-4.3" />
             </svg>
             <input
               type="text"
-              placeholder="Search skills..."
+              placeholder={L("Search skills...")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Escape') setQuery(''); }}
@@ -715,28 +717,28 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
 
           {!showAllSpecs && !isFiltered && profileLoaded && (specFilterNote || (specSkillIds && specialization)) && (
             <div style={{ fontSize: 12, color: '#92400e', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: '6px 10px', margin: '0 0 10px' }}>
-              {specFilterNote ||
-                `Every skill in the list is linked to the career roles of “${specialization}”, so nothing could be hidden. If that looks wrong, the specialization-to-role links in the backend may need a check.`}
+              {specFilterNote ? L(specFilterNote) :
+                L("Every skill in the list is linked to the career roles of “{spec}”, so nothing could be hidden. If that looks wrong, the specialization-to-role links in the backend may need a check.", { spec: specialization })}
             </div>
           )}
 
           {(isFiltered || showAllSpecs) && specialization && (
             <div style={{ fontSize: 12, color: '#6b7280', margin: '0 0 10px' }}>
-              {showAllSpecs ? 'Showing all specializations' : `Filtered for ${specialization}`}{' · '}
+              {showAllSpecs ? L('Showing all specializations') : <>{L('Filtered for')} <bdi>{specialization}</bdi></>}{' · '}
               <button
                 type="button"
                 onClick={() => setShowAllSpecs((v) => !v)}
-                style={{ background: 'none', border: 'none', padding: 0, color: '#4f46e5', cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}
+                style={{ background: 'none', border: 'none', padding: 0, color: '#1667e0', cursor: 'pointer', font: 'inherit', textDecoration: 'underline' }}
               >
-                {showAllSpecs ? 'Filter by mine' : 'Show all'}
+                {showAllSpecs ? L('Filter by mine') : L('Show all')}
               </button>
             </div>
           )}
 
           {q && searchedTaxonomy.length === 0 && (
             <div style={{ padding: '12px 4px', fontSize: 13, opacity: 0.7 }}>
-              No skills match “{query.trim()}”.
-              {isFiltered && !showAllSpecs && ' Try “Show all” above to search every specialization.'}
+              {L("No skills match “{q}”.", { q: query.trim() })}
+              {isFiltered && !showAllSpecs && ` ${L("Try “Show all” above to search every specialization.")}`}
             </div>
           )}
 
@@ -749,11 +751,11 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
                 <div className="sm-category-head" onClick={() => toggleCategory(cat.key)}>
                   <span className="sm-category-check" />
                   <span className="sm-category-title">
-                    {cat.label}
-                    <div className="sm-category-count">{cat.skills.length} skills</div>
+                    {L(cat.label)}
+                    <div className="sm-category-count">{L("{n} skills", { n: cat.skills.length })}</div>
                   </span>
                   {haveCount > 0 && <span className="sm-category-badge">+{haveCount}</span>}
-                  <span className="sm-category-chevron">{isOpen ? '▾' : '▸'}</span>
+                  <span className="sm-category-chevron">{isOpen ? '▾' : (isRtl ? '◂' : '▸')}</span>
                 </div>
                 {isOpen && (
                   <div className="sm-skill-list">
@@ -762,7 +764,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
                       return (
                         <div className="sm-skill-item" key={s.id} onClick={() => openAddSkill(s.id)}>
                           <span className={`sm-skill-check${owned ? ' checked' : ''}`}>{owned ? '✓' : ''}</span>
-                          {s.name}
+                          {skillLabel(s.name, s)}
                         </div>
                       );
                     })}
@@ -773,14 +775,14 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
           })}
 
           <div className="sm-coverage">
-            <div className="sm-coverage-label">COVERAGE</div>
+            <div className="sm-coverage-label">{L("COVERAGE")}</div>
             {coverage.map((c, i) => (
               <div className="sm-coverage-row" key={c.key}>
-                <span className="cname">{c.label.split(' ')[0]}</span>
+                <span className="cname">{L(c.label) !== c.label ? L(c.label) : c.label.split(' ')[0]}</span>
                 <span className="sm-coverage-track">
                   <span className="sm-coverage-fill" style={{ width: `${c.pct}%`, background: CAT_COLOR[c.key] || PALETTE[i % PALETTE.length] }} />
                 </span>
-                <span className="sm-coverage-pct">{c.pct}%</span>
+                <span className="sm-coverage-pct"><bdi dir="ltr">{c.pct}%</bdi></span>
               </div>
             ))}
           </div>
@@ -790,31 +792,37 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
         <main className="sm-main">
           <div className="sm-main-head">
             <div>
-              <h1>My Skill Matrix</h1>
+              <h1>{L("My Skill Matrix")}</h1>
               <p>{skillIds.length} skills · {assessmentCount} assessment-derived · {selfCount} self-assessed{evidenceCount > 0 ? ` · ${evidenceCount} evidence-based` : ""}</p>
             </div>
             <div className="sm-head-actions">
               <div className="sm-tabs">
-                <button type="button" className={`sm-tab${tab === 'all' ? ' active' : ''}`} onClick={() => setTab('all')}>All Skills</button>
-                <button type="button" className={`sm-tab${tab === 'assessment' ? ' active' : ''}`} onClick={() => setTab('assessment')}>Assessment</button>
-                <button type="button" className={`sm-tab${tab === 'self' ? ' active' : ''}`} onClick={() => setTab('self')}>Self-Assessed</button>
+                <button type="button" className={`sm-tab${tab === 'all' ? ' active' : ''}`} onClick={() => setTab('all')}>{L("All Skills")}</button>
+                <button type="button" className={`sm-tab${tab === 'assessment' ? ' active' : ''}`} onClick={() => setTab('assessment')}>{L("Assessment")}</button>
+                <button type="button" className={`sm-tab${tab === 'self' ? ' active' : ''}`} onClick={() => setTab('self')}>{L("Self-Assessed")}</button>
                 {evidenceCount > 0 && <button type="button" className={`sm-tab${tab === 'evidence' ? ' active' : ''}`} onClick={() => setTab('evidence')}>Evidence</button>}
               </div>
               <button type="button" className="btn-add-skill" onClick={() => openAddSkill(pickFirstUnowned(visibleTaxonomy, skills))}>
-                + Add Skill
+                {L("+ Add Skill")}
               </button>
             </div>
           </div>
 
           <div className="sm-summary-row">
-            <span className="sm-summary-chip"><b>{assessmentCount}</b>&nbsp;Assessment-derived</span>
-            <span className="sm-summary-chip"><b>{selfCount}</b>&nbsp;Self-assessed</span>
-            <span className="sm-summary-chip avg"><b>{avgProficiency}/5</b>&nbsp;Avg proficiency</span>
+            <span className="sm-summary-chip"><b>{assessmentCount}</b>&nbsp;{L("Assessment-derived")}</span>
+            <span className="sm-summary-chip"><b>{selfCount}</b>&nbsp;{L("Self-assessed")}</span>
+            <span className="sm-summary-chip avg"><b><bdi dir="ltr">{avgProficiency}/5</bdi></b>&nbsp;{L("Avg proficiency")}</span>
           </div>
+
+          {!q && skillIds.length === 0 && (
+            <div style={{ padding: '24px 4px', fontSize: 14, color: '#6b7593' }}>
+              {L("No skills in your matrix yet. Pick a skill from the taxonomy to add it.")}
+            </div>
+          )}
 
           {q && cards.length === 0 && (
             <div style={{ padding: '24px 4px', fontSize: 14, opacity: 0.7 }}>
-              No skills match “{query.trim()}”.
+              {L("No skills match “{q}”.", { q: query.trim() })}
             </div>
           )}
 
@@ -829,8 +837,8 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
                   style={{ cursor: 'pointer', animationDelay: `${Math.min(index, 10) * 45}ms` }}
                 >
                   <div className="sm-card-top">
-                    <span className="sname">{card.name}</span>
-                    <span className={`sm-card-cat cat-${card.category}`}>{card.category}</span>
+                    <span className="sname">{skillLabel(card.name, card)}</span>
+                    <span className={`sm-card-cat cat-${card.category}`}>{L(card.category)}</span>
                   </div>
                   <div className="sm-card-desc">{card.description}</div>
                   <div className="sm-level-row">
@@ -839,22 +847,22 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
                         <span key={i} className={`sm-dot lvl-${card.level}${i < card.level ? ' on' : ''}`} />
                       ))}
                     </span>
-                    <span className={`lvl-${card.level}`}>{lv.name}</span>
-                    <span className="sm-level-badge">Lv {card.level}/5</span>
+                    <span className={`lvl-${card.level}`}>{L(lv.name)}</span>
+                    <span className="sm-level-badge">{L("Lv")} <bdi dir="ltr">{card.level}/5</bdi></span>
                   </div>
                   <div className="sm-bar-track">
                     <div className="sm-bar-fill" style={{ width: `${(card.level / 5) * 100}%`, background: barColor(card.level) }} />
                   </div>
                   <div className="sm-card-bottom">
                     {card.source === 'assessment' ? (
-                      <span className="sm-source-badge src-assessment">⟳ Assessment</span>
+                      <span className="sm-source-badge src-assessment">{isRtl ? L("Assessment") : "⟳ Assessment"}</span>
                     ) : card.source === 'evidence' ? (
                       <span className="sm-source-badge src-assessment">✓ Evidence-based</span>
                     ) : (
-                      <span className="sm-source-badge src-self">🕐 Self-assessed</span>
+                      <span className="sm-source-badge src-self">{isRtl ? L("Self-assessed") : "🕐 Self-assessed"}</span>
                     )}
                     <span className={`sm-confidence conf-${['Good', 'Moderate'].includes(card.confidence) ? 'Medium' : card.confidence}`}>
-                      <span className="cdot" /> {card.confidence} confidence
+                      <span className="cdot" /> {L(`${card.confidence} confidence`)}
                     </span>
                   </div>
                 </div>
@@ -862,34 +870,36 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
             })}
           </div>
 
+          {assessmentCount > 0 && (
           <div className="sm-info-banner">
             <span>
               <b>Skill sources:</b> Assessment-derived entries come from assessment results. Evidence-based entries combine approved evidence sources. Evidence confidence reflects support, verification and recency, not answer completion or professional mastery. Self-assessed entries are levels you provide. Assessment levels describe performance on assessed questions, not professional expertise. A zero score does not establish that you have no experience. You can add skills from the taxonomy or adjust self-assessed levels.
             </span>
           </div>
+          )}
         </main>
 
         {/* Right: add skill panel */}
         {panelSkillId && panelMeta && (
           <aside className="sm-panel">
             <div className="sm-panel-head">
-              <span className="sm-panel-label">{isEditingExisting ? 'EDIT SKILL' : 'ADD SKILL'}</span>
-              <button type="button" className="sm-panel-close" onClick={closePanel}>✕</button>
+              <span className="sm-panel-label">{isEditingExisting ? L('EDIT SKILL') : L('ADD SKILL')}</span>
+              <button type="button" className="sm-panel-close" onClick={closePanel} aria-label={L("Close")}>✕</button>
             </div>
 
             <div className="sm-panel-skill">
               <span className="sm-panel-avatar">{panelMeta.name[0]}</span>
               <div>
-                <div className="sk-name">{panelMeta.name}</div>
-                <div className="sk-cat">{panelMeta.categoryLabel}</div>
+                <div className="sk-name">{skillLabel(panelMeta.name, panelMeta)}</div>
+                <div className="sk-cat">{L(panelMeta.categoryLabel)}</div>
               </div>
             </div>
 
             <textarea rows={2} readOnly value={panelMeta.description} />
 
             <div className="sm-field-label">
-              PROFICIENCY LEVEL
-              <span className="sm-level-tag">{panelLevel} / 5 — {levelInfo(panelLevel).name}</span>
+              {L("PROFICIENCY LEVEL")}
+              <span className="sm-level-tag"><bdi dir="ltr">{panelLevel} / 5</bdi>{isRtl ? "، " : ", "}{L(levelInfo(panelLevel).name)}</span>
             </div>
             <div className="sm-level-grid">
               {LEVELS.map((lv) => (
@@ -900,14 +910,14 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
                   onClick={() => setPanelLevel(lv.value)}
                 >
                   <div className="lnum">{lv.value}</div>
-                  <div className="llabel">{lv.label}</div>
+                  <div className="llabel">{L(lv.label)}</div>
                 </button>
               ))}
             </div>
 
             <div className="sm-level-desc">
-              <div className="ld-title">{levelInfo(panelLevel).name}</div>
-              <div className="ld-sub">{levelInfo(panelLevel).desc}</div>
+              <div className="ld-title">{L(levelInfo(panelLevel).name)}</div>
+              <div className="ld-sub">{L(levelInfo(panelLevel).desc)}</div>
             </div>
 
             <div className="sm-scale-dots">
@@ -916,31 +926,31 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
               ))}
             </div>
 
-            <div className="sm-field-label">SKILL SOURCE (BR-06 · BR-07)</div>
+            <div className="sm-field-label">{L("SKILL SOURCE")}</div>
             <div className="sm-source-option disabled">
               <span className="sm-source-radio" />
               <div>
-                <div className="so-title">Assessment-derived</div>
-                <div className="so-sub">Higher confidence · verified source (from taking an assessment)</div>
+                <div className="so-title">{L("Assessment-derived")}</div>
+                <div className="so-sub">{L("Higher confidence · verified source (from taking an assessment)")}</div>
               </div>
             </div>
             <div className="sm-source-option selected">
               <span className="sm-source-radio on" />
               <div>
-                <div className="so-title">Self-assessed</div>
-                <div className="so-sub">Lower confidence · self-reported</div>
+                <div className="so-title">{L("Self-assessed")}</div>
+                <div className="so-sub">{L("Lower confidence · self-reported")}</div>
               </div>
             </div>
 
-            {saveError && <div className="sm-save-error">{saveError}</div>}
+            {saveError && <div className="sm-save-error">{L(saveError)}</div>}
             {/* Pinned to the bottom of the panel so Save / Cancel / Delete are
                 always visible without scrolling the panel. */}
             <div className="sm-panel-actions">
               <button type="button" className="btn-save-skill" onClick={saveSkill} disabled={saving}>
-                {saving ? 'Saving…' : 'Save Skill'}
+                {saving ? L('Saving…') : L('Save Skill')}
               </button>
               <div className="sm-panel-actions-row">
-                <button type="button" className="btn-cancel-skill" onClick={closePanel} disabled={saving}>Cancel</button>
+                <button type="button" className="btn-cancel-skill" onClick={closePanel} disabled={saving}>{L("Cancel")}</button>
                 {isEditingExisting && (
                   <button
                     type="button"
@@ -949,7 +959,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
                     disabled={saving}
                     style={{ color: '#dc2626', borderColor: '#fecaca', background: '#fef2f2' }}
                   >
-                    Delete Skill
+                    {L("Delete Skill")}
                   </button>
                 )}
               </div>
@@ -961,12 +971,12 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
       {duplicateSkillId && duplicateMeta && (
         <div className="sm-modal-overlay" onClick={() => setDuplicateSkillId(null)}>
           <div className="sm-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Skill already exists</h3>
-            <p><b>{duplicateMeta.name}</b> is already in your Skill Matrix. Duplicate active skill records are not permitted (BR-09 / AC-07).</p>
-            <div className="sm-modal-note">To change the level, click the existing skill card to edit it.</div>
+            <h3>{L("Skill already exists")}</h3>
+            <p><b>{skillLabel(duplicateMeta.name, duplicateMeta)}</b> {L("is already in your Skill Matrix. Duplicate active skill records are not permitted.")}</p>
+            <div className="sm-modal-note">{L("To change the level, click the existing skill card to edit it.")}</div>
             <div className="sm-modal-actions">
-              <button type="button" className="btn-dismiss" onClick={() => setDuplicateSkillId(null)}>Dismiss</button>
-              <button type="button" className="btn-edit" onClick={goEditExisting}>Edit Existing</button>
+              <button type="button" className="btn-dismiss" onClick={() => setDuplicateSkillId(null)}>{L("Dismiss")}</button>
+              <button type="button" className="btn-edit" onClick={goEditExisting}>{L("Edit Existing")}</button>
             </div>
           </div>
         </div>

@@ -54,7 +54,7 @@ const MATRIX = {
   ],
 };
 
-const byRole = (id) =>
+const byRole = () =>
   getCareerRoleSkills.mockImplementation(async (roleId) =>
     Number(roleId) === 146 ? SKILLS_146 : SKILLS_147,
   );
@@ -82,7 +82,7 @@ describe('learner career roles — list card numbers', () => {
     // Card 1: two requirements loaded → "2", not the payload's bare 0.
     const counts = screen.getAllByTestId('card-skill-count');
     expect(counts[0]).toHaveTextContent('2');
-    expect(counts[1]).toHaveTextContent('—');
+    expect(counts[1]).toHaveTextContent('-');
   });
 
   it('counts the critical skills that are not met yet', async () => {
@@ -97,7 +97,7 @@ describe('learner career roles — list card numbers', () => {
     await waitFor(() => expect(getCareerRoleSkills).toHaveBeenCalledWith(147));
     // The second card has nothing to measure against.
     await waitFor(() =>
-      expect(screen.getAllByTestId('card-readiness')[1]).toHaveTextContent('—'),
+      expect(screen.getAllByTestId('card-readiness')[1]).toHaveTextContent('-'),
     );
   });
 
@@ -115,7 +115,7 @@ describe('learner career roles — list card numbers', () => {
 
     await waitFor(() => expect(getCareerRoleSkills).toHaveBeenCalled());
     for (const badge of screen.getAllByTestId('card-readiness')) {
-      expect(badge).toHaveTextContent('—');
+      expect(badge).toHaveTextContent('-');
     }
   });
 });

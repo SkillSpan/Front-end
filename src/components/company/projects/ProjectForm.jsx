@@ -138,13 +138,17 @@ function FormBody({ project: initialProject, refs, refsError, preview, previewSt
 
   // Changing the role can orphan a skill that was picked under the old one.
   // Those rows can never be saved, so drop them rather than let the form fail.
-  useEffect(() => {
-    if (!allowedSkillIds) return;
-    setForm((f) => {
-      const kept = f.skills.filter((s) => allowedSkillIds.has(s.skillId));
-      return kept.length === f.skills.length ? f : { ...f, skills: kept };
-    });
-  }, [allowedSkillIds]);
+  // Adjusted during render when the allowed set changes (not in an effect).
+  const [prevAllowedSkillIds, setPrevAllowedSkillIds] = useState(null);
+  if (allowedSkillIds !== prevAllowedSkillIds) {
+    setPrevAllowedSkillIds(allowedSkillIds);
+    if (allowedSkillIds) {
+      setForm((f) => {
+        const kept = f.skills.filter((s) => allowedSkillIds.has(s.skillId));
+        return kept.length === f.skills.length ? f : { ...f, skills: kept };
+      });
+    }
+  }
   const errorFor = (field) => {
     if (serverErrors[field]) return serverErrors[field].text;
     if (clientErrors[field]) return t(clientErrors[field]);

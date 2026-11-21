@@ -26,7 +26,7 @@
 }
 
 .assessment-completion-card {
-  background: linear-gradient(160deg, #f2f4fc, #eceffb);
+  background: #f2f4fc;
   border: 1px solid #e6e8f5;
   border-radius: 22px;
   padding: 40px 36px;
@@ -40,7 +40,7 @@
   height: 76px;
   border-radius: 50%;
   background: #d1fae5;
-  color: #059669;
+  color: #15925a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -60,7 +60,7 @@
   width: fit-content;
   margin: 0 auto 18px;
   background: #d1fae5;
-  color: #059669;
+  color: #15925a;
   font-size: 0.8rem;
   font-weight: 700;
   padding: 6px 14px;
@@ -71,7 +71,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #059669;
+  background: #15925a;
 }
 
 .assessment-completion-title {
@@ -138,7 +138,7 @@
   font-size: 1rem;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(90deg, #16a34a, #059669);
+  background: #16a34a;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -221,17 +221,17 @@
 
 .assessment-completion-unlock-icon.blue {
   background: #dbeafe;
-  color: #2563eb;
+  color: #1667e0;
 }
 
 .assessment-completion-unlock-icon.purple {
-  background: #ede9fe;
-  color: #7c3aed;
+  background: #e9f0fd;
+  color: #1667e0;
 }
 
 .assessment-completion-unlock-icon.green {
   background: #d1fae5;
-  color: #059669;
+  color: #15925a;
 }
 
 .assessment-completion-unlock-icon.orange {
@@ -270,3 +270,6 @@
     padding: 32px 20px;
   }
 }
+
+/* Shared success animation (common/SuccessCheck) in place of the static check. */
+.assessment-completion-check-anim { display: grid; margin: 4px auto 20px; }
