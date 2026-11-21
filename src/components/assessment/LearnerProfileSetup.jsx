@@ -8,9 +8,7 @@ import {
   getSpecializations,
   getCountries,
   getUniversitiesByCountry,
-  getCareerRoles,
 } from '../../api';
-import { saveProfileCareerRole, loadProfileCareerRole } from './profileCareerRole';
 import { buildProfilePayload } from '../../utils/payloadMapping';
 
 // Fallback lists below are used only if the reference endpoints are
@@ -132,13 +130,6 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
   const [studentId, setStudentId] = useState('');
   const [specialization, setSpecialization] = useState('');
   const [specializationOther, setSpecializationOther] = useState('');
-  // Career role is picked here, next to the specialization, so the
-  // assessment screen no longer asks for the specialization a second time.
-  const [careerRoleId, setCareerRoleId] = useState(() => loadProfileCareerRole()?.id || '');
-  const [careerRoles, setCareerRoles] = useState([]);
-  const [rolesLoading, setRolesLoading] = useState(false);
-  // specialization name (lower-cased) -> id, from GET /reference/specializations
-  const [specKeys, setSpecKeys] = useState(() => new Map());
   const [academicLevel, setAcademicLevel] = useState('');
   const [expectedGraduation, setExpectedGraduation] = useState('');
   const [bio, setBio] = useState('');
@@ -183,14 +174,6 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
         const specList = normalizeNameList(specRes);
         const countryList = normalizeNameList(countryRes);
         if (specList.length) setSpecializations([...specList, 'Other']);
-        const rawSpecs = Array.isArray(specRes?.data) ? specRes.data : Array.isArray(specRes) ? specRes : [];
-        const sk = new Map();
-        rawSpecs.forEach((sp) => {
-          const name = sp?.name ?? sp?.title;
-          const id = sp?.id ?? sp?.specialization_id;
-          if (name && id != null) sk.set(String(name).trim().toLowerCase(), id);
-        });
-        setSpecKeys(sk);
         if (countryList.length) setCountries(mergeCountries(countryList));
         const rawCountries = Array.isArray(countryRes?.data) ? countryRes.data : Array.isArray(countryRes) ? countryRes : [];
         const keys = new Map();
@@ -272,36 +255,6 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
   const resolvedUniversity = university === 'Other' ? universityOther.trim() : university;
   const resolvedSpecialization = specialization === 'Other' ? specializationOther.trim() : specialization;
 
-  const specializationKey = specKeys.get(String(resolvedSpecialization).trim().toLowerCase());
-  useEffect(() => {
-    if (specializationKey == null) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCareerRoles([]);
-      return undefined;
-    }
-    let active = true;
-    setRolesLoading(true);
-    getCareerRoles({ page: 1, perPage: 100, specializationId: Number(specializationKey) })
-      .then((payload) => {
-        if (!active) return;
-        const value = payload?.data ?? payload;
-        const rows = (Array.isArray(value) ? value : Array.isArray(value?.data) ? value.data : [])
-          .filter((role) => role?.id != null && (!role.status || String(role.status).toLowerCase() === 'approved'));
-        setCareerRoles(rows);
-        setCareerRoleId((current) => (rows.some((r) => String(r.id) === String(current)) ? current : ''));
-      })
-      .catch(() => { if (active) setCareerRoles([]); })
-      .finally(() => { if (active) setRolesLoading(false); });
-    return () => { active = false; setRolesLoading(false); };
-  }, [specializationKey]);
-
-  const roleName = (role) => role?.title ?? role?.name ?? role?.role_title ?? `Role ${role?.id}`;
-  const rememberCareerRole = () => {
-    const role = careerRoles.find((r) => String(r.id) === String(careerRoleId));
-    saveProfileCareerRole(role ? { id: String(role.id), name: roleName(role), specializationId: String(specializationKey ?? '') } : null);
-  };
-  const needsCareerRole = careerRoles.length > 0;
-
   const requiredFields = [
     resolvedUniversity,
     studentId.trim(),
@@ -309,7 +262,6 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
     academicLevel,
     expectedGraduation,
   ];
-  if (needsCareerRole && !careerRoleId) requiredFields.push('');
   const filledRequiredCount = requiredFields.filter(Boolean).length;
   const isComplete = filledRequiredCount === requiredFields.length;
 
@@ -344,7 +296,6 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
     setIsSubmitting(true);
     try {
       await createProfile(buildPayload());
-      rememberCareerRole();
       if (typeof onComplete === 'function') onComplete();
     } catch (err) {
       setError(formatApiError(err));
@@ -364,7 +315,6 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
         // save to trap someone on this screen when they've asked to leave.
       }
     }
-    rememberCareerRole();
     setIsSkipping(false);
     if (typeof onSkip === 'function') onSkip();
   };
@@ -373,7 +323,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
     <div className="profile-setup-wrapper">
       <div className="profile-setup-card">
         <div className="profile-setup-sidebar">
-          <div className="profile-setup-brand"><span className="brand-skill">Skill</span><span className="brand-span">Span</span></div>
+          <div className="profile-setup-brand">SkillSpan</div>
 
           <div className="profile-setup-avatar-box">
             <span className="profile-setup-dot dot-1" />
@@ -426,7 +376,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
                 placeholder="Select your country"
                 searchPlaceholder="Search countries…"
               />
-              <span style={{ fontSize: '12px', color: '#6b7593', marginTop: '4px', display: 'block' }}>
+              <span style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'block' }}>
                 Choose your country first - the University list shows only universities in that country.
               </span>
             </div>
@@ -479,63 +429,32 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
               />
             </div>
 
-            <div className="profile-setup-row">
-              <div
-                className={`profile-setup-field ${touched && !resolvedSpecialization ? 'field-error' : ''}`}
-              >
-                <label>
-                  Specialization<span className="required-star">*</span>
-                </label>
-                <SearchableSelect
-                  options={specializations}
-                  value={specialization}
-                  onChange={(value) => {
-                    setSpecialization(value);
-                    setCareerRoleId('');
-                    markTouched();
-                  }}
-                  placeholder="Select your specialization"
-                  searchPlaceholder="Search specializations…"
-                  hasError={touched && !resolvedSpecialization}
+            <div
+              className={`profile-setup-field ${touched && !resolvedSpecialization ? 'field-error' : ''}`}
+            >
+              <label>
+                Specialization<span className="required-star">*</span>
+              </label>
+              <SearchableSelect
+                options={specializations}
+                value={specialization}
+                onChange={(value) => {
+                  setSpecialization(value);
+                  markTouched();
+                }}
+                placeholder="Select your specialization"
+                searchPlaceholder="Search specializations…"
+                hasError={touched && !resolvedSpecialization}
+              />
+              {specialization === 'Other' && (
+                <input
+                  type="text"
+                  placeholder="Enter your specialization"
+                  value={specializationOther}
+                  onChange={(e) => setSpecializationOther(e.target.value)}
+                  style={{ marginTop: '10px' }}
                 />
-                {specialization === 'Other' && (
-                  <input
-                    type="text"
-                    placeholder="Enter your specialization"
-                    value={specializationOther}
-                    onChange={(e) => setSpecializationOther(e.target.value)}
-                    style={{ marginTop: '10px' }}
-                  />
-                )}
-              </div>
-
-              <div className={`profile-setup-field ${touched && needsCareerRole && !careerRoleId ? 'field-error' : ''}`}>
-                <label htmlFor="profile-career-role">
-                  Career Role{needsCareerRole && <span className="required-star">*</span>}
-                </label>
-                <select
-                  id="profile-career-role"
-                  value={careerRoleId}
-                  disabled={!resolvedSpecialization || rolesLoading || !needsCareerRole}
-                  onChange={(e) => {
-                    setCareerRoleId(e.target.value);
-                    markTouched();
-                  }}
-                >
-                  <option value="">
-                    {!resolvedSpecialization
-                      ? 'Select a specialization first'
-                      : rolesLoading
-                        ? 'Loading career roles…'
-                        : needsCareerRole
-                          ? 'Select your career role'
-                          : 'No roles for this specialization yet'}
-                  </option>
-                  {careerRoles.map((role) => (
-                    <option key={role.id} value={role.id}>{roleName(role)}</option>
-                  ))}
-                </select>
-              </div>
+              )}
             </div>
 
             <div className="profile-setup-row">
@@ -615,7 +534,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
             {error && <div className="profile-setup-server-error">{error}</div>}
 
             <button type="submit" className="profile-setup-submit" disabled={!isComplete || isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Proceed to Assessment'}
+              {isSubmitting ? 'Saving...' : 'Proceed to Assessment →'}
             </button>
           </form>
 

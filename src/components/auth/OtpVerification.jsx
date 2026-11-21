@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { verifyOtp, resendOtp } from '../../api';
 import './OtpVerification.css';
-import { nextFromInput, fillDigits, onlyDigits } from './otpInput';
-import SuccessCheck from '../common/SuccessCheck';
 
 // Note: both pages that call this component (RegisterWizard.jsx and
 // CompanyWizard.jsx) pass the email as `userEmail`, not `email`. Before
@@ -24,12 +22,9 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
   const inputRefs = useRef([]);
 
   // Update the field automatically if the email arrives after the first render
-  // (adjusted during render, React's pattern for state that follows a prop).
-  const [prevConfirmedEmail, setPrevConfirmedEmail] = useState(confirmedEmail);
-  if (confirmedEmail !== prevConfirmedEmail) {
-    setPrevConfirmedEmail(confirmedEmail);
+  useEffect(() => {
     if (confirmedEmail) setEmailInput(confirmedEmail);
-  }
+  }, [confirmedEmail]);
 
   useEffect(() => {
     let timer = null;
@@ -57,35 +52,21 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
   };
 
   const handleChange = (value, index) => {
-    const result = nextFromInput(otp, index, value);
-    if (!result) return;
-    setOtp(result.values);
-    if (error) setError('');
-    if (!result.cleared && inputRefs.current[result.focusIndex]) {
-      inputRefs.current[result.focusIndex].focus();
-    }
-  };
+    if (isNaN(value)) return;
 
-  // Paste the whole code into any box: digits only, filled from the first box.
-  const handlePaste = (e) => {
-    const text = e.clipboardData?.getData('text') ?? '';
-    if (!onlyDigits(text)) return;
-    e.preventDefault();
-    const result = fillDigits(['', '', '', '', '', ''], 0, text);
-    setOtp(result.values);
+    const newOtp = [...otp];
+    newOtp[index] = value.substring(value.length - 1);
+    setOtp(newOtp);
     if (error) setError('');
-    inputRefs.current[result.focusIndex]?.focus();
+
+    if (value && index < 5) {
+      inputRefs.current[index + 1].focus();
+    }
   };
 
   const handleKeyDown = (e, index) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       inputRefs.current[index - 1].focus();
-    } else if (e.key === 'ArrowLeft' && index > 0) {
-      e.preventDefault();
-      inputRefs.current[index - 1].focus();
-    } else if (e.key === 'ArrowRight' && index < 5) {
-      e.preventDefault();
-      inputRefs.current[index + 1].focus();
     }
   };
 
@@ -143,7 +124,7 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
       <div className="register-wrapper">
         <div className="register-card">
           <div className="sidebar-left">
-            <div className="sidebar-brand"><span className="brand-skill">Skill</span><span className="brand-span">Span</span></div>
+            <div className="sidebar-brand">SkillSpan</div>
             <div className="sidebar-content">
               <h2>Start Your<br />Career&nbsp;Journey</h2>
               <p className="sidebar-desc">
@@ -172,17 +153,21 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
           </div>
 
           <div className="form-right verified-container">
-            <SuccessCheck size={88} className="verified-check" />
+            <div className="success-icon-box">
+              <svg className="success-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
 
-            <h1 className="verified-heading ss-fade-up">Email verified!</h1>
-            <p className="verified-desc ss-fade-up-2">
+            <h1 className="verified-heading">Email verified!</h1>
+            <p className="verified-desc">
               Your email has been successfully verified.<br />
               You can now access your account.
             </p>
 
             <button
               type="button"
-              className="btn-continue ss-fade-up-3"
+              className="btn-continue"
               onClick={() => {
                 if (typeof onContinueToLogin === 'function') {
                   onContinueToLogin();
@@ -194,7 +179,7 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
               Continue to login
             </button>
 
-            <div className="verified-footer-link ss-fade-up-3">
+            <div className="verified-footer-link">
               <button type="button" className="landing-link-btn" onClick={onBack}>
                 Back to landing page
               </button>
@@ -209,7 +194,7 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
     <div className="register-wrapper">
       <div className="register-card">
         <div className="sidebar-left">
-          <div className="sidebar-brand"><span className="brand-skill">Skill</span><span className="brand-span">Span</span></div>
+          <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">
             <h2>Start Your<br />Career&nbsp;Journey</h2>
             <p className="sidebar-desc">
@@ -262,22 +247,16 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
               </div>
             )}
 
-            <div className="otp-inputs-row" dir="ltr">
+            <div className="otp-inputs-row">
               {otp.map((digit, index) => (
                 <input
                   key={index}
                   ref={(el) => (inputRefs.current[index] = el)}
                   type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  autoComplete={index === 0 ? 'one-time-code' : 'off'}
-                  maxLength={6}
-                  aria-label={`Digit ${index + 1} of 6`}
+                  maxLength="1"
                   value={digit}
                   onChange={(e) => handleChange(e.target.value, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
-                  onPaste={handlePaste}
-                  onFocus={(e) => e.target.select()}
                   className={`otp-box ${error ? 'otp-box-error' : ''}`}
                 />
               ))}

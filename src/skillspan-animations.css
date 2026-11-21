@@ -363,14 +363,14 @@ a:focus-visible,
   border-radius: 50%;
   color: #fff;
   cursor: pointer;
-  background: #1667e0;
-  box-shadow: 0 8px 20px -6px rgba(5, 16, 61, .35);
-  transition: background-color var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease);
+  background: linear-gradient(135deg, #3b8bff, #7c3aed);
+  box-shadow: 0 10px 26px rgba(59, 139, 255, .32);
+  transition: transform var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease);
 }
 
 .ss-support-fab:hover {
-  background: #0f52ba;
-  box-shadow: 0 10px 24px -6px rgba(5, 16, 61, .42);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(59, 139, 255, .42);
 }
 
 .ss-support-fab:active { transform: translateY(0); }
@@ -390,7 +390,7 @@ a:focus-visible,
   margin: 0;
   padding: 5px 10px;
   border-radius: 8px;
-  background: #05103d;
+  background: #0f172a;
   color: #fff;
   font-size: 12px;
   font-weight: 600;

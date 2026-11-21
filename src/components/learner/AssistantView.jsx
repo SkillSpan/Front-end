@@ -3,7 +3,6 @@ import { askAssistant, reportAssistantInteraction, createSupportRequest, unwrapA
 import { useAuth } from "../auth/AuthContext";
 import { clearAssistantChat, loadAssistantChat, saveAssistantChat } from "./assistantChatStorage";
 import { getTextDirection, getTextLanguage } from "../../utils/textDirection";
-import { useUiText } from "../../i18n/useUiText";
 // ═══════════════════════════════════════════════════════════════════════════════
 // Sample context is shown only when explicitly enabled for development.
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
@@ -11,7 +10,7 @@ const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
 const SUGGESTED = [
   { label: "Help me understand my readiness results", scenario: "readiness", intent: "explain_readiness" },
   { label: "What should I do next?", scenario: "roadmap", intent: "explain_next_best_action" },
-  { label: "Explain my biggest skill gap", scenario: "skill-gap", intent: "explain_skill_gap" },
+  { label: "Explain my Python skill gap", scenario: "skill-gap", intent: "explain_skill_gap" },
   { label: "Explain my project recommendations", scenario: "project-rec", intent: "explain_project_recommendation" },
 ];
 
@@ -26,11 +25,187 @@ function inferAssistantIntent(question) {
   return "explain_readiness";
 }
 const CONTEXT_PILLS = DEMO_MODE ? [
-  { icon: "📊", label: "Readiness 67/100", color: "#1667e0" },
-  { icon: "🎯", label: "Software Engineer", color: "#5b5bd6" },
-  { icon: "🗺️", label: "Phase 3 Roadmap", color: "#15925a" },
+  { icon: "📊", label: "Readiness 67/100", color: "#3b8bff" },
+  { icon: "🎯", label: "Software Engineer", color: "#7c3aed" },
+  { icon: "🗺️", label: "Phase 3 Roadmap", color: "#059669" },
   { icon: "🔧", label: "3 projects matched", color: "#f59e0b" },
 ] : [];
+const CONVOS = {
+  welcome: [],
+  readiness: [
+    { id: "u1", role: "user", type: "text", ts: "14:31", text: "Why is my readiness score only 67?" },
+    {
+      id: "a1",
+      role: "assistant",
+      type: "readiness",
+      ts: "14:31",
+      text: "Your **67 / 100 Readiness Score** for **Software Engineer v2.3** breaks down across four weighted components. Here is what is holding you back and what to address next:",
+      payload: {
+        score: 67,
+        band: "Progressing",
+        components: [
+          {
+            label: "Skill Match",
+            pct: 68,
+            weight: 65,
+            color: "#3b8bff",
+            note: "Python (L3→L4) and System Design (L2→L3) are your two largest gaps.",
+          },
+          {
+            label: "Practical Experience",
+            pct: 55,
+            weight: 20,
+            color: "#7c3aed",
+            note: "2 verified project items. Completing the REST API Practice Task adds a third.",
+          },
+          {
+            label: "Assessment Reliability",
+            pct: 70,
+            weight: 10,
+            color: "#f59e0b",
+            note: "System Design is Self-Assessment Only (Low confidence). A verified assessment raises this.",
+          },
+          {
+            label: "Profile Completeness",
+            pct: 90,
+            weight: 5,
+            color: "#059669",
+            note: "Profile is well-completed — no action needed here.",
+          },
+        ],
+        next: "Complete the REST API Practice Task to close your Python gap and add verified Practical Experience in one step. This alone is projected to move your score to ~74.",
+      },
+    },
+  ],
+  "skill-gap": [
+    { id: "u2", role: "user", type: "text", ts: "14:32", text: "Explain my Python skill gap in detail" },
+    {
+      id: "a2",
+      role: "assistant",
+      type: "skill-gap",
+      ts: "14:32",
+      text: "Here is a full breakdown of your **Python** gap and why it matters for Software Engineer:",
+      payload: {
+        skill: "Python",
+        category: "Programming",
+        yours: 3,
+        required: 4,
+        max: 5,
+        gap: 1,
+        isCritical: false,
+        importance: "High",
+        confidence: "Medium",
+        evidence: "Python Fundamentals Assessment (L3, Sep 2026) · SQL & Python Mini-Project (L3, Aug 2026)",
+        explanation:
+          "Python Level 4 is required because Software Engineers at this seniority write production-quality, idiomatic code — proper error handling, type annotations, async patterns, and testable module design. Your Level 3 demonstrates solid fundamentals but does not yet show production readiness.",
+        roadmapAction: "REST API with Python & PostgreSQL — Practice Task (Phase 3, your Next Best Action)",
+        limitation:
+          "Your evidence is from Aug–Sep 2026. If you have done additional Python work since, adding it would update this assessment.",
+      },
+    },
+  ],
+  roadmap: [
+    { id: "u3", role: "user", type: "text", ts: "14:33", text: "What should I do next on my roadmap?" },
+    {
+      id: "a3",
+      role: "assistant",
+      type: "roadmap",
+      ts: "14:33",
+      text: "Based on your current skill gaps and roadmap progress, here is your **Next Best Action** and the full Phase 3 sequence:",
+      payload: {
+        nba: {
+          title: "Build a REST API with Python & PostgreSQL",
+          type: "Practice Task",
+          phase: 3,
+          phaseName: "Applied Practice",
+          effort: "12–16 h · 2–3 weeks",
+          why: "Addresses your highest-priority gap (Python L3→L4) and generates verified Practical Experience evidence simultaneously. Completing it unlocks your Phase 3 milestone.",
+          unlocks: "Phase 3 milestone · System Design Simulation (next)",
+        },
+        next: [
+          { title: "Scalable Chat System — System Design Simulation", type: "Simulation Project", phase: 3 },
+          { title: "React Intermediate Assessment", type: "Assessment", phase: 3 },
+          { title: "Phase 3 Completion Milestone", type: "Milestone", phase: 3 },
+        ],
+        limitation: "Roadmap order reflects gaps as of 9 Sep 2026. New evidence may reorder priorities.",
+      },
+    },
+  ],
+  "project-rec": [
+    { id: "u4", role: "user", type: "text", ts: "14:34", text: "Why was the REST API project recommended to me?" },
+    {
+      id: "a4",
+      role: "assistant",
+      type: "project-rec",
+      ts: "14:34",
+      text: "This project was ranked **#1** because it aligns with your top skill gaps, career roadmap, and practical experience component simultaneously:",
+      payload: {
+        title: "Build a REST API with Python & PostgreSQL",
+        matchScore: 91,
+        rank: 1,
+        eligibility: "Eligible",
+        matched: [
+          "Python L3 ≥ required L3 ✓",
+          "SQL L3 ≥ required L3 ✓",
+          "REST API Design L2 ≥ required L2 ✓",
+          "Git & CI/CD L2 ≥ required L2 ✓",
+        ],
+        gaps: ["System Design L2 < required L3 (growth target — does not block eligibility)"],
+        learning: [
+          { skill: "Python", gain: "+1 Level (L3→L4)", impact: "High" },
+          { skill: "REST API Design", gain: "+1 Level (L2→L3)", impact: "High" },
+          { skill: "SQL", gain: "Verified Evidence", impact: "Medium" },
+        ],
+        limitation:
+          "Match score uses your profile as of 9 Sep 2026. Recommendation does not guarantee acceptance — the project owner makes the final decision.",
+      },
+    },
+  ],
+  uncertainty: [
+    {
+      id: "u5",
+      role: "user",
+      type: "text",
+      ts: "14:35",
+      text: "Will I definitely get a job after completing this roadmap?",
+    },
+    {
+      id: "a5",
+      role: "assistant",
+      type: "out-of-scope",
+      ts: "14:35",
+      text: "",
+      payload: {
+        icon: "🤔",
+        title: "Outside my guidance scope",
+        explanation:
+          "I cannot provide employment guarantees. Completing your roadmap strengthens your verified skill profile and practical experience — valuable hiring signals — but outcomes depend on market conditions, employer decisions, interview performance, and many other factors outside SkillSpan.",
+        canHelp:
+          "I can help you understand your readiness score, identify which skill gaps to close next, explain why projects or learning resources were recommended, and help you plan your next step.",
+        type: "no-guarantee",
+      },
+    },
+  ],
+  unavailable: [
+    { id: "u6", role: "user", type: "text", ts: "14:36", text: "Can you explain all my skill gaps in detail?" },
+    {
+      id: "a6",
+      role: "assistant",
+      type: "unavailable",
+      ts: "14:36",
+      text: "",
+      payload: {
+        icon: "🔌",
+        title: "Intelligence service temporarily unavailable",
+        explanation:
+          "I could not retrieve your skill-gap data — the intelligence service returned an error. I will not invent an answer. No data has been modified.",
+        canHelp:
+          "Your last readiness result (67/100, 9 Sep 2026) is still available in your Career Journey view. You can review your skill gaps there while this service is unavailable.",
+        type: "service-error",
+      },
+    },
+  ],
+};
 // ═══════════════════════════════════════════════════════════════════════════════
 // STRUCTURED RESPONSE CARDS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -62,22 +237,22 @@ function ReadinessResponseCard({ p }) {
             />
             <defs>
               <linearGradient id="rg" x1="0" y1="0" x2="1" y2="0">
-                <stop stopColor="#1667e0" />
-                <stop offset="1" stopColor="#5b5bd6" />
+                <stop stopColor="#3b8bff" />
+                <stop offset="1" stopColor="#7c3aed" />
               </linearGradient>
             </defs>
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="font-bold text-[17px] text-white leading-none">{score}</span>
+            <span className="font-['Inter:Bold',sans-serif] text-[17px] text-white leading-none">{score}</span>
             <span className="text-[7px] text-[rgba(255,255,255,0.35)]">/ 100</span>
           </div>
         </div>
         <div>
-          <p className="font-bold text-[14px] text-white leading-none">{band}</p>
-          <p className="text-[11px] text-[rgba(255,255,255,0.45)] mt-[2px]">{DEMO_MODE ? "Software Engineer v2.3" : "Live career context"}</p>
+          <p className="font-['Inter:Bold',sans-serif] text-[14px] text-white leading-none">{band}</p>
+          <p className="text-[10px] text-[rgba(255,255,255,0.45)] mt-[2px]">{DEMO_MODE ? "Software Engineer v2.3" : "Live career context"}</p>
           <div className="flex items-center gap-[4px] mt-[6px]">
             <span className="w-[6px] h-[6px] rounded-full bg-[#f59e0b]" />
-            <span className="text-[11px] text-[rgba(255,255,255,0.5)]">2 components below 65</span>
+            <span className="text-[9px] text-[rgba(255,255,255,0.5)]">2 components below 65</span>
           </div>
         </div>
       </div>
@@ -90,13 +265,13 @@ function ReadinessResponseCard({ p }) {
           <div className="flex justify-between items-center mb-[5px]">
             <div className="flex items-center gap-[5px]">
               <span className="w-[6px] h-[6px] rounded-full" style={{ background: c.color }} />
-              <span className="text-[11px] font-medium text-[rgba(255,255,255,0.8)]">
+              <span className="text-[11px] font-['Inter:Medium',sans-serif] text-[rgba(255,255,255,0.8)]">
                 {c.label}
               </span>
             </div>
             <div className="flex items-center gap-[8px]">
-              <span className="text-[11px] text-[rgba(255,255,255,0.3)]">{c.weight}% weight</span>
-              <span className="text-[11px] font-bold" style={{ color: c.color }}>
+              <span className="text-[9px] text-[rgba(255,255,255,0.3)]">{c.weight}% weight</span>
+              <span className="text-[11px] font-['Inter:Bold',sans-serif]" style={{ color: c.color }}>
                 {c.pct}%
               </span>
             </div>
@@ -104,13 +279,13 @@ function ReadinessResponseCard({ p }) {
           <div className="w-full h-[4px] rounded-full bg-[rgba(255,255,255,0.07)] overflow-hidden mb-[5px]">
             <div className="h-full rounded-full transition-all" style={{ width: `${c.pct}%`, background: c.color }} />
           </div>
-          <p className="text-[11px] text-[rgba(255,255,255,0.42)] leading-[1.5]">{c.note}</p>
+          <p className="text-[10px] text-[rgba(255,255,255,0.42)] leading-[1.5]">{c.note}</p>
         </div>
       ))}
       {p.next && (
-        <div className="flex gap-[8px] bg-[rgba(22,103,224,0.1)] border border-[rgba(22,103,224,0.22)] rounded-[10px] px-[12px] py-[9px]">
+        <div className="flex gap-[8px] bg-[rgba(59,139,255,0.1)] border border-[rgba(59,139,255,0.22)] rounded-[10px] px-[12px] py-[9px]">
           <span className="text-[12px] shrink-0">⚡</span>
-          <p className="text-[11px] text-[rgba(255,255,255,0.65)] leading-[1.55]">{p.next}</p>
+          <p className="text-[10px] text-[rgba(255,255,255,0.65)] leading-[1.55]">{p.next}</p>
         </div>
       )}
     </div>
@@ -126,11 +301,11 @@ function SkillGapResponseCard({ p }) {
       <div className="bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.09)] rounded-[12px] p-[12px]">
         <div className="flex justify-between items-center mb-[8px]">
           <div>
-            <span className="font-bold text-[13px] text-white">{p.skill}</span>
-            <span className="text-[11px] text-[rgba(255,255,255,0.35)] ml-[6px]">{p.category}</span>
+            <span className="font-['Inter:Bold',sans-serif] text-[13px] text-white">{p.skill}</span>
+            <span className="text-[10px] text-[rgba(255,255,255,0.35)] ml-[6px]">{p.category}</span>
           </div>
           <span
-            className={`text-[11px] font-semibold px-[8px] py-[2px] rounded-full ${met ? "text-[#34d399] bg-[rgba(52,211,153,0.12)]" : "text-[#f87171] bg-[rgba(248,113,113,0.12)]"}`}
+            className={`text-[10px] font-['Inter:Semi_Bold',sans-serif] px-[8px] py-[2px] rounded-full ${met ? "text-[#34d399] bg-[rgba(52,211,153,0.12)]" : "text-[#f87171] bg-[rgba(248,113,113,0.12)]"}`}
           >
             {met ? "Met" : `Gap: −${req - yours}`}
           </span>
@@ -144,16 +319,16 @@ function SkillGapResponseCard({ p }) {
                 background:
                   i < yours
                     ? met
-                      ? "#15925a"
+                      ? "#059669"
                       : "#f59e0b"
                     : i < req
-                      ? "rgba(209,59,59,0.25)"
+                      ? "rgba(239,68,68,0.25)"
                       : "rgba(255,255,255,0.07)",
               }}
             />
           ))}
         </div>
-        <div className="flex justify-between text-[11px] text-[rgba(255,255,255,0.3)]">
+        <div className="flex justify-between text-[9px] text-[rgba(255,255,255,0.3)]">
           <span>Yours: L{yours}</span>
           <span>Required: L{req}</span>
           <span>Max: L{max}</span>
@@ -167,20 +342,20 @@ function SkillGapResponseCard({ p }) {
           ["Roadmap action", p.roadmapAction],
         ].map(([l, v]) => (
           <div key={l} className="flex gap-[8px] px-[11px] py-[7px]">
-            <span className="text-[11px] font-medium text-[rgba(255,255,255,0.3)] w-[90px] shrink-0 pt-[1px]">
+            <span className="text-[9px] font-['Inter:Medium',sans-serif] text-[rgba(255,255,255,0.3)] w-[90px] shrink-0 pt-[1px]">
               {l}
             </span>
-            <span className="text-[11px] text-[rgba(255,255,255,0.6)] leading-[1.5]">{v}</span>
+            <span className="text-[10px] text-[rgba(255,255,255,0.6)] leading-[1.5]">{v}</span>
           </div>
         ))}
       </div>
       <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.07)] rounded-[10px] px-[12px] py-[9px]">
-        <p className="text-[11px] text-[rgba(255,255,255,0.55)] leading-[1.65]">{p.explanation}</p>
+        <p className="text-[10px] text-[rgba(255,255,255,0.55)] leading-[1.65]">{p.explanation}</p>
       </div>
       {p.limitation && (
         <div className="flex gap-[7px] bg-[rgba(245,158,11,0.07)] border border-[rgba(245,158,11,0.18)] rounded-[10px] px-[12px] py-[9px]">
           <span className="text-[11px] shrink-0">ℹ</span>
-          <p className="text-[11px] text-[rgba(255,255,255,0.48)] leading-[1.5]">{p.limitation}</p>
+          <p className="text-[10px] text-[rgba(255,255,255,0.48)] leading-[1.5]">{p.limitation}</p>
         </div>
       )}
     </div>
@@ -193,34 +368,34 @@ function RoadmapResponseCard({ p }) {
     <div className="mt-[10px] space-y-[7px]">
       <div
         className="relative overflow-hidden rounded-[12px] p-[14px]"
-        style={{ background: "#e9f0fd" }}
+        style={{ background: "linear-gradient(130deg,rgba(59,139,255,0.14),rgba(124,58,237,0.14))" }}
       >
         <div
           className="absolute -top-4 -right-4 w-20 h-20 rounded-full opacity-10 pointer-events-none"
-          style={{ background: "transparent" }}
+          style={{ background: "radial-gradient(circle,#3b8bff,transparent 70%)" }}
         />
         <div className="relative">
           <div className="flex items-center gap-[6px] mb-[7px]">
-            <span className="text-[11px] font-bold text-[#7ca8ff] bg-[rgba(22,103,224,0.18)] px-[7px] py-[2px] rounded-full">
+            <span className="text-[9px] font-['Inter:Bold',sans-serif] text-[#7ca8ff] bg-[rgba(59,139,255,0.18)] px-[7px] py-[2px] rounded-full">
               ⚡ Next Best Action
             </span>
-            <span className="text-[11px] text-[rgba(255,255,255,0.35)]">
+            <span className="text-[9px] text-[rgba(255,255,255,0.35)]">
               Phase {nba.phase} · {nba.phaseName}
             </span>
           </div>
-          <p className="font-semibold text-[12px] text-white mb-[3px]">{nba.title}</p>
-          <p className="text-[11px] text-[rgba(255,255,255,0.4)] mb-[7px]">
+          <p className="font-['Inter:Semi_Bold',sans-serif] text-[12px] text-white mb-[3px]">{nba.title}</p>
+          <p className="text-[9px] text-[rgba(255,255,255,0.4)] mb-[7px]">
             {nba.type} · {nba.effort}
           </p>
-          <p className="text-[11px] text-[rgba(255,255,255,0.6)] leading-[1.55] mb-[7px]">{nba.why}</p>
+          <p className="text-[10px] text-[rgba(255,255,255,0.6)] leading-[1.55] mb-[7px]">{nba.why}</p>
           <div className="flex items-start gap-[5px]">
-            <span className="text-[11px] text-[rgba(255,255,255,0.3)] shrink-0 mt-[1px]">Unlocks</span>
-            <span className="text-[11px] text-[rgba(255,255,255,0.5)] leading-[1.4]">{nba.unlocks}</span>
+            <span className="text-[9px] text-[rgba(255,255,255,0.3)] shrink-0 mt-[1px]">Unlocks →</span>
+            <span className="text-[9px] text-[rgba(255,255,255,0.5)] leading-[1.4]">{nba.unlocks}</span>
           </div>
         </div>
       </div>
       <div className="space-y-[3px]">
-        <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] uppercase tracking-wide px-[1px]">
+        <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] text-[rgba(255,255,255,0.3)] uppercase tracking-wide px-[1px]">
           Coming up in Phase 3
         </p>
         {next.map((a, i) => (
@@ -228,16 +403,16 @@ function RoadmapResponseCard({ p }) {
             key={i}
             className="flex items-center gap-[8px] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-[8px] px-[10px] py-[7px]"
           >
-            <span className="text-[11px] text-[rgba(255,255,255,0.3)] shrink-0 w-[14px]">{i + 2}</span>
-            <span className="text-[11px] text-[rgba(255,255,255,0.6)] flex-1 leading-tight">{a.title}</span>
-            <span className="text-[11px] text-[rgba(255,255,255,0.3)] shrink-0">{a.type}</span>
+            <span className="text-[9px] text-[rgba(255,255,255,0.3)] shrink-0 w-[14px]">{i + 2}</span>
+            <span className="text-[10px] text-[rgba(255,255,255,0.6)] flex-1 leading-tight">{a.title}</span>
+            <span className="text-[9px] text-[rgba(255,255,255,0.3)] shrink-0">{a.type}</span>
           </div>
         ))}
       </div>
       {p.limitation && (
         <div className="flex gap-[7px] bg-[rgba(245,158,11,0.07)] border border-[rgba(245,158,11,0.18)] rounded-[10px] px-[12px] py-[9px]">
           <span className="text-[11px] shrink-0">ℹ</span>
-          <p className="text-[11px] text-[rgba(255,255,255,0.48)] leading-[1.5]">{p.limitation}</p>
+          <p className="text-[10px] text-[rgba(255,255,255,0.48)] leading-[1.5]">{p.limitation}</p>
         </div>
       )}
     </div>
@@ -247,52 +422,52 @@ function ProjectRecResponseCard({ p }) {
   const matched = p.matched;
   const gaps = p.gaps;
   const learning = p.learning;
-  const impCol = (i) => (i === "High" ? "#34d399" : i === "Medium" ? "#fbbf24" : "#98a1ba");
+  const impCol = (i) => (i === "High" ? "#34d399" : i === "Medium" ? "#fbbf24" : "#94a3b8");
   return (
     <div className="mt-[10px] space-y-[7px]">
       <div className="flex items-center gap-[10px] bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.09)] rounded-[12px] px-[13px] py-[11px]">
-        <div className="w-[34px] h-[34px] rounded-[8px] bg-[rgba(22,103,224,0.14)] border border-[rgba(22,103,224,0.22)] flex items-center justify-center text-[13px] shrink-0">
+        <div className="w-[34px] h-[34px] rounded-[9px] bg-[rgba(59,139,255,0.14)] border border-[rgba(59,139,255,0.22)] flex items-center justify-center text-[13px] shrink-0">
           🔧
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-[11px] text-white leading-tight">{p.title}</p>
+          <p className="font-['Inter:Semi_Bold',sans-serif] text-[11px] text-white leading-tight">{p.title}</p>
           <div className="flex items-center gap-[5px] mt-[2px]">
-            <span className="text-[11px] font-bold text-[#34d399]">✓ {p.eligibility}</span>
+            <span className="text-[9px] font-['Inter:Bold',sans-serif] text-[#34d399]">✓ {p.eligibility}</span>
             <span className="text-[rgba(255,255,255,0.25)]">·</span>
-            <span className="text-[11px] text-[rgba(255,255,255,0.35)]">Rank #{p.rank}</span>
+            <span className="text-[9px] text-[rgba(255,255,255,0.35)]">Rank #{p.rank}</span>
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="font-bold text-[20px] text-[#34d399] leading-none">{p.matchScore}</p>
-          <p className="text-[11px] text-[rgba(255,255,255,0.35)]">% match</p>
+          <p className="font-['Inter:Bold',sans-serif] text-[20px] text-[#34d399] leading-none">{p.matchScore}</p>
+          <p className="text-[8px] text-[rgba(255,255,255,0.35)]">% match</p>
         </div>
       </div>
-      <div className="bg-[rgba(21,146,90,0.07)] border border-[rgba(21,146,90,0.18)] rounded-[10px] px-[11px] py-[9px]">
-        <p className="text-[11px] font-semibold text-[rgba(52,211,153,0.7)] uppercase tracking-wide mb-[5px]">
+      <div className="bg-[rgba(5,150,105,0.07)] border border-[rgba(5,150,105,0.18)] rounded-[10px] px-[11px] py-[9px]">
+        <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] text-[rgba(52,211,153,0.7)] uppercase tracking-wide mb-[5px]">
           Skills matched
         </p>
         {matched.map((s) => (
           <div key={s} className="flex items-start gap-[5px] py-[1px]">
-            <span className="text-[11px] text-[#34d399] shrink-0 mt-[1px]">✓</span>
-            <span className="text-[11px] text-[rgba(255,255,255,0.6)] leading-[1.4]">{s}</span>
+            <span className="text-[9px] text-[#34d399] shrink-0 mt-[1px]">✓</span>
+            <span className="text-[10px] text-[rgba(255,255,255,0.6)] leading-[1.4]">{s}</span>
           </div>
         ))}
       </div>
       {gaps.length > 0 && (
         <div className="bg-[rgba(245,158,11,0.07)] border border-[rgba(245,158,11,0.18)] rounded-[10px] px-[11px] py-[9px]">
-          <p className="text-[11px] font-semibold text-[rgba(251,191,36,0.7)] uppercase tracking-wide mb-[5px]">
+          <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] text-[rgba(251,191,36,0.7)] uppercase tracking-wide mb-[5px]">
             Gaps / growth targets
           </p>
           {gaps.map((g) => (
             <div key={g} className="flex items-start gap-[5px] py-[1px]">
-              <span className="text-[11px] text-[#fbbf24] shrink-0 mt-[1px]">△</span>
-              <span className="text-[11px] text-[rgba(255,255,255,0.6)] leading-[1.4]">{g}</span>
+              <span className="text-[9px] text-[#fbbf24] shrink-0 mt-[1px]">△</span>
+              <span className="text-[10px] text-[rgba(255,255,255,0.6)] leading-[1.4]">{g}</span>
             </div>
           ))}
         </div>
       )}
       <div className="space-y-[2px]">
-        <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] uppercase tracking-wide px-[1px]">
+        <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] text-[rgba(255,255,255,0.3)] uppercase tracking-wide px-[1px]">
           What you gain
         </p>
         {learning.map((lv) => (
@@ -300,12 +475,12 @@ function ProjectRecResponseCard({ p }) {
             key={lv.skill}
             className="flex items-center justify-between bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-[8px] px-[10px] py-[6px]"
           >
-            <span className="text-[11px] text-[rgba(255,255,255,0.6)]">{lv.skill}</span>
+            <span className="text-[10px] text-[rgba(255,255,255,0.6)]">{lv.skill}</span>
             <div className="flex items-center gap-[6px]">
-              <span className="text-[11px] font-bold" style={{ color: impCol(lv.impact) }}>
+              <span className="text-[10px] font-['Inter:Bold',sans-serif]" style={{ color: impCol(lv.impact) }}>
                 {lv.gain}
               </span>
-              <span className="text-[11px]" style={{ color: impCol(lv.impact) }}>
+              <span className="text-[9px]" style={{ color: impCol(lv.impact) }}>
                 {lv.impact}
               </span>
             </div>
@@ -314,7 +489,7 @@ function ProjectRecResponseCard({ p }) {
       </div>
       <div className="flex gap-[7px] bg-[rgba(245,158,11,0.07)] border border-[rgba(245,158,11,0.18)] rounded-[10px] px-[12px] py-[9px]">
         <span className="text-[11px] shrink-0">ℹ</span>
-        <p className="text-[11px] text-[rgba(255,255,255,0.48)] leading-[1.5]">{p.limitation}</p>
+        <p className="text-[10px] text-[rgba(255,255,255,0.48)] leading-[1.5]">{p.limitation}</p>
       </div>
     </div>
   );
@@ -324,19 +499,19 @@ function BoundaryCard({ p }) {
   return (
     <div className="mt-[10px] space-y-[7px]">
       <div
-        className={`flex items-start gap-[10px] rounded-[12px] p-[13px] border ${isUnavailable ? "bg-[rgba(209,59,59,0.06)] border-[rgba(209,59,59,0.18)]" : "bg-[rgba(148,163,184,0.05)] border-[rgba(148,163,184,0.14)]"}`}
+        className={`flex items-start gap-[10px] rounded-[12px] p-[13px] border ${isUnavailable ? "bg-[rgba(239,68,68,0.06)] border-[rgba(239,68,68,0.18)]" : "bg-[rgba(148,163,184,0.05)] border-[rgba(148,163,184,0.14)]"}`}
       >
         <span className="text-[16px] shrink-0">{p.icon}</span>
         <div>
           <p
-            className={`font-semibold text-[12px] mb-[4px] ${isUnavailable ? "text-[#f87171]" : "text-[rgba(255,255,255,0.75)]"}`}
+            className={`font-['Inter:Semi_Bold',sans-serif] text-[12px] mb-[4px] ${isUnavailable ? "text-[#f87171]" : "text-[rgba(255,255,255,0.75)]"}`}
           >
             {p.title}
           </p>
           <p className="text-[11px] text-[rgba(255,255,255,0.52)] leading-[1.6]">{p.explanation}</p>
         </div>
       </div>
-      <div className="flex gap-[7px] bg-[rgba(22,103,224,0.07)] border border-[rgba(22,103,224,0.18)] rounded-[10px] px-[12px] py-[9px]">
+      <div className="flex gap-[7px] bg-[rgba(59,139,255,0.07)] border border-[rgba(59,139,255,0.18)] rounded-[10px] px-[12px] py-[9px]">
         <div className="shrink-0 mt-[1px]">
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
             <circle cx="5.5" cy="5.5" r="5" stroke="#7ca8ff" strokeWidth="1.1" />
@@ -344,7 +519,7 @@ function BoundaryCard({ p }) {
             <circle cx="5.5" cy="3.5" r=".6" fill="#7ca8ff" />
           </svg>
         </div>
-        <p className="text-[11px] text-[rgba(255,255,255,0.55)] leading-[1.5]">{p.canHelp}</p>
+        <p className="text-[10px] text-[rgba(255,255,255,0.55)] leading-[1.5]">{p.canHelp}</p>
       </div>
     </div>
   );
@@ -353,10 +528,9 @@ function BoundaryCard({ p }) {
 // PRIVACY DISCLOSURE
 // ═══════════════════════════════════════════════════════════════════════════════
 function PrivacySection() {
-  const { L } = useUiText();
   const [open, setOpen] = useState(false);
   return (
-    <div className="mx-[14px] my-[10px] bg-[rgba(22,103,224,0.06)] border border-[rgba(22,103,224,0.14)] rounded-[12px] overflow-hidden">
+    <div className="mx-[14px] my-[10px] bg-[rgba(59,139,255,0.06)] border border-[rgba(59,139,255,0.14)] rounded-[12px] overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-[14px] py-[11px] hover:bg-[rgba(255,255,255,0.02)] transition-colors"
@@ -370,8 +544,8 @@ function PrivacySection() {
               strokeLinejoin="round"
             />
           </svg>
-          <span className="text-[11px] font-semibold text-[#7ca8ff]">
-            {L("Privacy & scope information")}
+          <span className="text-[11px] font-['Inter:Semi_Bold',sans-serif] text-[#7ca8ff]">
+            Privacy & scope information
           </span>
         </div>
         <svg
@@ -385,9 +559,10 @@ function PrivacySection() {
         </svg>
       </button>
       {open && (
-        <div className="px-[14px] pb-[12px] border-t border-[rgba(22,103,224,0.1)]">
-          <p className="text-[11px] text-[rgba(255,255,255,0.45)] leading-[1.6] mt-[10px] mb-[8px]">
-            {L("The assistant uses only your verified SkillSpan data, readiness scores, skill gaps, roadmap, and project recommendations. Only your own data is referenced.")}
+        <div className="px-[14px] pb-[12px] border-t border-[rgba(59,139,255,0.1)]">
+          <p className="text-[10px] text-[rgba(255,255,255,0.45)] leading-[1.6] mt-[10px] mb-[8px]">
+            The assistant uses only your verified SkillSpan data — readiness scores, skill gaps, roadmap, and project
+            recommendations. Only your own data is referenced.
           </p>
           <div className="space-y-[5px]">
             {[
@@ -400,11 +575,11 @@ function PrivacySection() {
             ].map(([icon, text]) => (
               <div key={text} className="flex items-start gap-[5px]">
                 <span
-                  className={`text-[11px] shrink-0 mt-[1px] font-bold ${icon === "✓" ? "text-[rgba(52,211,153,0.5)]" : "text-[rgba(248,113,113,0.5)]"}`}
+                  className={`text-[9px] shrink-0 mt-[1px] font-['Inter:Bold',sans-serif] ${icon === "✓" ? "text-[rgba(52,211,153,0.5)]" : "text-[rgba(248,113,113,0.5)]"}`}
                 >
                   {icon}
                 </span>
-                <span className="text-[11px] text-[rgba(255,255,255,0.38)] leading-[1.4]">{L(text)}</span>
+                <span className="text-[10px] text-[rgba(255,255,255,0.38)] leading-[1.4]">{text}</span>
               </div>
             ))}
           </div>
@@ -417,7 +592,6 @@ function PrivacySection() {
 // REPORT POPOVER
 // ═══════════════════════════════════════════════════════════════════════════════
 function ReportMenu({ onReport, onClose }) {
-  const { L } = useUiText();
   const reasons = [
     ["unsafe", "Unsafe", "Harmful or inappropriate content"],
     ["irrelevant", "Irrelevant", "Doesn't address my question"],
@@ -425,26 +599,26 @@ function ReportMenu({ onReport, onClose }) {
     ["incorrect", "Incorrect", "Factually wrong or misleading"],
   ];
   return (
-    <div className="absolute end-0 bottom-[28px] w-[220px] bg-[#1a1d3a] border border-[rgba(255,255,255,0.12)] rounded-[12px] shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-50 overflow-hidden">
+    <div className="absolute right-0 bottom-[28px] w-[220px] bg-[#1a1d3a] border border-[rgba(255,255,255,0.12)] rounded-[12px] shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-50 overflow-hidden">
       <div className="px-[13px] pt-[11px] pb-[8px] border-b border-[rgba(255,255,255,0.07)]">
-        <p className="text-[11px] font-semibold text-white">{L("Report this response")}</p>
-        <p className="text-[11px] text-[rgba(255,255,255,0.35)] mt-[1px]">{L("Reviewed by the SkillSpan team")}</p>
+        <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] text-white">Report this response</p>
+        <p className="text-[9px] text-[rgba(255,255,255,0.35)] mt-[1px]">Reviewed by the SkillSpan team</p>
       </div>
       {reasons.map(([k, l, d]) => (
         <button
           key={k}
           onClick={() => onReport(k)}
-          className="w-full text-start px-[13px] py-[8px] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+          className="w-full text-left px-[13px] py-[8px] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
         >
-          <p className="text-[11px] font-medium text-[rgba(255,255,255,0.8)]">{L(l)}</p>
-          <p className="text-[11px] text-[rgba(255,255,255,0.35)]">{L(d)}</p>
+          <p className="text-[11px] font-['Inter:Medium',sans-serif] text-[rgba(255,255,255,0.8)]">{l}</p>
+          <p className="text-[9px] text-[rgba(255,255,255,0.35)]">{d}</p>
         </button>
       ))}
       <button
         onClick={onClose}
-        className="w-full text-[11px] text-[rgba(255,255,255,0.35)] py-[8px] border-t border-[rgba(255,255,255,0.06)] hover:text-[rgba(255,255,255,0.55)] transition-colors"
+        className="w-full text-[10px] text-[rgba(255,255,255,0.35)] py-[8px] border-t border-[rgba(255,255,255,0.06)] hover:text-[rgba(255,255,255,0.55)] transition-colors"
       >
-        {L("Cancel")}
+        Cancel
       </button>
     </div>
   );
@@ -453,7 +627,6 @@ function ReportMenu({ onReport, onClose }) {
 // MESSAGE BUBBLE
 // ═══════════════════════════════════════════════════════════════════════════════
 function MessageBubble({ msg, onReport, onHandoff, onOpenSupport }) {
-  const { L } = useUiText();
   const [showReport, setShowReport] = useState(false);
   const isUser = msg.role === "user";
   const textDirection = getTextDirection(msg.text);
@@ -472,20 +645,20 @@ function MessageBubble({ msg, onReport, onHandoff, onOpenSupport }) {
       {!isUser && (
         <div
           className="w-[26px] h-[26px] rounded-full shrink-0 mt-[2px] flex items-center justify-center text-[11px]"
-          style={{ background: "#1667e0" }}
+          style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}
         >
-          <span className="font-semibold text-white">S</span>
+          ⚡
         </div>
       )}
       <div className={`flex flex-col max-w-[88%] ${isUser ? "items-end" : "items-start"}`}>
         <div
-          className={`rounded-[12px] px-[13px] py-[10px] text-[12px] leading-[1.65]
+          className={`rounded-[14px] px-[13px] py-[10px] text-[12px] leading-[1.65]
           ${
             isUser
-              ? "bg-[#1667e0] text-white rounded-se-[3px]"
+              ? "bg-gradient-to-br from-[#3b8bff] to-[#2563eb] text-white rounded-tr-[3px]"
               : isSpecial
-                ? "bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.78)] rounded-ss-[3px] w-full"
-                : "bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.78)] rounded-ss-[3px]"
+                ? "bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.78)] rounded-tl-[3px] w-full"
+                : "bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.78)] rounded-tl-[3px]"
           }`}
         >
           {msg.text && (
@@ -505,17 +678,17 @@ function MessageBubble({ msg, onReport, onHandoff, onOpenSupport }) {
             />
           )}
           {msg.role === "assistant" && msg.handoffAvailable && !msg.handoffCreated && (
-            <button type="button" onClick={() => onHandoff(msg.id)} className="mt-[10px] rounded-[8px] border border-[rgba(22,103,224,0.35)] bg-[rgba(22,103,224,0.12)] px-[10px] py-[7px] text-[11px] text-[#a9c8ff] hover:bg-[rgba(22,103,224,0.2)]">{L("Contact human support")}</button>
+            <button type="button" onClick={() => onHandoff(msg.id)} className="mt-[10px] rounded-[8px] border border-[rgba(59,139,255,0.35)] bg-[rgba(59,139,255,0.12)] px-[10px] py-[7px] text-[11px] text-[#a9c8ff] hover:bg-[rgba(59,139,255,0.2)]">Contact human support</button>
           )}
           {msg.handoffCreated && (
             <div className="mt-[8px] flex flex-wrap items-center gap-[8px]">
-              <p className="text-[11px] text-[#a9c8ff]">{L("Support request #{id} created ({status}).", { id: msg.supportRequestId, status: L(msg.supportStatus || "pending") })}</p>
+              <p className="text-[10px] text-[#a9c8ff]">Support request #{msg.supportRequestId} created ({msg.supportStatus || "pending"}).</p>
               <button
                 type="button"
                 onClick={() => onOpenSupport?.()}
-                className="rounded-[8px] border border-[rgba(22,103,224,0.35)] bg-[rgba(22,103,224,0.12)] px-[10px] py-[5px] text-[11px] text-[#a9c8ff] hover:bg-[rgba(22,103,224,0.2)]"
+                className="rounded-[8px] border border-[rgba(59,139,255,0.35)] bg-[rgba(59,139,255,0.12)] px-[10px] py-[5px] text-[10px] text-[#a9c8ff] hover:bg-[rgba(59,139,255,0.2)]"
               >
-                {L("Open the thread")}
+                Open the thread →
               </button>
             </div>
           )}
@@ -530,15 +703,15 @@ function MessageBubble({ msg, onReport, onHandoff, onOpenSupport }) {
 
         {/* Footer */}
         <div className={`flex items-center gap-[8px] mt-[3px] ${isUser ? "flex-row-reverse" : ""}`}>
-          <span className="text-[11px] text-[rgba(255,255,255,0.22)]">{msg.ts}</span>
+          <span className="text-[9px] text-[rgba(255,255,255,0.22)]">{msg.ts}</span>
           {!isUser && (
             <div className="relative">
               {msg.reported ? (
-                <span className="text-[11px] text-[rgba(245,158,11,0.55)]">{L("Reported")}</span>
+                <span className="text-[9px] text-[rgba(245,158,11,0.55)]">Reported</span>
               ) : (
                 <button
                   onClick={() => setShowReport(!showReport)}
-                  className="flex items-center gap-[3px] text-[11px] text-[rgba(255,255,255,0.2)] hover:text-[rgba(255,255,255,0.5)] transition-colors opacity-0 group-hover:opacity-100"
+                  className="flex items-center gap-[3px] text-[9px] text-[rgba(255,255,255,0.2)] hover:text-[rgba(255,255,255,0.5)] transition-colors opacity-0 group-hover:opacity-100"
                 >
                   <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
                     <path
@@ -548,7 +721,7 @@ function MessageBubble({ msg, onReport, onHandoff, onOpenSupport }) {
                       strokeLinejoin="round"
                     />
                   </svg>
-                  {L("Report")}
+                  Report
                 </button>
               )}
               {showReport && (
@@ -575,11 +748,11 @@ function Typing() {
     <div className="flex gap-[8px] px-[14px] py-[5px]">
       <div
         className="w-[26px] h-[26px] rounded-full shrink-0 flex items-center justify-center text-[11px]"
-        style={{ background: "#1667e0" }}
+        style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}
       >
-        <span className="font-semibold text-white">S</span>
+        ⚡
       </div>
-      <div className="bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.09)] rounded-[12px] rounded-ss-[3px] px-[14px] py-[12px] flex items-center gap-[4px]">
+      <div className="bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.09)] rounded-[14px] rounded-tl-[3px] px-[14px] py-[12px] flex items-center gap-[4px]">
         {[0, 1, 2].map((i) => (
           <span
             key={i}
@@ -594,31 +767,22 @@ function Typing() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONTEXT PANEL (right sidebar)
 // ═══════════════════════════════════════════════════════════════════════════════
-function ContextPanel({ learnerContext = null }) {
-  const { L, skillLabel } = useUiText();
-  // Live: the learner's latest readiness result (score, role, top gaps).
-  const pills = DEMO_MODE
-    ? CONTEXT_PILLS
-    : [
-        learnerContext?.score != null && { label: L("Readiness {n}/100", { n: learnerContext.score }) },
-        learnerContext?.roleTitle && { label: learnerContext.roleTitle },
-        ...(learnerContext?.topGaps ?? []).map((g) => ({ label: L("Gap: {name}", { name: skillLabel(g.name, { skillNameAr: g.nameAr }) }) })),
-      ].filter(Boolean);
+function ContextPanel() {
   return (
-    <div className="hidden lg:flex w-[220px] shrink-0 border-s border-[rgba(255,255,255,0.07)] flex-col overflow-y-auto py-[18px] px-[14px] gap-[18px]">
+    <div className="w-[220px] shrink-0 border-l border-[rgba(255,255,255,0.07)] flex flex-col overflow-y-auto py-[18px] px-[14px] gap-[18px]">
       {/* Live context */}
       <div>
-        <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] uppercase tracking-wide mb-[8px]">
-          {L("Active context")}
+        <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] text-[rgba(255,255,255,0.3)] uppercase tracking-wide mb-[8px]">
+          Active context
         </p>
         <div className="space-y-[5px]">
-          {pills.map((c) => (
+          {CONTEXT_PILLS.map((c) => (
             <div
               key={c.label}
               className="flex items-center gap-[7px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-[8px] px-[9px] py-[6px]"
             >
-              {c.icon ? <span className="text-[11px] shrink-0">{c.icon}</span> : null}
-              <span className="text-[11px] font-medium text-[rgba(255,255,255,0.65)]">
+              <span className="text-[11px] shrink-0">{c.icon}</span>
+              <span className="text-[10px] font-['Inter:Medium',sans-serif] text-[rgba(255,255,255,0.65)]">
                 {c.label}
               </span>
             </div>
@@ -626,14 +790,14 @@ function ContextPanel({ learnerContext = null }) {
         </div>
         <div className="flex items-center gap-[5px] mt-[8px]">
           <span className="w-[5px] h-[5px] rounded-full bg-[#34d399] pulse-glow shrink-0" />
-          <span className="text-[11px] text-[rgba(255,255,255,0.35)]">{DEMO_MODE ? "Context up to date · 9 Sep 2026" : L("Context is based on available account data")}</span>
+          <span className="text-[9px] text-[rgba(255,255,255,0.35)]">{DEMO_MODE ? "Context up to date · 9 Sep 2026" : "Context is based on available account data"}</span>
         </div>
       </div>
 
       {/* Quick questions */}
       <div>
-        <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] uppercase tracking-wide mb-[8px]">
-          {L("Quick questions")}
+        <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] text-[rgba(255,255,255,0.3)] uppercase tracking-wide mb-[8px]">
+          Quick questions
         </p>
         <div className="space-y-[4px]">
           {SUGGESTED.map((s) => (
@@ -641,7 +805,7 @@ function ContextPanel({ learnerContext = null }) {
               key={s.label}
               className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-[8px] px-[9px] py-[6px]"
             >
-              <p className="text-[11px] text-[rgba(255,255,255,0.5)] leading-tight">{L(s.label)}</p>
+              <p className="text-[10px] text-[rgba(255,255,255,0.5)] leading-tight">{s.label}</p>
             </div>
           ))}
         </div>
@@ -649,8 +813,8 @@ function ContextPanel({ learnerContext = null }) {
 
       {/* Scope reminder */}
       <div className="bg-[rgba(148,163,184,0.05)] border border-[rgba(148,163,184,0.1)] rounded-[10px] p-[10px]">
-        <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] uppercase tracking-wide mb-[5px]">
-          {L("Scope")}
+        <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] text-[rgba(255,255,255,0.3)] uppercase tracking-wide mb-[5px]">
+          Scope
         </p>
         {[
           "Readiness explanations",
@@ -660,14 +824,14 @@ function ContextPanel({ learnerContext = null }) {
           "Bounded project help",
         ].map((s) => (
           <div key={s} className="flex items-center gap-[4px] py-[2px]">
-            <span className="text-[11px] text-[rgba(52,211,153,0.5)]">✓</span>
-            <span className="text-[11px] text-[rgba(255,255,255,0.35)]">{L(s)}</span>
+            <span className="text-[8px] text-[rgba(52,211,153,0.5)]">✓</span>
+            <span className="text-[9px] text-[rgba(255,255,255,0.35)]">{s}</span>
           </div>
         ))}
         {["Completing assignments", "Guaranteeing employment", "Overriding eligibility"].map((s) => (
           <div key={s} className="flex items-center gap-[4px] py-[2px]">
-            <span className="text-[11px] text-[rgba(248,113,113,0.5)]">✕</span>
-            <span className="text-[11px] text-[rgba(255,255,255,0.35)]">{L(s)}</span>
+            <span className="text-[8px] text-[rgba(248,113,113,0.5)]">✕</span>
+            <span className="text-[9px] text-[rgba(255,255,255,0.35)]">{s}</span>
           </div>
         ))}
       </div>
@@ -677,8 +841,16 @@ function ContextPanel({ learnerContext = null }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN VIEW
 // ═══════════════════════════════════════════════════════════════════════════════
-export default function AssistantView({ onNavigate, learnerContext = null }) {
-  const { L } = useUiText();
+const DEMOS = [
+  { key: "welcome", label: "Welcome" },
+  { key: "readiness", label: "Readiness" },
+  { key: "skill-gap", label: "Skill Gap" },
+  { key: "roadmap", label: "Roadmap" },
+  { key: "project-rec", label: "Project Rec" },
+  { key: "uncertainty", label: "Uncertainty" },
+  { key: "unavailable", label: "Unavailable" },
+];
+export default function AssistantView({ onNavigate }) {
   const { authUser } = useAuth();
   const userId = authUser?.id ?? null;
   // Restored from the browser so a reload (or a trip to another screen and
@@ -686,7 +858,7 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
   const [messages, setMessages] = useState(() => (DEMO_MODE ? [] : loadAssistantChat(userId)));
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const [, setScenario] = useState("welcome");
+  const [scenario, setScenario] = useState("welcome");
   const [fresh, setFresh] = useState(true);
   const [confirmClear, setConfirmClear] = useState(false);
   const bottomRef = useRef(null);
@@ -706,6 +878,12 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
     setFresh(true);
     setScenario("welcome");
     setConfirmClear(false);
+  }
+  function loadScenario(key) {
+    setScenario(key);
+    setMessages(DEMO_MODE ? (CONVOS[key] || []) : []);
+    setFresh(key === "welcome");
+    setTyping(false);
   }
   async function send(text, intent) {
     const question = text.trim();
@@ -728,7 +906,7 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
       const payload = unwrapApiData(response) || {};
       const replyText = typeof payload.reply === "string"
         ? payload.reply
-        : L("The assistant returned an empty response. Please try again.");
+        : "The assistant returned an empty response. Please try again.";
       setMessages((prev) => [...prev, {
         id: payload.interaction_id ?? payload.id ?? `a${Date.now()}`,
         interactionId: payload.interaction_id ?? payload.id,
@@ -737,7 +915,7 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
         role: "assistant",
         type: "text",
         ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
-        text: replyText || L("The assistant returned an empty response. Please try again."),
+        text: replyText || "The assistant returned an empty response. Please try again.",
       }]);
     } catch (error) {
       setMessages((prev) => [...prev, {
@@ -748,13 +926,13 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
         text: "",
         payload: {
           icon: "🔌",
-          title: L("Assistant temporarily unavailable"),
+          title: "Assistant temporarily unavailable",
           explanation: error?.status === 422
-            ? L("The question could not be mapped to a supported assistant topic. Please use one of the suggested topics and try again.")
-            : (error?.message || L("The AI service could not be reached. No data was changed.")),
+            ? "The question could not be mapped to a supported assistant topic. Please use one of the suggested topics and try again."
+            : (error?.message || "The AI service could not be reached. No data was changed."),
           canHelp: error?.status === 422
-            ? L("Supported topics: readiness, skill gaps, roadmap, next best action, project recommendations, and bounded project help.")
-            : L("Please try the question again in a few seconds."),
+            ? "Supported topics: readiness, skill gaps, roadmap, next best action, project recommendations, and bounded project help."
+            : "Please try the question again in a few seconds.",
           type: "service-error",
         },
       }]);
@@ -769,7 +947,7 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
       await reportAssistantInteraction(item.interactionId, { report_status: reason });
       setMessages((prev) => prev.map((m) => (String(m.id) === String(id) ? { ...m, reported: true, reportReason: reason } : m)));
     } catch (error) {
-      setMessages((prev) => [...prev, { id: `report-error-${Date.now()}`, role: "assistant", type: "text", ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), text: error?.message || L("Could not submit the report. Please try again.") }]);
+      setMessages((prev) => [...prev, { id: `report-error-${Date.now()}`, role: "assistant", type: "text", ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), text: error?.message || "Could not submit the report. Please try again." }]);
     }
   }
   async function handleHandoff(id) {
@@ -783,33 +961,33 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
       const request = unwrapApiData(response) || {};
       setMessages((prev) => prev.map((m) => String(m.id) === String(id) ? { ...m, handoffCreated: true, supportRequestId: request.id, supportStatus: request.status } : m));
     } catch (error) {
-      setMessages((prev) => [...prev, { id: `handoff-error-${Date.now()}`, role: "assistant", type: "text", ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), text: error?.message || L("Could not contact support. Please try again.") }]);
+      setMessages((prev) => [...prev, { id: `handoff-error-${Date.now()}`, role: "assistant", type: "text", ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), text: error?.message || "Could not contact support. Please try again." }]);
     }
   }
   return (
-    <div className="flex flex-col h-full overflow-hidden" style={{ background: "#060d2e" }}>
+    <div className="flex flex-col h-full overflow-hidden" style={{ background: "#0d0f24" }}>
       {/* Header */}
       <div className="shrink-0 border-b border-[rgba(255,255,255,0.07)] px-[20px] py-[14px]">
-        <div className="flex flex-wrap items-center justify-between gap-[10px]">
-          <div className="flex items-center gap-[12px] min-w-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-[12px]">
             <div
-              className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center text-[16px]"
-              style={{ background: "#1667e0" }}
+              className="w-[38px] h-[38px] rounded-[11px] flex items-center justify-center text-[16px]"
+              style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}
             >
-              <span className="font-bold text-[16px] text-white">S</span>
+              ⚡
             </div>
             <div>
-              <h1 className="font-bold text-[16px] text-white leading-tight">
-                {L("SkillSpan Assistant")}
+              <h1 className="font-['Inter:Bold',sans-serif] text-[16px] text-white leading-tight">
+                SkillSpan Assistant
               </h1>
-              <p className="text-[11px] text-[rgba(255,255,255,0.4)]">{L("Personalized career guidance · Bounded scope")}</p>
+              <p className="text-[11px] text-[rgba(255,255,255,0.4)]">Personalized career guidance · Bounded scope</p>
             </div>
           </div>
           <div className="flex items-center gap-[10px]">
-            <div className="hidden md:flex items-center gap-[5px] px-[10px] py-[5px] bg-[rgba(21,146,90,0.1)] border border-[rgba(21,146,90,0.2)] rounded-full">
+            <div className="flex items-center gap-[5px] px-[10px] py-[5px] bg-[rgba(5,150,105,0.1)] border border-[rgba(5,150,105,0.2)] rounded-full">
               <span className="w-[5px] h-[5px] rounded-full bg-[#34d399] shrink-0 pulse-glow" />
-              <span className="text-[11px] font-medium text-[#34d399]">
-                {learnerContext ? L("Your readiness context is loaded") : L("Career context will appear when your profile data is available.")}
+              <span className="text-[9px] font-['Inter:Medium',sans-serif] text-[#34d399]">
+                Career context will appear when your profile data is available.
               </span>
             </div>
 
@@ -817,30 +995,30 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
                 way to throw it away without hunting for a settings screen. */}
             {messages.length > 0 &&
               (confirmClear ? (
-                <div className="flex items-center gap-[6px] h-[28px] ps-[9px] pe-[4px] rounded-[8px] bg-[rgba(209,59,59,0.12)] border border-[rgba(209,59,59,0.35)]">
-                  <span className="text-[11px] text-[#fca5a5] whitespace-nowrap">{L("Delete this chat?")}</span>
+                <div className="flex items-center gap-[6px] h-[28px] pl-[9px] pr-[4px] rounded-[8px] bg-[rgba(239,68,68,0.12)] border border-[rgba(239,68,68,0.35)]">
+                  <span className="text-[10px] text-[#fca5a5] whitespace-nowrap">Delete this chat?</span>
                   <button
                     type="button"
                     onClick={clearConversation}
-                    className="h-[20px] px-[8px] rounded-[6px] bg-[#d13b3b] text-[11px] font-semibold text-white"
+                    className="h-[20px] px-[8px] rounded-[6px] bg-[#ef4444] text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white"
                   >
-                    {L("Delete")}
+                    Delete
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmClear(false)}
-                    className="h-[20px] px-[6px] rounded-[6px] text-[11px] text-[rgba(255,255,255,0.6)] hover:text-white"
+                    className="h-[20px] px-[6px] rounded-[6px] text-[10px] text-[rgba(255,255,255,0.6)] hover:text-white"
                   >
-                    {L("Cancel")}
+                    Cancel
                   </button>
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setConfirmClear(true)}
-                  aria-label={L("Delete conversation")}
-                  title={L("Delete conversation")}
-                  className="flex items-center gap-[5px] h-[28px] px-[9px] rounded-[8px] border border-[rgba(255,255,255,0.12)] text-[11px] font-medium text-[rgba(255,255,255,0.55)] hover:text-white hover:border-[rgba(209,59,59,0.45)] hover:bg-[rgba(209,59,59,0.12)] transition-colors"
+                  aria-label="Delete conversation"
+                  title="Delete conversation"
+                  className="flex items-center gap-[5px] h-[28px] px-[9px] rounded-[8px] border border-[rgba(255,255,255,0.12)] text-[10px] font-['Inter:Medium',sans-serif] text-[rgba(255,255,255,0.55)] hover:text-white hover:border-[rgba(239,68,68,0.45)] hover:bg-[rgba(239,68,68,0.12)] transition-colors"
                 >
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M3 6h18" />
@@ -848,7 +1026,7 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
                     <path d="M19 6l-1 14H6L5 6" />
                     <path d="M10 11v5M14 11v5" />
                   </svg>
-                  {L("Delete chat")}
+                  Delete chat
                 </button>
               ))}
           </div>
@@ -866,25 +1044,35 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
           <div className="flex-1 overflow-y-auto py-[6px]">
             {/* Welcome / empty state */}
             {fresh && messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center min-h-full gap-[24px] px-[16px] md:px-[32px] py-[16px]">
+              <div className="flex flex-col items-center justify-center h-full gap-[24px] px-[32px]">
                 <div className="text-center">
-                  <h2 className="font-bold text-[18px] text-white mb-[6px]">
-                    {L("How can I help you today?")}
+                  <div
+                    className="w-[60px] h-[60px] rounded-[18px] flex items-center justify-center text-[24px] mx-auto mb-[14px]"
+                    style={{
+                      background: "linear-gradient(135deg,rgba(59,139,255,0.15),rgba(124,58,237,0.15))",
+                      border: "1px solid rgba(59,139,255,0.2)",
+                    }}
+                  >
+                    ⚡
+                  </div>
+                  <h2 className="font-['Inter:Bold',sans-serif] text-[18px] text-white mb-[6px]">
+                    How can I help you today?
                   </h2>
                   <p className="text-[13px] text-[rgba(255,255,255,0.45)] max-w-[360px] leading-[1.65]">
-                    {L("I have access to your verified SkillSpan profile. Ask me about your readiness score, skill gaps, roadmap, or why a project was recommended.")}
+                    I have access to your verified SkillSpan profile. Ask me about your readiness score, skill gaps,
+                    roadmap, or why a project was recommended.
                   </p>
                 </div>
                 {/* Suggested question cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[8px] w-full max-w-[500px]">
+                <div className="grid grid-cols-2 gap-[8px] w-full max-w-[500px]">
                   {SUGGESTED.map((s) => (
                     <button
                       key={s.label}
-                      onClick={() => send(L(s.label), s.intent)}
-                      className="bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.09)] rounded-[12px] px-[14px] py-[12px] text-start hover:bg-[rgba(22,103,224,0.1)] hover:border-[rgba(22,103,224,0.25)] transition-all"
+                      onClick={() => send(s.label, s.intent)}
+                      className="bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.09)] rounded-[12px] px-[14px] py-[12px] text-left hover:bg-[rgba(59,139,255,0.1)] hover:border-[rgba(59,139,255,0.25)] transition-all"
                     >
-                      <p className="text-[12px] font-medium text-[rgba(255,255,255,0.75)] leading-[1.45]">
-                        {L(s.label)}
+                      <p className="text-[12px] font-['Inter:Medium',sans-serif] text-[rgba(255,255,255,0.75)] leading-[1.45]">
+                        {s.label}
                       </p>
                     </button>
                   ))}
@@ -901,7 +1089,7 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
 
           {/* Input */}
           <div className="shrink-0 px-[14px] pb-[14px] pt-[8px] border-t border-[rgba(255,255,255,0.07)]">
-            <div className="flex items-end gap-[8px] bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-[12px] px-[13px] py-[9px] focus-within:border-[rgba(22,103,224,0.45)] transition-colors">
+            <div className="flex items-end gap-[8px] bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-[14px] px-[13px] py-[9px] focus-within:border-[rgba(59,139,255,0.45)] transition-colors">
               <textarea
                 ref={textRef}
                 value={input}
@@ -913,7 +1101,7 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
                   }
                 }}
                 rows={1}
-                placeholder={L("Ask about your readiness, skill gaps, roadmap, or recommendations…")}
+                placeholder="Ask about your readiness, skill gaps, roadmap, or recommendations…"
                 className="flex-1 bg-transparent text-[12px] text-[rgba(255,255,255,0.8)] placeholder:text-[rgba(255,255,255,0.22)] focus:outline-none resize-none leading-[1.5] max-h-[80px] overflow-y-auto"
                 style={{ minHeight: "20px" }}
                 onInput={(e) => {
@@ -924,32 +1112,31 @@ export default function AssistantView({ onNavigate, learnerContext = null }) {
               />
               <button
                 onClick={() => send(input)}
-                aria-label={L("Send")}
                 disabled={!input.trim() || typing}
-                className="w-[30px] h-[30px] rounded-[8px] flex items-center justify-center transition-all shrink-0 mb-[1px] disabled:opacity-30"
+                className="w-[30px] h-[30px] rounded-[9px] flex items-center justify-center transition-all shrink-0 mb-[1px] disabled:opacity-30"
                 style={{
-                  background: input.trim() ? "#1667e0" : "rgba(255,255,255,0.08)",
+                  background: input.trim() ? "linear-gradient(135deg,#3b8bff,#7c3aed)" : "rgba(255,255,255,0.08)",
                 }}
               >
-                <svg width="11" height="11" viewBox="0 0 11 11" fill="none" className="rtl:-scale-x-100">
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
                   <path d="M1 10L10 5.5 1 1v3.5l6 1-6 1V10z" fill="white" />
                 </svg>
               </button>
             </div>
-            <p className="text-center text-[11px] text-[rgba(255,255,255,0.18)] mt-[6px]">
-              {L("Guided by verified profile data · Will not guarantee employment or override eligibility")} ·{" "}
+            <p className="text-center text-[9px] text-[rgba(255,255,255,0.18)] mt-[6px]">
+              Guided by verified profile data · Will not guarantee employment or override eligibility ·{" "}
               <button
                 onClick={() => document.querySelector("[data-privacy]")?.scrollIntoView()}
                 className="underline hover:text-[rgba(255,255,255,0.4)] transition-colors"
               >
-                {L("Privacy info")}
+                Privacy info ↑
               </button>
             </p>
           </div>
         </div>
 
         {/* Right: context panel */}
-        <ContextPanel learnerContext={learnerContext} />
+        <ContextPanel />
       </div>
 
    </div>

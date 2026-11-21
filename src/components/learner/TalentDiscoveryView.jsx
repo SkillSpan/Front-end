@@ -81,7 +81,7 @@ function HiddenField({ label }) {
   );
 }
 // ── Student Talent Card ───────────────────────────────────────────────────────
-function TalentCard({ student, selected, onClick }) {
+function TalentCard({ student, selected, onClick, scene }) {
   const isLocked = student.visibility === "locked";
   const isPartial = student.visibility === "partial";
   return (
@@ -419,7 +419,7 @@ function StudentProfilePanel({ student, onClose, onContact }) {
                       </p>
                       {proj.outcomes.map((o) => (
                         <div key={o} className="flex items-start gap-[6px]">
-                          <span className="text-[#3b8bff] text-[10px] mt-[1px] shrink-0"></span>
+                          <span className="text-[#3b8bff] text-[10px] mt-[1px] shrink-0">→</span>
                           <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#475569] leading-[1.5]">
                             {o}
                           </span>
@@ -721,7 +721,7 @@ function ContactDialog({ student, onClose, onConfirm, sent }) {
 export default function TalentDiscoveryView() {
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
-  const [, setLoadError] = useState("");
+  const [loadError, setLoadError] = useState("");
   const [contactError, setContactError] = useState("");
   const [contactSubmitting, setContactSubmitting] = useState(false);
   useEffect(() => {
@@ -797,7 +797,7 @@ export default function TalentDiscoveryView() {
     if (sortBy === "match") list.sort((a, b) => b.matchScore - a.matchScore);
     else if (sortBy === "readiness") list.sort((a, b) => b.readiness - a.readiness);
     return list;
-  }, [students, searchQ, trackFilter, minReadiness, sortBy, loadingStudents]);
+  }, [students, scene, searchQ, trackFilter, minReadiness, sortBy, loadingStudents]);
   return (
     <div className="flex flex-col flex-1 min-h-0 min-w-0 overflow-hidden bg-[#f1f3fa]">
       {/* Header */}

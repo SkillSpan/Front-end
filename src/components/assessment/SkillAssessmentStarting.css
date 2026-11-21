@@ -19,7 +19,7 @@
   top: 0;
   left: 0;
   height: 3px;
-  background: #4f6df5;
+  background: linear-gradient(90deg, #4f6df5, #7c3aed);
   transition: width 0.03s linear;
   z-index: 2;
 }
@@ -96,8 +96,8 @@
 
 .assessment-starting-ring-fill {
   fill: none;
-  stroke: #1667e0;
-  stroke: #1667e0;
+  stroke: url(#assessment-starting-gradient);
+  stroke: #6366f1;
   stroke-width: 4;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.03s linear;
@@ -107,8 +107,8 @@
   width: 80px;
   height: 80px;
   border-radius: 22px;
-  background: rgba(22, 103, 224, 0.16);
-  border: 1px solid rgba(22, 103, 224, 0.25);
+  background: linear-gradient(150deg, rgba(99, 102, 241, 0.16), rgba(139, 92, 246, 0.12));
+  border: 1px solid rgba(99, 102, 241, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,7 +117,7 @@
 .assessment-starting-icon-box svg {
   width: 30px;
   height: 30px;
-  color: #1667e0;
+  color: #6366f1;
 }
 
 .assessment-starting-title {
@@ -183,14 +183,14 @@
 }
 
 .assessment-starting-item.active .assessment-starting-item-marker {
-  border-color: #1667e0;
+  border-color: #6366f1;
 }
 
 .assessment-starting-spinner {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  border: 2px solid #1667e0;
+  border: 2px solid #6366f1;
   border-top-color: transparent;
   animation: assessment-starting-spin 0.7s linear infinite;
 }

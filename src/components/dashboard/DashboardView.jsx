@@ -97,7 +97,7 @@ function ParagraphMargin1() {
 }
 function Button() {
     return (<div className="bg-gradient-to-r content-stretch flex flex-col from-[#3b8bff] items-center justify-center px-[16px] py-[8px] relative rounded-[12px] shrink-0 to-[#7c3aed]">
-      <p className="[word-break:break-word] font-semibold leading-[16px] not-italic relative shrink-0 text-[12px] text-center text-white whitespace-nowrap">View Roadmap</p>
+      <p className="[word-break:break-word] font-semibold leading-[16px] not-italic relative shrink-0 text-[12px] text-center text-white whitespace-nowrap">View Roadmap →</p>
     </div>);
 }
 function ButtonMargin() {
@@ -164,7 +164,7 @@ function Container8() {
 }
 function Button1() {
     return (<div className="absolute bg-gradient-to-r drop-shadow-[0px_4px_8px_rgba(59,139,255,0.3)] from-[#3b8bff] h-[40px] left-0 rounded-[12px] to-[#7c3aed] top-0 w-[177.475px]">
-      <p className="-translate-x-1/2 [word-break:break-word] absolute font-semibold leading-[20px] left-[89px] not-italic text-[14px] text-center text-white top-[10.6px] whitespace-nowrap">Start Assessment</p>
+      <p className="-translate-x-1/2 [word-break:break-word] absolute font-semibold leading-[20px] left-[89px] not-italic text-[14px] text-center text-white top-[10.6px] whitespace-nowrap">Start Assessment →</p>
     </div>);
 }
 function Container9() {
@@ -350,7 +350,7 @@ function Heading2() {
 }
 function Button2() {
     return (<div className="content-stretch flex flex-col items-center justify-center relative shrink-0">
-      <p className="[word-break:break-word] font-semibold leading-[16px] not-italic relative shrink-0 text-[#5b6ef5] text-[12px] text-center whitespace-nowrap">View All</p>
+      <p className="[word-break:break-word] font-semibold leading-[16px] not-italic relative shrink-0 text-[#5b6ef5] text-[12px] text-center whitespace-nowrap">View All →</p>
     </div>);
 }
 function Container21() {
@@ -520,7 +520,7 @@ function Heading3() {
 }
 function Button3() {
     return (<div className="content-stretch flex flex-col items-center justify-center relative shrink-0">
-      <p className="[word-break:break-word] font-semibold leading-[16px] not-italic relative shrink-0 text-[#5b6ef5] text-[12px] text-center whitespace-nowrap">Browse All</p>
+      <p className="[word-break:break-word] font-semibold leading-[16px] not-italic relative shrink-0 text-[#5b6ef5] text-[12px] text-center whitespace-nowrap">Browse All →</p>
     </div>);
 }
 function Container40() {

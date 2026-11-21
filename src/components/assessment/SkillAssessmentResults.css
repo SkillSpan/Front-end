@@ -69,7 +69,7 @@
 }
 
 .assessment-results-card {
-  background: #eef0fb;
+  background: linear-gradient(160deg, #eef0fb, #e9ecf9);
   border: 1px solid #e0e3f3;
   border-radius: 20px;
   padding: 28px 26px;
@@ -175,7 +175,7 @@
 
 .assessment-results-ring-fill {
   fill: none;
-  stroke: #1667e0;
+  stroke: #6366f1;
   stroke-width: 6;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.4s ease;
@@ -228,7 +228,7 @@
   font-size: 1.05rem;
   font-weight: 700;
   color: #fff;
-  background: #4f6df5;
+  background: linear-gradient(90deg, #4f6df5, #7c3aed);
   cursor: pointer;
   transition: opacity 0.15s ease, transform 0.15s ease;
 }

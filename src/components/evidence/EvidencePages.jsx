@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { getSkillsMatrix } from '../../api';
 import { fetchSkillOptions } from './lib/evidenceApi';
-import { useUiText } from '../../i18n/useUiText';
 import { useAuth } from '../auth/AuthContext';
 import { useEvidence } from './EvidenceContext';
 import EvidenceShell from './EvidenceShell';
@@ -74,20 +73,19 @@ function useMatrixSkillIds() {
 // POST /api/v1/evidence needs skill_id, and AddEvidence only knows a skill
 // when one is passed in, so a new submission picks it here first.
 function SkillPicker({ skills, loading, error, onRetry, myIds, value, onChange }) {
-  const { L } = useUiText();
   const mine = skills.filter((s) => myIds.includes(String(s.id)));
   const others = skills.filter((s) => !myIds.includes(String(s.id)));
   return (
-    <div className="mb-5">
+    <div className="mx-auto mb-5 max-w-[820px]">
       <div className="figma-card p-5 sm:p-7">
-        <label htmlFor="evidence-skill" className="mb-2 block text-xs font-semibold text-[#344054]">
-          {L("Skill")} <span className="text-[#d92d20]">*</span>
+        <label htmlFor="evidence-skill" className="mb-2 block text-sm font-semibold text-[#101828]">
+          Skill <span className="text-[#d92d20]">*</span>
         </label>
-        <p className="m-0 mb-3 text-xs text-[#667085]">{L("Which skill does this evidence prove?")}</p>
+        <p className="m-0 mb-3 text-xs text-[#667085]">Which skill does this evidence prove?</p>
         {error ? (
           <div className="flex items-center gap-3 text-sm text-[#b42318]">
-            {L(error)}
-            <button type="button" onClick={onRetry} className="font-semibold text-[#1667e0] underline">{L("Retry")}</button>
+            {error}
+            <button type="button" onClick={onRetry} className="font-semibold text-[var(--blue)] underline">Retry</button>
           </div>
         ) : (
           <select
@@ -98,15 +96,15 @@ function SkillPicker({ skills, loading, error, onRetry, myIds, value, onChange }
               const picked = skills.find((s) => String(s.id) === e.target.value);
               onChange(picked ? { skill: picked.name, skillId: picked.id, category: picked.category || '', level: '' } : null);
             }}
-            className="figma-input h-11 w-full bg-white px-3 text-sm"
+            className="w-full rounded-lg border border-[#d0d5dd] bg-white px-3 py-2.5 text-sm text-[#101828] focus:border-[var(--blue)] focus:outline-none"
           >
-            <option value="">{loading ? L('Loading skills...') : L('Choose a skill')}</option>
+            <option value="">{loading ? 'Loading skills...' : 'Choose a skill'}</option>
             {mine.length > 0 && (
-              <optgroup label={L("My skills")}>
+              <optgroup label="My skills">
                 {mine.map((s) => <option key={s.id} value={String(s.id)}>{s.name}</option>)}
               </optgroup>
             )}
-            <optgroup label={mine.length ? L('All skills') : L('Skills')}>
+            <optgroup label={mine.length ? 'All skills' : 'Skills'}>
               {others.map((s) => <option key={s.id} value={String(s.id)}>{s.name}</option>)}
             </optgroup>
           </select>
@@ -127,19 +125,19 @@ export function AddEvidencePage() {
   const resubmitRecord = resubmitId ? evidence.find((item) => String(item.id) === resubmitId) || null : null;
   return (
     <EvidenceShell>
+      {!resubmitRecord && (
+        <SkillPicker
+          skills={skills}
+          loading={loading}
+          error={error}
+          onRetry={retry}
+          myIds={myIds}
+          value={pickedSkill}
+          onChange={setPickedSkill}
+        />
+      )}
       <AddEvidence
         skill={pickedSkill}
-        beforeForm={!resubmitRecord ? (
-          <SkillPicker
-            skills={skills}
-            loading={loading}
-            error={error}
-            onRetry={retry}
-            myIds={myIds}
-            value={pickedSkill}
-            onChange={setPickedSkill}
-          />
-        ) : null}
         resubmitRecord={resubmitRecord}
         onCancel={() => navigate('/evidence')}
         onSubmit={async (payload) => { await saveEvidence(payload); navigate('/evidence'); }}

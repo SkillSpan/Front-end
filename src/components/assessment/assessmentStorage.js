@@ -12,18 +12,9 @@
 
 export const STORAGE_KEY = 'skillspan_assessment_answers';
 
-// localStorage (not sessionStorage): an assessment left half-way must still be
-// there after the learner closes the site and comes back, so they land on the
-// "Pick up where you left off" screen instead of the dashboard.
-const store = {
-  getItem: (k) => { try { return window.localStorage.getItem(k); } catch { return null; } },
-  setItem: (k, v) => { try { window.localStorage.setItem(k, v); } catch { /* storage unavailable */ } },
-  removeItem: (k) => { try { window.localStorage.removeItem(k); } catch { /* storage unavailable */ } },
-};
-
 export const loadSavedAnswers = () => {
   try {
-    const raw = store.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
@@ -32,7 +23,7 @@ export const loadSavedAnswers = () => {
 
 export const saveAnswers = (answers) => {
   try {
-    store.setItem(STORAGE_KEY, JSON.stringify(answers));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(answers));
   } catch {
     // Best effort only - losing autosave shouldn't block the quiz.
   }
@@ -40,7 +31,7 @@ export const saveAnswers = (answers) => {
 
 export const clearSavedAnswers = () => {
   try {
-    store.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
   } catch {
     // no-op
   }
@@ -64,7 +55,7 @@ const SUBMISSION_RESULT_KEY = 'skillspan_assessment_result';
 
 export const loadAssessmentId = () => {
   try {
-    return store.getItem(ASSESSMENT_ID_KEY) || null;
+    return sessionStorage.getItem(ASSESSMENT_ID_KEY) || null;
   } catch {
     return null;
   }
@@ -72,8 +63,8 @@ export const loadAssessmentId = () => {
 
 export const saveAssessmentId = (id) => {
   try {
-    if (id === null || id === undefined) store.removeItem(ASSESSMENT_ID_KEY);
-    else store.setItem(ASSESSMENT_ID_KEY, String(id));
+    if (id === null || id === undefined) sessionStorage.removeItem(ASSESSMENT_ID_KEY);
+    else sessionStorage.setItem(ASSESSMENT_ID_KEY, String(id));
   } catch {
     // Best effort only - the assessment still works locally without it.
   }
@@ -86,7 +77,7 @@ export const clearAssessmentId = () => saveAssessmentId(null);
 // calculation whenever it's present and looks usable.
 export const loadSubmissionResult = () => {
   try {
-    const raw = store.getItem(SUBMISSION_RESULT_KEY);
+    const raw = sessionStorage.getItem(SUBMISSION_RESULT_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -95,8 +86,8 @@ export const loadSubmissionResult = () => {
 
 export const saveSubmissionResult = (result) => {
   try {
-    if (result) store.setItem(SUBMISSION_RESULT_KEY, JSON.stringify(result));
-    else store.removeItem(SUBMISSION_RESULT_KEY);
+    if (result) sessionStorage.setItem(SUBMISSION_RESULT_KEY, JSON.stringify(result));
+    else sessionStorage.removeItem(SUBMISSION_RESULT_KEY);
   } catch {
     // Best effort only.
   }
@@ -117,7 +108,7 @@ const QUESTION_BANK_KEY = 'skillspan_assessment_questions';
 
 export const loadQuestionBankRaw = () => {
   try {
-    const raw = store.getItem(QUESTION_BANK_KEY);
+    const raw = sessionStorage.getItem(QUESTION_BANK_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -126,48 +117,11 @@ export const loadQuestionBankRaw = () => {
 
 export const saveQuestionBankRaw = (assessment) => {
   try {
-    if (assessment) store.setItem(QUESTION_BANK_KEY, JSON.stringify(assessment));
-    else store.removeItem(QUESTION_BANK_KEY);
+    if (assessment) sessionStorage.setItem(QUESTION_BANK_KEY, JSON.stringify(assessment));
+    else sessionStorage.removeItem(QUESTION_BANK_KEY);
   } catch {
     // Best effort only.
   }
 };
 
 export const clearQuestionBank = () => saveQuestionBankRaw(null);
-
-// ---------------------------------------------------------------------------
-// Resume after leaving the site
-// ---------------------------------------------------------------------------
-// Whose attempt is saved on this device, so a different account signing in
-// on the same browser is never sent to someone else's half-done assessment.
-const OWNER_KEY = 'skillspan_assessment_owner';
-// Set for this tab only when the learner chose "Save & Exit": inside the same
-// visit they go where they asked (the dashboard); the next visit resumes.
-const EXITED_KEY = 'skillspan_assessment_exited';
-
-export const saveAssessmentOwner = (userId) => {
-  if (userId === null || userId === undefined || userId === '') store.removeItem(OWNER_KEY);
-  else store.setItem(OWNER_KEY, String(userId));
-};
-
-export const markAssessmentExited = () => {
-  try { sessionStorage.setItem(EXITED_KEY, '1'); } catch { /* ignore */ }
-};
-
-export const clearAssessmentExited = () => {
-  try { sessionStorage.removeItem(EXITED_KEY); } catch { /* ignore */ }
-};
-
-// True when this user has an assessment started and not yet submitted on
-// this device (and did not just leave it on purpose in this visit).
-export const hasAssessmentInProgress = (userId) => {
-  const id = loadAssessmentId();
-  if (!id) return false;
-  if (loadSubmissionResult()) return false;
-  const bank = loadQuestionBankRaw();
-  if (!bank || !Array.isArray(bank.questions) || bank.questions.length === 0) return false;
-  const owner = store.getItem(OWNER_KEY);
-  if (owner && userId != null && String(owner) !== String(userId)) return false;
-  try { if (sessionStorage.getItem(EXITED_KEY)) return false; } catch { /* ignore */ }
-  return true;
-};

@@ -144,10 +144,7 @@ describe('CareerJourneyView with a real backend payload', () => {
     };
     render(<CareerJourneyView readiness={readiness} intelligence={INTELLIGENCE} />);
     expect(screen.getByText(/Provisional result: unavailable components/)).toBeTruthy();
-    // The label is split across elements (bdi wrapper keeps the number LTR in RTL),
-    // so match the pieces instead of one string.
-    expect(screen.getAllByText(/of score/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText('90%').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Weight: 90% of score').length).toBeGreaterThan(0);
     expect(screen.queryByText('Assessment Reliability')).toBeNull();
   });
 
