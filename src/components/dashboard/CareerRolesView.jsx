@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 // ── Mock Data ────────────────────────────────────────────────────────────────
 // ── Utility helpers ──────────────────────────────────────────────────────────
 function demandColor(level) {
@@ -501,7 +501,7 @@ function RoleCard({ role, onSelect, onSaveToggle }) {
         onClick={onSelect}
         className="w-full py-[9px] rounded-[10px] text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#3b8bff] bg-[rgba(59,139,255,0.06)] hover:bg-[rgba(59,139,255,0.12)] transition-colors border border-[rgba(59,139,255,0.15)]"
       >
-        View Role Details
+        View Role Details →
       </button>
     </div>
   );
@@ -565,7 +565,7 @@ function BrowseRoles({ roles, onSelect, onSaveToggle, filter, onFilterChange, se
   );
 }
 // ── SuggestedRolesSection ─────────────────────────────────────────────────────
-function SuggestedRolesSection({ roles, onSelect }) {
+function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
   const suggested = roles.filter((r) => r.isSuggested);
   return (
     <div>
@@ -622,7 +622,7 @@ function SuggestedRolesSection({ roles, onSelect }) {
                   onClick={() => onSelect(role.id)}
                   className="px-[12px] py-[7px] rounded-[8px] text-[12px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#3b8bff] bg-[rgba(59,139,255,0.06)] hover:bg-[rgba(59,139,255,0.12)] transition-colors border border-[rgba(59,139,255,0.15)]"
                 >
-                  Explore
+                  Explore →
                 </button>
               </div>
             </div>
@@ -767,7 +767,7 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
   );
 }
 // ── CompareView ────────────────────────────────────────────────────────────────
-function CompareView({ roles }) {
+function CompareView({ roles, onSelect }) {
   const saved = roles.filter((r) => r.isSaved);
   const [selected, setSelected] = useState(saved.slice(0, 2).map((r) => r.id));
   const compareRoles = roles.filter((r) => selected.includes(r.id));
@@ -913,6 +913,7 @@ function CompareView({ roles }) {
                             </td>
                           );
                         const colors = skillGapColor(skill.currentLevel, skill.requiredLevel);
+                        const met = skill.currentLevel >= skill.requiredLevel;
                         return (
                           <td key={role.id} className="px-[16px] py-[11px] text-center">
                             <div className="flex flex-col items-center gap-[4px]">
@@ -950,17 +951,9 @@ function CompareView({ roles }) {
     </div>
   );
 }
-function normalizeRoles(initialRoles) {
-  return (initialRoles ?? []).map((role) => ({ ...role, id: role.id ?? role.uuid, title: role.title ?? role.name ?? role.role_title ?? "Untitled role", category: role.category ?? role.industry ?? "Other", readinessScore: Number(role.readinessScore ?? role.readiness_score ?? 0), description: role.description ?? role.summary ?? "", skills: role.skills ?? role.required_skills ?? [], isSaved: Boolean(role.isSaved ?? role.is_saved), demand: role.demand ?? null, version: role.version ?? role.role_version ?? null }));
-}
 export default function CareerRolesView({ initialRoles = null, onRoleSave }) {
-  const [roles, setRoles] = useState(() => normalizeRoles(initialRoles));
-  // Re-seed from the prop when it changes (adjusted during render, not in an effect).
-  const [prevInitialRoles, setPrevInitialRoles] = useState(initialRoles);
-  if (initialRoles !== prevInitialRoles) {
-    setPrevInitialRoles(initialRoles);
-    setRoles(normalizeRoles(initialRoles));
-  }
+  const [roles, setRoles] = useState(() => (initialRoles ?? []).map((role) => ({ ...role, id: role.id ?? role.uuid, title: role.title ?? role.name ?? role.role_title ?? "Untitled role", category: role.category ?? role.industry ?? "Other", readinessScore: Number(role.readinessScore ?? role.readiness_score ?? 0), description: role.description ?? role.summary ?? "", skills: role.skills ?? role.required_skills ?? [], isSaved: Boolean(role.isSaved ?? role.is_saved), demand: role.demand ?? null, version: role.version ?? role.role_version ?? null })));
+  useEffect(() => { setRoles((initialRoles ?? []).map((role) => ({ ...role, id: role.id ?? role.uuid, title: role.title ?? role.name ?? role.role_title ?? "Untitled role", category: role.category ?? role.industry ?? "Other", readinessScore: Number(role.readinessScore ?? role.readiness_score ?? 0), description: role.description ?? role.summary ?? "", skills: role.skills ?? role.required_skills ?? [], isSaved: Boolean(role.isSaved ?? role.is_saved), demand: role.demand ?? null, version: role.version ?? role.role_version ?? null }))); }, [initialRoles]);
   const [activeTab, setActiveTab] = useState("browse");
   const [selectedRoleId, setSelectedRoleId] = useState(null);
   const [filter, setFilter] = useState("All");

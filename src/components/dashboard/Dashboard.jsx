@@ -1,8 +1,6 @@
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useEffect, useState } from 'react';
 import AppLayout from './AppLayout';
 import { useI18n } from '../../i18n/useI18n';
-import { skillText } from '../../i18n/useUiText';
-import { countAssessedSkills } from '../../utils/skillCount';
 import {
   getLatestReadiness,
   getLatestIntelligence,
@@ -18,7 +16,6 @@ import {
 } from '../../api';
 import { isLearnerEvidence } from '../evidence/lib/evidenceApi';
 import './Dashboard.css';
-import { useProjectsText } from '../../i18n/useProjectsText';
 
 // Roadmap actions carry the phase as a number or as the phase key the
 // backend uses ("foundations", "core_skills", …); either way the dashboard
@@ -33,8 +30,7 @@ function phaseNumber(phase) {
   return i >= 0 ? i + 1 : null;
 }
 
-function ReadinessRing({ value = 0, emptyLabel = "" }) {
-  const empty = !(Number(value) > 0);
+function ReadinessRing({ value = 0 }) {
   const size = 130;
   const stroke = 10;
   const r = (size - stroke) / 2;
@@ -45,28 +41,59 @@ function ReadinessRing({ value = 0, emptyLabel = "" }) {
     <div className="readiness-ring" aria-label={`Readiness score: ${value} out of 100`}>
       <svg width={size} height={size}>
         <circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(255,255,255,0.08)" strokeWidth={stroke} fill="none" />
-        {!empty && <circle
+        <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="#1667e0"
+          stroke="url(#ringGrad)"
           strokeWidth={stroke}
           fill="none"
           strokeDasharray={`${filled} ${c - filled}`}
           strokeLinecap="round"
-        />}
+        />
+        <defs>
+          <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#818cf8" />
+            <stop offset="100%" stopColor="#38bdf8" />
+          </linearGradient>
+        </defs>
       </svg>
       <div className="readiness-ring-value">
-        {empty ? (
-          <span className="den">{emptyLabel}</span>
-        ) : (
-          <bdi dir="ltr"><span className="num">{value}</span><span className="den"> / 100</span></bdi>
-        )}
+        <span className="num">{value}</span>
+        <span className="den">/ 100</span>
       </div>
     </div>
   );
 }
 
+const StatIcon = {
+  folder: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+    </svg>
+  ),
+  star: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7L2 9.2l7.1-.6L12 2z" />
+    </svg>
+  ),
+  map: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M9 3 3 6v15l6-3 6 3 6-3V3l-6 3-6-3z" /><path d="M9 3v15M15 6v15" />
+    </svg>
+  ),
+  file: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M6 2h9l3 3v17H6z" /><path d="M9 9h6M9 13h6M9 17h4" />
+    </svg>
+  ),
+  support: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 12a8 8 0 1 1-3.2-6.4" /><circle cx="12" cy="12" r="3" />
+      <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+    </svg>
+  ),
+};
 
 export default function Dashboard({ user, onLogout, onNavigate }) {
   const [loading, setLoading] = useState(true);
@@ -75,19 +102,19 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
     readinessScore: 0,
     roleLabel: '',
     activeProjects: 0,
-    activeProjectsNote: { key: 'activeApps', n: 0 },
+    activeProjectsNote: '0 active applications',
     skillsAssessed: 0,
-    skillsAssessedTotal: null,
-    roadmapPhase: null,
-    roadmapPhaseNote: null,
+    skillsAssessedTotal: 24,
+    roadmapPhase: '0%',
+    roadmapPhaseNote: 'No roadmap yet',
     recordItems: 0,
-    verifiedCount: 0,
+    recordItemsNote: '0 verified',
     nextAction: {
       title: 'Complete Baseline Assessment',
       description: 'Take the assessment to evaluate your skills, generate your roadmap, and calculate readiness.',
       tags: ['Skill Evaluation', 'Roadmap'],
       target: 'skill-assessment',
-      buttonLabel: 'Start Assessment',
+      buttonLabel: 'Start Assessment →',
     },
     skillGaps: [],
     recommendedProjects: [],
@@ -159,7 +186,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
           // Keep current roleTitle
         }
       }
-      // No invented role: show "not set" when the server has none.
+      if (!roleTitle) roleTitle = 'Software Engineer';
 
       // 2. Active Projects / Applications
       const activeApps = apps.filter((item) => {
@@ -168,22 +195,25 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
         return !['completed', 'closed', 'withdrawn', 'rejected', 'cancelled'].includes(status);
       });
       const activeProjectsCount = activeApps.length;
-      const activeProjectsNote = { key: 'activeApps', n: activeProjectsCount };
+      const activeProjectsNote = activeProjectsCount === 1
+        ? '1 active application'
+        : activeProjectsCount > 1
+        ? `${activeProjectsCount} active applications`
+        : '0 active applications';
 
       // 3. Skills Assessed
-      const totalRequiredSkills = Number(readiness?.total_skills) || null;
-      // Distinct skills, never more than the role requires (no "12/10").
+      const totalRequiredSkills = Number(readiness?.total_skills ?? 24) || 24;
       const skillsAssessedCount = skillsMatrix.length > 0
-        ? countAssessedSkills(skillsMatrix, totalRequiredSkills)
-        : Math.min(Number(readiness?.met_skills ?? 0) || 0, totalRequiredSkills ?? Infinity);
-
+        ? skillsMatrix.length
+        : Number(readiness?.met_skills ?? 0);
+      const skillsAssessedNote = `of ${totalRequiredSkills} required`;
 
       // 4. Evidence / Record Items
       const totalEvidence = evidence.length;
       const verifiedCount = evidence.filter((item) =>
         String(item.verification_status ?? item.status ?? '').toLowerCase() === 'verified'
       ).length;
-
+      const recordItemsNote = `${verifiedCount} verified`;
 
       // 5. Intelligence / Roadmap / Next Best Action
       const roadmap = intelligence?.roadmap ?? null;
@@ -203,21 +233,21 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
         description: 'Take the assessment to evaluate your skills, generate your personalized roadmap, and calculate readiness.',
         tags: ['Skill Evaluation', 'Roadmap'],
         target: 'skill-assessment',
-        buttonLabel: 'Start Assessment',
+        buttonLabel: 'Start Assessment →',
       };
 
       if (nextActionItem) {
         let target = 'career-journey';
-        let buttonLabel = 'View Roadmap';
+        let buttonLabel = 'View Roadmap →';
         // RoadmapAction::TYPES: assessment | resource | practice |
         // simulated_project | real_project.
         const actType = String(nextActionItem.type ?? '').toLowerCase();
         if (actType === 'assessment') {
           target = 'skill-assessment';
-          buttonLabel = 'Start Assessment';
+          buttonLabel = 'Start Assessment →';
         } else if (actType === 'practice' || actType === 'simulated_project' || actType === 'real_project') {
           target = 'projects';
-          buttonLabel = 'Explore Projects';
+          buttonLabel = 'Explore Projects →';
         }
 
         let tags = [];
@@ -239,16 +269,15 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       }
 
       // Roadmap phase & progress
-      // Only real roadmap data; nothing is shown as progress without it.
-      let roadmapPhaseDisplay = null;
-      let roadmapPhaseNote = null;
+      let roadmapPhaseDisplay = '0%';
+      let roadmapPhaseNote = 'No roadmap yet';
       if (actions.length > 0) {
         const completedActions = actions.filter((a) => a.status === 'completed').length;
         const pct = Math.round((completedActions / actions.length) * 100);
         const curPhase = phaseNumber(nextActionItem?.phase) || (completedActions > 0 ? phaseNumber(actions[Math.min(completedActions, actions.length - 1)]?.phase) : 1) || 1;
         const maxPhase = Math.max(...actions.map((a) => phaseNumber(a.phase) || 1), 4);
         roadmapPhaseDisplay = `${pct}%`;
-        roadmapPhaseNote = { n: curPhase, m: maxPhase };
+        roadmapPhaseNote = `Phase ${curPhase} of ${maxPhase}`;
       }
 
       // 6. Skill Gaps (from Intelligence)
@@ -263,35 +292,57 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
             : req > 0 ? Math.min(100, Math.max(0, Math.round((cur / req) * 100))) : 0;
           return {
             name: gap.skill_name || gap.skill?.name || gap.name || 'Skill',
-            nameAr: gap.skill_name_ar ?? gap.skill?.name_ar ?? gap.name_ar ?? null,
             level: `${cur}/${req}`,
             pct,
             isCritical: Boolean(gap.is_critical),
           };
         });
       }
-      // No demo skills: an empty list shows the empty state.
 
-      // 7. Recommended Projects (stored recommendations first, then the catalog).
-      // Only server values are shown: no default match %, partner name or duration.
-      const toRow = (p, score) => ({
-        id: p.id,
-        code: (p.title || 'PR').replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase() || 'PR',
-        title: p.title || 'Project',
-        company: p.organization?.title || p.organization?.name || null,
-        type: p.type || null,
-        weeks: p.duration_days ? Math.max(1, Math.round(p.duration_days / 7)) : null,
-        match: score === null || score === undefined || score === '' ? null : Math.round(Number(score)),
-      });
+      // 7. Recommended Projects (prefer stored recommendations, fallback to catalog)
       let mappedProjects = [];
       if (recs.length > 0) {
         mappedProjects = recs
           .filter((r) => r.project && !r.access_revoked)
           .slice(0, 3)
-          .map((r) => toRow(r.project, r.score));
+          .map((r, i) => {
+            const p = r.project;
+            const code = (p.title || 'PR').replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase() || 'PR';
+            const colors = [
+              'linear-gradient(135deg, rgb(59, 139, 255) 0%, rgb(124, 58, 237) 100%)',
+              'linear-gradient(135deg, rgb(5, 150, 105) 0%, rgb(16, 185, 129) 100%)',
+              'linear-gradient(135deg, rgb(245, 158, 11) 0%, rgb(234, 88, 12) 100%)',
+            ];
+            return {
+              id: p.id,
+              code,
+              title: p.title || 'Project',
+              company: p.organization?.title || p.organization?.name || 'SkillSpan Partner',
+              duration: p.duration_days ? `${Math.round(p.duration_days / 7)} weeks` : (p.schedule || ''),
+              match: r.score != null ? Math.round(Number(r.score)) : null,
+              color: colors[i % colors.length],
+            };
+          });
       }
+
       if (mappedProjects.length === 0 && projects.length > 0) {
-        mappedProjects = projects.slice(0, 3).map((p) => toRow(p, p.match_score));
+        mappedProjects = projects.slice(0, 3).map((p, i) => {
+          const code = (p.title || 'PR').replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase() || 'PR';
+          const colors = [
+            'linear-gradient(135deg, rgb(59, 139, 255) 0%, rgb(124, 58, 237) 100%)',
+            'linear-gradient(135deg, rgb(5, 150, 105) 0%, rgb(16, 185, 129) 100%)',
+            'linear-gradient(135deg, rgb(245, 158, 11) 0%, rgb(234, 88, 12) 100%)',
+          ];
+          return {
+            id: p.id,
+            code,
+            title: p.title || 'Project',
+            company: p.organization?.title || p.organization?.name || (p.type === 'simulation' ? 'SkillSpan Simulation' : 'Partner Project'),
+            duration: p.duration_days ? `${Math.round(p.duration_days / 7)} weeks` : (p.schedule || ''),
+            match: p.match_score != null ? Math.round(Number(p.match_score)) : null,
+            color: colors[i % colors.length],
+          };
+        });
       }
 
       // 8. Notifications
@@ -304,10 +355,10 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
         activeProjectsNote,
         skillsAssessed: skillsAssessedCount,
         skillsAssessedTotal: totalRequiredSkills,
-        verifiedCount,
         roadmapPhase: roadmapPhaseDisplay,
         roadmapPhaseNote,
         recordItems: totalEvidence,
+        recordItemsNote,
         nextAction,
         skillGaps: mappedGaps,
         recommendedProjects: mappedProjects,
@@ -321,20 +372,17 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
     }
   };
 
-  // Load once on mount with the current loader (an effect event, so the effect
-  // does not re-run when the loader is recreated on every render).
-  const loadOnMount = useEffectEvent(() => {
-    loadDashboardData();
-  });
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetch on mount; the loader's loading/error reset is the intended sync
-    loadOnMount();
+    let alive = true;
+    loadDashboardData();
+    return () => {
+      alive = false;
+    };
   }, []);
 
-  const { t, lang } = useI18n();
-  const { L } = useProjectsText();
+  const { t } = useI18n();
 
-  const firstName = user?.name ? user.name.split(' ')[0] : (user?.full_name ? user.full_name.split(' ')[0] : '');
+  const firstName = user?.name ? user.name.split(' ')[0] : (user?.full_name ? user.full_name.split(' ')[0] : 'there');
 
   // A support reply that is still unread is the "someone is waiting for you"
   // signal. Computed here so the mark lives only on the dashboard, not the nav.
@@ -359,33 +407,34 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       onRefreshNotifications={loadDashboardData}
     >
       <div className="dash-header">
-        <h1 className="dash-title motion-enter">{firstName ? L("Welcome back, {name}", { name: firstName }) : L("Welcome back")}</h1>
-        <p className="dash-subtitle">{L("Here's your career readiness overview for today.")}</p>
+        <h1 className="dash-title motion-enter">Welcome back, {firstName} 👋</h1>
+        <p className="dash-subtitle">Here's your career readiness overview for today.</p>
       </div>
 
       {loadError && (
-        <div role="alert" className="dash-notice dash-notice--error">
-          <span>{L(loadError)}</span>
-          <button type="button" onClick={loadDashboardData} className="dash-notice-action">
-            {L("Retry")}
+        <div role="alert" className="m-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 flex items-center justify-between">
+          <span>{loadError}</span>
+          <button type="button" onClick={loadDashboardData} className="font-semibold underline ml-3">
+            Retry
           </button>
         </div>
       )}
 
       {loading && (
         <div className="dash-loading">
-          <span>{L("Loading your career dashboard…")}</span>
+          <span>Loading your career dashboard…</span>
         </div>
       )}
 
       {/* Support mark — appears only on the dashboard. */}
       <div className={`dash-support-banner${supportWaiting ? ' is-waiting' : ''}`} role="region" aria-label={t('dashboard.supportTitle')}>
+        <span className="dash-support-icon">{StatIcon.support}</span>
         <div className="dash-support-text">
           <strong>{supportWaiting ? t('dashboard.supportWaiting') : t('dashboard.supportTitle')}</strong>
           <span>{supportWaiting ? t('dashboard.supportWaitingHint') : t('dashboard.supportHint')}</span>
         </div>
         <button type="button" className="btn-pill" onClick={() => handleNavigate('support')}>
-          {t('dashboard.supportCta')}
+          {t('dashboard.supportCta')} →
         </button>
       </div>
 
@@ -394,10 +443,11 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
         <div
           className="dash-card dash-readiness-card motion-scale-in"
           onClick={() => handleNavigate('career-journey')}
+          title="Click to view detailed career roadmap"
         >
-          <ReadinessRing value={d.readinessScore} emptyLabel={L("Not calculated yet")} />
-          <div className="r-label">{L("Readiness Score")}</div>
-          <div className="r-sub">{d.roleLabel || L("Career role not set")}</div>
+          <ReadinessRing value={d.readinessScore} />
+          <div className="r-label">Readiness Score</div>
+          <div className="r-sub">{d.roleLabel}</div>
           <button
             type="button"
             className="btn-pill"
@@ -406,18 +456,18 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
               handleNavigate('career-journey');
             }}
           >
-            {L("View Roadmap")}
+            View Roadmap →
           </button>
         </div>
 
         <div className="dash-card dash-action-card motion-scale-in">
-          <span className="dash-action-tag">{L("Next Best Action")}</span>
-          <h3 dir="auto">{L(d.nextAction.title)}</h3>
-          <p dir="auto">{L(d.nextAction.description)}</p>
+          <span className="dash-action-tag">⚡ Next Best Action</span>
+          <h3>{d.nextAction.title}</h3>
+          <p>{d.nextAction.description}</p>
           <div className="dash-chip-row">
-            {d.nextAction.tags.map((tag, idx) => (
-              <span key={`${tag}-${idx}`} className="dash-chip">
-                {L(tag)}
+            {d.nextAction.tags.map((t, idx) => (
+              <span key={`${t}-${idx}`} className="dash-chip">
+                {t}
               </span>
             ))}
           </div>
@@ -427,45 +477,63 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
             style={{ alignSelf: 'flex-start' }}
             onClick={() => handleNavigate(d.nextAction.target)}
           >
-            {L(d.nextAction.buttonLabel)}
+            {d.nextAction.buttonLabel}
           </button>
         </div>
       </div>
 
       {/* Stats Row */}
       <div className="dash-stats-row motion-stagger">
-        <div className="dash-stat-card" onClick={() => handleNavigate('projects')}>
+        <div
+          className="dash-stat-card"
+          onClick={() => handleNavigate('projects')}
+          title="View active project applications"
+        >
           <div className="dash-stat-top">
-            <span className="dash-stat-label">{L("Active Projects")}</span>
-            <span className="dash-stat-pill pill-blue">{L("{n} active applications", { n: d.activeProjectsNote?.n ?? d.activeProjects })}</span>
+            <span className="dash-stat-icon">{StatIcon.folder}</span>
+            <span className="dash-stat-pill pill-blue">{d.activeProjectsNote}</span>
           </div>
-          <div className="dash-stat-num"><bdi dir="ltr">{d.activeProjects}</bdi></div>
+          <div className="dash-stat-num">{d.activeProjects}</div>
+          <div className="dash-stat-label">Active Projects</div>
         </div>
 
-        <div className="dash-stat-card" onClick={() => handleNavigate('skill-matrix')}>
+        <div
+          className="dash-stat-card"
+          onClick={() => handleNavigate('skill-matrix')}
+          title="Open My Skill Matrix"
+        >
           <div className="dash-stat-top">
-            <span className="dash-stat-label">{L("Skills Assessed")}</span>
-            {d.skillsAssessedTotal ? <span className="dash-stat-pill pill-blue">{L("of {n} required", { n: d.skillsAssessedTotal })}</span> : null}
+            <span className="dash-stat-icon">{StatIcon.star}</span>
+            <span className="dash-stat-pill pill-blue">{d.skillsAssessedNote}</span>
           </div>
-          <div className="dash-stat-num">
-            {d.skillsAssessedTotal ? <bdi dir="ltr">{d.skillsAssessed}/{d.skillsAssessedTotal}</bdi> : <bdi dir="ltr">{d.skillsAssessed}</bdi>}
-          </div>
+          <div className="dash-stat-num">{d.skillsAssessed}</div>
+          <div className="dash-stat-label">Skills Assessed</div>
         </div>
 
-        <div className="dash-stat-card" onClick={() => handleNavigate('career-journey')}>
+        <div
+          className="dash-stat-card"
+          onClick={() => handleNavigate('career-journey')}
+          title="View roadmap progress"
+        >
           <div className="dash-stat-top">
-            <span className="dash-stat-label">{L("Roadmap Progress")}</span>
-            <span className="dash-stat-pill pill-green">{d.roadmapPhaseNote ? L("Phase {n} of {m}", d.roadmapPhaseNote) : L("No roadmap yet")}</span>
+            <span className="dash-stat-icon">{StatIcon.map}</span>
+            <span className="dash-stat-pill pill-green">{d.roadmapPhaseNote}</span>
           </div>
-          <div className="dash-stat-num">{d.roadmapPhase ? <bdi dir="ltr">{d.roadmapPhase}</bdi> : <span className="dash-stat-empty">{L("Not started")}</span>}</div>
+          <div className="dash-stat-num">{d.roadmapPhase}</div>
+          <div className="dash-stat-label">Roadmap Progress</div>
         </div>
 
-        <div className="dash-stat-card" onClick={() => handleNavigate('record')}>
+        <div
+          className="dash-stat-card"
+          onClick={() => handleNavigate('record')}
+          title="View verified evidence and records"
+        >
           <div className="dash-stat-top">
-            <span className="dash-stat-label">{L("Record Items")}</span>
-            <span className="dash-stat-pill pill-orange">{L("{n} verified", { n: d.verifiedCount ?? 0 })}</span>
+            <span className="dash-stat-icon">{StatIcon.file}</span>
+            <span className="dash-stat-pill pill-orange">{d.recordItemsNote}</span>
           </div>
-          <div className="dash-stat-num"><bdi dir="ltr">{d.recordItems}</bdi></div>
+          <div className="dash-stat-num">{d.recordItems}</div>
+          <div className="dash-stat-label">Record Items</div>
         </div>
       </div>
 
@@ -473,28 +541,37 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       <div className="dash-bottom-row motion-stagger">
         <div className="dash-panel">
           <div className="dash-panel-head">
-            <h3>{L("Top Skill Gaps")}</h3>
+            <h3>Top Skill Gaps</h3>
             <a role="button" tabIndex={0} onClick={() => handleNavigate('skill-matrix')}>
-              {L("View All")}
+              View All →
             </a>
           </div>
 
           {d.skillGaps.length > 0 ? (
             d.skillGaps.map((g) => (
-              <div className="gap-row" key={g.name} onClick={() => handleNavigate('skill-matrix')}>
+              <div
+                className="gap-row"
+                key={g.name}
+                onClick={() => handleNavigate('skill-matrix')}
+                title={`Open ${g.name} in Skill Matrix`}
+              >
                 <div className="gap-row-top">
-                  <span className="name" dir="auto">
-                    {skillText(lang, g.name, { skillNameAr: g.nameAr })}
-                    {g.isCritical && <span className="gap-critical">{L("Critical")}</span>}
+                  <span className="name">
+                    {g.name}
+                    {g.isCritical && (
+                      <span style={{ color: '#ef4444', fontSize: '0.72rem', marginLeft: '6px', fontWeight: 'bold' }}>
+                        *Critical
+                      </span>
+                    )}
                   </span>
-                  <span className="lv"><bdi dir="ltr">{L("Lv {n}", { n: g.level })}</bdi></span>
+                  <span className="lv">Lv {g.level}</span>
                 </div>
                 <div className="gap-bar-track">
                   <div
                     className="gap-bar-fill"
                     style={{
-                      width: `${Math.max(4, g.pct)}%`,
-                      backgroundColor: g.isCritical ? '#d13b3b' : g.pct >= 70 ? '#1667e0' : '#f2b544',
+                      width: `${Math.max(5, g.pct)}%`,
+                      backgroundColor: g.isCritical ? '#ef4444' : g.pct >= 70 ? '#3b8bff' : '#f59e0b',
                     }}
                   />
                 </div>
@@ -502,9 +579,13 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
             ))
           ) : (
             <div className="dash-empty-state">
-              <p>{L("No skill gaps recorded yet.")}</p>
-              <button type="button" className="dash-empty-btn" onClick={() => handleNavigate('skill-matrix')}>
-                {L("Update Skill Matrix")}
+              <p>No skill gaps recorded yet.</p>
+              <button
+                type="button"
+                className="dash-empty-btn"
+                onClick={() => handleNavigate('skill-matrix')}
+              >
+                Update Skill Matrix →
               </button>
             </div>
           )}
@@ -512,31 +593,39 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
 
         <div className="dash-panel">
           <div className="dash-panel-head">
-            <h3>{L("Recommended Projects")}</h3>
+            <h3>Recommended Projects</h3>
             <a role="button" tabIndex={0} onClick={() => handleNavigate('projects')}>
-              {L("Browse All")}
+              Browse All →
             </a>
           </div>
 
           {d.recommendedProjects.length > 0 ? (
-            d.recommendedProjects.map((p) => {
-              const sub = [p.company || (p.type === 'simulation' ? L("Simulation project") : null), p.weeks ? L("{n} weeks", { n: p.weeks }) : null].filter(Boolean);
-              return (
-                <div className="proj-row" key={`${p.title}-${p.id}`} onClick={() => handleNavigate('projects')}>
-                  <span className="proj-avatar">{p.code}</span>
-                  <div className="proj-info">
-                    <div className="p-title" dir="auto">{p.title}</div>
-                    {sub.length > 0 && <div className="p-sub">{sub.map((part, i) => <span key={i}>{i > 0 ? ' · ' : ''}<bdi>{part}</bdi></span>)}</div>}
-                  </div>
-                  {p.match !== null && !Number.isNaN(p.match) && <span className="proj-match"><bdi dir="ltr">{p.match}%</bdi></span>}
+            d.recommendedProjects.map((p) => (
+              <div
+                className="proj-row"
+                key={`${p.title}-${p.id}`}
+                onClick={() => handleNavigate('projects')}
+                title={`Explore project: ${p.title}`}
+              >
+                <span className="proj-avatar" style={{ background: p.color }}>
+                  {p.code}
+                </span>
+                <div className="proj-info">
+                  <div className="p-title">{p.title}</div>
+                  <div className="p-sub">{[p.company, p.duration].filter(Boolean).join(' · ')}</div>
                 </div>
-              );
-            })
+                {p.match != null && <span className="proj-match">{p.match}%</span>}
+              </div>
+            ))
           ) : (
             <div className="dash-empty-state">
-              <p>{L("No project recommendations yet.")}</p>
-              <button type="button" className="dash-empty-btn" onClick={() => handleNavigate('projects')}>
-                {L("Browse Projects")}
+              <p>No project recommendations yet.</p>
+              <button
+                type="button"
+                className="dash-empty-btn"
+                onClick={() => handleNavigate('projects')}
+              >
+                Browse Projects →
               </button>
             </div>
           )}

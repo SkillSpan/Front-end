@@ -26,18 +26,12 @@ export function AuthProvider({ children }) {
   );
 }
 
-// The hook lives beside AuthProvider/AuthContext and is imported from here
-// throughout the auth flows; moving it would touch every import.
-// eslint-disable-next-line react-refresh/only-export-components -- useAuth is a hook co-located with its provider; only affects dev fast-refresh
+// eslint-disable-next-line react-refresh/only-export-components -- this
+// hook is tightly coupled to AuthProvider/AuthContext above and is used
+// throughout the auth flows; splitting it into its own file would add
+// indirection for no real benefit here.
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
   return ctx;
-}
-
-// Same as useAuth, but returns null outside an AuthProvider (screens that are
-// also rendered on their own, e.g. in tests, only need the user if present).
-// eslint-disable-next-line react-refresh/only-export-components -- hook co-located with its provider
-export function useOptionalAuth() {
-  return useContext(AuthContext);
 }

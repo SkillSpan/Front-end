@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
 import './LogoutModal.css';
 
 /**
@@ -49,14 +48,6 @@ function LogoutModal({ isOpen, onClose, onConfirm, onConfirmAllDevices, error })
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Lock page scroll while open so the dialog stays centred in the viewport.
-  useEffect(() => {
-    if (!isOpen || typeof document === 'undefined') return undefined;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   const busy = isLoggingOut || isLoggingOutAll;
@@ -87,7 +78,7 @@ function LogoutModal({ isOpen, onClose, onConfirm, onConfirmAllDevices, error })
     }
   };
 
-  const modal = (
+  return (
     <div
       className="logout-modal-overlay"
       onClick={(e) => {
@@ -157,7 +148,7 @@ function LogoutModal({ isOpen, onClose, onConfirm, onConfirmAllDevices, error })
             <span className="logout-modal-spinner" aria-hidden="true" />
           ) : (
             <>
-              <span className="logout-modal-btn-arrow" aria-hidden="true"></span>
+              <span className="logout-modal-btn-arrow" aria-hidden="true">→</span>
               Log out
             </>
           )}
@@ -205,9 +196,6 @@ function LogoutModal({ isOpen, onClose, onConfirm, onConfirmAllDevices, error })
       </div>
     </div>
   );
-
-  // Rendered into <body> so no transformed/animated parent can pull it down the page.
-  return typeof document === 'undefined' ? modal : createPortal(modal, document.body);
 }
 
 export default LogoutModal;

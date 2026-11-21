@@ -1,7 +1,6 @@
 /* ===== Navy theme (Figma Design System): navy sidebar + white screens ===== */
 
-/* Only when the navy card is in the list (THEMES); otherwise keep the 3-column grid. */
-div.ps-theme-grid:has(.ps-theme-preview--navy) {
+div.ps-theme-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 

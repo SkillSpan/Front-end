@@ -4,7 +4,6 @@ import { getQuestionBank, computeProgress } from './assessmentQuestions';
 import { loadSavedAnswers } from './assessmentStorage';
 import { getAssessmentResult } from './assessmentResult';
 import './SkillAssessmentCompletion.css';
-import SuccessCheck from '../common/SuccessCheck';
 
 // ---------------------------------------------------------------------------
 // "10. Completion" - shown right after SkillAssessmentSubmitting.jsx
@@ -116,20 +115,22 @@ const SkillAssessmentCompletion = ({ onViewProfile }) => {
 
       <div className="assessment-completion-body">
         <section className="assessment-completion-card">
-          <SuccessCheck size={76} className="assessment-completion-check-anim" />
+          <div className="assessment-completion-check">
+            <CheckIcon />
+          </div>
 
-          <span className="assessment-completion-badge ss-fade-up">
+          <span className="assessment-completion-badge">
             <span className="assessment-completion-badge-dot" />
             Assessment Complete
           </span>
 
-          <h1 className="assessment-completion-title ss-fade-up">Great work, {firstName}!</h1>
-          <p className="assessment-completion-desc ss-fade-up-2">
+          <h1 className="assessment-completion-title">Great work, {firstName}!</h1>
+          <p className="assessment-completion-desc">
             Your baseline skill assessment is complete. We're now initializing your personalized
             Skill Matrix and building your career roadmap.
           </p>
 
-          <div className="assessment-completion-stats ss-fade-up-3">
+          <div className="assessment-completion-stats">
             <div className="assessment-completion-stat">
               <span className="assessment-completion-stat-icon">
                 <CheckIcon />
@@ -166,7 +167,7 @@ const SkillAssessmentCompletion = ({ onViewProfile }) => {
 
           <button type="button" className="assessment-completion-cta" onClick={onViewProfile}>
             View My Skill Profile
-            <span aria-hidden="true"></span>
+            <span aria-hidden="true">→</span>
           </button>
         </section>
 
@@ -191,9 +192,9 @@ const SkillAssessmentCompletion = ({ onViewProfile }) => {
           </ul>
 
           <div className="assessment-completion-note">
-            <strong>Module unlocking</strong>
+            <strong>⚡ AC-10 · Module Unlocking</strong>
             <p>
-              All subsequent platform modules are now unlocked following
+              As per business rule BR-09, all subsequent platform modules are now unlocked following
               successful assessment completion.
             </p>
           </div>

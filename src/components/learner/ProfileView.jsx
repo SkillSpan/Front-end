@@ -30,9 +30,9 @@ function initials(name) {
 }
 
 function formatDate(iso, lang) {
-  if (!iso) return "-";
+  if (!iso) return "—";
   const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "-";
+  if (Number.isNaN(date.getTime())) return "—";
   return date.toLocaleDateString(lang === "ar" ? "ar-EG" : "en-GB", {
     day: "2-digit",
     month: "short",
@@ -48,32 +48,8 @@ function draftFrom(profile) {
   return next;
 }
 
-// Same values the profile-setup form sends (the API stores the enum).
-const ACADEMIC_LEVELS = [
-  { value: "first_year", en: "First year", ar: "السنة الأولى" },
-  { value: "second_year", en: "Second year", ar: "السنة الثانية" },
-  { value: "third_year", en: "Third year", ar: "السنة الثالثة" },
-  { value: "fourth_year", en: "Fourth year", ar: "السنة الرابعة" },
-  { value: "fifth_year", en: "Fifth year", ar: "السنة الخامسة" },
-  { value: "graduate", en: "Graduate", ar: "خريج" },
-];
-
-function Field({ label, value, editing, onChange, type = "text", placeholder, hint, options, lang = "en", format = (v) => v }) {
-  const inputId = `profile-${String(label).toLowerCase().replace(/[^a-z0-9\u0600-\u06ff]+/g, "-")}`;
-  const display = options ? (options.find((o) => o.value === value)?.[lang] ?? value) : value;
-  if (options && editing) {
-    return (
-      <div className="ps-field">
-        <label className="ps-label" htmlFor={inputId}>{label}</label>
-        <select id={inputId} name={inputId} className="ps-input" value={value ?? ""} onChange={(event) => onChange(event.target.value)}>
-          <option value="">{placeholder}</option>
-          {options.map((o) => <option key={o.value} value={o.value}>{o[lang] ?? o.en}</option>)}
-        </select>
-        {hint ? <p className="ps-hint">{hint}</p> : null}
-      </div>
-    );
-  }
-  const shown = display;
+function Field({ label, value, editing, onChange, type = "text", placeholder, hint, format = (v) => v }) {
+  const inputId = `profile-${String(label).toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
     <div className="ps-field">
       <label className="ps-label" htmlFor={editing ? inputId : undefined}>
@@ -85,12 +61,12 @@ function Field({ label, value, editing, onChange, type = "text", placeholder, hi
           name={inputId}
           className="ps-input"
           type={type}
-          value={shown ?? ""}
+          value={value ?? ""}
           placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
         />
       ) : (
-        <p className={`ps-value${shown ? "" : " is-empty"}`} dir="auto">{shown ? format(shown) : placeholder}</p>
+        <p className={`ps-value${value ? "" : " is-empty"}`}>{value ? format(value) : placeholder}</p>
       )}
       {hint ? <p className="ps-hint">{hint}</p> : null}
     </div>
@@ -264,8 +240,8 @@ export default function ProfileView({ readinessScore = 0, roleLabel = "" }) {
     }
   };
 
-  const name = displayName(authUser, "-");
-  const email = authUser?.email || "-";
+  const name = displayName(authUser, "—");
+  const email = authUser?.email || "—";
 
   const circumference = 2 * Math.PI * 36;
   const dash = (completeness / 100) * circumference;
@@ -362,7 +338,7 @@ export default function ProfileView({ readinessScore = 0, roleLabel = "" }) {
           <dl className="ps-meta">
             <div>
               <dt>{t("profile.readiness")}</dt>
-              <dd>{Number(readinessScore) > 0 ? <bdi dir="ltr">{Math.round(Number(readinessScore))}/100</bdi> : t("projects.notCalculated")}</dd>
+              <dd>{Math.round(Number(readinessScore) || 0)}/100</dd>
             </div>
             <div>
               <dt>{t("profile.updated")}</dt>
@@ -419,8 +395,6 @@ export default function ProfileView({ readinessScore = 0, roleLabel = "" }) {
                 onChange={setField("academic_level")}
                 format={formatEnum}
                 placeholder={t("profile.notSet")}
-                options={ACADEMIC_LEVELS}
-                lang={lang}
               />
               <Field
                 label={t("profile.graduation")}

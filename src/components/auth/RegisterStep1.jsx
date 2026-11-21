@@ -14,6 +14,23 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData, initialE
   const [showPassword, setShowPassword] = useState(false);
   const [checking, setChecking] = useState(false);
 
+  // Generate a strong password
+  const generatePassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let generated = '';
+    for (let i = 0; i < 12; i++) {
+      generated += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setFormData((prev) => ({
+      ...prev,
+      password: generated,
+      confirmPassword: generated,
+    }));
+    if (errors.password || errors.confirmPassword) {
+      setErrors((prev) => ({ ...prev, password: '', confirmPassword: '' }));
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -77,7 +94,7 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData, initialE
       <div className="register-card">
         {/* Left Dark Sidebar */}
         <div className="sidebar-left">
-          <div className="sidebar-brand"><span className="brand-skill">Skill</span><span className="brand-span">Span</span></div>
+          <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">
             <h2>Start Your<br />Career&nbsp;Journey</h2>
             <p className="sidebar-desc">

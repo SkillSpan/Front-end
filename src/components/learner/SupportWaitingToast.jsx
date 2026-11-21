@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useUiText } from "../../i18n/useUiText";
 
 // How long the banner stays before it slides away on its own. Long enough to
 // read two lines, short enough not to sit on top of the workspace.
@@ -33,7 +32,6 @@ function initials(name) {
  * unclaimed, and the copy falls back to the support team.
  */
 export default function SupportWaitingToast({ toast = null, onOpen, onClose }) {
-  const { L } = useUiText();
   const open = Boolean(toast);
   const toastId = toast?.id ?? null;
 
@@ -66,19 +64,19 @@ export default function SupportWaitingToast({ toast = null, onOpen, onClose }) {
 
         <div className="ss-toast-body">
           <p className="ss-toast-title">
-            {name ? L("{name} is waiting for you", { name }) : L("Support is waiting for you")}
+            {name ? `${name} is waiting for you` : "Support is waiting for you"}
           </p>
           <p className="ss-toast-text">
             {name
-              ? L("Your mentor picked up the request. The reply lands in this thread.")
-              : L("Your request is in the queue. A mentor will answer in this thread.")}
+              ? "Your mentor picked up the request. The reply lands in this thread."
+              : "Your request is in the queue. A mentor will answer in this thread."}
           </p>
           <div className="ss-toast-actions">
             <button type="button" className="ss-toast-open" onClick={() => onOpen?.()}>
-              {L("Open the thread")}
+              Open the thread
             </button>
             <button type="button" className="ss-toast-dismiss" onClick={() => onClose?.()}>
-              {L("Later")}
+              Later
             </button>
           </div>
         </div>
@@ -86,7 +84,7 @@ export default function SupportWaitingToast({ toast = null, onOpen, onClose }) {
         <button
           type="button"
           className="ss-toast-close"
-          aria-label={L("Dismiss notification")}
+          aria-label="Dismiss notification"
           onClick={() => onClose?.()}
         >
           ×

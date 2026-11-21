@@ -17,7 +17,7 @@ const WELCOME_MSGS = [
     role: "assistant",
     type: "text",
     timestamp: "14:30",
-    text: "Hi! I'm your SkillSpan assistant. I can help you understand your readiness score, skill gaps, career roadmap, and project recommendations, all based on your verified profile data.\n\nWhat would you like to explore today?",
+    text: "Hi! I'm your SkillSpan assistant. I can help you understand your readiness score, skill gaps, career roadmap, and project recommendations — all based on your verified profile data.\n\nWhat would you like to explore today?",
   },
 ];
 const READINESS_MSGS = [
@@ -37,7 +37,7 @@ const READINESS_MSGS = [
           weight: 65,
           score: 68,
           contribution: 44,
-          color: "#1667e0",
+          color: "#3b8bff",
           note: "Python (L3→L4 required) and System Design (L2→L3 required) are your two largest gaps dragging this component down.",
         },
         {
@@ -45,7 +45,7 @@ const READINESS_MSGS = [
           weight: 20,
           score: 55,
           contribution: 11,
-          color: "#5b5bd6",
+          color: "#7c3aed",
           note: "You have 2 verified project evidence items. Completing the REST API Practice Task adds a third.",
         },
         {
@@ -61,7 +61,7 @@ const READINESS_MSGS = [
           weight: 5,
           score: 90,
           contribution: 5,
-          color: "#15925a",
+          color: "#059669",
           note: "Profile is well-completed.",
         },
       ],
@@ -87,11 +87,11 @@ const SKILL_GAP_MSGS = [
       isCritical: false,
       confidence: "Medium",
       evidenceSummary:
-        "2 verified items, Python Fundamentals Assessment (L3, Sep 2026) + SQL & Python Mini-Project (L3, Aug 2026)",
+        "2 verified items — Python Fundamentals Assessment (L3, Sep 2026) + SQL & Python Mini-Project (L3, Aug 2026)",
       importance: "High",
       explanation:
-        "Python at Level 4 is required because Software Engineers at this seniority are expected to write production-quality, idiomatic code, not just scripts. This includes proper error handling, type annotations, async patterns, and testable module design. Your current Level 3 shows solid fundamentals but the gap means your code quality evidence does not yet demonstrate production readiness.",
-      roadmapAction: "REST API with Python & PostgreSQL, Practice Task (Phase 3, your Next Best Action)",
+        "Python at Level 4 is required because Software Engineers at this seniority are expected to write production-quality, idiomatic code — not just scripts. This includes proper error handling, type annotations, async patterns, and testable module design. Your current Level 3 shows solid fundamentals but the gap means your code quality evidence does not yet demonstrate production readiness.",
+      roadmapAction: "REST API with Python & PostgreSQL — Practice Task (Phase 3, your Next Best Action)",
       limitationNote:
         "Your evidence is from Aug–Sep 2026. If you have completed additional Python work since then, adding evidence would update this assessment.",
     },
@@ -116,7 +116,7 @@ const ROADMAP_MSGS = [
         unlocks: "Phase 3 completion milestone + System Design Simulation (Phase 3)",
       },
       upNext: [
-        { title: "Scalable Chat System, System Design Simulation", type: "Simulation Project", phase: 3 },
+        { title: "Scalable Chat System — System Design Simulation", type: "Simulation Project", phase: 3 },
         { title: "React Intermediate Assessment", type: "Assessment", phase: 3 },
       ],
       phaseProgress: 1,
@@ -149,7 +149,7 @@ const PROJECT_MSGS = [
         "REST API Design (L2, meets min L2)",
         "Git & CI/CD (L2, meets min L2)",
       ],
-      gaps: ["System Design (yours L2, required L3), does not block eligibility but is a growth target"],
+      gaps: ["System Design (yours L2, required L3) — does not block eligibility but is a growth target"],
       learningValue: [
         { skill: "Python", gain: "+1 Level (L3→L4)", impact: "High" },
         { skill: "REST API Design", gain: "+1 Level (L2→L3)", impact: "High" },
@@ -158,7 +158,7 @@ const PROJECT_MSGS = [
       eligibility: "Eligible",
       availabilityNote: "4 of 6 spots remaining. Deadline: 29 Sep 2026.",
       limitations:
-        "Match score is based on your profile as of 9 Sep 2026. Recommendation does not guarantee project acceptance, the project owner makes the final decision.",
+        "Match score is based on your profile as of 9 Sep 2026. Recommendation does not guarantee project acceptance — the project owner makes the final decision.",
       rank: 1,
     },
   },
@@ -180,7 +180,7 @@ const UNCERTAINTY_MSGS = [
     payload: {
       category: "out-of-scope",
       explanation:
-        "I cannot provide employment guarantees. Completing your career roadmap improves your verified skill profile and practical experience, which are valuable signals for hiring, but employment outcomes depend on many factors outside SkillSpan: job market conditions, individual employer decisions, interview performance, and more.",
+        "I cannot provide employment guarantees. Completing your career roadmap improves your verified skill profile and practical experience — which are valuable signals for hiring — but employment outcomes depend on many factors outside SkillSpan: job market conditions, individual employer decisions, interview performance, and more.",
       canHelp:
         "What I can help with: understanding your current readiness score, identifying which specific skill gaps to close next, explaining project and learning recommendations, and helping you plan your next learning step.",
       boundaryType: "no-guarantee",
@@ -244,12 +244,12 @@ function ReportPopover({ onReport, onClose }) {
     { key: "incorrect", label: "Incorrect", desc: "Factually wrong or misleading" },
   ];
   return (
-    <div className="absolute right-0 bottom-[32px] w-[230px] bg-white border border-[#e4ebf5] rounded-[12px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] z-50 overflow-hidden">
-      <div className="px-[14px] pt-[12px] pb-[8px] border-b border-[#f0f6fc]">
-        <p className="text-[11px] font-semibold text-[#05103d]">
+    <div className="absolute right-0 bottom-[32px] w-[230px] bg-white border border-[#e8eaf0] rounded-[12px] shadow-[0_8px_24px_rgba(0,0,0,0.12)] z-50 overflow-hidden">
+      <div className="px-[14px] pt-[12px] pb-[8px] border-b border-[#f1f3fa]">
+        <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">
           Report this response
         </p>
-        <p className="text-[11px] font-normal text-[#98a1ba] mt-[1px]">
+        <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[1px]">
           Reports are reviewed by the SkillSpan team
         </p>
       </div>
@@ -257,15 +257,15 @@ function ReportPopover({ onReport, onClose }) {
         <button
           key={r.key}
           onClick={() => onReport(r.key)}
-          className="w-full text-left px-[14px] py-[8px] hover:bg-[#f7fafe] transition-colors flex flex-col gap-[1px]"
+          className="w-full text-left px-[14px] py-[8px] hover:bg-[#f8f9fd] transition-colors flex flex-col gap-[1px]"
         >
-          <span className="text-[12px] font-medium text-[#05103d]">{r.label}</span>
-          <span className="text-[11px] font-normal text-[#98a1ba]">{r.desc}</span>
+          <span className="text-[12px] font-['Inter:Medium',sans-serif] font-medium text-[#0a0b14]">{r.label}</span>
+          <span className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{r.desc}</span>
         </button>
       ))}
       <button
         onClick={onClose}
-        className="w-full text-center py-[8px] text-[11px] font-normal text-[#98a1ba] hover:text-[#6b7593] border-t border-[#f0f6fc]"
+        className="w-full text-center py-[8px] text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] hover:text-[#64748b] border-t border-[#f1f3fa]"
       >
         Cancel
       </button>
@@ -303,21 +303,21 @@ function ReadinessCard({ payload }) {
             />
             <defs>
               <linearGradient id="assGrad" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor="#1667e0" />
-                <stop offset="100%" stopColor="#5b5bd6" />
+                <stop offset="0%" stopColor="#3b8bff" />
+                <stop offset="100%" stopColor="#7c3aed" />
               </linearGradient>
             </defs>
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="font-bold text-[18px] text-white leading-none">
+            <span className="font-['Inter:Bold',sans-serif] font-bold text-[18px] text-white leading-none">
               {score}
             </span>
-            <span className="text-[11px] font-normal text-[rgba(255,255,255,0.45)]">/ 100</span>
+            <span className="text-[8px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.45)]">/ 100</span>
           </div>
         </div>
         <div>
-          <p className="font-bold text-[14px] text-white">{band}</p>
-          <p className="text-[11px] font-normal text-[rgba(255,255,255,0.5)] mt-[1px]">
+          <p className="font-['Inter:Bold',sans-serif] font-bold text-[14px] text-white">{band}</p>
+          <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.5)] mt-[1px]">
             Software Engineer v2.3
           </p>
         </div>
@@ -331,13 +331,13 @@ function ReadinessCard({ payload }) {
             <div className="flex items-center justify-between mb-[5px]">
               <div className="flex items-center gap-[6px]">
                 <span className="w-[7px] h-[7px] rounded-full shrink-0" style={{ background: c.color }} />
-                <span className="text-[11px] font-medium text-[rgba(255,255,255,0.8)]">
+                <span className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[rgba(255,255,255,0.8)]">
                   {c.label}
                 </span>
               </div>
-              <div className="flex items-center gap-[8px] text-[11px] font-normal text-[rgba(255,255,255,0.4)]">
+              <div className="flex items-center gap-[8px] text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.4)]">
                 <span>{c.weight}% weight</span>
-                <span className="font-bold" style={{ color: c.color }}>
+                <span className="font-['Inter:Bold',sans-serif] font-bold" style={{ color: c.color }}>
                   {c.score}/100
                 </span>
               </div>
@@ -345,16 +345,16 @@ function ReadinessCard({ payload }) {
             <div className="w-full h-[4px] rounded-full bg-[rgba(255,255,255,0.08)] overflow-hidden mb-[6px]">
               <div className="h-full rounded-full" style={{ width: `${c.score}%`, background: c.color }} />
             </div>
-            <p className="text-[11px] font-normal text-[rgba(255,255,255,0.45)] leading-[1.5]">
+            <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.45)] leading-[1.5]">
               {c.note}
             </p>
           </div>
         ))}
       </div>
       {payload.next && (
-        <div className="flex items-start gap-[7px] bg-[rgba(22,103,224,0.12)] border border-[rgba(22,103,224,0.25)] rounded-[10px] px-[12px] py-[9px]">
+        <div className="flex items-start gap-[7px] bg-[rgba(59,139,255,0.12)] border border-[rgba(59,139,255,0.25)] rounded-[10px] px-[12px] py-[9px]">
           <span className="text-[12px] shrink-0">⚡</span>
-          <p className="text-[11px] font-normal text-[rgba(255,255,255,0.7)] leading-[1.5]">
+          <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.7)] leading-[1.5]">
             {payload.next}
           </p>
         </div>
@@ -372,9 +372,9 @@ function SkillGapCard({ payload }) {
       {/* Level visual */}
       <div className="bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-[12px] p-[12px]">
         <div className="flex items-center justify-between mb-[8px]">
-          <span className="font-bold text-[13px] text-white">{payload.skillName}</span>
+          <span className="font-['Inter:Bold',sans-serif] font-bold text-[13px] text-white">{payload.skillName}</span>
           <span
-            className={`text-[11px] font-semibold px-[7px] py-[2px] rounded-full ${met ? "text-[#34d399] bg-[rgba(52,211,153,0.15)]" : "text-[#f87171] bg-[rgba(248,113,113,0.15)]"}`}
+            className={`text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold px-[7px] py-[2px] rounded-full ${met ? "text-[#34d399] bg-[rgba(52,211,153,0.15)]" : "text-[#f87171] bg-[rgba(248,113,113,0.15)]"}`}
           >
             {met ? "Met" : `Gap: −${reqLevel - yourLevel}`}
           </span>
@@ -388,16 +388,16 @@ function SkillGapCard({ payload }) {
                 background:
                   i < yourLevel
                     ? met
-                      ? "#15925a"
+                      ? "#059669"
                       : "#f59e0b"
                     : i < reqLevel
-                      ? "rgba(209,59,59,0.3)"
+                      ? "rgba(239,68,68,0.3)"
                       : "rgba(255,255,255,0.08)",
               }}
             />
           ))}
         </div>
-        <div className="flex justify-between mt-[4px] text-[11px] font-normal text-[rgba(255,255,255,0.35)]">
+        <div className="flex justify-between mt-[4px] text-[9px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.35)]">
           <span>Your level: L{yourLevel}</span>
           <span>Required: L{reqLevel}</span>
           <span>Max: L{max}</span>
@@ -411,24 +411,24 @@ function SkillGapCard({ payload }) {
           { l: "Roadmap action", v: payload.roadmapAction },
         ].map((row) => (
           <div key={row.l} className="flex gap-[8px] px-[12px] py-[8px]">
-            <span className="text-[11px] font-medium text-[rgba(255,255,255,0.35)] w-[90px] shrink-0">
+            <span className="text-[10px] font-['Inter:Medium',sans-serif] font-medium text-[rgba(255,255,255,0.35)] w-[90px] shrink-0">
               {row.l}
             </span>
-            <span className="text-[11px] font-normal text-[rgba(255,255,255,0.65)] leading-[1.5] flex-1">
+            <span className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.65)] leading-[1.5] flex-1">
               {row.v}
             </span>
           </div>
         ))}
       </div>
       <div className="bg-[rgba(255,255,255,0.05)] rounded-[10px] px-[12px] py-[9px]">
-        <p className="text-[11px] font-normal text-[rgba(255,255,255,0.55)] leading-[1.6]">
+        <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.55)] leading-[1.6]">
           {payload.explanation}
         </p>
       </div>
       {payload.limitationNote && (
         <div className="flex items-start gap-[6px] px-[12px] py-[9px] bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.2)] rounded-[10px]">
           <span className="text-[11px] shrink-0 mt-[1px]">ℹ</span>
-          <p className="text-[11px] font-normal text-[rgba(255,255,255,0.5)] leading-[1.5]">
+          <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.5)] leading-[1.5]">
             {payload.limitationNote}
           </p>
         </div>
@@ -444,54 +444,54 @@ function RoadmapCard({ payload }) {
       {/* NBA */}
       <div
         className="relative overflow-hidden rounded-[12px] p-[14px]"
-        style={{ background: "#e9f0fd" }}
+        style={{ background: "linear-gradient(130deg,rgba(59,139,255,0.15),rgba(124,58,237,0.15))" }}
       >
         <div
           className="absolute -top-4 -right-4 w-20 h-20 rounded-full opacity-10"
-          style={{ background: "transparent" }}
+          style={{ background: "radial-gradient(circle,#3b8bff,transparent 70%)" }}
         />
         <div className="relative">
           <div className="flex items-center gap-[6px] mb-[6px]">
-            <span className="text-[11px] font-bold text-[#7ca8ff] bg-[rgba(22,103,224,0.2)] px-[7px] py-[2px] rounded-full">
+            <span className="text-[10px] font-['Inter:Bold',sans-serif] font-bold text-[#7ca8ff] bg-[rgba(59,139,255,0.2)] px-[7px] py-[2px] rounded-full">
               ⚡ Next Best Action
             </span>
-            <span className="text-[11px] font-normal text-[rgba(255,255,255,0.4)]">
+            <span className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.4)]">
               Phase {nba.phase} · {nba.phaseName}
             </span>
           </div>
-          <p className="font-semibold text-[12px] text-white mb-[4px]">
+          <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[12px] text-white mb-[4px]">
             {nba.title}
           </p>
-          <p className="text-[11px] font-normal text-[rgba(255,255,255,0.4)] mb-[6px]">
+          <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.4)] mb-[6px]">
             {nba.type} · {nba.effort}
           </p>
-          <p className="text-[11px] font-normal text-[rgba(255,255,255,0.6)] leading-[1.5] mb-[6px]">
+          <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.6)] leading-[1.5] mb-[6px]">
             {nba.why}
           </p>
           <div className="flex items-center gap-[6px]">
-            <span className="text-[11px] font-normal text-[rgba(255,255,255,0.35)]">Unlocks:</span>
-            <span className="text-[11px] font-medium text-[rgba(255,255,255,0.5)]">
+            <span className="text-[9px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.35)]">Unlocks:</span>
+            <span className="text-[9px] font-['Inter:Medium',sans-serif] font-medium text-[rgba(255,255,255,0.5)]">
               {nba.unlocks}
             </span>
           </div>
         </div>
       </div>
       <div className="flex flex-col gap-[4px]">
-        <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] uppercase tracking-wide px-[2px]">
-          After NBA, coming up
+        <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[rgba(255,255,255,0.3)] uppercase tracking-wide px-[2px]">
+          After NBA — coming up
         </p>
         {upNext.map((a, i) => (
           <div
             key={i}
-            className="flex items-center gap-[8px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-[8px] px-[10px] py-[7px]"
+            className="flex items-center gap-[8px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-[9px] px-[10px] py-[7px]"
           >
-            <span className="text-[11px] font-normal text-[rgba(255,255,255,0.35)] shrink-0">
+            <span className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.35)] shrink-0">
               Phase {a.phase}
             </span>
-            <span className="text-[11px] font-normal text-[rgba(255,255,255,0.6)] flex-1 leading-tight">
+            <span className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.6)] flex-1 leading-tight">
               {a.title}
             </span>
-            <span className="text-[11px] font-normal text-[rgba(255,255,255,0.3)] shrink-0">
+            <span className="text-[9px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.3)] shrink-0">
               {a.type}
             </span>
           </div>
@@ -500,7 +500,7 @@ function RoadmapCard({ payload }) {
       {payload.limitationNote && (
         <div className="flex items-start gap-[6px] px-[12px] py-[9px] bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.2)] rounded-[10px]">
           <span className="text-[11px] shrink-0">ℹ</span>
-          <p className="text-[11px] font-normal text-[rgba(255,255,255,0.5)] leading-[1.5]">
+          <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.5)] leading-[1.5]">
             {payload.limitationNote}
           </p>
         </div>
@@ -512,57 +512,57 @@ function ProjectRecCard({ payload }) {
   const matched = payload.matchedSkills;
   const gaps = payload.gaps;
   const learning = payload.learningValue;
-  const impCol = (imp) => (imp === "High" ? "#34d399" : imp === "Medium" ? "#fbbf24" : "#98a1ba");
+  const impCol = (imp) => (imp === "High" ? "#34d399" : imp === "Medium" ? "#fbbf24" : "#94a3b8");
   return (
     <div className="mt-[10px] flex flex-col gap-[8px]">
       {/* Header */}
       <div className="bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-[12px] px-[14px] py-[11px] flex items-center gap-[10px]">
-        <div className="w-[36px] h-[36px] rounded-[8px] bg-[rgba(22,103,224,0.15)] border border-[rgba(22,103,224,0.25)] flex items-center justify-center text-[14px] shrink-0">
+        <div className="w-[36px] h-[36px] rounded-[9px] bg-[rgba(59,139,255,0.15)] border border-[rgba(59,139,255,0.25)] flex items-center justify-center text-[14px] shrink-0">
           🔧
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-[12px] text-white leading-tight">
+          <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[12px] text-white leading-tight">
             {payload.projectTitle}
           </p>
           <div className="flex items-center gap-[6px] mt-[2px]">
-            <span className="text-[11px] font-bold text-[#34d399]">
+            <span className="text-[9px] font-['Inter:Bold',sans-serif] font-bold text-[#34d399]">
               ✓ {payload.eligibility}
             </span>
-            <span className="text-[11px] text-[rgba(255,255,255,0.35)]">·</span>
-            <span className="text-[11px] font-normal text-[rgba(255,255,255,0.4)]">
+            <span className="text-[9px] text-[rgba(255,255,255,0.35)]">·</span>
+            <span className="text-[9px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.4)]">
               Rank #{payload.rank}
             </span>
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="font-bold text-[18px] text-[#34d399] leading-none">
+          <p className="font-['Inter:Bold',sans-serif] font-bold text-[18px] text-[#34d399] leading-none">
             {payload.matchScore}
           </p>
-          <p className="text-[11px] font-normal text-[rgba(255,255,255,0.35)]">% match</p>
+          <p className="text-[8px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.35)]">% match</p>
         </div>
       </div>
       {/* Skills met */}
-      <div className="bg-[rgba(21,146,90,0.08)] border border-[rgba(21,146,90,0.2)] rounded-[10px] px-[12px] py-[9px]">
-        <p className="text-[11px] font-semibold text-[rgba(52,211,153,0.7)] uppercase tracking-wide mb-[5px]">
+      <div className="bg-[rgba(5,150,105,0.08)] border border-[rgba(5,150,105,0.2)] rounded-[10px] px-[12px] py-[9px]">
+        <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[rgba(52,211,153,0.7)] uppercase tracking-wide mb-[5px]">
           Skills matched ({matched.length})
         </p>
         {matched.map((s) => (
           <div key={s} className="flex items-center gap-[5px] py-[2px]">
-            <span className="text-[11px] text-[#34d399]">✓</span>
-            <span className="text-[11px] font-normal text-[rgba(255,255,255,0.6)]">{s}</span>
+            <span className="text-[10px] text-[#34d399]">✓</span>
+            <span className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.6)]">{s}</span>
           </div>
         ))}
       </div>
       {/* Gaps */}
       {gaps.length > 0 && (
         <div className="bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.2)] rounded-[10px] px-[12px] py-[9px]">
-          <p className="text-[11px] font-semibold text-[rgba(251,191,36,0.7)] uppercase tracking-wide mb-[5px]">
+          <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[rgba(251,191,36,0.7)] uppercase tracking-wide mb-[5px]">
             Gaps / growth targets
           </p>
           {gaps.map((g) => (
             <div key={g} className="flex items-start gap-[5px] py-[2px]">
-              <span className="text-[11px] text-[#fbbf24] shrink-0 mt-[1px]">△</span>
-              <span className="text-[11px] font-normal text-[rgba(255,255,255,0.6)] leading-[1.5]">
+              <span className="text-[10px] text-[#fbbf24] shrink-0 mt-[1px]">△</span>
+              <span className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.6)] leading-[1.5]">
                 {g}
               </span>
             </div>
@@ -571,7 +571,7 @@ function ProjectRecCard({ payload }) {
       )}
       {/* Learning value */}
       <div className="flex flex-col gap-[3px]">
-        <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] uppercase tracking-wide px-[2px]">
+        <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[rgba(255,255,255,0.3)] uppercase tracking-wide px-[2px]">
           What you gain
         </p>
         {learning.map((lv) => (
@@ -579,17 +579,17 @@ function ProjectRecCard({ payload }) {
             key={lv.skill}
             className="flex items-center justify-between bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.06)] rounded-[8px] px-[10px] py-[6px]"
           >
-            <span className="text-[11px] font-normal text-[rgba(255,255,255,0.6)]">
+            <span className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.6)]">
               {lv.skill}
             </span>
             <div className="flex items-center gap-[6px]">
               <span
-                className="text-[11px] font-bold"
+                className="text-[10px] font-['Inter:Bold',sans-serif] font-bold"
                 style={{ color: impCol(lv.impact) }}
               >
                 {lv.gain}
               </span>
-              <span className="text-[11px] font-normal" style={{ color: impCol(lv.impact) }}>
+              <span className="text-[9px] font-['Inter:Regular',sans-serif]" style={{ color: impCol(lv.impact) }}>
                 {lv.impact}
               </span>
             </div>
@@ -599,7 +599,7 @@ function ProjectRecCard({ payload }) {
       {/* Limitation */}
       <div className="flex items-start gap-[6px] px-[12px] py-[9px] bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.2)] rounded-[10px]">
         <span className="text-[11px] shrink-0">ℹ</span>
-        <p className="text-[11px] font-normal text-[rgba(255,255,255,0.5)] leading-[1.5]">
+        <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.5)] leading-[1.5]">
           {payload.limitations}
         </p>
       </div>
@@ -611,26 +611,26 @@ function UncertaintyCard({ payload }) {
   return (
     <div className="mt-[10px] flex flex-col gap-[8px]">
       <div
-        className={`flex items-start gap-[10px] rounded-[12px] p-[14px] border ${isUnavailable ? "bg-[rgba(209,59,59,0.07)] border-[rgba(209,59,59,0.2)]" : "bg-[rgba(148,163,184,0.07)] border-[rgba(148,163,184,0.15)]"}`}
+        className={`flex items-start gap-[10px] rounded-[12px] p-[14px] border ${isUnavailable ? "bg-[rgba(239,68,68,0.07)] border-[rgba(239,68,68,0.2)]" : "bg-[rgba(148,163,184,0.07)] border-[rgba(148,163,184,0.15)]"}`}
       >
         <span className="text-[16px] shrink-0">{isUnavailable ? "🔌" : "🤔"}</span>
         <div>
           <p
-            className="font-semibold text-[12px] mb-[4px]"
+            className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[12px] mb-[4px]"
             style={{ color: isUnavailable ? "#f87171" : "rgba(255,255,255,0.75)" }}
           >
             {isUnavailable ? "Service temporarily unavailable" : "Outside my guidance scope"}
           </p>
-          <p className="text-[11px] font-normal text-[rgba(255,255,255,0.55)] leading-[1.6]">
+          <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.55)] leading-[1.6]">
             {payload.explanation}
           </p>
         </div>
       </div>
-      <div className="bg-[rgba(22,103,224,0.08)] border border-[rgba(22,103,224,0.2)] rounded-[10px] px-[12px] py-[9px]">
-        <p className="text-[11px] font-semibold text-[rgba(124,168,255,0.8)] uppercase tracking-wide mb-[4px]">
+      <div className="bg-[rgba(59,139,255,0.08)] border border-[rgba(59,139,255,0.2)] rounded-[10px] px-[12px] py-[9px]">
+        <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[rgba(124,168,255,0.8)] uppercase tracking-wide mb-[4px]">
           What I can help with
         </p>
-        <p className="text-[11px] font-normal text-[rgba(255,255,255,0.55)] leading-[1.5]">
+        <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.55)] leading-[1.5]">
           {payload.canHelp}
         </p>
       </div>
@@ -639,7 +639,7 @@ function UncertaintyCard({ payload }) {
 }
 function PrivacyBanner() {
   return (
-    <div className="mx-[12px] mt-[12px] bg-[rgba(22,103,224,0.07)] border border-[rgba(22,103,224,0.15)] rounded-[12px] p-[14px]">
+    <div className="mx-[12px] mt-[12px] bg-[rgba(59,139,255,0.07)] border border-[rgba(59,139,255,0.15)] rounded-[12px] p-[14px]">
       <div className="flex items-center gap-[7px] mb-[6px]">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
           <path
@@ -649,10 +649,10 @@ function PrivacyBanner() {
             strokeLinejoin="round"
           />
         </svg>
-        <p className="text-[11px] font-semibold text-[#7ca8ff]">Privacy & scope</p>
+        <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#7ca8ff]">Privacy & scope</p>
       </div>
-      <p className="text-[11px] font-normal text-[rgba(255,255,255,0.45)] leading-[1.6] mb-[6px]">
-        The assistant uses your verified SkillSpan profile data, including readiness scores, skill gaps, roadmap, and
+      <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.45)] leading-[1.6] mb-[6px]">
+        The assistant uses your verified SkillSpan profile data — including readiness scores, skill gaps, roadmap, and
         project recommendations. Only your own data is used.
       </p>
       <div className="flex flex-col gap-[3px]">
@@ -663,8 +663,8 @@ function PrivacyBanner() {
           "Will not override eligibility rules or readiness calculations",
         ].map((b) => (
           <div key={b} className="flex items-start gap-[5px]">
-            <span className="text-[11px] text-[rgba(255,255,255,0.3)] mt-[2px] shrink-0">✕</span>
-            <span className="text-[11px] font-normal text-[rgba(255,255,255,0.4)] leading-[1.4]">
+            <span className="text-[8px] text-[rgba(255,255,255,0.3)] mt-[2px] shrink-0">✕</span>
+            <span className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.4)] leading-[1.4]">
               {b}
             </span>
           </div>
@@ -685,7 +685,7 @@ function ChatMessage({ msg, onReport, onHandoff }) {
     <div className={`flex gap-[10px] px-[12px] py-[6px] ${isUser ? "flex-row-reverse" : ""}`}>
       {/* Avatar */}
       {!isUser && (
-        <div className="w-[28px] h-[28px] rounded-full bg-[#1667e0] flex items-center justify-center text-[11px] font-bold text-white shrink-0 mt-[2px]">
+        <div className="w-[28px] h-[28px] rounded-full bg-gradient-to-br from-[#3b8bff] to-[#7c3aed] flex items-center justify-center text-[10px] font-['Inter:Bold',sans-serif] font-bold text-white shrink-0 mt-[2px]">
           ⚡
         </div>
       )}
@@ -693,10 +693,10 @@ function ChatMessage({ msg, onReport, onHandoff }) {
       {/* Bubble */}
       <div className={`flex flex-col gap-[4px] max-w-[85%] ${isUser ? "items-end" : "items-start"}`}>
         <div
-          className={`rounded-[12px] px-[13px] py-[10px] text-[12px] font-normal leading-[1.65]
+          className={`rounded-[14px] px-[13px] py-[10px] text-[12px] font-['Inter:Regular',sans-serif] leading-[1.65]
           ${
             isUser
-              ? "bg-[#1667e0] to-[#1667e0] text-white rounded-tr-[4px]"
+              ? "bg-gradient-to-br from-[#3b8bff] to-[#2563eb] text-white rounded-tr-[4px]"
               : "bg-[rgba(255,255,255,0.07)] border border-[rgba(255,255,255,0.08)] text-[rgba(255,255,255,0.8)] rounded-tl-[4px]"
           }`}
         >
@@ -712,11 +712,11 @@ function ChatMessage({ msg, onReport, onHandoff }) {
             <button
               type="button"
               onClick={() => onHandoff(msg.id)}
-              className="mt-[10px] rounded-[8px] border border-[rgba(22,103,224,0.35)] bg-[rgba(22,103,224,0.12)] px-[10px] py-[7px] text-[11px] text-[#a9c8ff] hover:bg-[rgba(22,103,224,0.2)]"
+              className="mt-[10px] rounded-[8px] border border-[rgba(59,139,255,0.35)] bg-[rgba(59,139,255,0.12)] px-[10px] py-[7px] text-[11px] text-[#a9c8ff] hover:bg-[rgba(59,139,255,0.2)]"
             >Contact human support</button>
           )}
           {msg.handoffCreated && (
-            <p className="mt-[8px] text-[11px] text-[#a9c8ff]">Support request #{msg.supportRequestId} created ({msg.supportStatus || "pending"}).</p>
+            <p className="mt-[8px] text-[10px] text-[#a9c8ff]">Support request #{msg.supportRequestId} created ({msg.supportStatus || "pending"}).</p>
           )}
           {/* Structured payload cards */}
           {msg.type === "readiness" && msg.payload && <ReadinessCard payload={msg.payload} />}
@@ -728,20 +728,20 @@ function ChatMessage({ msg, onReport, onHandoff }) {
 
         {/* Footer: timestamp + actions */}
         <div className={`flex items-center gap-[8px] ${isUser ? "flex-row-reverse" : ""}`}>
-          <span className="text-[11px] font-normal text-[rgba(255,255,255,0.25)]">
+          <span className="text-[9px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.25)]">
             {msg.timestamp}
           </span>
           {!isUser && (
             <div className="flex items-center gap-[4px]">
               {msg.reported ? (
-                <span className="text-[11px] font-normal text-[rgba(245,158,11,0.6)]">
+                <span className="text-[9px] font-['Inter:Regular',sans-serif] text-[rgba(245,158,11,0.6)]">
                   Reported
                 </span>
               ) : (
                 <div className="relative">
                   <button
                     onClick={() => setShowReport(!showReport)}
-                    className="flex items-center gap-[3px] text-[11px] font-normal text-[rgba(255,255,255,0.25)] hover:text-[rgba(255,255,255,0.5)] transition-colors"
+                    className="flex items-center gap-[3px] text-[9px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.25)] hover:text-[rgba(255,255,255,0.5)] transition-colors"
                   >
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                       <path
@@ -777,10 +777,10 @@ function ChatMessage({ msg, onReport, onHandoff }) {
 function TypingIndicator() {
   return (
     <div className="flex gap-[10px] px-[12px] py-[6px]">
-      <div className="w-[28px] h-[28px] rounded-full bg-[#1667e0] flex items-center justify-center text-[11px] font-bold text-white shrink-0">
+      <div className="w-[28px] h-[28px] rounded-full bg-gradient-to-br from-[#3b8bff] to-[#7c3aed] flex items-center justify-center text-[10px] font-['Inter:Bold',sans-serif] font-bold text-white shrink-0">
         ⚡
       </div>
-      <div className="bg-[rgba(255,255,255,0.07)] border border-[rgba(255,255,255,0.08)] rounded-[12px] rounded-tl-[4px] px-[14px] py-[12px] flex items-center gap-[4px]">
+      <div className="bg-[rgba(255,255,255,0.07)] border border-[rgba(255,255,255,0.08)] rounded-[14px] rounded-tl-[4px] px-[14px] py-[12px] flex items-center gap-[4px]">
         {[0, 1, 2].map((i) => (
           <span
             key={i}
@@ -797,10 +797,10 @@ function TypingIndicator() {
 // ═══════════════════════════════════════════════════════════════════════════════
 function ContextBadge() {
   return (
-    <div className="flex items-center gap-[5px] px-[10px] py-[5px] bg-[rgba(21,146,90,0.1)] border border-[rgba(21,146,90,0.2)] rounded-full">
+    <div className="flex items-center gap-[5px] px-[10px] py-[5px] bg-[rgba(5,150,105,0.1)] border border-[rgba(5,150,105,0.2)] rounded-full">
       <span className="w-[5px] h-[5px] rounded-full bg-[#34d399] shrink-0 pulse-glow" />
-      <span className="text-[11px] font-medium text-[#34d399]">
-        Career context loaded, Software Engineer v2.3
+      <span className="text-[9px] font-['Inter:Medium',sans-serif] font-medium text-[#34d399]">
+        Career context loaded — Software Engineer v2.3
       </span>
     </div>
   );
@@ -916,22 +916,22 @@ export default function AssistantPanel({ onClose }) {
     }
   }
   return (
-    <div className="flex flex-col h-full" style={{ background: "#060d2e" }}>
+    <div className="flex flex-col h-full" style={{ background: "#0d0f24" }}>
       {/* Header */}
       <div className="px-[16px] pt-[16px] pb-[12px] border-b border-[rgba(255,255,255,0.07)] shrink-0">
         <div className="flex items-center justify-between mb-[10px]">
           <div className="flex items-center gap-[10px]">
             <div
               className="w-[36px] h-[36px] rounded-[10px] flex items-center justify-center text-[14px] shrink-0"
-              style={{ background: "#1667e0" }}
+              style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}
             >
               ⚡
             </div>
             <div>
-              <p className="font-bold text-[14px] text-white leading-tight">
+              <p className="font-['Inter:Bold',sans-serif] font-bold text-[14px] text-white leading-tight">
                 SkillSpan Assistant
               </p>
-              <p className="text-[11px] font-normal text-[rgba(255,255,255,0.4)]">
+              <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.4)]">
                 Personalized career guidance
               </p>
             </div>
@@ -963,7 +963,7 @@ export default function AssistantPanel({ onClose }) {
         {/* Suggested questions */}
         {showSuggested && !isTyping && (
           <div className="px-[12px] pt-[8px] pb-[4px]">
-            <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] uppercase tracking-wide mb-[8px]">
+            <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[rgba(255,255,255,0.3)] uppercase tracking-wide mb-[8px]">
               Suggested questions
             </p>
             <div className="flex flex-wrap gap-[6px]">
@@ -971,7 +971,7 @@ export default function AssistantPanel({ onClose }) {
                 <button
                   key={q}
                   onClick={() => sendMessage(q.text, q.intent)}
-                  className="text-[11px] font-normal text-[rgba(255,255,255,0.65)] bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-full px-[10px] py-[5px] hover:bg-[rgba(22,103,224,0.15)] hover:border-[rgba(22,103,224,0.3)] hover:text-[#7ca8ff] transition-all text-left"
+                  className="text-[11px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.65)] bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-full px-[10px] py-[5px] hover:bg-[rgba(59,139,255,0.15)] hover:border-[rgba(59,139,255,0.3)] hover:text-[#7ca8ff] transition-all text-left"
                 >
                   {q}
                 </button>
@@ -985,7 +985,7 @@ export default function AssistantPanel({ onClose }) {
 
       {/* Input area */}
       <div className="px-[12px] pb-[12px] pt-[8px] border-t border-[rgba(255,255,255,0.07)] shrink-0">
-        <div className="flex items-end gap-[8px] bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-[12px] px-[12px] py-[8px] focus-within:border-[rgba(22,103,224,0.5)] transition-colors">
+        <div className="flex items-end gap-[8px] bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] rounded-[14px] px-[12px] py-[8px] focus-within:border-[rgba(59,139,255,0.5)] transition-colors">
           <textarea
             ref={inputRef}
             value={input}
@@ -993,7 +993,7 @@ export default function AssistantPanel({ onClose }) {
             onKeyDown={handleKeyDown}
             rows={1}
             placeholder="Ask about your readiness, skill gaps, roadmap…"
-            className="flex-1 bg-transparent text-[12px] font-normal text-[rgba(255,255,255,0.8)] placeholder:text-[rgba(255,255,255,0.25)] focus:outline-none resize-none leading-[1.5] max-h-[100px] overflow-y-auto"
+            className="flex-1 bg-transparent text-[12px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.8)] placeholder:text-[rgba(255,255,255,0.25)] focus:outline-none resize-none leading-[1.5] max-h-[100px] overflow-y-auto"
             style={{ minHeight: "20px" }}
             onInput={(e) => {
               const el = e.currentTarget;
@@ -1005,14 +1005,14 @@ export default function AssistantPanel({ onClose }) {
             onClick={() => sendMessage(input)}
             disabled={!input.trim() || isTyping}
             className="w-[28px] h-[28px] rounded-[8px] flex items-center justify-center transition-all shrink-0 mb-[1px] disabled:opacity-30"
-            style={{ background: input.trim() ? "#1667e0" : "rgba(255,255,255,0.1)" }}
+            style={{ background: input.trim() ? "linear-gradient(135deg,#3b8bff,#7c3aed)" : "rgba(255,255,255,0.1)" }}
           >
             <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
               <path d="M1 10L10 5.5 1 1v3.5l6 1-6 1V10z" fill="white" />
             </svg>
           </button>
         </div>
-        <p className="text-[11px] font-normal text-[rgba(255,255,255,0.2)] text-center mt-[6px]">
+        <p className="text-[8px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.2)] text-center mt-[6px]">
           Guided by verified profile data · Will not guarantee employment or override eligibility
         </p>
       </div>

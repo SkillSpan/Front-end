@@ -83,9 +83,7 @@ export function mapEvidenceRecord(raw) {
         skillId: nn(raw.skill_id, raw.skill && raw.skill.id),
         source: nn(raw.source, ''),
         category: nn(raw.category, raw.skill && raw.skill.category, ''),
-        // Baseline-assessment rows carry no URL and no evidence_type; calling them
-        // "GitHub Repository" was wrong. They keep their own source label.
-        type: nn(TYPE_FROM_API[raw.evidence_type], raw.type, raw.evidence_type, isFile ? 'document' : (evidenceUrl ? 'github' : null)),
+        type: nn(TYPE_FROM_API[raw.evidence_type], raw.type, raw.evidence_type, isFile ? 'document' : 'github'),
         url: nn(evidenceUrl, evidenceFile, ''),
         description: nn(raw.description, ''),
         status: STATUS_FROM_API[statusKey] || 'pending',

@@ -12,6 +12,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 vi.mock('../../../api', async (importOriginal) => ({ ...(await importOriginal()), companyRequest: vi.fn() }));
 
 import { PreferencesProvider } from '../../../preferences/PreferencesContext';
+import { STORE_KEY } from '../../../preferences/constants';
 import { clearQueryCache } from '../../../cache/queryCache';
 import TalentSearch from '../talent/TalentSearch';
 import { resetTalentMock } from '../talent/talentApi';

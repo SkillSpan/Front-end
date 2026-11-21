@@ -32,7 +32,7 @@
 }
 
 .assessment-resume-card {
-  background: #f2f4fc;
+  background: linear-gradient(160deg, #f2f4fc, #eceffb);
   border: 1px solid #e6e8f5;
   border-radius: 22px;
   padding: 40px 36px;
@@ -45,7 +45,7 @@
   width: 64px;
   height: 64px;
   border-radius: 18px;
-  background: #1667e0;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   color: #fff;
   display: flex;
   align-items: center;
@@ -120,7 +120,7 @@
 .assessment-resume-progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: #4f6df5;
+  background: linear-gradient(90deg, #4f6df5, #7c3aed);
   transition: width 0.3s ease;
 }
 
@@ -140,7 +140,7 @@
   font-size: 1rem;
   font-weight: 700;
   color: #fff;
-  background: #4f6df5;
+  background: linear-gradient(90deg, #4f6df5, #7c3aed);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -211,7 +211,7 @@
 }
 
 .assessment-resume-section-icon.complete {
-  background: #22c55e;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
 }
 
 .assessment-resume-section-info {
@@ -253,7 +253,7 @@
 }
 
 .assessment-resume-section-fill.complete {
-  background: #22c55e;
+  background: linear-gradient(90deg, #22c55e, #16a34a);
 }
 
 .assessment-resume-next {
@@ -268,7 +268,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #1667e0;
+  color: #6366f1;
   margin-bottom: 8px;
 }
 

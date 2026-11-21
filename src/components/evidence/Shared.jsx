@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { SKILL_META, STATUS_META, TYPE_META } from "./lib/evidenceMeta";
-import { useUiText } from "../../i18n/useUiText";
 
 const ICONS = {
   Python: "/figma-icons/Python.png",
@@ -15,10 +14,13 @@ const TYPE_ICONS = {
   design: "/figma-icons/Design File.png",
   document: "/figma-icons/Document.png",
 };
+const STATUS_ICONS = {
+  pending: "/figma-icons/Pending Review.png",
+};
 
 export function BrandLogo({ compact = false, dark = false }) {
   return <span className={`inline-flex items-center gap-3 ${dark ? "text-white" : "text-[#101828]"}`}>
-    <img src="/figma-icons/SkillSpan.png" alt="SkillSpan" className={`${compact ? "h-11 w-11" : "h-14 w-14"} rounded-[8px] object-contain`} />
+    <img src="/figma-icons/SkillSpan.png" alt="SkillSpan" className={`${compact ? "h-11 w-11" : "h-14 w-14"} rounded-[9px] object-contain`} />
     {!compact && <span className="text-xl font-bold tracking-[-.02em]">SkillSpan</span>}
   </span>;
 }
@@ -48,29 +50,27 @@ export function TypeIcon({ type, size = 16 }) {
   return <AssetIcon src={src} size={size} label={meta.label} FallbackIcon={meta.Icon} fallbackProps={{ size, strokeWidth: 2 }} />;
 }
 
-const SOURCE_LABELS = { assessment_test: "Baseline assessment", assessment: "Assessment", project: "Project" };
-
-export function TypeBadge({ type, source = "", className = "" }) {
-  const { L } = useUiText();
-  const meta = TYPE_META[type];
-  const label = meta ? meta.label : (SOURCE_LABELS[source] || (source ? "Assessment" : ""));
-  if (!label) return null;
-  return <span className={`inline-flex items-center rounded-[6px] border border-[#E4EBF5] bg-[#F5F8FD] px-2 py-0.5 text-[11px] font-medium text-[#334155] ${className}`}>
-    {L(label)}
+export function TypeBadge({ type, className = "" }) {
+  const meta = TYPE_META[type] || TYPE_META.document;
+  return <span className={`inline-flex items-center gap-1 rounded-[4px] border border-[#e5e7eb] bg-white px-1.5 py-0.5 text-[9px] font-medium text-[#4b5563] ${className}`}>
+    <TypeIcon type={type} size={12} />
+    {meta.label}
   </span>;
 }
 
 export function StatusBadge({ status, size = "md" }) {
-  const { L } = useUiText();
   const meta = STATUS_META[status] || STATUS_META.pending;
+  const Icon = meta.Icon;
   const colors = { pending: "#b77900", approved: "#07834f", rejected: "#c52828", revision: "#6941c6" };
   const color = colors[status] || colors.pending;
-  return <span className={`inline-flex items-center rounded-full border px-2 py-0.5 font-semibold ${size === "sm" ? "text-[11px]" : "text-[12px]"}`} style={{ color, borderColor: `${color}35`, backgroundColor: `${color}0d` }}>
-    {L(meta.label)}
+  const statusAsset = STATUS_ICONS[status];
+  return <span className={`inline-flex items-center rounded-full border px-2 py-1 font-semibold ${size === "sm" ? "gap-1 text-[10px]" : "gap-1.5 text-[11px]"}`} style={{ color, borderColor: `${color}35`, backgroundColor: `${color}0d` }}>
+    {statusAsset ? <img src={statusAsset} width={size === "sm" ? 11 : 12} height={size === "sm" ? 11 : 12} alt="" aria-hidden="true" className="object-contain" /> : <Icon size={size === "sm" ? 11 : 12} aria-hidden="true" />}
+    {meta.label}
   </span>;
 }
 
-export function SectionLabel({ children }) { return <p className="mb-2 text-[11px] font-bold uppercase tracking-[.12em] text-[var(--soft)]">{children}</p>; }
+export function SectionLabel({ children }) { return <p className="mb-2 text-[10px] font-bold uppercase tracking-[.12em] text-[var(--soft)]">{children}</p>; }
 export function Avatar({ name, tone = "blue", size = 32 }) { const tones = { blue: "bg-[var(--blue)]", violet: "bg-[#7f56d9]" }; return <span className={`flex shrink-0 items-center justify-center rounded-full font-semibold text-white ${tones[tone] || tones.blue}`} style={{ width: size, height: size, fontSize: Math.max(10, size * 0.36) }} aria-hidden="true">{name?.slice(0, 1)?.toUpperCase() || "?"}</span>; }
 
 // Category icon (e.g. "Programming & Languages"). On dark backgrounds it gets

@@ -94,7 +94,7 @@ const RegisterStep3 = ({ onNextSuccess, onBack, onEmailError, registerData, goog
       <div className="register-card">
         {/* Sidebar */}
         <div className="sidebar-left">
-          <div className="sidebar-brand"><span className="brand-skill">Skill</span><span className="brand-span">Span</span></div>
+          <div className="sidebar-brand">SkillSpan</div>
           <div className="sidebar-content">
             <h2>Start Your<br />Career&nbsp;Journey</h2>
             <p className="sidebar-desc">

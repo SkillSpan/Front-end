@@ -15,11 +15,11 @@
   --surface: #ffffff;
   --canvas: #f7f8fb;
   --navy: #101b3d;
-  --blue: #1667e0;
+  --blue: #2f5bea;
   --blue-dark: #2348c5;
   --blue-soft: #eef3ff;
-  --gradient-primary: #1667e0;
-  --gradient-primary-hover: #0f52ba;
+  --gradient-primary: linear-gradient(135deg, #2f5bea 0%, #5b3fd6 100%);
+  --gradient-primary-hover: linear-gradient(135deg, #2348c5 0%, #4c31b8 100%);
 }
 
 /* scoped stand-in for Tailwind preflight */

@@ -6,17 +6,14 @@
  * a learner who already knows they want a human, so this sits in the corner of
  * every learner screen and goes straight to the support thread.
  */
-import { useUiText } from "../../i18n/useUiText";
-
 export default function SupportFab({ onClick, waiting = false }) {
-  const { L } = useUiText();
   return (
     <button
       type="button"
       className={`ss-support-fab${waiting ? " is-waiting" : ""}`}
       onClick={onClick}
-      aria-label={L("Contact the support team")}
-      title={L("Contact the support team")}
+      aria-label="Contact the support team"
+      title="Contact the support team"
     >
       <svg
         width="19"
@@ -34,7 +31,7 @@ export default function SupportFab({ onClick, waiting = false }) {
         <path d="M21 13v3a2 2 0 0 1-2 2h-1a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h2" />
         <path d="M17 19a4 4 0 0 1-4 3h-1" />
       </svg>
-      <span className="ss-support-fab-label">{L("Need help?")}</span>
+      <span className="ss-support-fab-label">Need help?</span>
       {waiting && <span className="ss-support-fab-dot" aria-hidden="true" />}
     </button>
   );
