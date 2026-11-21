@@ -190,7 +190,7 @@ function NBABanner({ action }) {
               <p className="font-semibold text-[12px] text-white">{action.estimatedDuration}</p>
             </div>
             <button className="w-full mt-[2px] py-[9px] rounded-[9px] text-[13px] font-semibold text-white shadow-[0_4px_16px_rgba(59,139,255,0.4)] hover:shadow-[0_6px_20px_rgba(59,139,255,0.5)] transition-all" style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}>
-              Start Now →
+              Start Now
             </button>
           </div>
         </div>
@@ -336,7 +336,7 @@ function ReadinessTab({ data }) {
       </div>
 
       {showHow && (<div className="bg-[#f8f9ff] border border-[#eef0f8] rounded-[14px] p-[18px]">
-          <p className="font-semibold text-[13px] text-[#0a0b14] mb-[10px]">Readiness formula (BR-12)</p>
+          <p className="font-semibold text-[13px] text-[#0a0b14] mb-[10px]">Readiness formula</p>
           <p className="text-[12px] font-normal text-[#64748b] leading-[1.7] mb-[12px]">
             <strong className="font-semibold text-[#0a0b14]">Score = </strong>
             (Skill Match × 65%) + (Practical Experience × 20%) + (Assessment Reliability × 10%) + (Profile Completeness × 5%)
@@ -351,7 +351,7 @@ function ReadinessTab({ data }) {
               </div>))}
           </div>
           <p className="text-[11px] font-normal text-[#94a3b8] mt-[10px] italic leading-[1.6]">
-            Critical skill deficiencies apply a configured cap (BR-08). Weights and thresholds are versioned — every result is reproducible and auditable (BR-10, BR-13).
+            Critical skill deficiencies apply a configured cap. Weights and thresholds are versioned — every result is reproducible and auditable.
           </p>
         </div>)}
     </div>);
@@ -391,7 +391,7 @@ function SkillGapTab({ gaps }) {
           <strong className="font-semibold text-[#0a0b14]">Confidence reflects evidence quality.</strong>{" "}
           High = multiple verified sources · Medium = one verified or pending verification · Low = self-assessment only.
           Low-confidence levels are flagged — submitting an assessment or project raises accuracy and roadmap reliability.
-          Missing optional evidence does not count as zero; available evidence is re-weighted (BR-09).
+          Missing optional evidence does not count as zero; available evidence is re-weighted.
         </p>
       </div>
 
@@ -524,7 +524,6 @@ const PHASES_META = [
 // ── Milestone card ────────────────────────────────────────────────────────────
 function MilestoneCard({ m }) {
     const ms = MS[m.status];
-    const pt = PT[m.phase];
     return (<div className={`rounded-[14px] border-2 ${ms.border} p-[18px] flex gap-[14px]`} style={{ background: ms.bg.replace("bg-", "") || undefined }}>
       {/* Badge */}
       <div className="w-[46px] h-[46px] rounded-[12px] flex items-center justify-center text-[20px] shrink-0 border" style={{ background: ms.badgeBg, borderColor: ms.ring + "40" }}>
@@ -559,7 +558,6 @@ function ActionCard({ action }) {
     const [open, setOpen] = useState(action.isNBA ?? false);
     const st = ST[action.status];
     const tm = TM[action.type];
-    const pt = PT[action.phase];
     const isBlocked = action.status === "Blocked";
     const isDone = action.status === "Completed";
     return (<div className={`border rounded-[14px] overflow-hidden bg-white transition-all
@@ -831,7 +829,7 @@ function ErrorState({ variant }) {
             <Sk w={120} h={120} r={60} className="mx-auto"/>
             <div className="flex flex-col gap-[8px]"><Sk w="52%" h={16} r={5}/><Sk w="88%" h={12} r={4}/><Sk w="70%" h={12} r={4}/><Sk w="100%" h={6} r={3} className="mt-[4px]"/></div>
           </div>
-          <p className="text-[11px] font-normal text-[#94a3b8] italic mt-[10px]">Last calculated 09 Sep 2026, 17:32 · Result preserved (BR-12)</p>
+          <p className="text-[11px] font-normal text-[#94a3b8] italic mt-[10px]">Last calculated 09 Sep 2026, 17:32 · Result preserved</p>
         </div>
       </div>
     </div>);
@@ -840,21 +838,21 @@ function ErrorState({ variant }) {
 function IncompleteState({ variant }) {
     const STEPS = {
         empty: [
-            { n: 1, label: "Select a career goal", sub: "Choose an approved career role target — e.g. Software Engineer, Data Analyst.", done: false, cta: "Browse Career Roles →", accent: "#3b8bff" },
+            { n: 1, label: "Select a career goal", sub: "Choose an approved career role target — e.g. Software Engineer, Data Analyst.", done: false, cta: "Browse Career Roles", accent: "#3b8bff" },
             { n: 2, label: "Record your skills", sub: "Set your current skill levels so the system can calculate your gaps.", done: false, accent: "#94a3b8" },
             { n: 3, label: "Submit verified evidence", sub: "Complete assessments or add project evidence to verify your levels.", done: false, accent: "#94a3b8" },
             { n: 4, label: "Get your Readiness Score", sub: "See your personalised score, skill gaps, and career roadmap.", done: false, accent: "#94a3b8" },
         ],
         incomplete: [
             { n: 1, label: "Career goal selected", sub: "Software Engineer v2.3 is your active target.", done: true, accent: "#059669" },
-            { n: 2, label: "Complete your profile", sub: "Add education and work experience — required for the Profile Completeness component.", done: false, cta: "Complete Profile →", accent: "#f59e0b" },
-            { n: 3, label: "Submit evidence", sub: "At least one verified evidence item is needed for a reliable readiness score.", done: false, cta: "Add Evidence →", accent: "#f59e0b" },
+            { n: 2, label: "Complete your profile", sub: "Add education and work experience — required for the Profile Completeness component.", done: false, cta: "Complete Profile", accent: "#f59e0b" },
+            { n: 3, label: "Submit evidence", sub: "At least one verified evidence item is needed for a reliable readiness score.", done: false, cta: "Add Evidence", accent: "#f59e0b" },
             { n: 4, label: "Get your Readiness Score", sub: "Calculation runs automatically once required data is available.", done: false, accent: "#94a3b8" },
         ],
         "no-evidence": [
             { n: 1, label: "Career goal selected", sub: "Software Engineer v2.3 is your active target.", done: true, accent: "#059669" },
             { n: 2, label: "Profile complete", sub: "Your profile information is filled in.", done: true, accent: "#059669" },
-            { n: 3, label: "Add verified evidence", sub: "No verified evidence found. Self-assessment only produces low-confidence provisional results.", done: false, cta: "Add Evidence →", accent: "#ef4444" },
+            { n: 3, label: "Add verified evidence", sub: "No verified evidence found. Self-assessment only produces low-confidence provisional results.", done: false, cta: "Add Evidence", accent: "#ef4444" },
             { n: 4, label: "Get your Readiness Score", sub: "Calculation runs once validated evidence is submitted.", done: false, accent: "#94a3b8" },
         ],
     };
@@ -931,7 +929,7 @@ function HistoricalState({ onViewLatest }) {
           <p className="text-[11px] font-normal text-[#64748b]">Role v2.3 · Algorithm v1.4.2 · Config v2.1 · This snapshot is read-only. Your skills may have changed since this calculation.</p>
         </div>
         <button onClick={onViewLatest} className="shrink-0 px-[14px] py-[7px] rounded-[9px] text-[12px] font-semibold text-white whitespace-nowrap transition-all shadow-[0_2px_8px_rgba(59,139,255,0.25)]" style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}>
-          View Current →
+          View Current
         </button>
       </div>
 
@@ -940,7 +938,7 @@ function HistoricalState({ onViewLatest }) {
         <div className="px-[24px] py-[16px] border-b border-[#f1f3fa] flex items-center justify-between">
           <div>
             <h3 className="font-bold text-[15px] text-[#0a0b14]">Readiness history — Software Engineer</h3>
-            <p className="text-[11px] font-normal text-[#94a3b8] mt-[2px]">All snapshots are immutable · Scores cannot be retroactively modified (BR-13)</p>
+            <p className="text-[11px] font-normal text-[#94a3b8] mt-[2px]">All snapshots are immutable · Scores cannot be retroactively modified</p>
           </div>
           <span className="text-[11px] font-medium text-[#94a3b8] bg-[#f1f3fa] px-[10px] py-[4px] rounded-full">{HIST.length} snapshots</span>
         </div>

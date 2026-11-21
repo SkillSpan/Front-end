@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import SkillAssessmentIntro from './SkillAssessmentIntro';
+import { loadProfileCareerRole } from './profileCareerRole';
 import SkillAssessmentStarting from './SkillAssessmentStarting';
 import SkillAssessment from './SkillAssessment';
 import SkillAssessmentSubmitting from './SkillAssessmentSubmitting';
@@ -18,7 +19,11 @@ import {
   clearSubmissionResult,
   saveQuestionBankRaw,
   clearQuestionBank,
+  saveAssessmentOwner,
+  markAssessmentExited,
+  clearAssessmentExited,
 } from './assessmentStorage';
+import { useOptionalAuth } from '../auth/AuthContext';
 import { getQuestionBank, computeProgress, toResponses } from './assessmentQuestions';
 import {
   startBaselineAssessment,
@@ -95,6 +100,9 @@ function onlyRolesOfSpecialization(roles, specializationId) {
 
 function AssessmentWizard({ onFinish }) {
   const navigate = useNavigate();
+  const { authUser } = useOptionalAuth() || {};
+  // Back on the assessment: the next site visit should resume here again.
+  useEffect(() => { clearAssessmentExited(); }, []);
 
   // The backend attempt id from POST /api/v1/baseline-assessments (see
   // api.js). Kept in sessionStorage (assessmentStorage.js) so it survives
@@ -108,11 +116,18 @@ function AssessmentWizard({ onFinish }) {
   const [specializationId, setSpecializationId] = useState('');
   // false until GET /reference/specializations has answered (either way).
   const [specializationsLoaded, setSpecializationsLoaded] = useState(false);
+  const [profileResolved, setProfileResolved] = useState(false);
   // Why the specialization picker is missing (shown to the learner) - '' when fine.
-  const [specializationsProblem, setSpecializationsProblem] = useState('');
-  const [careerRoles, setCareerRoles] = useState([]);
+  const [, setSpecializationsProblem] = useState('');
+  const [, setCareerRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(false);
-  const [careerRoleId, setCareerRoleId] = useState('');
+  // Pre-filled from Profile Setup, where the learner now picks the role
+  // next to their specialization (see profileCareerRole.js).
+  const [careerRoleId] = useState(() => loadProfileCareerRole()?.id || '');
+  // Bumped on every specialization pick. Picking the same specialization
+  // again (after going back) used to clear the list without refetching it,
+  // because the id did not change, so the role list stayed empty.
+  const [rolesRequest] = useState(0);
   const [startError, setStartError] = useState('');
   const [starting, setStarting] = useState(false);
   // 'idle' | 'pending' | 'done' | 'error' - drives the Submitting screen so the
@@ -156,18 +171,21 @@ function AssessmentWizard({ onFinish }) {
       if (!active) return;
       setSpecializations(rows);
       setSpecializationsProblem(problem);
-      setSpecializationsLoaded(true);
-      if (!rows.length) return;
+      if (!rows.length) { setSpecializationsLoaded(true); setProfileResolved(true); return; }
       try {
         const res = await getProfile();
         const profile = res?.data || res || {};
         const saved = String(profile.specialization ?? '').trim().toLowerCase();
         const match = rows.find((row) => String(row.id) === String(profile.specialization_id ?? '')) ||
           (saved && rows.find((row) => String(row.name ?? row.title).trim().toLowerCase() === saved));
-        if (active && match) setSpecializationId((current) => current || String(match.id));
+        const savedRole = loadProfileCareerRole();
+        const fromRole = savedRole?.specializationId && rows.find((row) => String(row.id) === String(savedRole.specializationId));
+        const pick = fromRole || match;
+        if (active && pick) setSpecializationId((current) => current || String(pick.id));
       } catch {
-        // No profile / unreachable - the learner just picks one.
+        // No profile / unreachable - the role list is shown unfiltered.
       }
+      if (active) { setProfileResolved(true); setSpecializationsLoaded(true); }
     })();
     return () => { active = false; };
   }, []);
@@ -176,36 +194,34 @@ function AssessmentWizard({ onFinish }) {
   //   GET /api/v1/career-roles?specialization_id={id}   (needs the token)
   // If the specializations list could not be loaded at all we fall back to
   // the unfiltered role list so the learner is never blocked.
-  const useSpecializationFlow = specializations.length > 0;
+  // The specialization comes from Profile Setup only (no second picker on
+  // the assessment screen). If it cannot be matched, the unfiltered role
+  // list is used so the learner is never blocked.
+  const useSpecializationFlow = specializations.length > 0 && !!specializationId;
   useEffect(() => {
-    if (!specializationsLoaded) return undefined;
-    if (useSpecializationFlow && !specializationId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCareerRoles([]);
-      return undefined;
-    }
+    if (!specializationsLoaded || !profileResolved) return undefined;
     let active = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRolesLoading(true);
     getCareerRoles({ page: 1, perPage: 100, specializationId: useSpecializationFlow ? Number(specializationId) : undefined })
       .then((payload) => {
         if (!active) return;
         const rows = toRows(payload).filter((role) => role?.id != null && (!role.status || String(role.status).toLowerCase() === 'approved'));
-        setCareerRoles(useSpecializationFlow ? onlyRolesOfSpecialization(rows, specializationId) : rows);
+        const list = useSpecializationFlow ? onlyRolesOfSpecialization(rows, specializationId) : rows;
+        setCareerRoles(list);
       })
       .catch(() => { if (active) setCareerRoles([]); })
       .finally(() => { if (active) setRolesLoading(false); });
-    return () => { active = false; };
-  }, [specializationsLoaded, useSpecializationFlow, specializationId]);
-
-  const handleSpecializationChange = (value) => {
-    setSpecializationId(value);
-    // A different specialization means a different role list.
-    setCareerRoleId('');
-    setCareerRoles([]);
-    setStartError('');
-  };
+    return () => {
+      active = false;
+      // A pick that changes mid-request must not leave the picker stuck on
+      // "Loading career roles…" (the cancelled request no longer clears it).
+      setRolesLoading(false);
+    };
+  }, [specializationsLoaded, profileResolved, useSpecializationFlow, specializationId, rolesRequest]);
 
   const finish = () => {
+    markAssessmentExited();
     if (typeof onFinish === 'function') onFinish();
     else navigate('/');
   };
@@ -240,7 +256,6 @@ function AssessmentWizard({ onFinish }) {
   // sessionStorage as it always has, just without server-side autosave.
   const startAssessment = async () => {
     setStartError('');
-    if (useSpecializationFlow && !specializationId) { setStartError('Select your specialization before starting the assessment.'); return; }
     if (!careerRoleId) { setStartError('Select a career role before starting the assessment.'); return; }
     if (starting) return;
     setStarting(true);
@@ -287,6 +302,7 @@ function AssessmentWizard({ onFinish }) {
         }
         saveQuestionBankRaw(assessment);
         saveAssessmentId(id);
+        saveAssessmentOwner(authUser?.id);
         setAssessmentId(String(id));
       }
     } catch (error) {
@@ -371,7 +387,7 @@ function AssessmentWizard({ onFinish }) {
               onStartOver={startOver}
             />
           ) : (
-            <SkillAssessmentIntro onStart={startAssessment} specializationsProblem={specializationsProblem} specializations={specializations} specializationId={specializationId} onSpecializationChange={handleSpecializationChange} rolesLoading={rolesLoading} careerRoles={careerRoles} careerRoleId={careerRoleId} onCareerRoleChange={(v) => { setCareerRoleId(v); setStartError(''); }} startError={startError} starting={starting} />
+            <SkillAssessmentIntro onStart={startAssessment} rolesLoading={rolesLoading || !profileResolved} careerRoleId={careerRoleId} onEditProfile={() => navigate('/register/profile')} startError={startError} starting={starting} />
           )
         }
       />

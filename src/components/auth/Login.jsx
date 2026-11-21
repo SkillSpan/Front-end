@@ -70,7 +70,12 @@ const Login = ({
     setErrors({});
   };
 
-  const handleGoogleCredential = async (credential) => {
+  // A function declaration (hoisted) so the hook below can receive it before
+  // its body, and the body can use the hook's setError.
+  const { wrapRef: googleWrapRef, overlayRef: googleOverlayRef, error: googleError, setError: setGoogleError } =
+    useGoogleSignIn(handleGoogleCredential, GOOGLE_LOGIN_ENABLED);
+
+  async function handleGoogleCredential(credential) {
     setGoogleError('');
     setIsGoogleSubmitting(true);
     try {
@@ -89,10 +94,7 @@ const Login = ({
       }
       setGoogleError(err.message || 'Google sign-in failed. Please try again.');
     }
-  };
-
-  const { wrapRef: googleWrapRef, overlayRef: googleOverlayRef, error: googleError, setError: setGoogleError } =
-    useGoogleSignIn(handleGoogleCredential, GOOGLE_LOGIN_ENABLED);
+  }
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -166,7 +168,7 @@ const Login = ({
             <span className="brand-logo" aria-hidden="true">
               <img src="/image/logo.png" alt="" />
             </span>
-            <span>SkillSpan</span>
+            <span><span className="brand-skill">Skill</span><span className="brand-span">Span</span></span>
           </div>
           <div className="sidebar-content">
             <h2>{copy.heading}</h2>

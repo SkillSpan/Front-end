@@ -18,7 +18,7 @@ import './SkillAssessmentResults.css';
 
 // Cycled per skill row purely for visual variety - matches the mix of
 // purple/blue/teal/orange accents used in the reference design.
-const ACCENT_PALETTE = ['#8b5cf6', '#3b82f6', '#14b8a6', '#f59e0b', '#3b82f6', '#14b8a6', '#22c55e'];
+const ACCENT_PALETTE = ['#1667e0', '#3b82f6', '#14b8a6', '#f9a01f', '#3b82f6', '#14b8a6', '#22c55e'];
 
 // GET /api/v1/skills/matrix's exact response shape isn't confirmed with the
 // backend yet (see api.js) - this tries a handful of plausible field names
@@ -58,7 +58,7 @@ const SkillAssessmentResults = ({ onFinish }) => {
       <div className="assessment-results-body">
         <span className="assessment-results-eyebrow">
           <span className="assessment-results-eyebrow-dot" />
-          Initializing Skill Matrix — BR-11
+          Initializing Skill Matrix
         </span>
 
         <h1 className="assessment-results-title">Your initial skill profile</h1>

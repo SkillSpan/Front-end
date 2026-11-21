@@ -6,6 +6,11 @@ import Landing from './landing/LandingPage'
 import { AuthProvider, useAuth } from './components/auth/AuthContext'
 import { signOutToLanding, isDeliberateSignOut, clearDeliberateSignOut } from './components/auth/signOut'
 import { EvidenceProvider } from './components/evidence/EvidenceContext'
+import { hasAssessmentInProgress } from './components/assessment/assessmentStorage'
+
+// A learner who left the skill assessment half-way (closed the site) comes
+// back to the "Pick up where you left off" screen, not the dashboard.
+const learnerHome = (user) => (hasAssessmentInProgress(user?.id) ? '/register/assessment' : '/dashboard')
 
 // Everything behind the login form loads on demand. The app used to ship as a
 // single 784 kB bundle, so a visitor reading the landing page downloaded the
@@ -17,13 +22,11 @@ const CompanyLogin = lazy(() => import('./components/company/CompanyLogin'))
 const CompanyForgotPassword = lazy(() => import('./components/company/CompanyForgotPassword'))
 const CompanySettings = lazy(() => import('./components/company/settings/CompanySettings'))
 const RegisterWizard = lazy(() => import('./components/auth/RegisterWizard'))
-const RoleChoice = lazy(() => import('./components/auth/RoleChoice'))
 const ForgotPasswordWizard = lazy(() => import('./components/auth/ForgotPasswordWizard'))
 const CompanyWizard = lazy(() => import('./components/company/CompanyWizard'))
 const SessionExpired = lazy(() => import('./components/auth/SessionExpired'))
 const Dashboard = lazy(() => import('./components/dashboard/Dashboard'))
 const SkillMatrix = lazy(() => import('./components/skillmatrix/SkillMatrix'))
-const CareerRoles = lazy(() => import('./components/careerroles/CareerRoles'))
 const LearnerWorkspace = lazy(() => import('./components/learner/LearnerWorkspace'))
 const CompanyLayout = lazy(() => import('./components/company/CompanyLayout'))
 const CompanyDashboard = lazy(() => import('./components/company/CompanyDashboard'))
@@ -67,7 +70,7 @@ function LoginPage({ initialRole = 'student' }) {
   return (
     <Login
       initialRole={initialRole}
-      onSwitchToRegister={() => navigate('/get-started')}
+      onSwitchToRegister={() => navigate('/register/account')}
       onBack={() => navigate('/')}
       onForgotPassword={(role) =>
         navigate(role === 'company' ? '/company/forgot-password' : '/forgot-password')
@@ -77,7 +80,7 @@ function LoginPage({ initialRole = 'student' }) {
         // cookie: HomeRoute reads it to decide which dashboard a signed-in
         // visitor belongs to (see below).
         login({ ...user, organizations: organizations || [] })
-        navigate(role === 'company' ? '/company/dashboard' : '/dashboard')
+        navigate(role === 'company' ? '/company/dashboard' : learnerHome(user))
       }}
       onNewGoogleUser={(credential) =>
         navigate('/register/status', { state: { googleCredential: credential } })
@@ -112,6 +115,14 @@ function CompanyForgotPasswordPage() {
 }
 
 import { NAV_ROUTES } from './navRoutes'
+
+// Opening the site straight on /dashboard (bookmark, reopened tab) with an
+// unfinished assessment resumes it too.
+function ResumeOrDashboard() {
+  const { authUser } = useAuth()
+  if (hasAssessmentInProgress(authUser?.id)) return <Navigate to="/register/assessment" replace />
+  return <DashboardPage />
+}
 
 function DashboardPage() {
   const navigate = useNavigate()
@@ -153,19 +164,6 @@ function SkillMatrixPage() {
   return <SkillMatrix initialTab={tab} onNavigate={(key) => { if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key]) }} />
 }
 
-function CareerRolesPage() {
-  const navigate = useNavigate()
-  const { authUser, logout } = useAuth()
-  return (
-    <CareerRoles
-      user={authUser}
-      onLogout={() => {
-        signOutToLanding(navigate, logout)
-      }}
-      onNavigate={(key) => { if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key]) }}
-    />
-  )
-}
 
 function RequireAuth({ children }) {
   const { authUser } = useAuth()
@@ -208,7 +206,7 @@ function HomeRoute() {
   }, [])
   if (authUser && !wantsSite) {
     const isCompany = Array.isArray(authUser.organizations) && authUser.organizations.length > 0
-    return <Navigate to={isCompany ? '/company/dashboard' : '/dashboard'} replace />
+    return <Navigate to={isCompany ? '/company/dashboard' : learnerHome(authUser)} replace />
   }
   return <Landing />
 }
@@ -411,7 +409,7 @@ function AppRoutes() {
       <Routes>
       <Route path="/" element={<HomeRoute />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/get-started" element={<RoleChoice />} />
+      <Route path="/get-started" element={<Navigate to="/" replace />} />
       <Route path="/register/*" element={<RegisterWizard />} />
       <Route path="/forgot-password/*" element={<ForgotPasswordWizard />} />
       <Route path="/company/login" element={<CompanyLoginPage />} />
@@ -487,7 +485,7 @@ function AppRoutes() {
         path="/dashboard"
         element={
           <RequireAuth>
-            <DashboardPage />
+            <ResumeOrDashboard />
           </RequireAuth>
         }
       />

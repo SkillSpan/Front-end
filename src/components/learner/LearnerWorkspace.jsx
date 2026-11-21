@@ -5,7 +5,6 @@ import ProjectsView from './ProjectsView';
 import ProjectDetailsView from './ProjectDetailsView';
 import AssistantView from './AssistantView';
 import MessagesView from './MessagesView';
-import MentorView from './MentorView';
 import SupportView from './SupportView';
 import ProfileView from './ProfileView';
 import SettingsView from './SettingsView';
@@ -31,7 +30,7 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
   const [apiError, setApiError] = useState('');
   const [roles, setRoles] = useState([]);
   const [projects, setProjects] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
+  const [, setRecommendations] = useState([]);
   const [readiness, setReadiness] = useState(null);
   const [activeCareerRole, setActiveCareerRole] = useState(null);
   const [intelligence, setIntelligence] = useState(null);
@@ -109,11 +108,32 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
   const readinessScore = Number(readiness?.score ?? readiness?.readiness_score ?? 0) || 0;
   const rolePayload = activeCareerRole?.career_role ?? activeCareerRole?.role ?? activeCareerRole;
   const roleLabel = rolePayload?.title || readiness?.role_title || readiness?.roleTitle || '';
-  const title = useMemo(() => user?.name || user?.full_name || 'Learner', [user]);
 
-  useEffect(() => {
+  // The learner's latest readiness result, handed to the assistant so it shows
+  // (and can reference) the same score, role and top gaps as the dashboard.
+  // Built from data this page already fetched; no extra request.
+  const assistantContext = useMemo(() => {
+    const rawScore = readiness?.score ?? readiness?.readiness_score;
+    const score = rawScore == null || rawScore === '' || !Number.isFinite(Number(rawScore))
+      ? null
+      : Math.max(0, Math.min(100, Math.round(Number(rawScore))));
+    const gaps = intelligence?.skill_gaps ?? intelligence?.skillGaps ?? intelligence?.data?.skill_gaps;
+    const topGaps = (Array.isArray(gaps) ? gaps : [])
+      .filter((g) => Number(g?.gap ?? (Number(g?.required_level ?? 0) - Number(g?.current_level ?? 0))) > 0)
+      .sort((a, b) => Number(Boolean(b?.is_critical)) - Number(Boolean(a?.is_critical)))
+      .slice(0, 3)
+      .map((g) => ({ name: g?.skill_name || g?.skill?.name || g?.name || '', nameAr: g?.skill_name_ar ?? g?.name_ar ?? null }))
+      .filter((g) => g.name);
+    if (score == null && !roleLabel && topGaps.length === 0) return null;
+    return { score, roleTitle: roleLabel, topGaps };
+  }, [readiness, intelligence, roleLabel]);
+
+  // Follow the route's view (adjusted during render rather than in an effect).
+  const [prevInitialView, setPrevInitialView] = useState(initialView);
+  if (initialView !== prevInitialView) {
+    setPrevInitialView(initialView);
     setView(initialView);
-  }, [initialView]);
+  }
 
   const go = (key) => {
     setProjectDetails(false);
@@ -189,7 +209,7 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
     if (view === 'dashboard' || view === 'career-journey' || view === 'evidence' || view === 'record') return journey;
     if (view === 'career-roles') return <CareerRolesView initialRoles={roles} />;
     if (view === 'projects') return projectDetails ? <ProjectDetailsView projectId={selectedProjectId} onBack={() => setProjectDetails(false)} /> : <ProjectsView roleLabel={roleLabel} initialProjects={projects} onOpenDetails={(id) => { setSelectedProjectId(id); setProjectDetails(true); }} />;
-    if (view === 'assistant') return <AssistantView onNavigate={go} />;
+    if (view === 'assistant') return <AssistantView onNavigate={go} learnerContext={assistantContext} />;
     if (view === 'messages') return <MessagesView />;
     if (view === 'support') return <SupportView />;
     if (view === 'profile') return <ProfileView readinessScore={readinessScore} roleLabel={roleLabel} />;
@@ -222,7 +242,10 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
     </AppLayout>
     {/* Straight to a human, from any screen — asking the assistant a question
         only to be handed off is a detour nobody should have to take. */}
-    {view !== 'support' && (
+    {/* Not on Support (the button would lead to the page you are on) and not on
+        the Assistant (it has its own "Contact human support"; the floating button
+        covered its footer on phones). */}
+    {view !== 'support' && view !== 'assistant' && (
       <SupportFab onClick={() => go('support')} waiting={supportWaiting} />
     )}
     <SupportWaitingToast

@@ -116,7 +116,7 @@
 }
 
 .assessment-topbar-step.active .assessment-topbar-step-marker {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: #1667e0;
   color: #fff;
 }
 
@@ -159,8 +159,8 @@
   width: 96px;
   height: 96px;
   border-radius: 26px;
-  background: linear-gradient(150deg, rgba(99, 102, 241, 0.35), rgba(139, 92, 246, 0.25));
-  border: 1px solid rgba(139, 92, 246, 0.4);
+  background: rgba(22, 103, 224, 0.35);
+  border: 1px solid rgba(22, 103, 224, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -272,7 +272,7 @@
 }
 
 .assessment-intro-onboarding-step.active .assessment-intro-onboarding-marker {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: #1667e0;
   color: #fff;
 }
 
@@ -455,7 +455,7 @@
   font-size: 1rem;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(90deg, #4f6df5, #7c3aed);
+  background: #4f6df5;
   cursor: pointer;
   display: flex;
   align-items: center;

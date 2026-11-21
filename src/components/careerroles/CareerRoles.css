@@ -31,7 +31,7 @@
 .cr-title {
   font-size: 1.7rem;
   font-weight: 800;
-  color: #12172c;
+  color: #05103d;
   margin: 0 0 4px;
   animation: crFadeInDown 0.45s ease both;
 }
@@ -80,7 +80,7 @@
 
 .cr-tab.active {
   background: #fff;
-  color: #12172c;
+  color: #05103d;
   box-shadow: 0 1px 3px rgba(15, 18, 36, 0.08);
 }
 
@@ -149,7 +149,7 @@
 .cr-chip:hover { border-color: #c7cdf0; transform: translateY(-1px); }
 
 .cr-chip.active {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: #1667e0;
   border-color: transparent;
   color: #fff;
 }
@@ -262,7 +262,7 @@
 .rc-title {
   font-size: 1.1rem;
   font-weight: 800;
-  color: #12172c;
+  color: #05103d;
   margin: 0 0 16px;
 }
 
@@ -296,7 +296,7 @@
 .rc-bar-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background: #1667e0;
   transition: width 0.2s ease;
 }
 
@@ -316,7 +316,7 @@
 .rc-stat-value {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #12172c;
+  color: #05103d;
 }
 
 .rc-stat-value.critical { color: #dc2626; }
@@ -384,7 +384,7 @@
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: #1667e0;
   color: #fff;
   display: flex;
   align-items: center;
@@ -395,7 +395,7 @@
 .cr-suggested-head h3 {
   margin: 0 0 2px;
   font-size: 1.02rem;
-  color: #12172c;
+  color: #05103d;
 }
 
 .cr-suggested-head p {
@@ -436,7 +436,7 @@
 
 .cr-suggested-title {
   font-weight: 700;
-  color: #12172c;
+  color: #05103d;
   font-size: 0.94rem;
 }
 
@@ -514,7 +514,7 @@
   align-items: center;
   gap: 8px;
   border: none;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: #1667e0;
   color: #fff;
   font-weight: 700;
   font-size: 0.86rem;
@@ -627,7 +627,7 @@
 .detail-title {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #12172c;
+  color: #05103d;
   margin: 10px 0 0;
 }
 
@@ -675,7 +675,7 @@
 .detail-big-num {
   font-size: 2.1rem;
   font-weight: 800;
-  color: #12172c;
+  color: #05103d;
   margin-top: 6px;
 }
 
@@ -694,7 +694,7 @@
 .detail-section-title {
   font-size: 1.02rem;
   font-weight: 800;
-  color: #12172c;
+  color: #05103d;
   margin: 0 0 16px;
 }
 
@@ -716,7 +716,7 @@
 
 .ring-value { font-size: 1.5rem; font-weight: 800; }
 .ring-unit { font-size: 0.7rem; color: #97a0bd; font-weight: 600; margin-top: -2px; }
-.ring-label { font-size: 0.85rem; font-weight: 700; color: #12172c; margin-top: 10px; text-align: center; }
+.ring-label { font-size: 0.85rem; font-weight: 700; color: #05103d; margin-top: 10px; text-align: center; }
 .ring-sublabel { font-size: 0.72rem; color: #97a0bd; margin-top: 2px; text-align: center; max-width: 160px; }
 
 /* Labor-market demand */
@@ -727,7 +727,7 @@
   margin-bottom: 8px;
 }
 
-.demand-pct { font-size: 1rem; font-weight: 800; color: #12172c; }
+.demand-pct { font-size: 1rem; font-weight: 800; color: #05103d; }
 
 .demand-source {
   margin: 10px 0 0;
@@ -794,7 +794,7 @@
 
 .skill-name {
   font-weight: 700;
-  color: #12172c;
+  color: #05103d;
   font-size: 0.9rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -851,7 +851,7 @@
 .skill-expand-value {
   font-size: 0.86rem;
   font-weight: 700;
-  color: #12172c;
+  color: #05103d;
 }
 
 .prereq-chip {
@@ -880,7 +880,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #12172c;
+  background: #05103d;
   margin-right: 8px;
 }
 
@@ -904,7 +904,7 @@
 
 .compare-role-title {
   font-weight: 800;
-  color: #12172c;
+  color: #05103d;
   font-size: 1rem;
   margin-top: 14px;
 }
@@ -934,7 +934,7 @@
 
 .gap-col-head { font-size: 0.86rem; font-weight: 800; color: #97a0bd; text-align: center; }
 
-.gap-col { text-align: center; font-size: 0.86rem; color: #12172c; }
+.gap-col { text-align: center; font-size: 0.86rem; color: #05103d; }
 
 .gap-critical-tag {
   font-size: 0.68rem;

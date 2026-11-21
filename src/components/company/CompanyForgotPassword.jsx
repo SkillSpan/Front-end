@@ -52,10 +52,7 @@ function useCountdown(targetIso) {
   const [secondsLeft, setSecondsLeft] = useState(0);
 
   useEffect(() => {
-    if (!targetIso) {
-      setSecondsLeft(0);
-      return undefined;
-    }
+    if (!targetIso) return undefined;
     const target = new Date(targetIso).getTime();
     const tick = () => {
       const diff = Math.ceil((target - Date.now()) / 1000);
@@ -66,7 +63,8 @@ function useCountdown(targetIso) {
     return () => clearInterval(id);
   }, [targetIso]);
 
-  return secondsLeft;
+  // No target means nothing to count down (derived, not stored).
+  return targetIso ? secondsLeft : 0;
 }
 
 const CompanyForgotPassword = ({ onBackToLogin }) => {

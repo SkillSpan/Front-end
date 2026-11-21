@@ -1,0 +1,468 @@
+/*
+ * Learner workspace shell, same visual language as the company workspace
+ * (companyWorkspace.css): navy top bar + navy sidebar, light #F0F6FC canvas,
+ * Inter, royal-blue active state, white cards. Only the frame is styled here;
+ * every page keeps its own markup and logic. Scoped to `.app-shell.ls` so it
+ * wins over the older Dashboard.css / responsive.css rules without !important.
+ * Logical properties (inline-start / inline-end) so Arabic mirrors.
+ */
+.app-shell.ls {
+  --ls-navy-950: #020720;
+  --ls-navy-900: #060d2e;
+  --ls-navy-800: #0d1a4a;
+  --ls-ink: #05103d;
+  --ls-text: #3b4565;
+  --ls-muted: #6b7593;
+  --ls-faint: #98a1ba;
+  --ls-bg: #f0f6fc;
+  --ls-blue: #1667e0;
+  --ls-blue-700: #0f52ba;
+  --ls-blue-50: #e2eefc;
+  --ls-line: #e4ebf5;
+  --ls-amber: #f9a01f;
+  --ls-gold: #f2b544;
+  --ls-rail: 248px;
+  --ls-top: 64px;
+  --ls-r: 16px;
+  --ls-shadow: 0 1px 2px rgba(5, 16, 61, 0.04), 0 6px 20px -8px rgba(5, 16, 61, 0.08);
+  background: var(--ls-bg);
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  align-items: stretch;
+  position: relative;
+}
+/* The navy rail is painted on the shell too, so it runs to the bottom of long
+   pages (the sidebar itself is a sticky, viewport-tall column). */
+.app-shell.ls::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  width: var(--ls-rail);
+  background: var(--ls-navy-900);
+  pointer-events: none;
+  z-index: 0;
+}
+.app-shell.ls > .app-main { position: relative; z-index: 1; }
+.app-shell.ls[dir='rtl'], [dir='rtl'] .app-shell.ls { font-family: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif; }
+.app-shell.ls button { font-family: inherit; }
+.app-shell.ls :is(button, a, input):focus-visible { outline: 2px solid #4c95ff; outline-offset: 2px; }
+
+/* ---------- sidebar ---------- */
+.app-shell.ls .app-sidebar {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  width: var(--ls-rail);
+  min-width: var(--ls-rail);
+  background: var(--ls-navy-900);
+  border: 0;
+  color: #aab5d6;
+  padding: 0 16px 16px;
+  gap: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  z-index: 40;
+}
+.app-shell.ls .app-sidebar::-webkit-scrollbar { display: none; }
+
+.app-shell.ls .app-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  height: var(--ls-top);
+  margin: 0 -16px 18px;
+  padding: 0 20px;
+  width: calc(100% + 32px);
+  max-width: none;
+  box-sizing: border-box;
+  background: var(--ls-navy-950);
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  direction: ltr;
+}
+[dir='rtl'] .app-shell.ls .app-sidebar-brand { flex-direction: row-reverse; justify-content: flex-end; }
+.app-shell.ls .app-sidebar-brand .brand-icon {
+  width: 38px;
+  height: 38px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  background: var(--ls-blue-50);
+  flex: none;
+  object-fit: contain;
+  box-sizing: border-box;
+}
+/* Brand wordmark: "Skill" white, "Span" in the SkillSpan brand colour
+   (the one gradient the brand allows, same as the company login). */
+.app-shell.ls .app-sidebar-brand .white { color: #fff; }
+.app-shell.ls .app-sidebar-brand .blue {
+  background: linear-gradient(180deg, #0491af 0%, #034076 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: brightness(1.55) saturate(1.1);
+}
+
+.app-shell.ls .app-nav { flex: none; gap: 4px; overflow: visible; }
+.app-shell.ls .app-nav-item {
+  position: relative;
+  gap: 12px;
+  padding: 10px 12px;
+  min-height: 42px;
+  border-radius: 10px;
+  color: #aab5d6;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: start;
+  line-height: 1.3;
+  transition: background 0.15s, color 0.15s;
+}
+.app-shell.ls .app-nav-item:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+.app-shell.ls .app-nav-item.active { background: rgba(22, 103, 224, 0.18); color: #fff; font-weight: 500; }
+.app-shell.ls .app-nav-item.active .nav-icon { color: #5b9dff; }
+.app-shell.ls .app-nav-item.active::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: -16px;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-start-end-radius: 3px;
+  border-end-end-radius: 3px;
+  background: #3d8bff;
+}
+.app-shell.ls .app-nav-item .nav-icon { width: 18px; height: 18px; flex: none; }
+.app-shell.ls .app-nav-item .nav-icon svg { width: 18px; height: 18px; stroke-width: 1.8; }
+.app-shell.ls .nav-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.app-shell.ls .ss-nav-waiting-dot { margin-inline-start: auto; }
+
+/* Readiness card at the foot of the rail: solid navy, no gradient. */
+.app-shell.ls .app-sidebar-footer {
+  margin-top: auto;
+  background: var(--ls-navy-800);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: none;
+  color: #fff;
+  flex: none;
+  transform: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.app-shell.ls .app-sidebar-footer:hover { transform: none; box-shadow: none; background: #12225c; border-color: rgba(255, 255, 255, 0.12); }
+.app-shell.ls .app-sidebar-footer .footer-label { color: #8e9ac0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+[dir='rtl'] .app-shell.ls .app-sidebar-footer .footer-label { letter-spacing: 0; }
+.app-shell.ls .app-sidebar-footer .footer-score { color: #fff; font-size: 22px; font-weight: 700; margin: 4px 0 2px; direction: ltr; text-align: start; }
+[dir='rtl'] .app-shell.ls .app-sidebar-footer .footer-score { text-align: end; }
+.app-shell.ls .app-sidebar-footer .footer-role { color: #aab5d6; font-size: 12.5px; }
+
+/* ---------- top bar ---------- */
+.app-shell.ls .app-main { min-width: 0; }
+.app-shell.ls .app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: var(--ls-top);
+  background: var(--ls-navy-950);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-inline: 28px;
+  gap: 16px;
+  color: #c9d3ee;
+}
+.app-shell.ls .app-search {
+  max-width: 420px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #8e9ac0;
+  font-size: 13.5px;
+}
+.app-shell.ls .app-search:focus-within { border-color: rgba(76, 149, 255, 0.6); background: rgba(255, 255, 255, 0.08); }
+.app-shell.ls .app-search input { color: #fff; font-size: 13.5px; font-family: inherit; }
+.app-shell.ls .app-search input::placeholder { color: #8e9ac0; }
+.app-shell.ls .app-topbar-right { gap: 10px; }
+.app-shell.ls .app-bell,
+.app-shell.ls .app-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 0;
+  color: #c9d3ee;
+}
+.app-shell.ls .app-bell:hover,
+.app-shell.ls .app-icon-btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.app-shell.ls .app-bell .badge {
+  top: 4px;
+  right: auto;
+  inset-inline-end: 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--ls-amber);
+  color: var(--ls-navy-950);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  border: 2px solid var(--ls-navy-950);
+}
+.app-shell.ls .app-assistant-top {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 0;
+  background: var(--ls-blue);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 8px;
+}
+.app-shell.ls .app-assistant-top:hover { background: var(--ls-blue-700); }
+.app-shell.ls .app-assistant-top svg { width: 16px; height: 16px; }
+.app-shell.ls .app-user { gap: 10px; padding-inline-start: 6px; }
+.app-shell.ls .app-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ls-blue);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  object-fit: cover;
+}
+.app-shell.ls .app-user-name { color: #fff; font-size: 13px; font-weight: 500; }
+.app-shell.ls .app-logout {
+  color: #c9d3ee;
+  font-size: 13px;
+  font-weight: 500;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: transparent;
+}
+.app-shell.ls .app-logout:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+
+/* Notification + messages popovers: white card like the company menus. */
+.app-shell.ls .app-notification-popover {
+  top: 48px;
+  right: auto;
+  inset-inline-end: 0;
+  width: 320px;
+  border: 1px solid var(--ls-line);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 18px 44px -12px rgba(5, 16, 61, 0.28);
+  color: var(--ls-text);
+}
+.app-shell.ls .app-notification-popover strong { color: var(--ls-ink); font-size: 14px; font-weight: 600; }
+.app-shell.ls .app-notification-popover button {
+  background: var(--ls-blue-50);
+  color: var(--ls-blue);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 12px;
+}
+.app-shell.ls .app-notification-popover .notif-list { scrollbar-width: none; }
+.app-shell.ls .app-notification-popover .notif-list::-webkit-scrollbar { display: none; }
+
+/* ---------- content ---------- */
+.app-shell.ls .app-content { background: var(--ls-bg); padding: 32px; }
+.app-shell.ls .app-content.workspace-content { background: var(--ls-bg); }
+.app-shell.ls .app-content.app-content-flush { padding: 0; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1180px) {
+  .app-shell.ls .app-search { max-width: 300px; }
+}
+@media (max-width: 1100px) {
+  .app-shell.ls { --ls-rail: 216px; }
+  .app-shell.ls .app-sidebar { padding: 0 12px 14px; }
+  .app-shell.ls .app-sidebar-brand { margin: 0 -12px 16px; width: calc(100% + 24px); padding: 0 16px; }
+  .app-shell.ls .app-nav-item.active::before { inset-inline-start: -12px; }
+  .app-shell.ls .app-content { padding: 24px; }
+  .app-shell.ls .app-topbar { padding-inline: 18px; }
+}
+/* Icon rail between tablet and phone, as on the company side. */
+@media (max-width: 820px) {
+  .app-shell.ls { --ls-rail: 72px; }
+  .app-shell.ls .app-sidebar { padding: 0 10px 12px; }
+  .app-shell.ls .app-sidebar-brand { justify-content: center; margin: 0 -10px 14px; width: calc(100% + 20px); padding: 0; }
+  .app-shell.ls .app-sidebar-brand > span { display: none; }
+  .app-shell.ls .app-nav-item { justify-content: center; padding: 11px 0; }
+  .app-shell.ls .app-nav-item .nav-label { display: none; }
+  .app-shell.ls .app-nav-item.active::before { inset-inline-start: -10px; }
+  .app-shell.ls .app-sidebar-footer { padding: 10px 4px; text-align: center; }
+  .app-shell.ls .app-sidebar-footer .footer-label,
+  .app-shell.ls .app-sidebar-footer .footer-role { display: none; }
+  .app-shell.ls .app-sidebar-footer .footer-score { font-size: 14px; text-align: center; margin: 0; }
+  .app-shell.ls .app-topbar { padding-inline: 12px; gap: 10px; }
+  .app-shell.ls .app-search { max-width: none; }
+  .app-shell.ls .app-topbar-right { gap: 8px; }
+  .app-shell.ls .app-assistant-top { width: 38px; padding: 0; justify-content: center; }
+  .app-shell.ls .app-content { padding: 18px; }
+}
+@media (max-width: 560px) {
+  .app-shell.ls { --ls-rail: 60px; --ls-top: 60px; }
+  /* Sticky, not fixed: the page wrapper (.route-transition) carries a
+     transform, which made a fixed rail stop at the content height. */
+  .app-shell.ls .app-sidebar { position: sticky; top: 0; bottom: auto; left: auto; height: 100vh; height: 100dvh; padding: 0 8px 10px; }
+  .app-shell.ls .app-sidebar-brand { margin: 0 -8px 12px; width: calc(100% + 16px); }
+  .app-shell.ls .app-sidebar-brand .brand-icon { width: 34px; height: 34px; padding: 5px 6px; }
+  .app-shell.ls .app-nav-item { padding: 10px 0; min-height: 40px; }
+  .app-shell.ls .app-nav-item.active::before { inset-inline-start: -8px; }
+  .app-shell.ls .app-sidebar-footer { padding: 8px 2px; border-radius: 10px; }
+  .app-shell.ls .app-sidebar-footer .footer-score { font-size: 11px; }
+  .app-shell.ls .app-main { margin-left: 0; margin-inline-start: 0; width: auto; flex: 1; min-width: 0; }
+  .app-shell.ls .app-topbar { padding-inline: 10px; gap: 8px; }
+  .app-shell.ls .app-search { display: none; }
+  .app-shell.ls .app-topbar-right { margin-left: 0; margin-inline-start: auto; gap: 6px; }
+  .app-shell.ls .app-bell, .app-shell.ls .app-icon-btn, .app-shell.ls .app-assistant-top { width: 36px; height: 36px; }
+  .app-shell.ls .app-user { padding-inline-start: 2px; }
+  .app-shell.ls .app-user-avatar { width: 34px; height: 34px; }
+  .app-shell.ls .app-content { padding: 14px; }
+  .app-shell.ls .app-notification-popover { inset-inline-end: -40px; width: min(320px, calc(100vw - 76px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell.ls .app-nav-item, .app-shell.ls .app-sidebar-footer { transition: none; }
+}
+
+.app-shell.ls .app-sidebar-footer .footer-score-empty { font-size: 13px; font-weight: 600; color: #cfd8f0; }
+@media (max-width: 820px) { .app-shell.ls .app-sidebar-footer .footer-score-empty { font-size: 10px; } }
+
+/* ================= Dashboard (learner) : company tokens, solid colours ================= */
+.app-shell.ls .dash-header { margin: 0 0 24px; }
+.app-shell.ls .dash-title { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: -0.02em; color: #05103d; line-height: 1.25; }
+.app-shell.ls .dash-subtitle { margin: 6px 0 0; font-size: 14px; color: #6b7593; }
+.app-shell.ls .dash-notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 16px; padding: 10px 14px; border-radius: 10px; font-size: 13px; }
+.app-shell.ls .dash-notice--error { background: #fdf3f3; border: 1px solid #f3c9c9; color: #b42828; }
+.app-shell.ls .dash-notice-action { background: none; border: 0; padding: 0; color: #1667e0; font-weight: 600; cursor: pointer; font-size: 13px; }
+.app-shell.ls .dash-loading { margin: 0 0 16px; color: #6b7593; font-size: 13px; }
+
+.app-shell.ls .dash-support-banner {
+  display: flex; align-items: center; gap: 16px; margin: 0 0 16px; padding: 16px 20px;
+  background: #ffffff; border: 1px solid #e4ebf5; border-radius: 16px; box-shadow: none;
+}
+.app-shell.ls .dash-support-banner.is-waiting { border-color: #f7d9a8; background: #fffaf0; }
+.app-shell.ls .dash-support-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.app-shell.ls .dash-support-text strong { font-size: 14px; font-weight: 600; color: #05103d; }
+.app-shell.ls .dash-support-text span { font-size: 13px; color: #6b7593; }
+
+.app-shell.ls .btn-pill {
+  display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 16px;
+  border-radius: 10px; border: 1px solid #1667e0; background: #1667e0; color: #ffffff;
+  font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: none; transform: none;
+  background-image: none; white-space: nowrap;
+}
+.app-shell.ls .btn-pill:hover { background: #0f52ba; border-color: #0f52ba; transform: none; box-shadow: none; }
+
+.app-shell.ls .dash-top-row { display: grid; grid-template-columns: 300px 1fr; gap: 16px; margin: 0 0 16px; }
+.app-shell.ls .dash-card { border-radius: 16px; padding: 24px; box-shadow: none; background-image: none; }
+.app-shell.ls .dash-readiness-card {
+  background: #05103d; border: 1px solid #05103d; color: #ffffff;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; cursor: pointer;
+}
+.app-shell.ls .dash-readiness-card .r-label { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #aab5d6; margin-top: 8px; }
+[dir='rtl'] .app-shell.ls .dash-readiness-card .r-label { letter-spacing: 0; }
+.app-shell.ls .dash-readiness-card .r-sub { font-size: 14px; color: #ffffff; font-weight: 500; margin-bottom: 8px; }
+.app-shell.ls .dash-readiness-card .btn-pill { background: #ffffff; color: #05103d; border-color: #ffffff; }
+.app-shell.ls .dash-readiness-card .btn-pill:hover { background: #e9f0fd; border-color: #e9f0fd; }
+.app-shell.ls .readiness-ring-value .num { font-size: 32px; font-weight: 700; color: #ffffff; }
+.app-shell.ls .readiness-ring-value .den { font-size: 13px; color: #aab5d6; font-weight: 500; }
+
+.app-shell.ls .dash-action-card { background: #ffffff; border: 1px solid #e4ebf5; display: flex; flex-direction: column; gap: 10px; }
+.app-shell.ls .dash-action-tag {
+  align-self: flex-start; font-size: 12px; font-weight: 600; color: #1667e0; background: #e9f0fd;
+  border-radius: 999px; padding: 4px 10px; border: 0;
+}
+.app-shell.ls .dash-action-card h3 { margin: 4px 0 0; font-size: 20px; font-weight: 600; color: #05103d; letter-spacing: -0.01em; }
+.app-shell.ls .dash-action-card p { margin: 0; font-size: 14px; line-height: 1.6; color: #6b7593; }
+.app-shell.ls .dash-chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 8px; }
+.app-shell.ls .dash-chip { font-size: 12px; font-weight: 500; color: #3b4565; background: #f7fafe; border: 1px solid #e4ebf5; border-radius: 999px; padding: 4px 10px; }
+
+.app-shell.ls .dash-stats-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0 0 16px; }
+.app-shell.ls .dash-stat-card {
+  background: #ffffff; border: 1px solid #e4ebf5; border-radius: 16px; padding: 20px; box-shadow: none; cursor: pointer;
+  display: flex; flex-direction: column; gap: 12px; transition: border-color 0.15s;
+}
+.app-shell.ls .dash-stat-card:hover { border-color: #b9cdf2; transform: none; box-shadow: none; }
+.app-shell.ls .dash-stat-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.app-shell.ls .dash-stat-label { font-size: 13px; font-weight: 600; color: #3b4565; }
+.app-shell.ls .dash-stat-num { font-size: 28px; font-weight: 700; color: #05103d; line-height: 1.1; }
+.app-shell.ls .dash-stat-empty { font-size: 16px; font-weight: 600; color: #98a1ba; }
+.app-shell.ls .dash-stat-pill { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 3px 8px; white-space: nowrap; border: 0; }
+.app-shell.ls .dash-stat-pill.pill-blue { color: #1667e0; background: #e9f0fd; }
+.app-shell.ls .dash-stat-pill.pill-green { color: #15925a; background: #e7f5ee; }
+.app-shell.ls .dash-stat-pill.pill-orange { color: #9a5b00; background: #fff3df; }
+
+.app-shell.ls .dash-bottom-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.app-shell.ls .dash-panel { background: #ffffff; border: 1px solid #e4ebf5; border-radius: 16px; padding: 20px; box-shadow: none; }
+.app-shell.ls .dash-panel-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 12px; }
+.app-shell.ls .dash-panel-head h3 { margin: 0; font-size: 16px; font-weight: 600; color: #05103d; }
+.app-shell.ls .dash-panel-head a { font-size: 13px; font-weight: 600; color: #1667e0; cursor: pointer; text-decoration: none; }
+.app-shell.ls .gap-row { padding: 10px 0; border-bottom: 1px solid #f0f6fc; cursor: pointer; }
+.app-shell.ls .gap-row:last-child { border-bottom: 0; }
+.app-shell.ls .gap-row-top { display: flex; justify-content: space-between; align-items: center; margin: 0 0 8px; }
+.app-shell.ls .gap-row-top .name { font-size: 13px; font-weight: 600; color: #05103d; }
+.app-shell.ls .gap-row-top .lv { font-size: 12px; color: #6b7593; }
+.app-shell.ls .gap-critical { margin-inline-start: 8px; font-size: 11px; font-weight: 600; color: #b42828; background: #fdf3f3; border-radius: 999px; padding: 1px 7px; }
+.app-shell.ls .gap-bar-track { height: 6px; background: #f0f6fc; border-radius: 999px; overflow: hidden; }
+.app-shell.ls .gap-bar-fill { height: 100%; border-radius: 999px; background-image: none; }
+.app-shell.ls .proj-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f6fc; cursor: pointer; }
+.app-shell.ls .proj-row:last-child { border-bottom: 0; }
+.app-shell.ls .proj-avatar {
+  width: 40px; height: 40px; border-radius: 10px; flex: none; display: grid; place-items: center;
+  background: #e9f0fd !important; color: #1667e0; font-size: 13px; font-weight: 700; background-image: none !important;
+}
+.app-shell.ls .proj-info { flex: 1; min-width: 0; }
+.app-shell.ls .proj-info .p-title { font-size: 13px; font-weight: 600; color: #05103d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app-shell.ls .proj-info .p-sub { font-size: 12px; color: #6b7593; margin-top: 2px; }
+.app-shell.ls .proj-match { font-size: 13px; font-weight: 700; color: #15925a; }
+.app-shell.ls .dash-empty-state { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 8px; text-align: center; }
+.app-shell.ls .dash-empty-state p { margin: 0; font-size: 13px; color: #6b7593; }
+.app-shell.ls .dash-empty-btn {
+  height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid #d7deea; background: #ffffff; color: #3b4565;
+  font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: none; background-image: none;
+}
+.app-shell.ls .dash-empty-btn:hover { background: #f7fafe; }
+
+@media (max-width: 1100px) {
+  .app-shell.ls .dash-top-row { grid-template-columns: 1fr; }
+  .app-shell.ls .dash-stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 820px) {
+  .app-shell.ls .dash-bottom-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .app-shell.ls .dash-title { font-size: 22px; }
+  .app-shell.ls .dash-stats-row { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .app-shell.ls .dash-stat-card { padding: 16px; }
+  .app-shell.ls .dash-stat-top { flex-direction: column; }
+  .app-shell.ls .dash-support-banner { flex-direction: column; align-items: stretch; text-align: start; }
+  .app-shell.ls .dash-support-banner .btn-pill { width: 100%; }
+}
+
+[dir='rtl'] .app-shell.ls :is(.p-title, .gap-row-top .name, .dash-action-card h3, .dash-action-card p)[dir='auto'] { text-align: right; }
+
+/* Assistant button: text only (no decorative icon), so it keeps its label on small screens */
+@media (max-width: 820px) {
+  .app-shell.ls .app-assistant-top { width: auto !important; padding: 0 12px !important; }
+  .app-shell.ls .app-assistant-top span { display: inline !important; font-size: 12px; }
+  .app-shell.ls .app-sidebar-footer .footer-score-empty { display: none; }
+  .app-shell.ls .app-sidebar-footer:has(.footer-score-empty) { display: none; }
+}
