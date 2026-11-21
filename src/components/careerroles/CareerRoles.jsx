@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import AppLayout from '../dashboard/AppLayout';
 import './CareerRoles.css';
 import {
@@ -71,7 +71,7 @@ function todayLabel() {
 }
 
 function pct(value) {
-  return value == null ? '—' : `${value}%`;
+  return value == null ? '-' : `${value}%`;
 }
 
 /* ---------------------------- shared bits ---------------------------- */
@@ -96,7 +96,7 @@ function DashedRing({ value, color, size = 140, label, sublabel }) {
         />
       </svg>
       <div className="ring-center">
-        <span className="ring-value" style={{ color }}>{value ?? '—'}</span>
+        <span className="ring-value" style={{ color }}>{value ?? '-'}</span>
         <span className="ring-unit">/100</span>
       </div>
       {label && <div className="ring-label">{label}</div>}
@@ -161,7 +161,7 @@ function RoleCard({ role, saved, onToggleSave, onViewDetails, style }) {
       <div className="rc-stats-row">
         <div>
           <div className="rc-stat-label">Skills required</div>
-          <div className="rc-stat-value">{role.skills.length || '—'}</div>
+          <div className="rc-stat-value">{role.skills.length || '-'}</div>
         </div>
         <div>
           <div className="rc-stat-label">Critical skills</div>
@@ -170,7 +170,7 @@ function RoleCard({ role, saved, onToggleSave, onViewDetails, style }) {
       </div>
 
       <button type="button" className="rc-details-btn" onClick={() => onViewDetails(role.id)}>
-        View Role Details →
+        View Role Details
       </button>
     </div>
   );
@@ -192,7 +192,7 @@ function SuggestedPanel({ roles, onViewDetails }) {
       <div className="cr-suggested-head">
         <div>
           <h3>Suggested for You</h3>
-          <p>Based on your current skill matrix — you choose, we explain</p>
+          <p>Based on your current skill matrix, you choose, we explain</p>
         </div>
       </div>
 
@@ -213,14 +213,14 @@ function SuggestedPanel({ roles, onViewDetails }) {
             </span>
             <span className="cr-suggested-pct-label">Readiness</span>
             <button type="button" className="cr-explore-btn" onClick={() => onViewDetails(r.id)}>
-              Explore →
+              Explore
             </button>
           </div>
         </div>
       ))}
 
       <p className="cr-suggested-footnote">
-        Suggestions are generated from your skill matrix. They are explanations, not decisions — you remain in
+        Suggestions are generated from your skill matrix. They are explanations, not decisions, you remain in
         control of your career path.
       </p>
     </div>
@@ -308,7 +308,7 @@ function SkillRow({ skill, expanded, onToggle }) {
           <div>
             <div className="skill-expand-label">Critical Skill</div>
             <div className="skill-expand-value" style={{ color: skill.critical ? '#dc2626' : '#6a7093' }}>
-              {skill.critical ? 'Yes — required for role approval' : 'No'}
+              {skill.critical ? 'Yes, required for role approval' : 'No'}
             </div>
           </div>
           <div>
@@ -408,7 +408,7 @@ function RoleDetailsPage({ role, loading, error, saved, onToggleSave, onBack, on
           <div className="detail-card">
             <h3 className="detail-section-title">Labor-Market Demand</h3>
             <p className="demand-unavailable">
-              Labor-market demand data isn't connected yet for this role — check back once that data source is
+              Labor-market demand data isn't connected yet for this role, check back once that data source is
               available.
             </p>
           </div>
@@ -467,7 +467,7 @@ function ComparePanel({ roles }) {
           <h3 className="detail-section-title" style={{ margin: 0 }}>
             <span className="compare-dot" /> Readiness Comparison
           </h3>
-          <span className="compare-snapshot">Same evidence snapshot — {todayLabel()}</span>
+          <span className="compare-snapshot">Same evidence snapshot, {todayLabel()}</span>
         </div>
 
         <div className="compare-ring-grid" style={{ '--n': roles.length }}>
@@ -505,7 +505,7 @@ function ComparePanel({ roles }) {
                 <div className="gap-label">{name}</div>
                 {roles.map((r) => {
                   const s = r.skills.find((x) => x.name === name);
-                  if (!s) return <div className="gap-col" key={r.id}>—</div>;
+                  if (!s) return <div className="gap-col" key={r.id}>-</div>;
                   return (
                     <div className="gap-col" key={r.id}>
                       <div style={{ color: skillStatusColor(s), fontWeight: 700 }}>{s.current}/{s.required}</div>
@@ -541,9 +541,9 @@ export default function CareerRoles({ user, onLogout, onNavigate }) {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState(null);
 
-  const loadCatalog = () => {
-    setStatus('loading');
-    setLoadError(null);
+  // The request itself. State starts as 'loading', so the first load needs no
+  // reset; a retry resets first (loadCatalog below).
+  const fetchCatalog = () => {
     loadCareerRolesCatalog()
       .then(({ roles: loaded, levelsBySkillId: levels }) => {
         setRoles(loaded);
@@ -556,9 +556,15 @@ export default function CareerRoles({ user, onLogout, onNavigate }) {
       });
   };
 
+  const loadCatalog = () => {
+    setStatus('loading');
+    setLoadError(null);
+    fetchCatalog();
+  };
+
+  const fetchOnMount = useEffectEvent(fetchCatalog);
   useEffect(() => {
-    loadCatalog();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchOnMount();
   }, []);
 
   const toggleSave = (id) => {

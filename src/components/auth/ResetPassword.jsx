@@ -86,8 +86,8 @@ const ResetPassword = ({
         <div className="reset-sidebar">
           <div>
             <div className="reset-brand">
-              <span className="white">Skill</span>
-              <span className="blue">Span</span>
+              <span className="white brand-skill">Skill</span>
+              <span className="blue brand-span">Span</span>
             </div>
 
             <div className="reset-sidebar-content">

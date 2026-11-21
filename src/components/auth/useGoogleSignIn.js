@@ -27,10 +27,8 @@ export function useGoogleSignIn(onCredential, enabled) {
   useEffect(() => {
     if (!enabled) return undefined;
 
-    if (!GOOGLE_CLIENT_ID) {
-      setError('Google sign-in is not configured (missing VITE_GOOGLE_CLIENT_ID).');
-      return undefined;
-    }
+    // The missing-client-id message is derived below, not set from here.
+    if (!GOOGLE_CLIENT_ID) return undefined;
 
     let cancelled = false;
     let attempts = 0;
@@ -80,5 +78,10 @@ export function useGoogleSignIn(onCredential, enabled) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 
-  return { wrapRef, overlayRef, isReady, error, setError };
+  // Known before any effect runs, so it is derived instead of stored.
+  const configError = enabled && !GOOGLE_CLIENT_ID
+    ? 'Google sign-in is not configured (missing VITE_GOOGLE_CLIENT_ID).'
+    : '';
+
+  return { wrapRef, overlayRef, isReady, error: error || configError, setError };
 }

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './VerifyCode.css';
+import { nextFromInput, fillDigits, onlyDigits } from './otpInput';
 import { verifyForgotPasswordOtp, resendForgotPasswordOtp } from '../../api';
 
 const VerifyCode = ({ email, onBack, onSuccess }) => {
@@ -36,16 +37,24 @@ const VerifyCode = ({ email, onBack, onSuccess }) => {
   };
 
   const handleChange = (value, index) => {
-    if (isNaN(value)) return;
-
-    const newCode = [...code];
-    newCode[index] = value;
-    setCode(newCode);
+    const result = nextFromInput(code, index, value);
+    if (!result) return;
+    setCode(result.values);
     setError('');
-
-    if (value && index < 5 && inputRefs.current[index + 1]) {
-      inputRefs.current[index + 1].focus();
+    if (!result.cleared && inputRefs.current[result.focusIndex]) {
+      inputRefs.current[result.focusIndex].focus();
     }
+  };
+
+  // Paste the whole code into any box: digits only, filled from the first box.
+  const handlePaste = (e) => {
+    const text = e.clipboardData?.getData('text') ?? '';
+    if (!onlyDigits(text)) return;
+    e.preventDefault();
+    const result = fillDigits(['', '', '', '', '', ''], 0, text);
+    setCode(result.values);
+    setError('');
+    inputRefs.current[result.focusIndex]?.focus();
   };
 
   const handleKeyDown = (e, index) => {
@@ -53,6 +62,12 @@ const VerifyCode = ({ email, onBack, onSuccess }) => {
       if (inputRefs.current[index - 1]) {
         inputRefs.current[index - 1].focus();
       }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      e.preventDefault();
+      inputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      e.preventDefault();
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
@@ -111,7 +126,7 @@ const VerifyCode = ({ email, onBack, onSuccess }) => {
     <div className="verify-wrapper">
       <div className="verify-card">
         <div className="sidebar-left">
-          <div className="sidebar-brand">SkillSpan</div>
+          <div className="sidebar-brand"><span className="brand-skill">Skill</span><span className="brand-span">Span</span></div>
           <div className="sidebar-content">
             <h2>Start Your<br />Career&nbsp;Journey</h2>
             <p className="sidebar-desc">
@@ -165,16 +180,22 @@ const VerifyCode = ({ email, onBack, onSuccess }) => {
               </div>
             )}
 
-            <div className="otp-inputs-container">
+            <div className="otp-inputs-container" dir="ltr">
               {code.map((digit, index) => (
                 <input
                   key={index}
                   type="text"
-                  maxLength="1"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                  maxLength={6}
+                  aria-label={`Digit ${index + 1} of 6`}
                   value={digit}
                   ref={(el) => (inputRefs.current[index] = el)}
                   onChange={(e) => handleChange(e.target.value, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
+                  onPaste={handlePaste}
+                  onFocus={(e) => e.target.select()}
                   className="otp-input-box"
                 />
               ))}

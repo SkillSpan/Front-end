@@ -113,14 +113,14 @@ export const STATUS_META = {
 };
 
 
-export function fmt(value) {
+export function fmt(value, lang = "en") {
     if (!value) return "";
     // Plain dates ("2026-10-25") are read as local days; full timestamps
     // from the API ("2026-10-25T09:12:00.000000Z") are parsed as they are.
     const text = String(value);
     const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(text) ? `${text}T00:00:00` : text);
     if (Number.isNaN(date.getTime())) return "";
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(lang === "ar" ? "ar-u-nu-latn" : "en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",

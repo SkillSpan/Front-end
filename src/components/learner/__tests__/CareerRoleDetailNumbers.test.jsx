@@ -95,7 +95,7 @@ describe('learner career roles — role detail numbers', () => {
 
     await waitFor(() => expect(screen.getByTestId('requirements-unavailable')).toBeInTheDocument());
     // Nothing to measure against = no score, not "0/100".
-    expect(screen.getByTestId('role-readiness')).toHaveTextContent('—');
+    expect(screen.getByTestId('role-readiness')).toHaveTextContent('-');
   });
 
   it('counts a learner with no matrix row for a skill as level 0, not a crash', async () => {

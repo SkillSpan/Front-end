@@ -346,7 +346,7 @@ function StudentSummaryPanel({ student, loading, onConnectProject }) {
                       onClick={onConnectProject}
                       className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#3b8bff] bg-[rgba(59,139,255,0.08)] hover:bg-[rgba(59,139,255,0.15)] border border-[rgba(59,139,255,0.2)] px-[9px] py-[4px] rounded-[7px] transition-all shrink-0"
                     >
-                      Connect →
+                      Connect
                     </button>
                   )}
                 </div>

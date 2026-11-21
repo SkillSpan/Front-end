@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import './Dashboard.css';
+import './learnerShell.css';
 
 // A fresh `[]` default would give the prop a new identity on every render and
 // make the sync below look like a change every time.
@@ -26,6 +27,10 @@ const Icon = {
   mail: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>,
 };
 
+// Pages whose copy is translated (RTL in Arabic). A page missing here keeps
+// its content left-to-right in Arabic while the shell itself is RTL.
+const TRANSLATED_PAGES = new Set(['dashboard', 'profile', 'settings', 'projects', 'career-journey', 'roles', 'career-roles', 'skill-matrix', 'skills', 'assistant', 'messages', 'support', 'evidence', 'record']);
+
 const NAV_ITEMS = [
   { key: 'dashboard', labelKey: 'nav.dashboard', icon: Icon.grid },
   { key: 'career-journey', labelKey: 'nav.careerJourney', icon: Icon.journey },
@@ -37,8 +42,8 @@ const NAV_ITEMS = [
   { key: 'assistant', labelKey: 'nav.assistant', icon: Icon.bolt },
   { key: 'support', labelKey: 'nav.support', icon: Icon.support },
   { key: 'profile', labelKey: 'nav.profile', icon: Icon.user },
-  { key: 'mentor', labelKey: 'nav.mentor', icon: Icon.mentor },
-  { key: 'talent', labelKey: 'nav.talent', icon: Icon.talent },
+  // Mentoring and Talent stay reachable by URL (/mentor, /talent) but are not
+  // learner sidebar destinations.
 ];
 
 function initials(name) {
@@ -63,9 +68,9 @@ function messagesSeenKey(user) {
   return `${MESSAGES_SEEN_PREFIX}.${user?.id ?? user?.user_id ?? user?.email ?? 'me'}`;
 }
 
-function readMessagesSeenAt(user) {
+function readMessagesSeenAtKey(key) {
   try {
-    const n = Number(window.localStorage.getItem(messagesSeenKey(user)));
+    const n = Number(window.localStorage.getItem(key));
     return Number.isFinite(n) && n > 0 ? n : 0;
   } catch {
     return 0;
@@ -93,10 +98,21 @@ function messageWhen(iso) {
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 }
 
+// The signed-in user saved at login (same cookie api.js writes). Read here
+// directly so the shell does not depend on every caller passing `user`.
+function readStoredUser() {
+  try {
+    const row = document.cookie.split('; ').find((c) => c.startsWith('skillspan_user='));
+    return row ? JSON.parse(decodeURIComponent(row.split('=').slice(1).join('='))) : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function AppLayout({
   active,
   onNavigate,
-  user,
+  user: userProp,
   avatarUrl = null,
   onLogout,
   readinessScore = 0,
@@ -110,6 +126,10 @@ export default function AppLayout({
   onRefreshNotifications,
 }) {
   const { t } = useI18n();
+  // Several screens render the shell without passing `user`, which showed
+  // "Learner" and a "?" avatar. Fall back to the signed-in user saved at login.
+  const stored = readStoredUser();
+  const user = (userProp && (userProp.name || userProp.full_name)) ? userProp : { ...(stored || {}), ...(userProp || {}) };
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [localNotifications, setLocalNotifications] = useState(notifications);
   const [unreadCount, setUnreadCount] = useState(notificationCount);
@@ -139,9 +159,13 @@ export default function AppLayout({
   // Child effects run first, so opening /messages (which stamps the seen
   // marker on mount) clears the badge in the same pass instead of one render
   // later.
+  const messagesSeenStorageKey = messagesSeenKey(user);
   useEffect(() => {
-    setMessagesSeenAt(readMessagesSeenAt(user));
-  }, [user?.id, user?.user_id, user?.email]);
+    // Reads localStorage after child effects have run (see above), so this
+    // has to stay an effect rather than a render-time read.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- syncs from localStorage after the /messages child stamps it on mount
+    setMessagesSeenAt(readMessagesSeenAtKey(messagesSeenStorageKey));
+  }, [messagesSeenStorageKey]);
 
   const unseenMessages = messages.filter((m) => {
     const at = Date.parse(m?.created_at || '');
@@ -161,9 +185,10 @@ export default function AppLayout({
   // Reading the inbox is the thing that clears the badge. Doing it here rather
   // than inside MessagesView keeps one owner for the marker, and `active` is
   // already the prop that says which page is open.
+  const markSeenOnOpen = useEffectEvent(markMessagesSeen);
   useEffect(() => {
-    if (active === 'messages') markMessagesSeen();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- opening /messages stamps the seen time in localStorage and state; it reacts to navigation, so it belongs in an effect
+    if (active === 'messages') markSeenOnOpen();
   }, [active]);
 
   // Logging out is destructive enough to deserve a confirmation: the button
@@ -258,7 +283,7 @@ export default function AppLayout({
         const cleanKey = notif.link.replace(/^\//, '').split('?')[0];
         go(cleanKey);
       } else {
-        window.location.href = notif.link;
+        window.location.assign(notif.link);
       }
     } else {
       go('record');
@@ -274,10 +299,10 @@ export default function AppLayout({
   };
 
   return (
-    <div className="app-shell">
+    <div className="app-shell ls">
       <aside className="app-sidebar">
         <button type="button" className="app-sidebar-brand" onClick={() => go('dashboard')} aria-label="Go to dashboard">
-          <img className="brand-icon" src="/image/logo.png" alt="SkillSpan logo" />
+          <img className="brand-icon" src="/image/skillspan-mark.png" alt="SkillSpan logo" />
           <span><span className="white">Skill</span><span className="blue">Span</span></span>
         </button>
 
@@ -305,9 +330,9 @@ export default function AppLayout({
         </nav>
 
         <div className="app-sidebar-footer" onClick={() => go('career-journey')} style={{ cursor: 'pointer' }}>
-          <div className="footer-label">Readiness Score</div>
-          <div className="footer-score">{readinessScore}/100</div>
-          <div className="footer-role">{roleLabel || 'Career profile'}</div>
+          <div className="footer-label">{t('projects.readinessScore')}</div>
+          <div className="footer-score">{Number(readinessScore) > 0 ? <bdi dir="ltr">{Math.round(Number(readinessScore))}/100</bdi> : <span className="footer-score-empty">{t('projects.notCalculated')}</span>}</div>
+          <div className="footer-role">{roleLabel || t('projects.careerProfile')}</div>
         </div>
       </aside>
 
@@ -373,7 +398,7 @@ export default function AppLayout({
                         go('messages');
                       }}
                     >
-                      {t('topbar.openMessages')} →
+                      {t('topbar.openMessages')}
                     </button>
                   </div>
                 </div>
@@ -424,14 +449,14 @@ export default function AppLayout({
                   )}
                   <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #f1f2f9', display: 'flex', justifyContent: 'space-between' }}>
                     <button type="button" onClick={() => { setNotificationsOpen(false); go('record'); }}>
-                      Open My Record →
+                      Open My Record
                     </button>
                   </div>
                 </div>
               )}
             </div>
             <button type="button" className="app-assistant-top" onClick={() => go('assistant')}>
-              {Icon.bolt}<span>{t('topbar.assistant')}</span>
+              <span>{t('topbar.assistant')}</span>
             </button>
             <button
               type="button"
@@ -451,13 +476,16 @@ export default function AppLayout({
               ) : (
                 <span className="app-user-avatar">{initials(user?.name || user?.full_name)}</span>
               )}
-              <span className="app-user-name">{user?.name || user?.full_name || 'Learner'}</span>
+              <span className="app-user-name">{user?.name || user?.full_name || t('projects.learner')}</span>
             </div>
             <button type="button" className="app-logout" onClick={() => setLogoutOpen(true)}>{t('topbar.logout')}</button>
           </div>
         </header>
 
-        <main className={`app-content ${flushContent ? 'app-content-flush' : ''} ${contentClassName}`.trim()}>
+        <main
+          className={`app-content ${flushContent ? 'app-content-flush' : ''} ${contentClassName}`.trim()}
+          dir={TRANSLATED_PAGES.has(active) ? undefined : 'ltr'}
+        >
           {children}
         </main>
       </div>

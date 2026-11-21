@@ -546,3 +546,6 @@
   min-height: 44px;
   padding: 8px 16px;
 }
+
+/* Shared success animation in place of the static green disc. */
+.verified-container .verified-check { margin: 0 0 24px 0; }

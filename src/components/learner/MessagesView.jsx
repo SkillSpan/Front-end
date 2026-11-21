@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getLearnerMessages, unwrapApiData } from "../../api";
+import { useUiText } from "../../i18n/useUiText";
 
 // The learner's inbox: messages companies sent, newest first.
 //
@@ -21,18 +22,18 @@ function meta(payload) {
   return payload?.meta && typeof payload.meta === "object" ? payload.meta : {};
 }
 
-function formatWhen(iso) {
+function formatWhen(iso, L = (s, v) => (v ? Object.entries(v).reduce((a, [k, x]) => a.split(`{${k}}`).join(String(x)), s) : s), lang = "en") {
   if (!iso) return "";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
   const minutes = Math.round((Date.now() - date.getTime()) / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return L("just now");
+  if (minutes < 60) return L("{n}m ago", { n: minutes });
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return L("{n}h ago", { n: hours });
   const days = Math.round(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  if (days < 7) return L("{n}d ago", { n: days });
+  return date.toLocaleDateString(lang === "ar" ? "ar-u-nu-latn" : "en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function initials(name) {
@@ -42,32 +43,33 @@ function initials(name) {
 }
 
 function MessageCard({ row }) {
+  const { L, lang } = useUiText();
   const from = row?.from || {};
-  const company = from.organization_name || "A company";
+  const company = from.organization_name || L("A company");
   const sender = from.sender_name || "";
 
   return (
     <article
       data-testid="learner-message"
-      className="rounded-[12px] border border-[#e8eaf0] bg-white px-[16px] py-[14px]"
+      className="rounded-[12px] border border-[#e4ebf5] bg-white px-[16px] py-[14px]"
     >
       <header className="flex items-start gap-[10px] mb-[8px]">
         <div
-          className="w-[30px] h-[30px] rounded-full shrink-0 flex items-center justify-center text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white"
-          style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}
+          className="w-[30px] h-[30px] rounded-full shrink-0 flex items-center justify-center text-[11px] font-semibold text-white"
+          style={{ background: "#1667e0" }}
         >
           {initials(company)}
         </div>
         <div className="min-w-0 flex-1">
           <p
             data-testid="learner-message-company"
-            className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14] truncate"
+            className="font-semibold text-[13px] text-[#05103d] truncate"
           >
             {company}
           </p>
-          <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[1px]">
+          <p className="text-[11px] font-normal text-[#98a1ba] mt-[1px]">
             {sender ? `${sender} · ` : ""}
-            <span data-testid="learner-message-when">{formatWhen(row?.created_at)}</span>
+            <span data-testid="learner-message-when"><bdi>{formatWhen(row?.created_at, L, lang)}</bdi></span>
           </p>
         </div>
       </header>
@@ -82,6 +84,7 @@ function MessageCard({ row }) {
 }
 
 export default function MessagesView() {
+  const { L } = useUiText();
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
@@ -114,18 +117,19 @@ export default function MessagesView() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetch on mount; load() resets loading/error before its request
     load(1);
   }, [load]);
 
   const hasMore = useMemo(() => page < lastPage, [page, lastPage]);
 
   return (
-    <div className="flex flex-col h-full min-h-0 min-w-0 overflow-hidden bg-[#f1f3fa]">
-      <div className="bg-white border-b border-[#e8eaf0] px-[24px] py-[13px] shrink-0 min-h-[70px] flex items-center">
+    <div className="flex flex-col h-full min-h-0 min-w-0 overflow-hidden bg-[#f0f6fc]">
+      <div className="bg-white border-b border-[#e4ebf5] px-[24px] py-[13px] shrink-0 min-h-[70px] flex items-center">
         <div>
-          <h1 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#0a0b14]">Messages</h1>
-          <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[2px]">
-            Messages companies sent you. This inbox is read-only.
+          <h1 className="font-bold text-[17px] text-[#05103d]">{L("Messages")}</h1>
+          <p className="text-[12px] font-normal text-[#98a1ba] mt-[2px]">
+            {L("Messages companies sent you. This inbox is read-only.")}
           </p>
         </div>
       </div>
@@ -133,8 +137,8 @@ export default function MessagesView() {
       <div className="flex-1 min-h-0 overflow-y-auto px-[24px] py-[18px]">
         <div className="max-w-[760px] flex flex-col gap-[10px]">
           {loading && (
-            <p data-testid="learner-messages-loading" className="text-[12px] text-[#94a3b8]">
-              Loading your messages…
+            <p data-testid="learner-messages-loading" className="text-[12px] text-[#98a1ba]">
+              {L("Loading your messages…")}
             </p>
           )}
 
@@ -143,13 +147,13 @@ export default function MessagesView() {
               data-testid="learner-messages-error"
               className="rounded-[10px] border border-[#fecaca] bg-[#fef2f2] px-[14px] py-[12px] text-[12px] text-[#991b1b]"
             >
-              <p>We could not load your messages.</p>
+              <p>{L("We could not load your messages.")}</p>
               <button
                 type="button"
                 onClick={() => load(1)}
-                className="mt-[8px] rounded-[7px] border border-[#fecaca] bg-white px-[10px] py-[4px] text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#991b1b]"
+                className="mt-[8px] rounded-[7px] border border-[#fecaca] bg-white px-[10px] py-[4px] text-[11px] font-medium text-[#991b1b]"
               >
-                Try again
+                {L("Try again")}
               </button>
             </div>
           )}
@@ -159,11 +163,11 @@ export default function MessagesView() {
               data-testid="learner-messages-empty"
               className="rounded-[12px] border border-dashed border-[#d8dce6] bg-white px-[18px] py-[26px] text-center"
             >
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
-                No messages yet
+              <p className="font-semibold text-[13px] text-[#05103d]">
+                {L("No messages yet")}
               </p>
-              <p className="mt-[4px] text-[12px] text-[#94a3b8]">
-                When a company writes to you, their message will appear here.
+              <p className="mt-[4px] text-[12px] text-[#98a1ba]">
+                {L("When a company writes to you, their message will appear here.")}
               </p>
             </div>
           )}
@@ -176,15 +180,15 @@ export default function MessagesView() {
               type="button"
               disabled={loadingMore}
               onClick={() => load(page + 1, { append: true })}
-              className="self-center rounded-[8px] border border-[#e8eaf0] bg-white px-[14px] py-[6px] text-[11.5px] font-['Inter:Medium',sans-serif] font-medium text-[#475569] disabled:opacity-60"
+              className="self-center rounded-[8px] border border-[#e4ebf5] bg-white px-[14px] py-[6px] text-[11.5px] font-medium text-[#3b4565] disabled:opacity-60"
             >
-              {loadingMore ? "Loading…" : "Load older messages"}
+              {loadingMore ? L("Loading…") : L("Load older messages")}
             </button>
           )}
 
           {!loading && !error && items.length > 0 && total > items.length && (
             <p className="self-center text-[11px] text-[#b6bdcc]">
-              Showing {items.length} of {total}
+              {L("Showing {a} of {b}", { a: items.length, b: total })}
             </p>
           )}
         </div>

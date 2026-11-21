@@ -326,7 +326,7 @@ function ProjectDetailPanel({ project, onClose }) {
                 const im = IMPACT_META[lv.impact];
                 return (<div key={lv.skillName} className="bg-[#fafbff] border border-[#eef0f8] rounded-[12px] p-[14px] flex gap-[12px]">
                     <div className="w-[36px] h-[36px] rounded-[9px] flex items-center justify-center text-[14px] shrink-0 font-bold border" style={{ background: im.bg, borderColor: `${im.color}25`, color: im.color }}>
-                      {lv.impact === "High" ? "↑↑" : lv.impact === "Medium" ? "↑" : "→"}
+                      {lv.impact === "High" ? "↑" : lv.impact === "Medium" ? "" : ""}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-[8px] mb-[3px] flex-wrap">
@@ -361,7 +361,7 @@ function ProjectDetailPanel({ project, onClose }) {
       <div className="px-[24px] py-[16px] border-t border-[#f1f3fa] flex items-center gap-[10px]">
         {project.eligibility === "Eligible" || project.eligibility === "Conditionally Eligible" ? (<>
             <button className="flex-1 py-[10px] rounded-[10px] text-[13px] font-semibold text-white shadow-[0_4px_14px_rgba(59,139,255,0.3)] transition-all hover:shadow-[0_6px_18px_rgba(59,139,255,0.4)]" style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}>
-              {project.eligibility === "Eligible" ? "Start Project →" : "Start (Conditional) →"}
+              {project.eligibility === "Eligible" ? "Start Project" : "Start (Conditional)"}
             </button>
             <button className="px-[16px] py-[10px] rounded-[10px] text-[13px] font-medium text-[#64748b] bg-[#f1f3fa] hover:bg-[#e8eaf0] transition-all">Save</button>
           </>) : (<div className="flex-1 flex items-center gap-[8px] bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.15)] rounded-[10px] px-[14px] py-[10px]">
@@ -443,7 +443,7 @@ function ProjectCard({ project, isSelected, onClick }) {
           <div className="flex items-center gap-[8px] text-[10px] font-normal text-[#94a3b8]">
             <span>⏱ {project.estimatedHours}</span>
             {project.openSpots && <span className="text-[#f59e0b]">⚠ {project.openSpots} spots left</span>}
-            <span className="text-[#3b8bff] font-medium">View →</span>
+            <span className="text-[#3b8bff] font-medium">View</span>
           </div>
         </div>
       </div>
@@ -545,7 +545,7 @@ function NoProjectsState({ hasFilters, onClear }) {
         </p>
       </div>
       {hasFilters ? (<button onClick={onClear} className="px-[18px] py-[9px] rounded-[10px] text-[13px] font-semibold text-[#3b8bff] border border-[rgba(59,139,255,0.3)] bg-[rgba(59,139,255,0.05)]">Clear all filters</button>) : (<div className="flex flex-col items-center gap-[6px]">
-          <button className="px-[18px] py-[9px] rounded-[10px] text-[13px] font-semibold text-white" style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}>View Career Roadmap →</button>
+          <button className="px-[18px] py-[9px] rounded-[10px] text-[13px] font-semibold text-white" style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}>View Career Roadmap</button>
           <p className="text-[11px] font-normal text-[#94a3b8]">Projects unlock as you close skill gaps</p>
         </div>)}
     </div>);

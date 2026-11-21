@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import {
   AlertTriangle,
-  Check,
   ChevronLeft,
   Link2,
   Loader2,
@@ -16,14 +15,16 @@ import {
   validateUrl,
 } from "./lib/evidenceMeta";
 
-import { TypeIcon } from "./Shared";
+import { useUiText } from "../../i18n/useUiText";
 
 export default function AddEvidence({
   skill = null,
   resubmitRecord = null,
   onCancel = () => {},
   onSubmit = () => {},
+  beforeForm = null,
 }) {
+  const { L } = useUiText();
   const isResubmit = Boolean(resubmitRecord);
   const activeSkill = resubmitRecord || skill || { skill: "", category: "", level: "" };
 
@@ -260,7 +261,7 @@ export default function AddEvidence({
      */
     if (description.trim().length < 50) {
       nextErrors.description =
-        "Describe what this evidence demonstrates (at least 50 characters).";
+        L("Describe what this evidence demonstrates (at least 50 characters).");
     }
 
     setErrors(nextErrors);
@@ -326,7 +327,7 @@ export default function AddEvidence({
     } catch (error) {
       setSubmitError(
         error?.message ||
-          "Something went wrong while submitting. Please try again."
+          L("Something went wrong while submitting. Please try again.")
       );
 
       if (error?.fieldErrors) {
@@ -364,17 +365,21 @@ export default function AddEvidence({
               <div>
                 <h1 className="figma-title text-[18px]">
                   {isResubmit
-                    ? "Resubmit Evidence"
-                    : "Add Evidence"}
+                    ? L("Resubmit Evidence")
+                    : L("Add Evidence")}
                 </h1>
 
                 <p className="figma-subtitle">
                   {isResubmit
-                    ? "Update your evidence based on the reviewer’s notes, then resubmit for review."
-                    : `Submit proof of your ${activeSkill.skill} proficiency — a reviewer will verify and update your confidence score.`}
+                    ? L("Update your evidence based on the reviewer’s notes, then resubmit for review.")
+                    : activeSkill.skill
+                      ? L("Submit proof of your {skill} proficiency, a reviewer will verify and update your confidence score.", { skill: activeSkill.skill })
+                      : L("Choose a skill and submit proof of it, a reviewer will verify and update your confidence score.")}
                 </p>
               </div>
             </div>
+
+            {beforeForm}
 
             <form
               onSubmit={handleSubmit}
@@ -385,16 +390,16 @@ export default function AddEvidence({
               <div className="mb-7 flex items-center justify-between border-b border-[#f0f2f5] pb-5">
                 <div>
                   <h2 className="m-0 text-sm font-semibold text-[#101828]">
-                    Evidence details
+                    {L("Evidence details")}
                   </h2>
 
                   <p className="m-0 mt-1 text-xs text-[#667085]">
-                    Choose one way to share your work.
+                    {L("Choose one way to share your work.")}
                   </p>
                 </div>
 
                 <span className="text-[11px] text-[#98a2b3]">
-                  Required fields *
+                  {L("Required fields *")}
                 </span>
               </div>
 
@@ -402,10 +407,10 @@ export default function AddEvidence({
               <div
                 className="mb-7 inline-flex rounded-lg border border-[#e4e7ec] bg-white p-0"
                 role="tablist"
-                aria-label="Evidence submission method"
+                aria-label={L("Evidence submission method")}
               >
                 {modeTabs.map(
-                  ([key, label, Icon]) => (
+                  ([key, label]) => (
                     <button
                       key={key}
                       type="button"
@@ -422,8 +427,8 @@ export default function AddEvidence({
                           : "text-[#667085] hover:text-[#344054]"
                       }`}
                     >
-                      <Icon size={14} />
-                      {label}
+                      
+                      {L(label)}
                     </button>
                   )
                 )}
@@ -432,7 +437,7 @@ export default function AddEvidence({
               {/* EVIDENCE TYPES */}
               <div className="mb-7">
                 <p className="mb-3 text-xs font-semibold text-[#344054]">
-                  Evidence type
+                  {L("Evidence type")}
                 </p>
 
                 <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
@@ -457,27 +462,16 @@ export default function AddEvidence({
                               : "border-[#e4e7ec] bg-white hover:border-[#b8c7f7] hover:bg-[#f9fbff]"
                           }`}
                         >
-                          <span
-                            className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                              active
-                                ? "bg-white text-[#2f5bea]"
-                                : "bg-[#f2f4f7] text-[#667085]"
-                            }`}
-                          >
-                            <TypeIcon
-                              type={type}
-                              size={18}
-                            />
-                          </span>
+                          
 
                           <span
                             className={`text-[11px] font-medium ${
                               active
-                                ? "text-[#2348c5]"
+                                ? "text-[#0f52ba]"
                                 : "text-[#344054]"
                             }`}
                           >
-                            {typeMeta.label}
+                            {L(typeMeta.label)}
                           </span>
                         </button>
                       );
@@ -497,7 +491,7 @@ export default function AddEvidence({
                     htmlFor="evidence-url"
                     className="mb-2 block text-xs font-semibold text-[#344054]"
                   >
-                    {meta.urlLabel}
+                    {L(meta.urlLabel)}
 
                     <span className="text-[#d92d20]">
                       {" "}*
@@ -550,7 +544,7 @@ export default function AddEvidence({
                     className="mb-2 block text-xs font-semibold text-[#344054]"
                   >
                     {meta.fileLabel ||
-                      "Upload file"}
+                      L("Upload file")}
 
                     <span className="text-[#d92d20]">
                       {" "}*
@@ -600,23 +594,20 @@ export default function AddEvidence({
                       errors.file
                         ? "border-[#f04438] bg-[#fffbfa]"
                         : isDragging
-                        ? "border-[#2f5bea] bg-[#eef3ff]"
-                        : "border-[#d0d5dd] bg-[#fcfcfd] hover:border-[#2f5bea] hover:bg-[#f9fbff]"
+                        ? "border-[#1667e0] bg-[#eef3ff]"
+                        : "border-[#d0d5dd] bg-[#fcfcfd] hover:border-[#1667e0] hover:bg-[#f9fbff]"
                     }`}
                   >
 
-                    <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#eef3ff] text-[#2f5bea]">
-                      <Paperclip size={18} />
-                    </span>
 
                     <p className="m-0 text-sm font-medium text-[#344054]">
                       {file
                         ? file.name
-                        : "Drag & drop or click to upload"}
+                        : L("Drag & drop or click to upload")}
                     </p>
 
                     <p className="m-0 mt-1 text-xs text-[#98a2b3]">
-                      {meta.fileHint}
+                      {L(meta.fileHint)}
                     </p>
 
                     {!file &&
@@ -662,14 +653,14 @@ export default function AddEvidence({
                     htmlFor="evidence-description"
                     className="mb-2 block text-xs font-semibold text-[#344054]"
                   >
-                    Evidence description{" "}
+                    {L("Evidence description")}{" "}
                     <span className="text-[#d92d20]">
                       *
                     </span>
                   </label>
 
                   <span className="text-[11px] text-[#98a2b3]">
-                    {description.length} / min 50 · max {MAX_EVIDENCE_DESCRIPTION} chars
+                    <bdi dir="ltr">{description.length} / {MAX_EVIDENCE_DESCRIPTION}</bdi> · {L("min 50 characters")}
                   </span>
 
                 </div>
@@ -691,7 +682,7 @@ export default function AddEvidence({
                   }}
                   rows={5}
                   maxLength={MAX_EVIDENCE_DESCRIPTION}
-                  placeholder="Describe what this evidence demonstrates — what you built, the technologies used, your specific contribution, and the scale or complexity of the project..."
+                  placeholder={L("Describe what this evidence demonstrates, what you built, the technologies used, your specific contribution, and the scale or complexity of the project...")}
                   className={`figma-input resize-y px-3 py-3 text-sm leading-6 ${
                     errors.description
                       ? "border-[#f04438]"
@@ -705,10 +696,7 @@ export default function AddEvidence({
                   </p>
                 ) : (
                   <p className="mt-2 text-[11px] text-[#98a2b3]">
-                    Tip: Include technologies,
-                    scale, your specific role,
-                    and any measurable
-                    outcomes.
+                    {L("Tip: Include technologies, scale, your specific role, and any measurable outcomes.")}
                   </p>
                 )}
 
@@ -717,25 +705,9 @@ export default function AddEvidence({
               {/* INFO */}
               <div className="mb-7 flex gap-2.5 rounded-lg border border-[#d9e5ff] bg-[#f5f8ff] px-3.5 py-3 text-xs leading-5 text-[#344054]">
 
-                <Check
-                  size={15}
-                  className="mt-0.5 shrink-0 text-[#2f5bea]"
-                />
 
                 <p className="m-0">
-                  <span className="font-semibold">
-                    AC-01 / BR-01:
-                  </span>{" "}
-                  This evidence will be
-                  linked to your{" "}
-                  {activeSkill.skill} skill
-                  record and associated with
-                  your learner profile. New
-                  submissions enter{" "}
-                  <code>
-                    pending_review
-                  </code>{" "}
-                  status (BR-04).
+                  {L("This evidence will be linked to your {skill} skill record and associated with your learner profile. New submissions start as Pending review.", { skill: activeSkill.skill })}
                 </p>
 
               </div>
@@ -765,7 +737,7 @@ export default function AddEvidence({
                   disabled={isSubmitting}
                   className="figma-btn-secondary"
                 >
-                  Cancel
+                  {L("Cancel")}
                 </button>
 
                 <button
@@ -787,13 +759,13 @@ export default function AddEvidence({
                         size={14}
                         className="animate-spin"
                       />
-                      Submitting…
+                      {L("Submitting…")}
                     </>
                   ) : (
                     <>
                       {isResubmit
-                        ? "Resubmit for review"
-                        : "Submit for review"}
+                        ? L("Resubmit for review")
+                        : L("Submit for review")}
 
                       <ChevronLeft
                         className="rotate-180"

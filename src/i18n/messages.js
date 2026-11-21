@@ -1,6 +1,8 @@
 // Two languages, one flat key space. Keys are grouped by the surface that uses
 // them (`nav.*`, `topbar.*`, `profile.*`, `settings.*`) so a missing entry is
 // easy to spot. English is the fallback for anything untranslated.
+import { PROJECTS_EN, PROJECTS_AR } from "./projectsMessages";
+
 export const MESSAGES = {
   en: {
     "nav.dashboard": "Dashboard",
@@ -120,7 +122,7 @@ export const MESSAGES = {
     "profile.visibility.public": "Public",
     "profile.visibility.organization_only": "Organizations only",
     "profile.visibility.private": "Private",
-    "profile.lockedNote": "Taken from your account — change it from your sign-in details.",
+    "profile.lockedNote": "Taken from your account. Change it from your sign-in details.",
     "profile.loadError": "Your profile could not be loaded.",
     "profile.saveError": "Your changes could not be saved.",
     "profile.retry": "Try again",
@@ -156,6 +158,7 @@ export const MESSAGES = {
     "settings.resetHint": "Returns theme, accent and language to their defaults.",
     "settings.savedLocally": "Saved on this device",
     "settings.preview": "Preview",
+    ...PROJECTS_EN,
   },
 
   ar: {
@@ -276,7 +279,7 @@ export const MESSAGES = {
     "profile.visibility.public": "عام",
     "profile.visibility.organization_only": "المؤسسات فقط",
     "profile.visibility.private": "خاص",
-    "profile.lockedNote": "مأخوذة من حسابك — تُعدّل من بيانات تسجيل الدخول.",
+    "profile.lockedNote": "مأخوذة من حسابك، وتُعدّل من بيانات تسجيل الدخول.",
     "profile.loadError": "تعذّر تحميل ملفك الشخصي.",
     "profile.saveError": "تعذّر حفظ التغييرات.",
     "profile.retry": "إعادة المحاولة",
@@ -312,6 +315,7 @@ export const MESSAGES = {
     "settings.resetHint": "يعيد الثيم واللون واللغة إلى الوضع الافتراضي.",
     "settings.savedLocally": "محفوظة على هذا الجهاز",
     "settings.preview": "معاينة",
+    ...PROJECTS_AR,
   },
 };
 
