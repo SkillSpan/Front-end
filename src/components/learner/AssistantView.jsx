@@ -3,7 +3,6 @@ import { askAssistant, reportAssistantInteraction, createSupportRequest, unwrapA
 import { useAuth } from "../auth/AuthContext";
 import { clearAssistantChat, loadAssistantChat, saveAssistantChat } from "./assistantChatStorage";
 import { getTextDirection, getTextLanguage } from "../../utils/textDirection";
-import { SafeBoldText } from "../../utils/safeContent";
 // ═══════════════════════════════════════════════════════════════════════════════
 // Sample context is shown only when explicitly enabled for development.
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
@@ -673,12 +672,10 @@ function MessageBubble({ msg, onReport, onHandoff, onOpenSupport }) {
                 unicodeBidi: "plaintext",
                 overflowWrap: "anywhere",
               }}
-            >
-              <SafeBoldText
-                text={msg.text}
-                strongStyle={{ fontWeight: 700, color: "white", unicodeBidi: "isolate" }}
-              />
-            </p>
+              dangerouslySetInnerHTML={{
+                __html: msg.text.replace(/\*\*(.+?)\*\*/g, '<strong dir="auto" style="font-weight:700;color:white;unicode-bidi:isolate">$1</strong>'),
+              }}
+            />
           )}
           {msg.role === "assistant" && msg.handoffAvailable && !msg.handoffCreated && (
             <button type="button" onClick={() => onHandoff(msg.id)} className="mt-[10px] rounded-[8px] border border-[rgba(59,139,255,0.35)] bg-[rgba(59,139,255,0.12)] px-[10px] py-[7px] text-[11px] text-[#a9c8ff] hover:bg-[rgba(59,139,255,0.2)]">Contact human support</button>

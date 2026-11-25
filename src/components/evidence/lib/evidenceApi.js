@@ -1,5 +1,4 @@
 import { getMyEvidence, getSkillsTaxonomy, submitEvidence, reviewEvidence } from '../../../api';
-import { safeExternalUrl } from '../../../utils/safeUrl';
 
 const STATUS_FROM_API = {
     verified: 'approved',
@@ -75,7 +74,7 @@ export function mapEvidenceRecord(raw) {
     // server-side path of an uploaded file (e.g. "evidence/AbC123.jpg").
     const reference = nn(raw.reference);
     const referenceIsUrl = typeof reference === 'string' && /^https?:\/\//i.test(reference);
-    const evidenceUrl = safeExternalUrl(nn(raw.evidence_url, raw.url, referenceIsUrl ? reference : null), { httpsOnly: true });
+    const evidenceUrl = nn(raw.evidence_url, raw.url, referenceIsUrl ? reference : null);
     const evidenceFile = nn(raw.evidence_file, !referenceIsUrl ? reference : null);
     const isFile = !evidenceUrl && Boolean(evidenceFile);
     return {

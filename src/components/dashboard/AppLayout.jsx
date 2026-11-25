@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import './Dashboard.css';
 import './learnerShell.css';
-import { safeRedirect } from '../../utils/safeRedirect';
 
 // A fresh `[]` default would give the prop a new identity on every render and
 // make the sync below look like a change every time.
@@ -256,12 +255,11 @@ export default function AppLayout({
     }
     setNotificationsOpen(false);
     if (notif.link) {
-      const internalLink = safeRedirect(notif.link, null);
-      if (internalLink) {
-        const cleanKey = internalLink.replace(/^\//, '').split('?')[0];
+      if (notif.link.startsWith('/')) {
+        const cleanKey = notif.link.replace(/^\//, '').split('?')[0];
         go(cleanKey);
       } else {
-        go('record');
+        window.location.href = notif.link;
       }
     } else {
       go('record');

@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { askAssistant, reportAssistantInteraction, createSupportRequest, unwrapApiData } from "../../api";
-import { SafeBoldText } from "../../utils/safeContent";
 // ═══════════════════════════════════════════════════════════════════════════════
 // Sample conversations are available only when explicitly enabled for development.
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
@@ -702,9 +701,12 @@ function ChatMessage({ msg, onReport, onHandoff }) {
           }`}
         >
           {/* Bold markdown in text */}
-          <p className="whitespace-pre-wrap">
-            <SafeBoldText text={msg.text} strongStyle={{ fontWeight: 600, color: "white" }} />
-          </p>
+          <p
+            className="whitespace-pre-wrap"
+            dangerouslySetInnerHTML={{
+              __html: msg.text.replace(/\*\*(.+?)\*\*/g, '<strong style="font-weight:600;color:white">$1</strong>'),
+            }}
+          />
 
           {msg.role === "assistant" && msg.handoffAvailable && !msg.handoffCreated && (
             <button
