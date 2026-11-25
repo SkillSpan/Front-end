@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getLearnerMessages, unwrapApiData } from "../../api";
+import { apiKey, getEntry, getQueryData } from "../../cache/queryCache";
 
 // The learner's inbox: messages companies sent, newest first.
 //
@@ -82,17 +83,22 @@ function MessageCard({ row }) {
 }
 
 export default function MessagesView() {
-  const [items, setItems] = useState([]);
+  const cachedKey = apiKey('/api/v1/learner/messages', { page: 1, per_page: PAGE_SIZE });
+  const cached = getEntry(cachedKey).invalidated ? undefined : getQueryData(cachedKey);
+  const [items, setItems] = useState(() => cached ? rows(cached) : []);
   const [page, setPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [lastPage, setLastPage] = useState(() => Number(meta(cached).last_page) || 1);
+  const [total, setTotal] = useState(() => Number(meta(cached).total) || rows(cached).length);
+  const [loading, setLoading] = useState(() => !cached);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
 
   const load = useCallback(async (targetPage, { append } = {}) => {
     if (append) setLoadingMore(true);
-    else setLoading(true);
+    else {
+      const key = apiKey('/api/v1/learner/messages', { page: targetPage, per_page: PAGE_SIZE });
+      setLoading(getEntry(key).invalidated || !getQueryData(key));
+    }
     setError(null);
 
     try {
@@ -106,7 +112,7 @@ export default function MessagesView() {
       setTotal(Number(m.total) || (append ? 0 : next.length));
     } catch (err) {
       setError(err);
-      if (!append) setItems([]);
+      if (!append && !getQueryData(apiKey('/api/v1/learner/messages', { page: targetPage, per_page: PAGE_SIZE }))) setItems([]);
     } finally {
       setLoading(false);
       setLoadingMore(false);

@@ -68,6 +68,34 @@ describe('cache keys', () => {
     expect(projectsFetcher).toHaveBeenCalledTimes(2);
   });
 
+  it('caches read-only learner screens and invalidates changed skills and saved roles', async () => {
+    for (const path of [
+      '/api/v1/skills/matrix',
+      '/api/v1/evidence',
+      '/api/v1/saved-career-roles',
+      '/api/v1/learner/messages',
+      '/api/v1/notifications/preferences',
+    ]) {
+      expect(cacheRuleFor(path).transport).toBe(true);
+    }
+    const skills = apiKey('/api/v1/skills/matrix');
+    const saved = apiKey('/api/v1/saved-career-roles');
+    const loadSkills = vi.fn().mockResolvedValue({ data: ['Python'] });
+    const loadSaved = vi.fn().mockResolvedValue({ data: [1] });
+    await fetchQuery(skills, loadSkills);
+    await fetchQuery(saved, loadSaved);
+    await fetchQuery(skills, loadSkills);
+    await fetchQuery(saved, loadSaved);
+    expect(loadSkills).toHaveBeenCalledTimes(1);
+    expect(loadSaved).toHaveBeenCalledTimes(1);
+    invalidateAfterMutation('POST', '/api/v1/skills/matrix');
+    invalidateAfterMutation('PUT', '/api/v1/saved-career-roles/1');
+    await fetchQuery(skills, loadSkills);
+    await fetchQuery(saved, loadSaved);
+    expect(loadSkills).toHaveBeenCalledTimes(2);
+    expect(loadSaved).toHaveBeenCalledTimes(2);
+  });
+
   it('never cache auth endpoints', async () => {
     const key = apiKey('/api/v1/auth/me');
     expect(settingsFor(key).neverCache).toBe(true);
