@@ -139,7 +139,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
         <div className="flex items-start gap-[16px]">
           {/* Icon */}
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-[12px]">
+            <div className="flex flex-wrap items-start justify-between gap-[12px]">
               <div>
                 <div className="flex items-center gap-[6px] mb-[4px]">
                   <span className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#3b8bff] bg-[rgba(59,139,255,0.1)] px-[7px] py-[1px] rounded-full">
@@ -246,7 +246,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
       </div>
 
       {/* Body */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="workspace-panes flex flex-1 overflow-hidden">
         {/* Left: main content */}
         <div className="flex-1 overflow-y-auto px-[32px] py-[24px] flex flex-col gap-[24px]">
           {/* Eligibility banner */}

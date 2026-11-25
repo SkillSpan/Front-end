@@ -924,7 +924,7 @@ export default function MentorView() {
       </div>
 
       {/* 3-column body */}
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="workspace-panes mentor-panes flex flex-1 overflow-hidden relative">
         <StudentListPanel
           students={students}
           selectedId={selectedStudentId}

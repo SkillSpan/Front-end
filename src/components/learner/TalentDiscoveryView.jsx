@@ -801,7 +801,7 @@ export default function TalentDiscoveryView() {
   return (
     <div className="flex flex-col flex-1 min-h-0 min-w-0 overflow-hidden bg-[#f1f3fa]">
       {/* Header */}
-      <div className="bg-white border-b border-[#e8eaf0] px-[24px] py-[13px] flex items-center justify-between shrink-0 min-h-[70px] relative z-10">
+      <div className="bg-white border-b border-[#e8eaf0] px-[24px] py-[13px] flex flex-wrap gap-2 items-center justify-between shrink-0 min-h-[70px] relative z-10">
         <div>
           <h1 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#0a0b14]">Talent Discovery</h1>
           <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[2px]">
@@ -809,7 +809,7 @@ export default function TalentDiscoveryView() {
             permitted students
           </p>
         </div>
-        <div className="flex items-center gap-[8px]">
+        <div className="flex flex-wrap items-center gap-[8px]">
           <div className="flex items-center gap-[6px] px-[10px] py-[5px] rounded-[7px] bg-[rgba(245,158,11,0.06)] border border-[rgba(245,158,11,0.15)]">
             <span className="text-[11px]">ℹ️</span>
             <span className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#b45309]">
@@ -827,7 +827,7 @@ export default function TalentDiscoveryView() {
 
       {contactError && <div role="alert" className="mx-5 mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{contactError}</div>}
       {/* Body */}
-      <div className="flex flex-1 min-h-0 min-w-0 overflow-hidden relative">
+      <div className="workspace-panes talent-panes flex flex-1 min-h-0 min-w-0 overflow-hidden relative">
         {/* Filter Sidebar */}
         <div className="w-[220px] shrink-0 bg-white border-r border-[#e8eaf0] flex flex-col py-[16px] px-[14px] overflow-y-auto gap-[18px]">
           {/* Search */}
@@ -963,7 +963,7 @@ export default function TalentDiscoveryView() {
               </div>
             </div>
           ) : scene === "loading" ? (
-            <div className="grid gap-[14px]" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))" }}>
+            <div className="talent-card-grid grid gap-[14px]">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div
                   key={i}
@@ -1014,7 +1014,7 @@ export default function TalentDiscoveryView() {
               </div>
             </div>
           ) : (
-            <div className="grid gap-[14px]" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))" }}>
+            <div className="talent-card-grid grid gap-[14px]">
               {displayedStudents.map((s) => (
                 <TalentCard
                   key={s.id}

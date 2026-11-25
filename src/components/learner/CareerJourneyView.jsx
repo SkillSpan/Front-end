@@ -675,11 +675,10 @@ function SkillGapTab({ gaps }) {
 
       {/* Table */}
       <div className="bg-white border border-[#e8eaf0] rounded-[16px] overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="roadmap-table overflow-x-auto" role="region" aria-label="Roadmap skills" tabIndex={0}>
           {/* Column headers */}
           <div
-            className="grid items-center px-[20px] py-[10px] border-b border-[#f1f3fa] bg-[#fafbff] min-w-[980px]"
-            style={{ gridTemplateColumns: "18px minmax(150px,1.6fr) 82px 82px 58px 78px 78px 90px 96px 20px" }}
+            className="roadmap-table-row grid items-center px-[20px] py-[10px] border-b border-[#f1f3fa] bg-[#fafbff]"
           >
           {["", "Skill", "Current", "Required", "Gap", "Match %", "Importance", "Criticality", "Confidence", ""].map(
             (h, i) => (
@@ -722,8 +721,7 @@ function SkillGapTab({ gaps }) {
                         className="w-full text-left hover:bg-[#f8f9fd] transition-colors"
                       >
                         <div
-                          className="grid items-center gap-[8px] px-[20px] py-[12px] min-w-[980px]"
-                          style={{ gridTemplateColumns: "18px minmax(150px,1.6fr) 82px 82px 58px 78px 78px 90px 96px 20px" }}
+                          className="roadmap-table-row grid items-center px-[20px] py-[12px]"
                         >
                           {/* Critical dot */}
                           <div className="flex items-center justify-center">

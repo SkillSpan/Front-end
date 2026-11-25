@@ -1,4 +1,107 @@
-.learner-content{height:100%;min-height:0;min-width:0;overflow:auto}
+.learner-content{height:100%;min-height:0;min-width:0;overflow:auto;container:learner-workspace / inline-size}
+
+.learner-content .role-card-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.learner-content .talent-card-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+}
+
+.learner-content .roadmap-table-row {
+  min-inline-size: 980px;
+  gap: 8px;
+  grid-template-columns: 18px minmax(150px, 1fr) 82px 82px 58px 78px 78px 90px 96px 20px;
+}
+
+.learner-content .role-requirements > :first-child,
+.learner-content .role-requirements > div:not(:first-child) {
+  min-inline-size: 560px;
+}
+
+@container learner-workspace (max-width: 900px) {
+  .learner-content .role-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .learner-content .workspace-panes:not(.support-panes) {
+    display: block;
+    overflow-y: auto;
+  }
+
+  .learner-content .workspace-panes:not(.support-panes) > * {
+    inline-size: 100%;
+    border-inline: 0;
+  }
+
+  .learner-content .project-list-with-preview,
+  .learner-content .talent-panes > :first-child,
+  .learner-content .mentor-panes > :first-child {
+    max-block-size: 16rem;
+    overflow-y: auto;
+  }
+
+  .learner-content .mentor-panes > :last-child {
+    min-block-size: 20rem;
+  }
+}
+
+@container learner-workspace (max-width: 620px) {
+  .learner-content .role-card-grid,
+  .learner-content .role-readiness-grid,
+  .learner-content .grid-cols-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .learner-content .role-readiness-grid > * {
+    grid-column: 1;
+  }
+
+  .learner-content .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .learner-content .role-tabs {
+    flex-wrap: wrap;
+  }
+
+  .learner-content .role-tabs > button {
+    flex: 1 0 auto;
+    justify-content: center;
+    padding-inline: 8px;
+  }
+
+  .learner-content .saved-role-layout {
+    flex-direction: column;
+  }
+
+  .learner-content .support-panes {
+    flex-direction: column;
+  }
+
+  .learner-content .support-panes > :first-child {
+    inline-size: 100%;
+    max-block-size: 30%;
+    border-inline: 0;
+    border-block-end: 1px solid #e8eaf0;
+  }
+}
+
+@container learner-workspace (max-width: 360px) {
+  .learner-content .grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .learner-content .role-card-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .learner-content .role-card-stats > :last-child {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
 .learner-loading{position:fixed;right:20px;top:78px;z-index:150;background:#fff;border:1px solid #e8eaf0;border-radius:8px;padding:8px 12px;font-size:12px;color:#64748b;box-shadow:0 3px 12px rgba(0,0,0,.08)}
 .learner-api-note{position:fixed;right:20px;bottom:16px;z-index:150;max-width:460px;background:#fff8e6;border:1px solid #f2d38b;color:#8a6500;border-radius:10px;padding:10px 12px;font-size:11px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
 @media(max-width:700px){.learner-loading{right:10px;top:70px}.learner-api-note{right:10px;left:74px;max-width:none}}

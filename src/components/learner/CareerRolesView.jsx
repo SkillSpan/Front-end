@@ -466,7 +466,7 @@ function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSele
         {onGoalSelect && <CareerGoalControl key={role.id} role={role} currentGoalId={currentGoalId} onSelect={onGoalSelect} onCalculate={onGoalCalculate} busy={goalBusy} />}
 
         {/* Readiness Context */}
-        <div className="mt-[20px] grid grid-cols-3 gap-[16px]">
+        <div className="role-readiness-grid mt-[20px] grid grid-cols-3 gap-[16px]">
           <div className="col-span-1 flex flex-col items-center justify-center bg-[#f8f9ff] rounded-[12px] p-[20px] border border-[#eef0f8]">
             <div className="relative mb-[8px]">
               <ReadinessGauge score={readiness ?? 0} size={80} />
@@ -547,7 +547,7 @@ function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSele
       </div>
 
       {/* Skill Requirements */}
-      <div className="rounded-[16px] border border-[#e8eaf0] bg-white overflow-hidden mb-[16px]">
+      <div className="rounded-[16px] border border-[#e8eaf0] bg-white overflow-x-auto mb-[16px] role-requirements" role="region" aria-label="Skill requirements" tabIndex={0}>
         <div className="flex items-center justify-between px-[20px] py-[16px] border-b border-[#f1f3fa]">
           <div>
             <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#0a0b14]">Skill Requirements</h3>
@@ -680,7 +680,7 @@ function RoleCard({ role, onSelect, onSaveToggle, requirements: loadedRequiremen
       </div>
 
       {/* Stats row */}
-      <div className="flex items-center gap-[12px] pt-[4px] border-t border-[#f1f3fa]">
+      <div className="role-card-stats flex items-center gap-[12px] pt-[4px] border-t border-[#f1f3fa]">
         <div className="flex-1">
           <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Skills required</p>
           <p data-testid="card-skill-count" className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
@@ -794,7 +794,7 @@ function BrowseRoles({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-[16px] mb-[32px]">
+        <div className="role-card-grid grid gap-[16px] mb-[32px]">
           {filtered.map((role) => (
             <RoleCard key={role.id} role={role} onSelect={() => onSelect(role.id)} onSaveToggle={onSaveToggle} requirements={requirementsById[role.id] ?? null} />
           ))}
@@ -958,7 +958,7 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
               key={role.id}
               className="bg-white border border-[#e8eaf0] rounded-[14px] p-[20px] hover:border-[rgba(59,139,255,0.2)] transition-all"
             >
-              <div className="flex items-start gap-[16px]">
+              <div className="saved-role-layout flex items-start gap-[16px]">
                 <div className="flex-1">
                   <div className="flex items-center gap-[8px] mb-[6px]">
                     <span
@@ -977,7 +977,7 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                   <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[16px] text-[#0a0b14] mb-[12px]">
                     {role.title}
                   </h3>
-                  <div className="flex items-center gap-[24px]">
+                  <div className="flex flex-wrap items-center gap-[16px]">
                     <div>
                       <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[4px]">
                         Readiness Score
@@ -1470,7 +1470,7 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
 
         {/* Tabs */}
         {!selectedRole && (
-          <div className="flex items-center gap-[4px] mt-[20px] bg-[#f1f3fa] p-[4px] rounded-[10px] w-fit">
+          <div className="role-tabs flex items-center gap-[4px] mt-[20px] bg-[#f1f3fa] p-[4px] rounded-[10px] w-fit">
             {tabs.map((tab) => (
               <button
                 key={tab.key}

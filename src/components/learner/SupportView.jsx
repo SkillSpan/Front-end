@@ -419,7 +419,7 @@ export default function SupportView({ initialRequestId = null }) {
         </div>
       )}
 
-      <div className="flex flex-1 min-h-0 min-w-0 overflow-hidden">
+      <div className="workspace-panes support-panes flex flex-1 min-h-0 min-w-0 overflow-hidden">
         {/* Requests list */}
         <div className="w-[290px] shrink-0 bg-white border-r border-[#e8eaf0] flex flex-col min-h-0">
           <div className="px-[14px] py-[10px] border-b border-[#e8eaf0] shrink-0">

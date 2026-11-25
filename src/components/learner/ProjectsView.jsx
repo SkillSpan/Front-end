@@ -1086,10 +1086,10 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden flex">
+      <div className="workspace-panes flex-1 overflow-hidden flex">
         {/* Left: project list */}
         <div
-          className={`overflow-y-auto px-[32px] py-[20px] flex flex-col gap-[16px] transition-all ${selectedProject && isLoaded ? "w-[520px] shrink-0" : "flex-1"}`}
+          className={`overflow-y-auto px-[32px] py-[20px] flex flex-col gap-[16px] transition-all ${selectedProject && isLoaded ? "project-list-with-preview w-[520px] shrink-0" : "flex-1"}`}
         >
           
           
