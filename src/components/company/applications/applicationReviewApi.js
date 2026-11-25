@@ -10,6 +10,7 @@
 import { apiKey } from '../../../cache/queryCache';
 import { mockDecide, mockGetApplication, mockListApplications, DECISION_FROM } from '../projects/mockBackend';
 import { idempotencyHeaders, liveCall, normalizePage, previewCall, toQuery, unwrapApiData } from '../projects/api/shared';
+import { safeExternalUrl } from '../../../utils/safeUrl';
 
 export const REVIEW_ENDPOINTS = {
   // TODO(api): sprint doc US-MATCH-03 API — confirm.
@@ -92,7 +93,7 @@ export function normalizeApplication(a = {}) {
     project: p.id != null ? { id: p.id, title: p.title, status: p.status, version: p.version ?? null, capacity: normalizeCapacity(p) } : null,
     applicant: a.applicant || null,
     answers: Array.isArray(a.answers) ? a.answers : [],
-    portfolioUrl: a.portfolio_url || null,
+    portfolioUrl: safeExternalUrl(a.portfolio_url, { httpsOnly: true }),
     skills: (a.skills || []).map((s) => ({
       id: s.skill_id ?? s.id, name: s.skill_name ?? s.name ?? '', level: s.level ?? null,
       required: s.required_level ?? null, critical: Boolean(s.is_critical_entry), verification: s.verification_state ?? null,
