@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './Dashboard.css';
+import './learnerShell.css';
 
 // A fresh `[]` default would give the prop a new identity on every render and
 // make the sync below look like a change every time.
@@ -274,7 +275,7 @@ export default function AppLayout({
   };
 
   return (
-    <div className="app-shell">
+    <div className="app-shell ls">
       <aside className="app-sidebar">
         <button type="button" className="app-sidebar-brand" onClick={() => go('dashboard')} aria-label="Go to dashboard">
           <img className="brand-icon" src="/image/logo.png" alt="SkillSpan logo" />
