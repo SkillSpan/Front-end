@@ -3,6 +3,7 @@ import { askAssistant, reportAssistantInteraction, createSupportRequest, unwrapA
 import { useAuth } from "../auth/AuthContext";
 import { clearAssistantChat, loadAssistantChat, saveAssistantChat } from "./assistantChatStorage";
 import { getTextDirection, getTextLanguage } from "../../utils/textDirection";
+import { SafeBoldText } from "../../utils/safeContent";
 // ═══════════════════════════════════════════════════════════════════════════════
 // Sample context is shown only when explicitly enabled for development.
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
@@ -30,7 +31,7 @@ const CONTEXT_PILLS = DEMO_MODE ? [
   { icon: "🗺️", label: "Phase 3 Roadmap", color: "#059669" },
   { icon: "🔧", label: "3 projects matched", color: "#f59e0b" },
 ] : [];
-const CONVOS = {
+const _CONVOS = {
   welcome: [],
   readiness: [
     { id: "u1", role: "user", type: "text", ts: "14:31", text: "Why is my readiness score only 67?" },
@@ -672,10 +673,12 @@ function MessageBubble({ msg, onReport, onHandoff, onOpenSupport }) {
                 unicodeBidi: "plaintext",
                 overflowWrap: "anywhere",
               }}
-              dangerouslySetInnerHTML={{
-                __html: msg.text.replace(/\*\*(.+?)\*\*/g, '<strong dir="auto" style="font-weight:700;color:white;unicode-bidi:isolate">$1</strong>'),
-              }}
-            />
+            >
+              <SafeBoldText
+                text={msg.text}
+                strongStyle={{ fontWeight: 700, color: "white", unicodeBidi: "isolate" }}
+              />
+            </p>
           )}
           {msg.role === "assistant" && msg.handoffAvailable && !msg.handoffCreated && (
             <button type="button" onClick={() => onHandoff(msg.id)} className="mt-[10px] rounded-[8px] border border-[rgba(59,139,255,0.35)] bg-[rgba(59,139,255,0.12)] px-[10px] py-[7px] text-[11px] text-[#a9c8ff] hover:bg-[rgba(59,139,255,0.2)]">Contact human support</button>
@@ -841,15 +844,6 @@ function ContextPanel() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN VIEW
 // ═══════════════════════════════════════════════════════════════════════════════
-const DEMOS = [
-  { key: "welcome", label: "Welcome" },
-  { key: "readiness", label: "Readiness" },
-  { key: "skill-gap", label: "Skill Gap" },
-  { key: "roadmap", label: "Roadmap" },
-  { key: "project-rec", label: "Project Rec" },
-  { key: "uncertainty", label: "Uncertainty" },
-  { key: "unavailable", label: "Unavailable" },
-];
 export default function AssistantView({ onNavigate }) {
   const { authUser } = useAuth();
   const userId = authUser?.id ?? null;
@@ -858,7 +852,6 @@ export default function AssistantView({ onNavigate }) {
   const [messages, setMessages] = useState(() => (DEMO_MODE ? [] : loadAssistantChat(userId)));
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const [scenario, setScenario] = useState("welcome");
   const [fresh, setFresh] = useState(true);
   const [confirmClear, setConfirmClear] = useState(false);
   const bottomRef = useRef(null);
@@ -876,14 +869,7 @@ export default function AssistantView({ onNavigate }) {
     setMessages([]);
     clearAssistantChat(userId);
     setFresh(true);
-    setScenario("welcome");
     setConfirmClear(false);
-  }
-  function loadScenario(key) {
-    setScenario(key);
-    setMessages(DEMO_MODE ? (CONVOS[key] || []) : []);
-    setFresh(key === "welcome");
-    setTyping(false);
   }
   async function send(text, intent) {
     const question = text.trim();
@@ -898,7 +884,6 @@ export default function AssistantView({ onNavigate }) {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setFresh(false);
-    setScenario("welcome");
     setTyping(true);
     try {
       const selectedIntent = intent || inferAssistantIntent(question);

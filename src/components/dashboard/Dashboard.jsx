@@ -206,7 +206,6 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       const skillsAssessedCount = skillsMatrix.length > 0
         ? skillsMatrix.length
         : Number(readiness?.met_skills ?? 0);
-      const skillsAssessedNote = `of ${totalRequiredSkills} required`;
 
       // 4. Evidence / Record Items
       const totalEvidence = evidence.length;
@@ -373,11 +372,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
   };
 
   useEffect(() => {
-    let alive = true;
     loadDashboardData();
-    return () => {
-      alive = false;
-    };
   }, []);
 
   const { t } = useI18n();

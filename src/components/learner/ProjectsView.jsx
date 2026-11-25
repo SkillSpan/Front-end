@@ -159,7 +159,6 @@ function ProjectDetailPanel({ project, onClose }) {
   const [activeTab, setActiveTab] = useState("match");
   const tm = TYPE_META[project.type] ?? { emoji: "📌", label: project.type || "Not specified", color: "#64748b", bg: "rgba(100,116,139,0.08)", border: "rgba(100,116,139,0.2)" };
   const em = ELIG_META[project.eligibility] ?? { text: "text-[#64748b]", bg: "bg-[rgba(100,116,139,0.08)]", border: "border-[rgba(100,116,139,0.2)]", dot: "bg-[#64748b]", icon: "?" };
-  const dm = DIFF_META[project.difficulty] ?? { label: project.difficulty || "Not specified", color: "#64748b", dots: 0 };
   const matchedCount = project.skillMatches.filter((s) => s.matched).length;
   const gapCount = project.skillMatches.filter((s) => !s.matched).length;
   return (
@@ -871,7 +870,7 @@ function matchPatch(result) {
   };
 }
 
-export default function ProjectsView({ onOpenDetails, initialProjects = null, onApply, onMatch, roleLabel = "" }) {
+export default function ProjectsView({ onOpenDetails, initialProjects = null, onApply, onMatch, roleLabel = "", loading = false, error = "" }) {
   // Match results keyed by project id. Without this the "Check match" button
   // fired the request and threw the answer away, so every card stayed on
   // "Not evaluated" and the header always read "0 eligible".
@@ -965,6 +964,8 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
       setActionBusy(false);
     }
   };
+  if (loading) return <LoadingState />;
+  if (error) return <ErrorState />;
   return (
     <div className="flex flex-col h-full overflow-hidden bg-[#f1f3fa]">
       {projectData.length === 0 && <div role="status" className="mx-8 mt-5 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No projects are currently available from the server. Projects will appear here when data becomes available.</div>}

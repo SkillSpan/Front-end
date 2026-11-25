@@ -4,7 +4,7 @@ import { getSavedCareerRoles, saveSession, clearSession, setCareerRoleSaved } fr
 afterEach(() => { clearSession(); vi.unstubAllGlobals(); });
 
 it('uses authenticated GET/PUT/DELETE requests for persistent bookmarks', async () => {
-  saveSession({ token: 'bookmark-test-token', user: { id: 1 } });
+  saveSession({ user: { id: 1 } });
   const fetchMock = vi.fn().mockResolvedValue({
     ok: true, status: 200, json: async () => ({ success: true, data: [] }),
   });
@@ -19,6 +19,9 @@ it('uses authenticated GET/PUT/DELETE requests for persistent bookmarks', async 
   expect(calls[1][0]).toMatch(/\/api\/v1\/saved-career-roles\/99$/);
   expect(calls.map(([, options]) => options.method)).toEqual(['GET', 'PUT', 'DELETE', 'GET']);
   for (const [, options] of calls) {
-    expect(options.headers.Authorization).toBe('Bearer bookmark-test-token');
+    expect(options.credentials).toBe('include');
+    expect(options.headers.Authorization).toBeUndefined();
   }
+  expect(calls[1][1].headers['X-Requested-With']).toBe('XMLHttpRequest');
+  expect(calls[2][1].headers['X-Requested-With']).toBe('XMLHttpRequest');
 });

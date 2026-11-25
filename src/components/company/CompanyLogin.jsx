@@ -51,14 +51,14 @@ const CompanyLogin = ({ onBack, onSwitchToRegister, onSwitchToStudentLogin, onFo
       // POST /api/v1/auth/login/organization → { user, organizations, token,
       // token_type, redirect_url } (US-COMP-03 guide §7). redirect_url (e.g.
       // "/company/dashboard") says where to go; App.jsx honours it.
-      const { user, organizations, token, redirect_url: redirectUrl } = res.data || {};
+      const { user, organizations, redirect_url: redirectUrl } = res.data || {};
 
       // Persist the session in a same-site, path-scoped cookie (see
       // utils/cookies.js) instead of localStorage.
-      saveSession({ token, user, organizations });
+      saveSession({ user, organizations });
 
       setIsSubmitting(false);
-      if (onLoginSuccess) onLoginSuccess({ user, organizations, token, redirectUrl });
+      if (onLoginSuccess) onLoginSuccess({ user, organizations, redirectUrl });
     } catch (err) {
       setIsSubmitting(false);
       if (onPendingApproval && isPendingOrganizationError(err)) {

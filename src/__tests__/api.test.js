@@ -22,7 +22,7 @@ describe('api.js', () => {
     expect(getStoredUser()).toBeNull();
   });
 
-  it('saveSession persists the token and user, and isAuthenticated reflects it', async () => {
+  it('saveSession persists only user metadata and isAuthenticated reflects it', async () => {
     const { saveSession, isAuthenticated, getStoredUser, clearSession } = await import('../api');
 
     saveSession({
