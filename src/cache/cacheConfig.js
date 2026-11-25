@@ -53,7 +53,7 @@ export const CACHE_RULES = [
   { match: /^\/api\/v1\/organization\/profile$/, tags: ['org', 'profile'], staleTime: 60 * SECOND, maxAge: 10 * MINUTE },
   { match: /^\/api\/v1\/company\/dashboard/, tags: ['dashboard'], staleTime: 30 * SECOND, maxAge: 5 * MINUTE },
   { match: /^\/api\/v1\/notifications\/unread-count$/, tags: ['notifications', 'unread-count'], staleTime: 15 * SECOND, maxAge: 2 * MINUTE },
-  { match: /^\/api\/v1\/notifications\/preferences$/, tags: ['notification-preferences'], staleTime: 60 * SECOND, maxAge: 10 * MINUTE },
+  { match: /^\/api\/v1\/notifications\/preferences$/, tags: ['notification-preferences'], staleTime: 60 * SECOND, maxAge: 10 * MINUTE, transport: true },
   { match: /^\/api\/v1\/notifications$/, tags: ['notifications'], staleTime: 15 * SECOND, maxAge: 2 * MINUTE },
 
   // Company projects, applications and teams (Sprint 4: US-PRJ-01/02, US-MATCH-03/04).
@@ -79,6 +79,10 @@ export const CACHE_RULES = [
   { match: /^\/api\/v1\/projects\/[^/]+$/, tags: ['projects'], staleTime: 30 * SECOND, maxAge: 5 * MINUTE, transport: true },
   { match: /^\/api\/v1\/applications$/, tags: ['applications'], staleTime: 30 * SECOND, maxAge: 5 * MINUTE, transport: true },
   { match: /^\/api\/v1\/recommendations$/, tags: ['recommendations'], staleTime: 60 * SECOND, maxAge: 10 * MINUTE, transport: true },
+  { match: /^\/api\/v1\/skills\/matrix$/, tags: ['skills'], staleTime: 60 * SECOND, maxAge: 5 * MINUTE, transport: true },
+  { match: /^\/api\/v1\/evidence(\/[^/]+)?$/, tags: ['evidence'], staleTime: 60 * SECOND, maxAge: 5 * MINUTE, transport: true },
+  { match: /^\/api\/v1\/saved-career-roles$/, tags: ['saved-roles'], staleTime: 60 * SECOND, maxAge: 5 * MINUTE, transport: true },
+  { match: /^\/api\/v1\/learner\/messages$/, tags: ['messages'], staleTime: 15 * SECOND, maxAge: 2 * MINUTE, transport: true },
   { match: /^\/api\/v1\/talent\/filters$/, tags: ['talent'], staleTime: 5 * MINUTE, maxAge: 30 * MINUTE, transport: true },
 
   // Public reference lists (dropdowns). Same for everyone, change rarely.
@@ -134,6 +138,9 @@ export const INVALIDATION_MAP = [
   { match: /^\/api\/v1\/applications\//, invalidate: ['applications', 'projects', 'dashboard'] },
   { match: /^\/api\/v1\/projects(\/|$)/, invalidate: ['projects', 'dashboard'] },
   { match: /^\/api\/v1\/recommendations\//, invalidate: ['recommendations'] },
+  { match: /^\/api\/v1\/saved-career-roles\//, invalidate: ['saved-roles'] },
+  { match: /^\/api\/v1\/skills(\/|$)/, invalidate: ['skills', 'evidence', 'recommendations', 'projects'] },
+  { match: /^\/api\/v1\/evidence(\/|$)/, invalidate: ['evidence', 'skills', 'recommendations', 'projects'] },
   { match: /^\/api\/v1\/(evidence|skills|intelligence|readiness|baseline-assessments)(\/|$)/, invalidate: ['recommendations', 'projects'] },
   { match: /^\/api\/v1\/profile(\/|$)/, invalidate: ['profile', 'recommendations', 'projects'] },
 ];

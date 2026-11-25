@@ -36,9 +36,9 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
   const [view, setView] = useState(initialView);
   const [loading, setLoading] = useState(() => !cachedWorkspaceAnswer('/api/v1/profile'));
   const [apiError, setApiError] = useState('');
-  const [roles, setRoles] = useState([]);
+  const [roles, setRoles] = useState(() => collection(cachedWorkspaceAnswer('/api/v1/career-roles?page=1&per_page=15')));
   const [projects, setProjects] = useState(() => collection(cachedWorkspaceAnswer('/api/v1/projects')));
-  const [recommendations, setRecommendations] = useState([]);
+  const [recommendations, setRecommendations] = useState(() => collection(cachedWorkspaceAnswer('/api/v1/recommendations?page=1&per_page=15')));
   const [readiness, setReadiness] = useState(null);
   const [activeCareerRole, setActiveCareerRole] = useState(null);
   const [intelligence, setIntelligence] = useState(null);
