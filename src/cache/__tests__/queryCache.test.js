@@ -11,7 +11,7 @@ import {
   settingsFor,
   subscribe,
 } from '../queryCache';
-import { CACHE_DEFAULTS, invalidationFor } from '../cacheConfig';
+import { CACHE_DEFAULTS, cacheRuleFor, invalidationFor } from '../cacheConfig';
 
 const PROFILE = apiKey('/api/v1/profile/me');
 const ORG = apiKey('/api/v1/organization/profile');
@@ -44,6 +44,28 @@ describe('cache keys', () => {
     expect(settingsFor(PROFILE)).toMatchObject({ staleTime: 60000, maxAge: 600000, tags: ['profile'] });
     expect(settingsFor(NOTIFS).tags).toContain('notifications');
     expect(settingsFor('GET /api/v1/unknown')).toMatchObject(CACHE_DEFAULTS);
+  });
+
+  it('reuses learner profile and project lists on return, then refreshes after profile changes', async () => {
+    const learnerProfile = apiKey('/api/v1/profile');
+    const learnerProjects = apiKey('/api/v1/projects');
+    expect(cacheRuleFor('/api/v1/profile').transport).toBe(true);
+    expect(cacheRuleFor('/api/v1/projects').transport).toBe(true);
+    const profileFetcher = vi.fn().mockResolvedValue({ data: { name: 'Learner' } });
+    const projectsFetcher = vi.fn().mockResolvedValue({ data: [{ id: 1 }] });
+    await fetchQuery(learnerProfile, profileFetcher);
+    await fetchQuery(learnerProjects, projectsFetcher);
+    expect(getQueryData(learnerProfile)).toEqual({ data: { name: 'Learner' } });
+    expect(getQueryData(learnerProjects)).toEqual({ data: [{ id: 1 }] });
+    await fetchQuery(learnerProfile, profileFetcher);
+    await fetchQuery(learnerProjects, projectsFetcher);
+    expect(profileFetcher).toHaveBeenCalledTimes(1);
+    expect(projectsFetcher).toHaveBeenCalledTimes(1);
+    invalidateAfterMutation('PATCH', '/api/v1/profile');
+    await fetchQuery(learnerProfile, profileFetcher);
+    await fetchQuery(learnerProjects, projectsFetcher);
+    expect(profileFetcher).toHaveBeenCalledTimes(2);
+    expect(projectsFetcher).toHaveBeenCalledTimes(2);
   });
 
   it('never cache auth endpoints', async () => {

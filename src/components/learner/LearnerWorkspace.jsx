@@ -16,6 +16,7 @@ import TalentDiscoveryView from './TalentDiscoveryView';
 import { getApplications, getCareerRoles, getLatestReadiness, getLatestIntelligence, getNotifications, getProfile, getProjects, getRecommendations, getUnreadNotificationCount, getCareerRoleById, fetchProfileAvatarUrl, unwrapApiData, updateProfile, calculateIntelligence } from '../../api';
 import { useAuth } from '../auth/AuthContext';
 import AppLayout from '../dashboard/AppLayout';
+import { apiKey, getEntry, getQueryData } from '../../cache/queryCache';
 import './learner-workspace.css';
 
 function collection(payload) {
@@ -25,18 +26,26 @@ function collection(payload) {
   return [];
 }
 
+function cachedWorkspaceAnswer(path) {
+  const key = apiKey(path);
+  return getEntry(key).invalidated ? undefined : getQueryData(key);
+}
+
 export default function LearnerWorkspace({ initialView='career-journey', onNavigate, onLogout }) {
   const { authUser } = useAuth();
   const [view, setView] = useState(initialView);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !cachedWorkspaceAnswer('/api/v1/profile'));
   const [apiError, setApiError] = useState('');
   const [roles, setRoles] = useState([]);
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState(() => collection(cachedWorkspaceAnswer('/api/v1/projects')));
   const [recommendations, setRecommendations] = useState([]);
   const [readiness, setReadiness] = useState(null);
   const [activeCareerRole, setActiveCareerRole] = useState(null);
   const [intelligence, setIntelligence] = useState(null);
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState(() => {
+    const cached = cachedWorkspaceAnswer('/api/v1/profile');
+    return cached ? unwrapApiData(cached) : null;
+  });
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [unread, setUnread] = useState(0);
   const [notifications, setNotifications] = useState([]);
@@ -149,7 +158,7 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
   useEffect(() => {
     const aliveRef = { current: true };
     (async () => {
-      setLoading(true); setApiError('');
+      setLoading(!cachedWorkspaceAnswer('/api/v1/profile')); setApiError('');
       try { await loadWorkspace(aliveRef); }
       finally { if (aliveRef.current) setLoading(false); }
     })();
