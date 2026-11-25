@@ -31,7 +31,7 @@ const CONTEXT_PILLS = DEMO_MODE ? [
   { icon: "🗺️", label: "Phase 3 Roadmap", color: "#059669" },
   { icon: "🔧", label: "3 projects matched", color: "#f59e0b" },
 ] : [];
-const CONVOS = {
+const _CONVOS = {
   welcome: [],
   readiness: [
     { id: "u1", role: "user", type: "text", ts: "14:31", text: "Why is my readiness score only 67?" },
@@ -844,15 +844,6 @@ function ContextPanel() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN VIEW
 // ═══════════════════════════════════════════════════════════════════════════════
-const DEMOS = [
-  { key: "welcome", label: "Welcome" },
-  { key: "readiness", label: "Readiness" },
-  { key: "skill-gap", label: "Skill Gap" },
-  { key: "roadmap", label: "Roadmap" },
-  { key: "project-rec", label: "Project Rec" },
-  { key: "uncertainty", label: "Uncertainty" },
-  { key: "unavailable", label: "Unavailable" },
-];
 export default function AssistantView({ onNavigate }) {
   const { authUser } = useAuth();
   const userId = authUser?.id ?? null;
@@ -861,7 +852,6 @@ export default function AssistantView({ onNavigate }) {
   const [messages, setMessages] = useState(() => (DEMO_MODE ? [] : loadAssistantChat(userId)));
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
-  const [scenario, setScenario] = useState("welcome");
   const [fresh, setFresh] = useState(true);
   const [confirmClear, setConfirmClear] = useState(false);
   const bottomRef = useRef(null);
@@ -879,14 +869,7 @@ export default function AssistantView({ onNavigate }) {
     setMessages([]);
     clearAssistantChat(userId);
     setFresh(true);
-    setScenario("welcome");
     setConfirmClear(false);
-  }
-  function loadScenario(key) {
-    setScenario(key);
-    setMessages(DEMO_MODE ? (CONVOS[key] || []) : []);
-    setFresh(key === "welcome");
-    setTyping(false);
   }
   async function send(text, intent) {
     const question = text.trim();
@@ -901,7 +884,6 @@ export default function AssistantView({ onNavigate }) {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setFresh(false);
-    setScenario("welcome");
     setTyping(true);
     try {
       const selectedIntent = intent || inferAssistantIntent(question);

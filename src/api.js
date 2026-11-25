@@ -23,9 +23,9 @@ const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 export const DEFAULT_API_BASE_URL = 'https://skillspan.alwaysdata.net';
 export const API_BASE_URL = (configuredApiBaseUrl || (import.meta.env.DEV ? DEFAULT_API_BASE_URL : '')).replace(/\/+$/, '');
 
-const TOKEN_COOKIE = 'skillspan_token';
+const LEGACY_TOKEN_COOKIE = 'skillspan_token';
 const USER_COOKIE = 'skillspan_user';
-const SESSION_DAYS = 7;
+const SESSION_DAYS = 14;
 
 // Listeners notified when the local session is cleared because the backend
 // told us it's no longer valid (a 401 on an authenticated endpoint that
@@ -61,17 +61,12 @@ export function expireSession() {
 // Session (cookie) helpers
 // ---------------------------------------------------------------------------
 
-export function saveSession({ token, user, organizations } = {}) {
-  if (token) setCookie(TOKEN_COOKIE, token, SESSION_DAYS);
+export function saveSession({ user, organizations } = {}) {
   if (user) {
     // A different user or organization → start from an empty cache.
     setCacheScope({ ...user, organizations: organizations || user.organizations || [] });
     setCookie(USER_COOKIE, JSON.stringify({ ...user, organizations: organizations || [] }), SESSION_DAYS);
   }
-}
-
-export function getToken() {
-  return getCookie(TOKEN_COOKIE);
 }
 
 export function getStoredUser() {
@@ -85,10 +80,10 @@ export function getStoredUser() {
 }
 
 // The cache belongs to whoever is signed in when the app loads.
-setCacheScope(getToken() ? getStoredUser() : null);
+setCacheScope(getStoredUser());
 
 export function isAuthenticated() {
-  return !!getToken();
+  return !!getStoredUser();
 }
 
 // Pulled in from the skill-matrix/career-roles branch merge - the backend
@@ -100,7 +95,8 @@ export function resolveLearnerId(user) {
 }
 
 export function clearSession() {
-  removeCookie(TOKEN_COOKIE);
+  // Remove the old JavaScript-readable token during the HttpOnly migration.
+  removeCookie(LEGACY_TOKEN_COOKIE);
   removeCookie(USER_COOKIE);
   // Logout / 401 / session expired: nothing cached may outlive the session.
   clearQueryCache();
@@ -169,13 +165,12 @@ async function rawRequest(
   }
   const headers = { Accept: 'application/json' };
   if (!isFormData) headers['Content-Type'] = 'application/json';
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(String(method).toUpperCase())) {
+    headers['X-Requested-With'] = 'XMLHttpRequest';
+  }
   // Off by default (src/cache/cacheConfig.js). When on, cache keys carry the
   // language too, so EN/AR answers are never mixed up.
   if (SEND_ACCEPT_LANGUAGE) headers['Accept-Language'] = currentLocale();
-  if (withAuth) {
-    const token = getToken();
-    if (token) headers.Authorization = `Bearer ${token}`;
-  }
   // Per-request extras, e.g. Idempotency-Key on Sprint 4 create / submit /
   // decision requests ("support safe retries", NFR-REL-03).
   if (extraHeaders) Object.assign(headers, extraHeaders);
@@ -203,7 +198,7 @@ async function rawRequest(
     response = await fetch(`${API_BASE_URL}${path}`, {
       method,
       headers,
-      credentials: 'omit',
+      credentials: 'include',
       signal: controller.signal,
       body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
     });
@@ -239,7 +234,7 @@ async function rawRequest(
   }
 
   if (!response.ok) {
-    // 401 from an authenticated endpoint means the Laravel session/token
+    // 401 from an authenticated endpoint means the Laravel session
     // is no longer valid. Drop the local session and notify subscribers
     // (AuthContext) so the user is bounced to login. We exclude the
     // unauthenticated auth endpoints themselves - a 401 from /login is a
@@ -416,13 +411,13 @@ export const verifyForgotPasswordOtp = (email, otp) =>
 // Logout
 // ---------------------------------------------------------------------------
 // Confirmed against the backend's routes/api.php (see api_endpoints_render.md).
-// Both require Authorization: Bearer {token}, which `request()` adds via withAuth.
+// Both require the HttpOnly authentication cookie sent by `request()`.
 
-// Revokes only the current session's token on the server.
+// Revokes only the current session on the server.
 export const logoutUser = () =>
   request('/api/v1/auth/logout', { method: 'POST', withAuth: true });
 
-// Revokes every active session/token for this account (all devices).
+// Revokes every active session for this account (all devices).
 export const logoutAllDevices = () =>
   request('/api/v1/auth/logout-all', { method: 'POST', withAuth: true });
 
@@ -454,7 +449,7 @@ export const deactivateOrganization = (organizationId, payload = {}) =>
 // Learner profile (role:learner only)
 // ---------------------------------------------------------------------------
 // Confirmed against the backend's routes/api.php (see api_endpoints_render.md):
-// POST/GET/PUT /api/v1/profile, all requiring Authorization: Bearer {token}.
+// POST/GET/PUT /api/v1/profile, all requiring an authenticated session.
 //
 // Confirmed field contract (learner-profile task):
 //   university_name            (free text - university name)
@@ -496,13 +491,12 @@ export const deleteProfileAvatar = () =>
   request('/api/v1/profile/avatar', { method: 'DELETE', withAuth: true });
 
 export const fetchProfileAvatarUrl = async () => {
-  const token = getToken();
-  if (!API_BASE_URL || !token) return null;
+  if (!API_BASE_URL || !isAuthenticated()) return null;
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/profile/avatar`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
-      credentials: 'omit',
+      headers: { Accept: 'image/*' },
+      credentials: 'include',
     });
     if (!response.ok) return null;
     const blob = await response.blob();
@@ -513,7 +507,7 @@ export const fetchProfileAvatarUrl = async () => {
 };
 
 // ---------------------------------------------------------------------------
-// Baseline Assessments (role:learner only, requires Authorization: Bearer {token})
+// Baseline Assessments (role:learner only, requires an authenticated session)
 // ---------------------------------------------------------------------------
 // Confirmed against SkillSpan_New_Endpoints.pdf (an addendum to
 // api_endpoints_render.md - these routes come straight from routes/api.php
@@ -571,7 +565,7 @@ export const getUniversitiesByCountry = (country) =>
   request(`/api/v1/reference/countries/${encodeURIComponent(country)}/universities`, { method: 'GET' });
 
 // ---------------------------------------------------------------------------
-// Skills (requires Authorization: Bearer {token})
+// Skills (requires an authenticated session)
 // ---------------------------------------------------------------------------
 // Confirmed against SkillSpan_New_Endpoints.pdf. The Skill Matrix is what
 // SkillAssessmentResults.jsx calls "Initializing Skill Matrix" (BR-11) -
@@ -591,7 +585,7 @@ export const updateSkillMatrixEntry = (id, payload) =>
 // Removes a skill from the signed-in learner's matrix.
 //   DELETE /api/v1/learner/skills/{skill_id}
 // `skillId` is the id from the `skills` table (e.g. 20 for Python), NOT the
-// learner_skills row id. The learner comes from the token, so no learner_id is
+// learner_skills row id. The learner comes from the session, so no learner_id is
 // sent. Only the learner<->skill link is removed, never the skill itself.
 // (DELETE /api/v1/skills/matrix/{id} is not supported by the backend - PUT only.)
 export const deleteLearnerSkill = (skillId) =>
@@ -605,7 +599,7 @@ export const deleteLearnerSkill = (skillId) =>
 export const upsertSkillMatrix = addSkillToMatrix;
 
 // ---------------------------------------------------------------------------
-// Evidence (requires Authorization: Bearer {token})
+// Evidence (requires an authenticated session)
 // ---------------------------------------------------------------------------
 // Confirmed against SkillSpan_Full_API_Reference.pdf / EvidenceController.
 
@@ -634,7 +628,7 @@ export const reviewEvidence = (id, verificationStatus, reviewerNotes) =>
   });
 
 // ---------------------------------------------------------------------------
-// Career roles (requires Authorization: Bearer {token}, role:learner)
+// Career roles (requires an authenticated learner session)
 // ---------------------------------------------------------------------------
 // Confirmed against CareerRoleController.php - GET /, GET /{id}, and
 // GET /{id}/skills are all implemented and registered under
@@ -671,7 +665,7 @@ export const getCareerRoleSkills = (id) =>
   request(`/api/v1/career-roles/${id}/skills`, { method: 'GET', withAuth: true });
 
 // ---------------------------------------------------------------------------
-// Learner inbox (requires Authorization: Bearer {token}, role:learner)
+// Learner inbox (requires an authenticated learner session)
 // Read-only by contract: companies write, the learner reads. There is no
 // reply, accept or decline endpoint on purpose.
 // ---------------------------------------------------------------------------
@@ -685,7 +679,7 @@ export const getLearnerMessages = ({ page, perPage } = {}) => {
 };
 
 // ---------------------------------------------------------------------------
-// Readiness (requires Authorization: Bearer {token}, role:learner)
+// Readiness (requires an authenticated learner session)
 // ---------------------------------------------------------------------------
 
 export const calculateReadiness = (payload) =>
@@ -811,7 +805,7 @@ export const patchNotificationRead = (id) => request(`/api/v1/notifications/${id
  * Authenticated JSON request for the Sprint 4 company modules
  * (src/components/company/projects|applications|team/*Api.js). Each module
  * keeps its own endpoint constants, so re-pointing a route is a one-line
- * change there. Same client as every other call: Bearer token, 401 ->
+ * change there. Same client as every other call: HttpOnly session cookie, 401 ->
  * session expired, cache invalidation, api.js error shape.
  */
 export const companyRequest = (path, { method = 'GET', body, headers, cache } = {}) =>
@@ -839,7 +833,7 @@ export const getCompanyDashboard = () =>
 // PATCH /api/v1/profile/me                       → partial update (changed fields only)
 // POST  /api/v1/company/profile/documents        → multipart: type + file (upload / replace)
 // GET   /api/v1/company/profile/documents/{id}   → the file itself (attachment)
-// All need Bearer <token>, a company_admin account and a verified organization.
+// All need an authenticated company_admin session and a verified organization.
 // Field mapping and the 422 → field-error handling:
 // src/components/company/profile/companyProfileApi.js
 export const getCompanyProfile = () => request('/api/v1/profile/me', { withAuth: true });
@@ -856,11 +850,9 @@ export async function downloadCompanyDocument(url) {
   }
   const path = /^https?:\/\//i.test(url) ? url : `${API_BASE_URL}${url}`;
   const headers = { Accept: 'application/json, application/octet-stream, */*' };
-  const token = getToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
   let response;
   try {
-    response = await fetch(path, { method: 'GET', headers, credentials: 'omit' });
+    response = await fetch(path, { method: 'GET', headers, credentials: 'include' });
   } catch (cause) {
     throw { status: 0, message: 'Unable to reach the server. Check your internet connection and try again.', errors: {}, cause };
   }
@@ -891,10 +883,10 @@ export function uploadCompanyProfileDocument(formData, { onProgress, signal } = 
     }
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API_BASE_URL}${path}`);
+    xhr.withCredentials = true;
     xhr.setRequestHeader('Accept', 'application/json');
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
     if (SEND_ACCEPT_LANGUAGE) xhr.setRequestHeader('Accept-Language', currentLocale());
-    const token = getToken();
-    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     if (onProgress && xhr.upload) {
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));

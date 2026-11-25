@@ -524,7 +524,6 @@ const PHASES_META = [
 // ── Milestone card ────────────────────────────────────────────────────────────
 function MilestoneCard({ m }) {
     const ms = MS[m.status];
-    const pt = PT[m.phase];
     return (<div className={`rounded-[14px] border-2 ${ms.border} p-[18px] flex gap-[14px]`} style={{ background: ms.bg.replace("bg-", "") || undefined }}>
       {/* Badge */}
       <div className="w-[46px] h-[46px] rounded-[12px] flex items-center justify-center text-[20px] shrink-0 border" style={{ background: ms.badgeBg, borderColor: ms.ring + "40" }}>
@@ -559,7 +558,6 @@ function ActionCard({ action }) {
     const [open, setOpen] = useState(action.isNBA ?? false);
     const st = ST[action.status];
     const tm = TM[action.type];
-    const pt = PT[action.phase];
     const isBlocked = action.status === "Blocked";
     const isDone = action.status === "Completed";
     return (<div className={`border rounded-[14px] overflow-hidden bg-white transition-all

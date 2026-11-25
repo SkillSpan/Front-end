@@ -14,23 +14,6 @@ const RegisterStep1 = ({ onNextSuccess, onNavigateToLogin, initialData, initialE
   const [showPassword, setShowPassword] = useState(false);
   const [checking, setChecking] = useState(false);
 
-  // Generate a strong password
-  const generatePassword = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-    let generated = '';
-    for (let i = 0; i < 12; i++) {
-      generated += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setFormData((prev) => ({
-      ...prev,
-      password: generated,
-      confirmPassword: generated,
-    }));
-    if (errors.password || errors.confirmPassword) {
-      setErrors((prev) => ({ ...prev, password: '', confirmPassword: '' }));
-    }
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
