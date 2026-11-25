@@ -6,13 +6,14 @@ import ProjectsView from './ProjectsView';
 import ProjectDetailsView from './ProjectDetailsView';
 import AssistantView from './AssistantView';
 import MessagesView from './MessagesView';
+import MentorView from './MentorView';
 import SupportView from './SupportView';
 import ProfileView from './ProfileView';
 import SettingsView from './SettingsView';
 import SupportFab from './SupportFab';
 import SupportWaitingToast, { SUPPORT_CREATED_EVENT } from './SupportWaitingToast';
 import TalentDiscoveryView from './TalentDiscoveryView';
-import { getApplications, getCareerRoles, getLatestReadiness, getLatestIntelligence, getNotifications, getProfile, getProjects, getUnreadNotificationCount, getCareerRoleById, fetchProfileAvatarUrl, unwrapApiData, updateProfile, calculateIntelligence } from '../../api';
+import { getApplications, getCareerRoles, getLatestReadiness, getLatestIntelligence, getNotifications, getProfile, getProjects, getRecommendations, getUnreadNotificationCount, getCareerRoleById, fetchProfileAvatarUrl, unwrapApiData, updateProfile, calculateIntelligence } from '../../api';
 import { useAuth } from '../auth/AuthContext';
 import AppLayout from '../dashboard/AppLayout';
 import './learner-workspace.css';
@@ -31,6 +32,7 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
   const [apiError, setApiError] = useState('');
   const [roles, setRoles] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
   const [readiness, setReadiness] = useState(null);
   const [activeCareerRole, setActiveCareerRole] = useState(null);
   const [intelligence, setIntelligence] = useState(null);
@@ -54,13 +56,13 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
     const goalId = profileData?.primary_career_role_id ?? null;
     const scope = { careerRoleId: goalId };
     const results = await Promise.allSettled([
-      getCareerRoles({ page: 1, perPage: 15 }), getProjects(),
+      getCareerRoles({ page: 1, perPage: 15 }), getProjects(), getRecommendations({ page: 1, perPage: 15 }),
       goalId == null ? Promise.resolve(null) : getLatestReadiness(scope),
       goalId == null ? Promise.resolve(null) : getLatestIntelligence(scope),
       getUnreadNotificationCount(), getApplications({ page: 1, perPage: 20 }), getNotifications({ page: 1, perPage: 10 })
     ]);
     if (aliveRef && !aliveRef.current) return;
-    const [rr, pj, rd, intel, un, , notifs] = results;
+    const [rr, pj, rec, rd, intel, un, , notifs] = results;
     if (pr.status === 'fulfilled') {
       const row = unwrapApiData(pr.value);
       setProfile(row);
@@ -75,6 +77,7 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
     }
     if (rr.status === 'fulfilled') setRoles(collection(rr.value));
     if (pj.status === 'fulfilled') setProjects(collection(pj.value));
+    if (rec.status === 'fulfilled') setRecommendations(collection(rec.value));
     // `getLatestReadiness` / `getLatestIntelligence` resolve to `null` when the
     // learner has no snapshot yet (the API answers 404). That is not a load
     // failure — it must not land in `apiError`, and it must not stop the rest of
@@ -118,6 +121,7 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
       setReadiness(null);
       setIntelligence(null);
       setProjects([]);
+      setRecommendations([]);
       setProjectDetails(false);
       return await loadWorkspace();
     } finally {
@@ -156,6 +160,7 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
   const readinessScore = Number(readiness?.score ?? readiness?.readiness_score ?? 0) || 0;
   const rolePayload = activeCareerRole?.career_role ?? activeCareerRole?.role ?? activeCareerRole;
   const roleLabel = rolePayload?.title || readiness?.role_title || readiness?.roleTitle || '';
+  const title = useMemo(() => user?.name || user?.full_name || 'Learner', [user]);
 
   useEffect(() => {
     setView(initialView);

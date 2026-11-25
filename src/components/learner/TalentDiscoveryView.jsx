@@ -81,7 +81,7 @@ function HiddenField({ label }) {
   );
 }
 // ── Student Talent Card ───────────────────────────────────────────────────────
-function TalentCard({ student, selected, onClick }) {
+function TalentCard({ student, selected, onClick, scene }) {
   const isLocked = student.visibility === "locked";
   const isPartial = student.visibility === "partial";
   return (
@@ -721,6 +721,7 @@ function ContactDialog({ student, onClose, onConfirm, sent }) {
 export default function TalentDiscoveryView() {
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [contactError, setContactError] = useState("");
   const [contactSubmitting, setContactSubmitting] = useState(false);
   useEffect(() => {
@@ -751,7 +752,7 @@ export default function TalentDiscoveryView() {
           skills
         };
       }).filter((row) => row.id));
-    }).catch(() => { if (active) setStudents([]); }).finally(() => { if (active) setLoadingStudents(false); });
+    }).catch((error) => { if (active) setLoadError(error?.message || "Unable to load talent recommendations."); }).finally(() => { if (active) setLoadingStudents(false); });
     return () => { active = false; };
   }, []);
   const [scene, setScene] = useState("normal");
@@ -796,7 +797,7 @@ export default function TalentDiscoveryView() {
     if (sortBy === "match") list.sort((a, b) => b.matchScore - a.matchScore);
     else if (sortBy === "readiness") list.sort((a, b) => b.readiness - a.readiness);
     return list;
-  }, [students, searchQ, trackFilter, minReadiness, sortBy, loadingStudents]);
+  }, [students, scene, searchQ, trackFilter, minReadiness, sortBy, loadingStudents]);
   return (
     <div className="flex flex-col flex-1 min-h-0 min-w-0 overflow-hidden bg-[#f1f3fa]">
       {/* Header */}
@@ -1023,6 +1024,7 @@ export default function TalentDiscoveryView() {
                     setSelectedStudentId(selectedStudentId === s.id ? null : s.id);
                     if (scene !== "contact-dialog" && scene !== "contact-sent") setScene("normal");
                   }}
+                  scene={scene}
                 />
               ))}
             </div>

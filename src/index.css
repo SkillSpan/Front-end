@@ -1,4 +1,0 @@
-/* Generate the Tailwind utilities used throughout the React views locally.
- * Preflight remains disabled in tailwind.config.js so these utilities do not
- * reset or override the application's established component CSS. */
-@tailwind utilities;

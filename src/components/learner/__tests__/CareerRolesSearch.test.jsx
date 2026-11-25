@@ -36,6 +36,8 @@ const PAGE_ONE = Array.from({ length: 15 }, (_, i) => ({
 // Page 2 of the catalog — this is the row that used to be invisible.
 const LATER_PAGE_ROLE = { id: 99, title: 'Data Analyst' };
 
+const searchFirstPage = (term) => ({ data: { data: [{ id: 99, title: term }], total: 1 } });
+
 describe('learner career roles — server-side search', () => {
   beforeEach(() => vi.clearAllMocks());
 

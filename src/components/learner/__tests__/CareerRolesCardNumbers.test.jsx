@@ -54,7 +54,7 @@ const MATRIX = {
   ],
 };
 
-const byRole = () =>
+const byRole = (id) =>
   getCareerRoleSkills.mockImplementation(async (roleId) =>
     Number(roleId) === 146 ? SKILLS_146 : SKILLS_147,
   );

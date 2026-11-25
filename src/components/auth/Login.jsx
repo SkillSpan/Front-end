@@ -70,15 +70,15 @@ const Login = ({
     setErrors({});
   };
 
-  async function handleGoogleCredential(credential, setGoogleError) {
+  const handleGoogleCredential = async (credential) => {
     setGoogleError('');
     setIsGoogleSubmitting(true);
     try {
       const res = await loginWithGoogle(credential, false, false);
-      const { user, organizations } = res.data || res;
-      saveSession({ user, organizations });
+      const { user, organizations, token } = res.data || res;
+      saveSession({ token, user, organizations });
       setIsGoogleSubmitting(false);
-      if (onLoginSuccess) onLoginSuccess({ user, organizations, role: 'student' });
+      if (onLoginSuccess) onLoginSuccess({ user, organizations, token, role: 'student' });
     } catch (err) {
       setIsGoogleSubmitting(false);
       if (isTermsRequiredError(err)) {
@@ -89,9 +89,9 @@ const Login = ({
       }
       setGoogleError(err.message || 'Google sign-in failed. Please try again.');
     }
-  }
+  };
 
-  const { wrapRef: googleWrapRef, overlayRef: googleOverlayRef, error: googleError } =
+  const { wrapRef: googleWrapRef, overlayRef: googleOverlayRef, error: googleError, setError: setGoogleError } =
     useGoogleSignIn(handleGoogleCredential, GOOGLE_LOGIN_ENABLED);
 
   const handleChange = (e) => {
@@ -135,12 +135,12 @@ const Login = ({
       const res = role === 'company'
         ? await loginOrganization(formData.email.trim(), formData.password)
         : await loginUser(formData.email.trim(), formData.password);
-      const { user, organizations } = res.data || res;
+      const { user, organizations, token } = res.data || res;
 
-      saveSession({ user, organizations });
+      saveSession({ token, user, organizations });
 
       setIsSubmitting(false);
-      if (onLoginSuccess) onLoginSuccess({ user, organizations, role });
+      if (onLoginSuccess) onLoginSuccess({ user, organizations, token, role });
     } catch (err) {
       setIsSubmitting(false);
       // Surface Laravel's field-level validation errors (422) when present,
