@@ -1,5 +1,16 @@
-// Stores non-sensitive UI session metadata only. The backend owns the actual
-// authentication credential in an HttpOnly cookie that JavaScript cannot read.
+// utils/cookies.js
+// Small cookie helper used to persist the auth session on the client.
+//
+// Notes on "secure cookie handling":
+// - The API returns the auth token in the JSON body (not as a Set-Cookie
+//   header), so a browser script can't create a true httpOnly cookie for it
+//   — only the server can do that. We still store it in a cookie instead of
+//   localStorage so it isn't reachable by things like localStorage-scraping
+//   snippets or synced across tabs via the `storage` event, and so it always
+//   carries the Secure / SameSite=Strict / Path=/ attributes below.
+// - `Secure` is only added when the app is actually served over HTTPS,
+//   otherwise the cookie would silently be rejected by the browser on
+//   http://localhost during development.
 
 const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
 

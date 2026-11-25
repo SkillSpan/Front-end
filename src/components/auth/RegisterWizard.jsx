@@ -79,8 +79,8 @@ function RegisterWizard() {
       // session (Google verified the email, so there's no OTP step) -
       // save it and go straight into Profile Setup, same as the manual
       // signup path below does once it has a session of its own.
-      const { user, organizations } = step3Data.response?.data || step3Data.response || {};
-      saveSession({ user, organizations });
+      const { user, organizations, token } = step3Data.response?.data || step3Data.response || {};
+      saveSession({ token, user, organizations });
       login(user);
       navigate('/register/profile');
       return;
@@ -104,8 +104,8 @@ function RegisterWizard() {
     if (registerData.email && registerData.password) {
       try {
         const res = await loginUser(registerData.email, registerData.password);
-        const { user, organizations } = res.data || res;
-        saveSession({ user, organizations });
+        const { user, organizations, token } = res.data || res;
+        saveSession({ token, user, organizations });
         login(user);
         navigate('/register/profile');
         return;

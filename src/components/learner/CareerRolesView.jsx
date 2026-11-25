@@ -832,7 +832,7 @@ function BrowseRoles({
   );
 }
 // ── SuggestedRolesSection ─────────────────────────────────────────────────────
-function SuggestedRolesSection({ roles, onSelect }) {
+function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
   const suggested = roles.filter((r) => r.isSuggested);
   return (
     <div>
@@ -1043,7 +1043,7 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
   );
 }
 // ── CompareView ────────────────────────────────────────────────────────────────
-function CompareView({ roles }) {
+function CompareView({ roles, onSelect }) {
   const saved = roles.filter((r) => r.isSaved);
   const [selected, setSelected] = useState(saved.slice(0, 2).map((r) => r.id));
   const compareRoles = roles.filter((r) => selected.includes(r.id));
@@ -1189,6 +1189,7 @@ function CompareView({ roles }) {
                             </td>
                           );
                         const colors = skillGapColor(skill.currentLevel, skill.requiredLevel);
+                        const met = skill.currentLevel >= skill.requiredLevel;
                         return (
                           <td key={role.id} className="px-[16px] py-[11px] text-center">
                             <div className="flex flex-col items-center gap-[4px]">

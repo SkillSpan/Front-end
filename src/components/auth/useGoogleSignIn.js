@@ -14,24 +14,21 @@ import { GOOGLE_CLIENT_ID } from '../../config';
  * sees) and trigger the normal Google Sign-In popup; our custom button
  * underneath is purely decorative (pointer-events: none).
  *
- * @param {(credential: string, setError: (message: string) => void) => void} onCredential
- *   called with the Google ID token and the hook's error setter
+ * @param {(credential: string) => void} onCredential called with the
+ *   Google ID token once the user completes sign-in
  * @param {boolean} enabled whether Google Sign-In should be wired up at all
  */
 export function useGoogleSignIn(onCredential, enabled) {
   const wrapRef = useRef(null); // the visible custom button's wrapper - used to measure width
   const overlayRef = useRef(null); // invisible container Google renders its real button into
   const [isReady, setIsReady] = useState(false);
-  const [error, setError] = useState(() => (
-    enabled && !GOOGLE_CLIENT_ID
-      ? 'Google sign-in is not configured (missing VITE_GOOGLE_CLIENT_ID).'
-      : ''
-  ));
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!enabled) return undefined;
 
     if (!GOOGLE_CLIENT_ID) {
+      setError('Google sign-in is not configured (missing VITE_GOOGLE_CLIENT_ID).');
       return undefined;
     }
 
@@ -43,7 +40,7 @@ export function useGoogleSignIn(onCredential, enabled) {
         setError('Google did not return a valid credential. Please try again.');
         return;
       }
-      onCredential(response.credential, setError);
+      onCredential(response.credential);
     };
 
     const tryInit = () => {

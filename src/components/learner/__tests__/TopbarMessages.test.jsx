@@ -22,6 +22,7 @@ vi.mock('../../../api', () => ({
 
 import { getLearnerMessages } from '../../../api';
 import { PreferencesProvider } from '../../../preferences/PreferencesContext';
+import { STORE_KEY } from '../../../preferences/constants';
 import AppLayout from '../../dashboard/AppLayout.jsx';
 
 const MESSAGES = [

@@ -25,6 +25,7 @@ const CompanyWizard = lazy(() => import('./components/company/CompanyWizard'))
 const SessionExpired = lazy(() => import('./components/auth/SessionExpired'))
 const Dashboard = lazy(() => import('./components/dashboard/Dashboard'))
 const SkillMatrix = lazy(() => import('./components/skillmatrix/SkillMatrix'))
+const CareerRoles = lazy(() => import('./components/careerroles/CareerRoles'))
 const LearnerWorkspace = lazy(() => import('./components/learner/LearnerWorkspace'))
 const CompanyLayout = lazy(() => import('./components/company/CompanyLayout'))
 const CompanyDashboard = lazy(() => import('./components/company/CompanyDashboard'))
@@ -154,6 +155,19 @@ function SkillMatrixPage() {
   return <SkillMatrix initialTab={tab} onNavigate={(key) => { if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key]) }} />
 }
 
+function CareerRolesPage() {
+  const navigate = useNavigate()
+  const { authUser, logout } = useAuth()
+  return (
+    <CareerRoles
+      user={authUser}
+      onLogout={() => {
+        signOutToLanding(navigate, logout)
+      }}
+      onNavigate={(key) => { if (NAV_ROUTES[key]) navigate(NAV_ROUTES[key]) }}
+    />
+  )
+}
 
 function RequireAuth({ children }) {
   const { authUser } = useAuth()
