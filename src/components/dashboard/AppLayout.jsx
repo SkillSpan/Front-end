@@ -39,8 +39,6 @@ const NAV_ITEMS = [
   { key: 'assistant', labelKey: 'nav.assistant', icon: Icon.bolt },
   { key: 'support', labelKey: 'nav.support', icon: Icon.support },
   { key: 'profile', labelKey: 'nav.profile', icon: Icon.user },
-  { key: 'mentor', labelKey: 'nav.mentor', icon: Icon.mentor },
-  { key: 'talent', labelKey: 'nav.talent', icon: Icon.talent },
 ];
 
 function initials(name) {

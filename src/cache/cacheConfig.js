@@ -74,7 +74,8 @@ export const CACHE_RULES = [
   { match: /^\/api\/v1\/talent\/(?!filters$)[^/]+$/, tags: ['talent'], staleTime: 20 * SECOND, maxAge: 2 * MINUTE },
 
   // Learner workspace — lists that change only when the user acts.
-  { match: /^\/api\/v1\/projects$/, tags: ['projects'], staleTime: 30 * SECOND, maxAge: 5 * MINUTE, transport: true },
+  { match: /^\/api\/v1\/profile$/, tags: ['profile'], staleTime: 5 * MINUTE, maxAge: 10 * MINUTE, transport: true },
+  { match: /^\/api\/v1\/projects$/, tags: ['projects'], staleTime: 5 * MINUTE, maxAge: 10 * MINUTE, transport: true },
   { match: /^\/api\/v1\/projects\/[^/]+$/, tags: ['projects'], staleTime: 30 * SECOND, maxAge: 5 * MINUTE, transport: true },
   { match: /^\/api\/v1\/applications$/, tags: ['applications'], staleTime: 30 * SECOND, maxAge: 5 * MINUTE, transport: true },
   { match: /^\/api\/v1\/recommendations$/, tags: ['recommendations'], staleTime: 60 * SECOND, maxAge: 10 * MINUTE, transport: true },

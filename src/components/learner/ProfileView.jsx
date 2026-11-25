@@ -4,6 +4,7 @@ import { getProfile, updateProfile, uploadProfileAvatar, deleteProfileAvatar, fe
 import { useAuth } from "../auth/AuthContext";
 import { useI18n } from "../../i18n/useI18n";
 import { displayName } from "../../utils/displayName";
+import { apiKey, getEntry, getQueryData } from "../../cache/queryCache";
 import { formatEnum } from "../../utils/formatEnum";
 import "./profile-settings.css";
 
@@ -48,6 +49,13 @@ function draftFrom(profile) {
   return next;
 }
 
+function cachedProfile() {
+  const key = apiKey('/api/v1/profile');
+  if (getEntry(key).invalidated) return null;
+  const cached = getQueryData(key);
+  return cached ? unwrapApiData(cached) : null;
+}
+
 function Field({ label, value, editing, onChange, type = "text", placeholder, hint, format = (v) => v }) {
   const inputId = `profile-${String(label).toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
@@ -77,11 +85,11 @@ export default function ProfileView({ readinessScore = 0, roleLabel = "" }) {
   const { authUser } = useAuth();
   const { t, lang } = useI18n();
 
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState(cachedProfile);
+  const [loading, setLoading] = useState(() => !cachedProfile());
   const [error, setError] = useState("");
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(() => draftFrom(null));
+  const [draft, setDraft] = useState(() => draftFrom(cachedProfile()));
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saved, setSaved] = useState("");
@@ -95,7 +103,7 @@ export default function ProfileView({ readinessScore = 0, roleLabel = "" }) {
   const [avatarError, setAvatarError] = useState("");
 
   const load = useCallback(async () => {
-    setLoading(true);
+    setLoading(!cachedProfile());
     setError("");
     try {
       const payload = await getProfile();
