@@ -7,7 +7,9 @@ import { safeRedirect } from '../../utils/safeRedirect';
 // make the sync below look like a change every time.
 const EMPTY_NOTIFICATIONS = [];
 import { getLearnerMessages, markAllNotificationsRead, markNotificationRead, logoutUser, logoutAllDevices, unwrapApiData } from '../../api';
+import { Bell, LogOut, Mail, Settings, User } from 'lucide-react';
 import LogoutModal from './LogoutModal';
+import UserMenu from '../common/UserMenu';
 import { useI18n } from '../../i18n/useI18n';
 
 const Icon = {
@@ -40,11 +42,6 @@ const NAV_ITEMS = [
   { key: 'support', labelKey: 'nav.support', icon: Icon.support },
   { key: 'profile', labelKey: 'nav.profile', icon: Icon.user },
 ];
-
-function initials(name) {
-  if (!name) return '?';
-  return name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
-}
 
 /*
  * The messages bell sits beside the notifications bell and behaves the same
@@ -274,6 +271,35 @@ export default function AppLayout({
     return false;
   };
 
+  const displayName = user?.name || user?.full_name || t('projects.learner');
+
+  // Entries of the account dropdown, in order. Log out is last, after a divider.
+  const accountItems = [
+    { key: 'profile', label: t('nav.profile'), Icon: User, onSelect: () => go('profile') },
+    {
+      key: 'messages',
+      label: t('topbar.messages'),
+      Icon: Mail,
+      badge: unseenMessages,
+      onSelect: () => {
+        setNotificationsOpen(false);
+        setMessagesOpen(true);
+      },
+    },
+    {
+      key: 'notifications',
+      label: t('topbar.notifications'),
+      Icon: Bell,
+      badge: unreadCount,
+      onSelect: () => {
+        setMessagesOpen(false);
+        setNotificationsOpen(true);
+      },
+    },
+    { key: 'settings', label: t('topbar.settings'), Icon: Settings, onSelect: () => go('settings') },
+    { key: 'logout', label: t('topbar.logout'), Icon: LogOut, danger: true, onSelect: () => setLogoutOpen(true) },
+  ];
+
   return (
     <div className="app-shell ls">
       <aside className="app-sidebar">
@@ -325,18 +351,24 @@ export default function AppLayout({
             />
           </div>
           <div className="app-topbar-right">
-            <div className="app-notification-wrap">
-              <button
-                type="button"
-                className="app-bell"
-                data-testid="topbar-messages"
-                aria-label={t('topbar.messages')}
-                title={t('topbar.messages')}
-                onClick={() => setMessagesOpen((v) => !v)}
-              >
-                {Icon.mail}
-                {unseenMessages > 0 && <span className="badge">{unseenMessages > 9 ? '9+' : unseenMessages}</span>}
-              </button>
+            <button type="button" className="app-assistant-top" onClick={() => go('assistant')}>
+              <span>{t('topbar.assistant')}</span>
+            </button>
+
+            <div className="app-account-wrap">
+              <UserMenu
+                name={displayName}
+                role={roleLabel}
+                avatarUrl={avatarUrl}
+                items={accountItems}
+                closeKey={active}
+                menuLabel={t('topbar.accountMenu')}
+                chipBadge={unreadCount + unseenMessages}
+                onOpen={() => {
+                  setNotificationsOpen(false);
+                  setMessagesOpen(false);
+                }}
+              />
               {messagesOpen && (
                 <div className="app-notification-popover app-message-popover" role="dialog" aria-label={t('topbar.messages')}>
                   <div className="notif-header">
@@ -379,19 +411,8 @@ export default function AppLayout({
                   </div>
                 </div>
               )}
-            </div>
-            <div className="app-notification-wrap">
-              <button
-                type="button"
-                className="app-bell"
-                aria-label={t('topbar.notifications')}
-                onClick={() => setNotificationsOpen((v) => !v)}
-              >
-                {Icon.bell}
-                {unreadCount > 0 && <span className="badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
-              </button>
               {notificationsOpen && (
-                <div className="app-notification-popover" role="dialog" aria-label="Notifications list">
+                <div className="app-notification-popover" role="dialog" aria-label={t('topbar.notifications')}>
                   <div className="notif-header">
                     <strong>{t('topbar.notifications')} ({unreadCount})</strong>
                     {unreadCount > 0 && (
@@ -431,30 +452,6 @@ export default function AppLayout({
                 </div>
               )}
             </div>
-            <button type="button" className="app-assistant-top" onClick={() => go('assistant')}>
-              {Icon.bolt}<span>{t('topbar.assistant')}</span>
-            </button>
-            <button
-              type="button"
-              className="app-icon-btn"
-              onClick={() => go('settings')}
-              aria-label={t('topbar.settings')}
-              title={t('topbar.settings')}
-            >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
-              </svg>
-            </button>
-            <div className="app-user" onClick={() => go('profile')} title={t('topbar.viewProfile')}>
-              {avatarUrl ? (
-                <img className="app-user-avatar" src={avatarUrl} alt="" />
-              ) : (
-                <span className="app-user-avatar">{initials(user?.name || user?.full_name)}</span>
-              )}
-              <span className="app-user-name">{user?.name || user?.full_name || 'Learner'}</span>
-            </div>
-            <button type="button" className="app-logout" onClick={() => setLogoutOpen(true)}>{t('topbar.logout')}</button>
           </div>
         </header>
 

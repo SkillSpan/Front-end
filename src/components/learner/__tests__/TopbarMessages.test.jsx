@@ -53,9 +53,14 @@ function mount({ active = 'dashboard', onNavigate = vi.fn(), user = { id: 68, na
   return { onNavigate };
 }
 
-// The sidebar also has a "Messages" nav item, so the bell is addressed by its
-// test id rather than by name.
-const messagesButton = () => screen.getByTestId('topbar-messages');
+// The messages live behind the account menu now (there is no separate bell),
+// so the chip is addressed by its aria-label and the item by its name.
+const accountChip = () => screen.getByRole('button', { name: /Account menu/ });
+
+async function openMessages() {
+  fireEvent.click(accountChip());
+  fireEvent.click(await screen.findByRole('menuitem', { name: /Messages/ }));
+}
 
 describe('top bar messages bell', () => {
   beforeEach(() => {
@@ -68,15 +73,15 @@ describe('top bar messages bell', () => {
   it('sits in the top bar and counts the messages that arrived', async () => {
     mount();
 
-    await waitFor(() => expect(within(messagesButton()).getByText('2')).toBeTruthy());
+    await waitFor(() => expect(within(accountChip()).getByText('2')).toBeTruthy());
     expect(getLearnerMessages).toHaveBeenCalledWith({ page: 1, perPage: 20 });
   });
 
   it('opens a popover with the company and the message text', async () => {
     mount();
-    await waitFor(() => expect(within(messagesButton()).getByText('2')).toBeTruthy());
+    await waitFor(() => expect(within(accountChip()).getByText('2')).toBeTruthy());
 
-    fireEvent.click(messagesButton());
+    await openMessages();
 
     const dialog = await screen.findByRole('dialog', { name: 'Messages' });
     expect(within(dialog).getAllByText('Taqat Academy')).toHaveLength(2);
@@ -86,14 +91,14 @@ describe('top bar messages bell', () => {
 
   it('clears the badge and goes to the inbox from "Open Messages"', async () => {
     const { onNavigate } = mount();
-    await waitFor(() => expect(within(messagesButton()).getByText('2')).toBeTruthy());
+    await waitFor(() => expect(within(accountChip()).getByText('2')).toBeTruthy());
 
-    fireEvent.click(messagesButton());
+    await openMessages();
     const dialog = await screen.findByRole('dialog', { name: 'Messages' });
     fireEvent.click(within(dialog).getByRole('button', { name: /Open Messages/ }));
 
     expect(onNavigate).toHaveBeenCalledWith('messages');
-    expect(within(messagesButton()).queryByText('2')).toBeNull();
+    expect(within(accountChip()).queryByText('2')).toBeNull();
     // The marker is per account, so a second account on the same browser is
     // not told its messages were already read.
     expect(window.localStorage.getItem('skillspan.messages.seenAt.68')).toBeTruthy();
@@ -104,7 +109,7 @@ describe('top bar messages bell', () => {
     mount();
 
     await waitFor(() => expect(getLearnerMessages).toHaveBeenCalled());
-    expect(within(messagesButton()).queryByText('2')).toBeNull();
+    expect(within(accountChip()).queryByText('2')).toBeNull();
   });
 
   it('shows no badge and an empty state when no company has written', async () => {
@@ -112,9 +117,9 @@ describe('top bar messages bell', () => {
     mount();
 
     await waitFor(() => expect(getLearnerMessages).toHaveBeenCalled());
-    expect(within(messagesButton()).queryByText(/\d/)).toBeNull();
+    expect(within(accountChip()).queryByText(/\d/)).toBeNull();
 
-    fireEvent.click(messagesButton());
+    await openMessages();
     const dialog = await screen.findByRole('dialog', { name: 'Messages' });
     expect(within(dialog).getByText('No company has written to you yet.')).toBeTruthy();
   });
@@ -126,7 +131,7 @@ describe('top bar messages bell', () => {
     // The page itself stamps the marker, so the badge never shows a count for
     // messages the learner is looking at right now.
     await waitFor(() => expect(window.localStorage.getItem('skillspan.messages.seenAt.68')).toBeTruthy());
-    expect(within(messagesButton()).queryByText('2')).toBeNull();
+    expect(within(accountChip()).queryByText('2')).toBeNull();
   });
 
   it('keeps the rest of the shell usable when the inbox request fails', async () => {
@@ -134,9 +139,9 @@ describe('top bar messages bell', () => {
     mount();
 
     await waitFor(() => expect(getLearnerMessages).toHaveBeenCalled());
-    expect(within(messagesButton()).queryByText(/\d/)).toBeNull();
+    expect(within(accountChip()).queryByText(/\d/)).toBeNull();
 
-    fireEvent.click(messagesButton());
+    await openMessages();
     const dialog = await screen.findByRole('dialog', { name: 'Messages' });
     expect(within(dialog).getByText('No company has written to you yet.')).toBeTruthy();
   });

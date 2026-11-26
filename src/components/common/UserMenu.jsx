@@ -7,15 +7,21 @@ function initialsOf(name) {
   return name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
 }
 
+const badgeText = (n) => (n > 9 ? '9+' : String(n));
+
 /**
  * The account chip in the top bar (avatar + name + role + chevron) and its
  * dropdown. One component for both workspaces (company and learner), so the
  * two shells behave the same.
  *
- * items: [{ key, label, Icon, onSelect, danger }] in order; a `danger` item is
- * drawn after a divider, in red (Log out).
+ * items: [{ key, label, Icon, onSelect, danger, badge }] in order; a `danger`
+ * item is drawn after a divider, in red (Log out). `badge` is an optional
+ * count shown at the end of the row (hidden when 0).
  * closeKey: anything that changes on navigation (the active page); the menu
  * closes when it changes, so it never stays open over a new page.
+ * chipBadge: optional count drawn on the avatar so a pending item is visible
+ * without opening the menu (hidden when 0).
+ * onOpen: optional callback fired when the menu is opened.
  *
  * Opens on click / Enter / Space (native button) and ArrowDown; closes on a
  * click outside, Esc (focus goes back to the chip), Tab out, picking an item
@@ -30,6 +36,8 @@ export default function UserMenu({
   closeKey,
   menuLabel = 'Account menu',
   className = '',
+  chipBadge = 0,
+  onOpen,
 }) {
   const [open, setOpen] = useState(false);
   const [lastKey, setLastKey] = useState(closeKey);
@@ -85,6 +93,16 @@ export default function UserMenu({
     else if (event.key === 'Tab') setOpen(false);
   };
 
+  const openMenu = () => {
+    setOpen(true);
+    onOpen?.();
+  };
+
+  const toggleMenu = () => {
+    if (open) setOpen(false);
+    else openMenu();
+  };
+
   const pick = (item) => {
     setOpen(false);
     item.onSelect?.();
@@ -94,7 +112,7 @@ export default function UserMenu({
   const danger = items.filter((item) => item.danger);
 
   const renderItem = (item) => {
-    const { key, label, Icon } = item;
+    const { key, label, Icon, badge } = item;
     return (
       <li key={key} role="none">
         <button
@@ -105,6 +123,7 @@ export default function UserMenu({
         >
           {Icon && <Icon className="um-item-ic" size={17} strokeWidth={1.8} aria-hidden="true" />}
           <span>{label}</span>
+          {Number(badge) > 0 && <span className="um-badge">{badgeText(Number(badge))}</span>}
         </button>
       </li>
     );
@@ -120,9 +139,9 @@ export default function UserMenu({
         aria-expanded={open}
         aria-controls={menuId}
         aria-label={`${menuLabel}: ${name || ''}`.trim()}
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggleMenu}
         onKeyDown={(event) => {
-          if (event.key === 'ArrowDown' && !open) { event.preventDefault(); setOpen(true); }
+          if (event.key === 'ArrowDown' && !open) { event.preventDefault(); openMenu(); }
         }}
       >
         {avatarUrl ? (
@@ -130,6 +149,7 @@ export default function UserMenu({
         ) : (
           <span className="um-av" aria-hidden="true">{initialsOf(name)}</span>
         )}
+        {Number(chipBadge) > 0 && <span className="um-chip-badge" aria-hidden="true">{badgeText(Number(chipBadge))}</span>}
         <span className="um-text">
           <span className="um-name">{name}</span>
           {role && <span className="um-role">{role}</span>}

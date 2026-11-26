@@ -259,6 +259,7 @@
 .app-shell.ls .app-logout:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
 
 /* Notification + messages popovers: white card like the company menus. */
+.app-shell.ls .app-account-wrap { position: relative; }
 .app-shell.ls .app-notification-popover {
   top: 48px;
   right: auto;
