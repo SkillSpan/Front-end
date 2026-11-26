@@ -46,7 +46,6 @@
 
 .route-transition {
   min-height: 100vh;
-  animation: skillspanPageIn var(--motion-slow) var(--motion-ease) both;
 }
 
 /* Make native controls feel responsive across the entire app. */

@@ -2,6 +2,7 @@ import './setupReact';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { apiKey, clearQueryCache, setQueryData } from '../../../cache/queryCache';
 
 vi.mock('../../../api', () => ({
   getMyEvidence: vi.fn(),
@@ -39,10 +40,21 @@ function renderAt(path) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  clearQueryCache();
   getSkillsTaxonomy.mockResolvedValue({ data: [{ id: 3, name: 'React' }, { id: 4, name: 'SQL' }] });
 });
 
 describe('evidence screens inside the app shell', () => {
+  it('shows cached evidence immediately while a revisit is still loading', () => {
+    setQueryData(apiKey('/api/v1/evidence'), { data: [
+      { id: 9, skill: { id: 4, name: 'SQL' }, source: 'certificate', verification_status: 'pending' },
+    ] }, { touch: true });
+    getMyEvidence.mockReturnValue(new Promise(() => {}));
+    renderAt('/evidence');
+    expect(screen.getByText('SQL')).toBeTruthy();
+    expect(screen.queryByText('Loading evidence…')).toBeNull();
+  });
+
   it('keeps the Evidence Status page, its empty state and both Add Evidence buttons when the learner has no evidence', async () => {
     getMyEvidence.mockResolvedValue({ data: [] });
     renderAt('/evidence');
