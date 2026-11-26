@@ -277,8 +277,7 @@ function CompanyPage({ view, demo, previewState, mode }) {
           {...sprint4}
           organization={organization}
           onLogout={() => {
-            logout()
-            navigate('/company/login')
+            signOutToLanding(navigate, logout)
           }}
         />
       )
@@ -301,8 +300,7 @@ function CompanyPage({ view, demo, previewState, mode }) {
       live={!demo}
       canPublish={canPublish}
       onLogout={() => {
-        logout()
-        navigate('/company/login')
+        signOutToLanding(navigate, logout)
       }}
     >
       {renderView()}
