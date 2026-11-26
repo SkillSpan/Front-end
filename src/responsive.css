@@ -654,13 +654,13 @@ table {
 
   .skill-table-head,
   .skill-row-main,
-  .detail-card .gap-row {
+  .gap-row {
     min-width: 680px;
   }
 
   .skill-table-head,
   .skill-row-main,
-  .detail-card .gap-row {
+  .gap-row {
     overflow-wrap: normal;
   }
 
@@ -703,8 +703,18 @@ table {
   }
 
   /* Inline grid-template-columns used by several learner views. */
-  .learner-content [style*="grid-template-columns"] {
+  .learner-content [style*="grid-template-columns"],
+  .learner-content [style*="gridTemplateColumns"] {
     grid-template-columns: 1fr !important;
+  }
+
+  /* Fixed-width side panels in Mentor / detail views. */
+  .learner-content [class*="w-[240px]"],
+  .learner-content [class*="w-[260px]"],
+  .learner-content [class*="w-[230px]"],
+  .learner-content [class*="w-[280px]"] {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .learner-content [class*="min-w-[150px]"],
