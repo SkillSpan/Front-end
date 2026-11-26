@@ -8,7 +8,7 @@ import {
 } from "../../api";
 import { useAuth } from "../auth/AuthContext";
 import { SUPPORT_CREATED_EVENT } from "./SupportWaitingToast";
-import { useUiText } from "../../i18n/useUiText";
+import { L, useUiText } from "../../i18n/useUiText";
 
 // The support thread is the only place a learner can read what the support
 // team wrote back. Replies arrive out of band (the assistant hands off, an
@@ -34,7 +34,6 @@ function collection(payload) {
 }
 
 function formatWhen(iso) {
-  const { L } = useUiText();
   if (!iso) return "";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
@@ -189,7 +188,6 @@ export default function SupportView({ initialRequestId = null }) {
   }, []);
 
   const loadList = useCallback(async ({ silent = false } = {}) => {
-  const { L } = useUiText();
     try {
       const payload = await getSupportRequests({ page: 1, perPage: 50 });
       if (!aliveRef.current) return;
@@ -222,7 +220,6 @@ export default function SupportView({ initialRequestId = null }) {
 
   const loadThread = useCallback(
     async (id) => {
-  const { L } = useUiText();
       if (id == null) return;
       try {
         const payload = await getSupportRequest(id);
@@ -283,7 +280,6 @@ export default function SupportView({ initialRequestId = null }) {
   };
 
   const handleSend = async (event) => {
-  const { L } = useUiText();
     event?.preventDefault?.();
     const body = draft.trim();
     if (!body || selectedId == null || sending) return;
@@ -317,7 +313,6 @@ export default function SupportView({ initialRequestId = null }) {
   };
 
   const handleCreate = async (event) => {
-  const { L } = useUiText();
     event?.preventDefault?.();
     const body = composerBody.trim();
     if (!body || composerBusy) return;
@@ -448,7 +443,6 @@ export default function SupportView({ initialRequestId = null }) {
               </div>
             )}
             {requests.map((row) => {
-  const { L } = useUiText();
               const isActive = String(row.id) === String(selectedId);
               const hasUnread = Boolean(unread[row.id]);
               return (

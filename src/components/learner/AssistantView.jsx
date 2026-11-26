@@ -4,7 +4,7 @@ import { useAuth } from "../auth/AuthContext";
 import { clearAssistantChat, loadAssistantChat, saveAssistantChat } from "./assistantChatStorage";
 import { getTextDirection, getTextLanguage } from "../../utils/textDirection";
 import { SafeBoldText } from "../../utils/safeContent";
-import { useUiText } from "../../i18n/useUiText";
+import { L, useUiText } from "../../i18n/useUiText";
 // ═══════════════════════════════════════════════════════════════════════════════
 // Sample context is shown only when explicitly enabled for development.
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
@@ -898,7 +898,6 @@ export default function AssistantView({ onNavigate }) {
     setTyping(false);
   }
   async function send(text, intent) {
-  const { L } = useUiText();
     const question = text.trim();
     if (!question || typing) return;
     const userMsg = {

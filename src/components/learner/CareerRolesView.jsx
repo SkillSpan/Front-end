@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import CareerGoalControl from './CareerGoalControl';
 import { getCareerRoleSkills, getCareerRoles, getSkillsMatrix, getSavedCareerRoles, setCareerRoleSaved, unwrapApiData } from "../../api";
-import { useUiText } from "../../i18n/useUiText";
+import { L, useUiText } from "../../i18n/useUiText";
 // ── Mock Data ────────────────────────────────────────────────────────────────
 // ── Utility helpers ──────────────────────────────────────────────────────────
 function demandColor(level) {
@@ -861,7 +861,6 @@ function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
 
       <div className="flex flex-col gap-[10px]">
         {suggested.map((role) => {
-  const { L } = useUiText();
           const demand = demandOf(role);
           const c = demandColor(demand.demandLevel);
           return (
@@ -959,7 +958,6 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
       </div>
       <div className="flex flex-col gap-[12px]">
         {saved.map((role) => {
-  const { L } = useUiText();
           const demand = demandOf(role);
           const c = demandColor(demand.demandLevel);
           const skillsMet = skillRequirementsOf(role).filter((s) => s.currentLevel >= s.requiredLevel).length;
@@ -1192,7 +1190,6 @@ function CompareView({ roles, onSelect }) {
                         {skillName}
                       </td>
                       {compareRoles.map((role) => {
-  const { L } = useUiText();
                         const skill = skillRequirementsOf(role).find((s) => s.skillName === skillName);
                         if (!skill)
                           return (
@@ -1286,7 +1283,6 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
   useEffect(() => {
     let cancelled = false;
     (async () => {
-  const { L } = useUiText();
       try {
         const payload = unwrapApiData(await getSavedCareerRoles());
         if (!Array.isArray(payload)) throw new Error("Invalid saved roles response");
@@ -1309,7 +1305,6 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
   const visibleRoles = (searchResults ?? roles).map(withSavedState);
   const savedCount = savedRoles.length;
   async function toggleSave(id) {
-  const { L } = useUiText();
     const key = String(id);
     if (!savedLoaded || pendingSaves.current.has(key)) return;
     const role = visibleRoles.find((r) => String(r.id) === key)
@@ -1376,7 +1371,6 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
     setSearchError("");
 
     const timer = setTimeout(async () => {
-  const { L } = useUiText();
       try {
         const payload = await fetchRoles(term, page);
         // A slower earlier response must not overwrite a newer one.

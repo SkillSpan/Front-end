@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
+import { setCurrentLang } from "../i18n/currentLang";
+
 import {
   ACCENTS,
   DEFAULT_PREFERENCES,
@@ -38,6 +40,12 @@ function systemPrefersDark() {
 export function PreferencesProvider({ children }) {
   const [prefs, setPrefs] = useState(readStored);
   const [systemDark, setSystemDark] = useState(systemPrefersDark);
+
+  // Keep the module-level language in step *before* children render, so a
+  // plain helper (a formatter, a data mapper) that calls L() during this
+  // commit already sees the new language. Assigning during render is safe
+  // here: it is idempotent and holds no per-render state.
+  setCurrentLang(prefs.lang);
 
   // "system" is a choice, not a value: follow the OS and re-render when it
   // flips, instead of freezing whatever it was at first paint.

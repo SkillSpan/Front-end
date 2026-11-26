@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useI18n } from "./useI18n";
+import { getCurrentLang } from "./currentLang";
 import { PROJECTS_AR, PROJECTS_EN } from "./projectsMessages";
 import careerJourney from "./ui/careerJourney";
 import careerRoles from "./ui/careerRoles";
@@ -60,4 +61,12 @@ export function useUiText() {
   const L = useCallback((en, vars) => uiText(lang, en, vars), [lang]);
   const skillLabel = useCallback((name, skill) => skillText(lang, name, skill), [lang]);
   return { L, lang, isRtl, t, skillLabel };
+}
+
+// The same translation, callable from a plain function (a data mapper, an
+// event handler, a formatter). Hooks cannot be used there, and wrapping the
+// call in a hook is what used to crash whole screens. Reads the language from
+// the store PreferencesProvider keeps in sync.
+export function L(en, vars) {
+  return uiText(getCurrentLang(), en, vars);
 }

@@ -1,10 +1,9 @@
 import { applyToProject, withdrawApplication, getProject, getRecommendations, submitRecommendationFeedback, unwrapApiData } from "../../api";
 import { useEffect, useMemo, useState } from "react";
 import { applicationStatusLabel } from "../../utils/projectMapping";
-import { useProjectsText } from "../../i18n/useProjectsText";
+import { L, useProjectsText } from "../../i18n/useProjectsText";
 
 function normalizeProject(raw) {
-  const { L } = useProjectsText();
   const p = unwrapApiData(raw) || raw || {};
   const rawRequirements = p.required_skills ?? p.requiredSkills ?? p.requirements ?? [];
   const requirements = (Array.isArray(rawRequirements) ? rawRequirements : []).map((item) => ({
@@ -343,7 +342,6 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
             </SectionLabel>
             <div className="flex flex-col gap-[8px]">
               {project.requirements.map((r) => {
-  const { L } = useProjectsText();
                 const met = r.yourLevel >= r.minLevel;
                 return (
                   <div
@@ -687,7 +685,6 @@ function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   async function handleConfirm() {
-  const { L } = useProjectsText();
     if (!project?.id || submitting) return;
     setSubmitting(true);
     setSubmitError("");
@@ -1062,7 +1059,6 @@ function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
   const [confirming, setConfirming] = useState(false);
   const [withdrawError, setWithdrawError] = useState("");
   async function handleConfirm() {
-  const { L } = useProjectsText();
     const applicationId = project?.application_id ?? project?.applicationId;
     if (!applicationId || confirming) {
       setWithdrawError(L("The server did not provide the current application ID. No application was withdrawn."));
@@ -1359,7 +1355,6 @@ export default function ProjectDetailsView({ projectId, onBack }) {
   const [loadError, setLoadError] = useState("");
   const project = useMemo(() => rawProject ? normalizeProject(rawProject) : null, [rawProject]);
   useEffect(() => {
-  const { L } = useProjectsText();
     let active = true;
     if (!projectId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- reset missing-id error
@@ -1372,7 +1367,6 @@ export default function ProjectDetailsView({ projectId, onBack }) {
     getProject(projectId).then((data) => {
       if (active) setRawProject(data);
     }).catch((error) => {
-  const { L } = useProjectsText();
       if (active) setLoadError(error?.message || L("Unable to load project details from the server."));
     }).finally(() => { if (active) setLoadingProject(false); });
     return () => { active = false; };
@@ -1396,7 +1390,6 @@ export default function ProjectDetailsView({ projectId, onBack }) {
     return () => { active = false; };
   }, [projectId]);
   const handleRecommendationAction = async (action) => {
-  const { L } = useProjectsText();
     if (action === "default") { setRecState("default"); return; }
     if (!recommendationId) { setFeedbackError(L("No recommendation record exists for this project on the server. The change was not saved.")); return; }
     const eventType = action === "saved" ? "save" : action === "hidden" ? "hide" : "decline";

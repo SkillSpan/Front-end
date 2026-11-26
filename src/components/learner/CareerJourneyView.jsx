@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useUiText } from "../../i18n/useUiText";
+import { L, useUiText } from "../../i18n/useUiText";
 import RoadmapLearningPanel from "./RoadmapLearningPanel";
 // ═══════════════════════════════════════════════════════════════════════════════
 // MOCK DATA
@@ -712,7 +712,6 @@ function SkillGapTab({ gaps }) {
                 </div>
 
                 {bk.items.map((gap) => {
-  const { L } = useUiText();
                   const isExp = expanded === gap.skillId;
                   const mc = gap.match >= 100 ? "#059669" : gap.match >= 70 ? "#f59e0b" : "#ef4444";
                   const ct = CT[gap.confidenceLabel] ?? CT["Not available"];
@@ -1148,7 +1147,6 @@ const GAP_STATUS_LABEL = {
 
 function normaliseSkillGaps(skillGaps) {
   return (Array.isArray(skillGaps) ? skillGaps : []).map((gap) => {
-  const { L } = useUiText();
     const currentLevel = Number(gap.current_level) || 0;
     const requiredLevel = Number(gap.required_level) || 0;
     const gapValue = gap.gap != null ? Number(gap.gap) : Math.max(0, requiredLevel - currentLevel);
@@ -1220,7 +1218,6 @@ function normaliseBand(raw) {
 }
 
 function normaliseReadiness(readiness, roleTitle = "") {
-  const { L } = useUiText();
   if (!readiness) return null;
 
   const available = READINESS_COMPONENTS.map((component) => ({
@@ -1318,7 +1315,6 @@ function normaliseRoadmapActions(roadmap, skillGaps) {
   );
 
   const rows = actions.map((action) => {
-  const { L } = useUiText();
     const gap = gapBySkillId.get(String(action.target_skill_id));
     const phaseOrder = PHASE_ORDER[action.phase] ?? 1;
     // The action card dereferences `prerequisites.length`, and the API only
@@ -1479,7 +1475,6 @@ function RoadmapTab({ actions, milestones = [], roadmap = null, onStart }) {
       <div className="flex items-center gap-[8px] flex-wrap justify-between">
         <div className="flex items-center gap-[6px] flex-wrap">
           {["all", ...phases.map((p) => p.id)].map((f) => {
-  const { L } = useUiText();
             const active = filterPhase === f;
             const pt2 = f !== "all" ? PT[f] : null;
             return (
@@ -2055,7 +2050,6 @@ function HistoricalState({ readiness = null, onViewLatest }) {
         </div>
         <div className="px-[24px] py-[20px] flex flex-col gap-0">
           {HIST.map((h, i) => {
-  const { L } = useUiText();
             const bt2 = BAND[h.band];
             const prev = HIST[i + 1];
             const delta = prev ? h.score - prev.score : null;

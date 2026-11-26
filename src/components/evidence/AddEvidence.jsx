@@ -17,7 +17,7 @@ import {
 } from "./lib/evidenceMeta";
 
 import { TypeIcon } from "./Shared";
-import { useUiText } from "../../i18n/useUiText";
+import { L, useUiText } from "../../i18n/useUiText";
 
 export default function AddEvidence({
   skill = null,
@@ -223,7 +223,6 @@ export default function AddEvidence({
    * Submit Evidence.
    */
   async function handleSubmit(event) {
-  const { L } = useUiText();
     event.preventDefault();
 
     if (isSubmitting) return;

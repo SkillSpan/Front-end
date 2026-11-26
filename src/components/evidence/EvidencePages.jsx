@@ -4,7 +4,7 @@ import { getSkillsMatrix } from '../../api';
 import { fetchSkillOptions } from './lib/evidenceApi';
 import { useAuth } from '../auth/AuthContext';
 import { useEvidence } from './EvidenceContext';
-import { useUiText } from "../../i18n/useUiText";
+import { L, useUiText } from "../../i18n/useUiText";
 import EvidenceShell from './EvidenceShell';
 import EvidenceStatus from './EvidenceStatus';
 import AddEvidence from './AddEvidence';
@@ -38,7 +38,6 @@ function useSkillOptions() {
     fetchSkillOptions()
       .then((skills) => { if (alive) setState({ skills, loading: false, error: '' }); })
       .catch(() => {
-  const { L } = useUiText();
         if (alive) setState({ skills: [], loading: false, error: L("Couldn't load the skills list.") });
       });
     return () => { alive = false; };

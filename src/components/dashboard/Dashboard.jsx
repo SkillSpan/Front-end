@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import AppLayout from './AppLayout';
 import { useI18n } from '../../i18n/useI18n';
+import { L, useProjectsText } from "../../i18n/useProjectsText";
 import {
   getLatestReadiness,
   getLatestIntelligence,
@@ -124,7 +125,6 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
   });
 
   const loadDashboardData = async () => {
-  const { L } = useProjectsText();
     setLoading(true);
     setLoadError('');
 
@@ -287,7 +287,6 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       let mappedGaps = [];
       if (rawGaps.length > 0) {
         mappedGaps = rawGaps.slice(0, 4).map((gap) => {
-  const { L } = useProjectsText();
           const cur = Number(gap.current_level ?? 0);
           const req = Number(gap.required_level ?? 0);
           const pct = gap.match_score !== null && gap.match_score !== undefined
@@ -309,7 +308,6 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
           .filter((r) => r.project && !r.access_revoked)
           .slice(0, 3)
           .map((r, i) => {
-  const { L } = useProjectsText();
             const p = r.project;
             const code = (p.title || 'PR').replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase() || 'PR';
             const colors = [
@@ -331,7 +329,6 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
 
       if (mappedProjects.length === 0 && projects.length > 0) {
         mappedProjects = projects.slice(0, 3).map((p, i) => {
-  const { L } = useProjectsText();
           const code = (p.title || 'PR').replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase() || 'PR';
           const colors = [
             'linear-gradient(135deg, rgb(59, 139, 255) 0%, rgb(124, 58, 237) 100%)',
@@ -412,7 +409,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       onRefreshNotifications={loadDashboardData}
     >
       <div className="dash-header">
-        <h1 className="dash-title motion-enter">Welcome back, {firstName} 👋</h1>
+        <h1 className="dash-title motion-enter">{L("Welcome back, {name}", { name: firstName })} 👋</h1>
         <p className="dash-subtitle">{L("Here's your career readiness overview for today.")}</p>
       </div>
 

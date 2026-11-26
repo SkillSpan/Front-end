@@ -6,7 +6,7 @@ import { getSkillsMatrix, upsertSkillMatrix, updateSkillMatrixEntry, deleteLearn
 import AppLayout from '../dashboard/AppLayout';
 import { useAuth } from '../auth/AuthContext';
 import { signOutToLanding } from '../auth/signOut';
-import { useUiText } from "../../i18n/useUiText";
+import { L, useUiText } from "../../i18n/useUiText";
 
 // The taxonomy (categories/skill list on the left) now loads from the real
 // backend (GET /skills/taxonomy) instead of the local mock in taxonomy.js -
@@ -24,7 +24,6 @@ import { useUiText } from "../../i18n/useUiText";
 // Development"), and any node whose parent_skill_id equals that category's
 // id is one of its skills (e.g. "React").
 function normalizeTaxonomy(raw) {
-  const { L } = useUiText();
   try {
     const root = raw?.data ?? raw;
 
@@ -139,7 +138,6 @@ function pickFirstUnowned(taxonomy, skills) {
 
 const PALETTE = ['#4f46e5', '#7c3aed', '#059669', '#ea580c', '#e11d48', '#0891b2', '#ca8a04', '#9333ea'];
 function confidenceToLabel(score, algorithmVersion) {
-  const { L } = useUiText();
   if (algorithmVersion === 'skill-confidence-v2-baseline') {
     if (score >= 80) return L("High");
     if (score >= 60) return 'Good';
@@ -350,7 +348,6 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
       return out;
     };
     (async () => {
-  const { L } = useUiText();
       try {
         const label = String(specialization || '').trim();
         let specId = profileSpecId;
@@ -418,7 +415,6 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
     let cancelled = false;
     getSkillsTaxonomy()
       .then((raw) => {
-  const { L } = useUiText();
         // Leave this log in until the real shape is confirmed - see the
         // note above normalizeTaxonomy().
         console.log('[SkillMatrix] raw /skills/taxonomy response:', raw);
@@ -451,7 +447,6 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   }, []);
 
   useEffect(() => {
-  const { L } = useUiText();
     let cancelled = false;
     if (!learnerId) {
       // Can't scope the matrix to "me" client-side without this (the
@@ -487,7 +482,6 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
         setRowIds(nextRowIds);
       })
       .catch((err) => {
-  const { L } = useUiText();
         if (!cancelled) setLoadError(err.message || L("Could not load your skill matrix."));
       })
       .finally(() => {
@@ -586,7 +580,6 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   const closePanel = () => setPanelSkillId(null);
 
   const saveSkill = async () => {
-  const { L } = useUiText();
     if (!panelSkillId) return;
     if (!learnerId) {
       console.warn('[SkillMatrix] Could not resolve a learner id from the stored user - raw value:', currentUser);
@@ -629,7 +622,6 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   };
 
   const removeSkill = async () => {
-  const { L } = useUiText();
     if (!panelSkillId) return;
     // Only skills already in the matrix can be removed. The endpoint takes the
     // skill's id from the skills table (panelSkillId), not the matrix row id,
@@ -830,7 +822,6 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
 
           <div className="sm-grid">
             {cards.map((card, index) => {
-  const { L } = useUiText();
               const lv = levelInfo(card.level);
               return (
                 <div

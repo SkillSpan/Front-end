@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getLearnerMessages, unwrapApiData } from "../../api";
 import { apiKey, getEntry, getQueryData } from "../../cache/queryCache";
-import { useUiText } from "../../i18n/useUiText";
+import { L, useUiText } from "../../i18n/useUiText";
 
 // The learner's inbox: messages companies sent, newest first.
 //
@@ -24,7 +24,6 @@ function meta(payload) {
 }
 
 function formatWhen(iso) {
-  const { L } = useUiText();
   if (!iso) return "";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
