@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { verifyOtp, resendOtp } from '../../api';
+import SuccessCheck from '../common/SuccessCheck';
 import './OtpVerification.css';
 
 // Note: both pages that call this component (RegisterWizard.jsx and
@@ -51,17 +52,46 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Writes a run of digits into the boxes starting at `start`, so a pasted (or
+  // auto-filled) code lands across all six instead of in the first one.
+  const applyDigits = (raw, start = 0) => {
+    const digits = String(raw).replace(/\D/g, '');
+    if (!digits) return;
+    const next = [...otp];
+    let index = start;
+    for (const digit of digits) {
+      if (index > 5) break;
+      next[index] = digit;
+      index += 1;
+    }
+    setOtp(next);
+    if (error) setError('');
+    inputRefs.current[Math.min(index, 5)]?.focus();
+  };
+
   const handleChange = (value, index) => {
-    if (isNaN(value)) return;
+    if (!/^\d*$/.test(value)) return;
+    // Autofill / a code typed into one box arrives as several characters.
+    if (value.length > 1) {
+      applyDigits(value, index);
+      return;
+    }
 
     const newOtp = [...otp];
-    newOtp[index] = value.substring(value.length - 1);
+    newOtp[index] = value;
     setOtp(newOtp);
     if (error) setError('');
 
     if (value && index < 5) {
       inputRefs.current[index + 1].focus();
     }
+  };
+
+  const handlePaste = (event) => {
+    const text = (event.clipboardData || window.clipboardData)?.getData('text') ?? '';
+    if (!/\d/.test(text)) return;
+    event.preventDefault();
+    applyDigits(text, 0);
   };
 
   const handleKeyDown = (e, index) => {
@@ -153,21 +183,17 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
           </div>
 
           <div className="form-right verified-container">
-            <div className="success-icon-box">
-              <svg className="success-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
+            <SuccessCheck size={64} label="Email verified" />
 
-            <h1 className="verified-heading">Email verified!</h1>
-            <p className="verified-desc">
+            <h1 className="verified-heading ss-fade-up">Email verified!</h1>
+            <p className="verified-desc ss-fade-up-2">
               Your email has been successfully verified.<br />
               You can now access your account.
             </p>
 
             <button
               type="button"
-              className="btn-continue"
+              className="btn-continue ss-fade-up-3"
               onClick={() => {
                 if (typeof onContinueToLogin === 'function') {
                   onContinueToLogin();
@@ -247,16 +273,19 @@ const OtpVerification = ({ userEmail, email: legacyEmail, onVerifySuccess, onBac
               </div>
             )}
 
-            <div className="otp-inputs-row">
+            <div className="otp-inputs-row" onPaste={handlePaste}>
               {otp.map((digit, index) => (
                 <input
                   key={index}
                   ref={(el) => (inputRefs.current[index] = el)}
                   type="text"
+                  inputMode="numeric"
+                  autoComplete={index === 0 ? 'one-time-code' : 'off'}
                   maxLength="1"
                   value={digit}
                   onChange={(e) => handleChange(e.target.value, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
+                  aria-label={`Digit ${index + 1} of 6`}
                   className={`otp-box ${error ? 'otp-box-error' : ''}`}
                 />
               ))}

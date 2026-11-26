@@ -60,14 +60,11 @@ const ACADEMIC_LEVELS = [
 ];
 
 const CURRENT_YEAR = new Date().getFullYear();
-// Starts at 2015 so learners who already graduated years ago can still
-// pick their real graduation year, and still runs a few years into the
-// future for people who haven't graduated yet.
-const GRADUATION_START_YEAR = 1900;
-const GRADUATION_YEARS = Array.from(
-  { length: CURRENT_YEAR + 6 - GRADUATION_START_YEAR + 1 },
-  (_, i) => GRADUATION_START_YEAR + i
-);
+// This is an *expected* graduation, so it can only be this year or later — a
+// year in the past is not an expectation, it is a date that has already
+// happened (and the backend rejects it). Graduates do not get this field at
+// all: they have already finished, so there is nothing to expect.
+const GRADUATION_YEARS = Array.from({ length: 7 }, (_, i) => CURRENT_YEAR + i);
 
 // Steps shown in the sidebar. This screen is always "Profile Setup" (step
 // 3) - Account and Email Verification are already done by the time a
@@ -255,19 +252,23 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
   const resolvedUniversity = university === 'Other' ? universityOther.trim() : university;
   const resolvedSpecialization = specialization === 'Other' ? specializationOther.trim() : specialization;
 
+  // A graduate has already finished, so there is no expected graduation to
+  // ask for: the field is hidden and not required.
+  const isGraduate = academicLevel === 'graduate';
+
   const requiredFields = [
     resolvedUniversity,
     studentId.trim(),
     resolvedSpecialization,
     academicLevel,
-    expectedGraduation,
+    isGraduate ? 'n/a' : expectedGraduation,
   ];
   const filledRequiredCount = requiredFields.filter(Boolean).length;
   const isComplete = filledRequiredCount === requiredFields.length;
 
-  // 5 required fields + the visibility toggle each count for one sixth of
-  // the progress bar. Bio is optional and doesn't affect completion.
-  const completionPct = Math.round(((filledRequiredCount + (isPublic ? 1 : 0)) / 6) * 100);
+  // Every required field plus the visibility toggle counts for an equal share
+  // of the progress bar. Bio is optional and doesn't affect completion.
+  const completionPct = Math.round(((filledRequiredCount + (isPublic ? 1 : 0)) / (requiredFields.length + 1)) * 100);
 
   const markTouched = () => {
     if (!touched) setTouched(true);
@@ -279,7 +280,7 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
       studentId: studentId.trim(),
       specialization: resolvedSpecialization,
       academicLevel,
-      expectedGraduation,
+      expectedGraduation: isGraduate ? null : expectedGraduation,
       bio,
       isPublic,
     });
@@ -390,13 +391,18 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
                 value={university}
                 onChange={(value) => {
                   setUniversity(value);
+                  setUniversityOther('');
                   markTouched();
                 }}
                 placeholder={country || university ? 'Select your university' : 'Select a country first'}
-                searchPlaceholder="Search universities…"
+                searchPlaceholder="Search universities, or type yours…"
                 disabled={!country && !university}
                 loading={universitiesLoading}
                 hasError={touched && !resolvedUniversity}
+                // The reference list is not exhaustive: a learner whose
+                // university is missing types its name and picks it.
+                allowCustom
+                customLabel={(text) => `Use "${text}"`}
               />
               {universitiesError && (
                 <span role="alert" style={{ fontSize: '12px', color: '#b91c1c', marginTop: '4px', display: 'block' }}>
@@ -458,15 +464,21 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
             </div>
 
             <div className="profile-setup-row">
-              <div className={`profile-setup-field ${touched && !academicLevel ? 'field-error' : ''}`}>
+              <div
+                className={`profile-setup-field ${touched && !academicLevel ? 'field-error' : ''}`}
+                style={isGraduate ? { gridColumn: '1 / -1' } : undefined}
+              >
                 <label>
                   Academic Level<span className="required-star">*</span>
                 </label>
                 <select
                   value={academicLevel}
                   onChange={(e) => {
-                    setAcademicLevel(e.target.value);
-                    if (e.target.value === 'graduate' && Number(expectedGraduation) > CURRENT_YEAR) setExpectedGraduation('');
+                    const next = e.target.value;
+                    setAcademicLevel(next);
+                    // A graduate has no expected graduation; drop any year that
+                    // was picked while the field was still on screen.
+                    if (next === 'graduate') setExpectedGraduation('');
                     markTouched();
                   }}
                 >
@@ -479,27 +491,29 @@ const LearnerProfileSetup = ({ onComplete, onSkip }) => {
                 </select>
               </div>
 
-              <div
-                className={`profile-setup-field ${touched && !expectedGraduation ? 'field-error' : ''}`}
-              >
-                <label>
-                  {academicLevel === 'graduate' ? 'Graduation Year' : 'Expected Graduation'}<span className="required-star">*</span>
-                </label>
-                <select
-                  value={expectedGraduation}
-                  onChange={(e) => {
-                    setExpectedGraduation(e.target.value);
-                    markTouched();
-                  }}
+              {!isGraduate && (
+                <div
+                  className={`profile-setup-field ${touched && !expectedGraduation ? 'field-error' : ''}`}
                 >
-                  <option value="">Select year</option>
-                  {GRADUATION_YEARS.filter((year) => academicLevel !== 'graduate' || year <= CURRENT_YEAR).map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  <label>
+                    Expected Graduation<span className="required-star">*</span>
+                  </label>
+                  <select
+                    value={expectedGraduation}
+                    onChange={(e) => {
+                      setExpectedGraduation(e.target.value);
+                      markTouched();
+                    }}
+                  >
+                    <option value="">Select year</option>
+                    {GRADUATION_YEARS.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             <div className="profile-setup-field">

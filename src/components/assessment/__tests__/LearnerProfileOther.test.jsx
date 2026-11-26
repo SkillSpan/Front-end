@@ -29,13 +29,31 @@ describe('custom university and specialization', () => {
     fireEvent.change(idField, { target: { value: 'aa' } });
     const selects = container.querySelectorAll('select');
     fireEvent.change(selects[0], { target: { value: 'graduate' } });
-    expect(screen.getByText('Graduation Year')).toBeTruthy();
+    // A graduate has nothing to expect, so the field is gone rather than
+    // renamed, and the form can be submitted without a year.
     expect(screen.queryByText('Expected Graduation')).toBeNull();
-    fireEvent.change(selects[1], { target: { value: '2015' } });
+    expect(screen.queryByText('Graduation Year')).toBeNull();
     const submit = screen.getByRole('button', { name: /Proceed to Assessment/ });
     expect(submit).not.toBeDisabled();
     fireEvent.click(submit);
-    await waitFor(() => expect(api.createProfile).toHaveBeenCalledWith(expect.objectContaining({ university_name: 'qena university', specialization: 'Custom Department', student_university_number: 'aa', academic_level: 'graduate', expected_graduation: 2015 })));
+    await waitFor(() => expect(api.createProfile).toHaveBeenCalledWith(expect.objectContaining({ university_name: 'qena university', specialization: 'Custom Department', student_university_number: 'aa', academic_level: 'graduate', expected_graduation: null })));
     expect(done).toHaveBeenCalled();
+  });
+
+  it('offers only this year and later as an expected graduation', async () => {
+    api.getProfile.mockRejectedValue({ status: 404 });
+    api.getCountries.mockResolvedValue({ data: [{ id: 1, name: 'Egypt' }] });
+    api.getSpecializations.mockResolvedValue({ data: [] });
+    api.getUniversitiesByCountry.mockResolvedValue({ data: [] });
+    const { container } = render(<Profile onComplete={vi.fn()} />);
+    await waitFor(() => expect(api.getCountries).toHaveBeenCalled());
+
+    const selects = container.querySelectorAll('select');
+    fireEvent.change(selects[0], { target: { value: 'third_year' } });
+    const yearSelect = container.querySelectorAll('select')[1];
+    const years = Array.from(yearSelect.querySelectorAll('option')).map((o) => o.value).filter(Boolean);
+    const currentYear = new Date().getFullYear();
+    expect(years[0]).toBe(String(currentYear));
+    expect(years).not.toContain(String(currentYear - 3));
   });
 });

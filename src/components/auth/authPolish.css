@@ -387,10 +387,10 @@ html body .register-wrapper .otp-container .otp-inputs-row .otp-box { width: 100
     box-sizing: border-box;
   }
   /* one 480px column, centred.
-     FIX: `:not(.ss-check)` keeps the animated success-check circle out of
-     this rule. Before, the circle (a direct child of .form-right) was forced
-     to width: 100% (up to 480px) and stretched into an ellipse. */
-  html body :is(.login-wrapper, .register-wrapper, .forgot-wrapper, .verify-wrapper) :is(.form-right, .form-right-forgot) > *:not(.ss-check) {
+     FIX: the round marks are kept out of this rule. It forces width: 100%,
+     which turned the circular "email verified" mark into a 480px-wide
+     ellipse, and would do the same to the animated success check. */
+  html body :is(.login-wrapper, .register-wrapper, .forgot-wrapper, .verify-wrapper) :is(.form-right, .form-right-forgot) > *:not(.ss-check):not(.success-icon-box) {
     width: 100% !important; max-width: 480px !important;
     margin-left: auto !important; margin-right: auto !important;
     box-sizing: border-box;

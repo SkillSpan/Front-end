@@ -29,6 +29,12 @@ const SearchableSelect = ({
   // When true, picking the clear option ("All countries") resets the value
   // but keeps the panel open so the full list is shown right away.
   keepOpenOnClear = false,
+  // When true, whatever the learner typed can be picked as the value even if
+  // it is not in the list. The reference lists are not exhaustive (a country
+  // can have hundreds of universities, and a new one appears every term), so
+  // a closed list would block a learner whose institution is simply missing.
+  allowCustom = false,
+  customLabel = (text) => `Use "${text}"`,
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -63,9 +69,16 @@ const SearchableSelect = ({
   // The API can return the same university name for several countries/rows;
   // duplicates would collide as React keys, so list each name once.
   const uniqueOptions = useMemo(() => Array.from(new Set(options || [])), [options]);
-  const filtered = query.trim()
-    ? uniqueOptions.filter((o) => o.toLowerCase().includes(query.trim().toLowerCase()))
+  const typed = query.trim();
+  const filtered = typed
+    ? uniqueOptions.filter((o) => o.toLowerCase().includes(typed.toLowerCase()))
     : uniqueOptions;
+  // Offer the typed text itself when it is not already an exact option, so a
+  // missing entry can still be entered instead of being a dead end.
+  const customOffer =
+    allowCustom && typed && !uniqueOptions.some((o) => o.toLowerCase() === typed.toLowerCase())
+      ? typed
+      : '';
 
   const handleToggle = () => {
     if (disabled || loading) return;
@@ -130,7 +143,15 @@ const SearchableSelect = ({
                 {clearLabel}
               </li>
             )}
-            {filtered.length === 0 && <li className="searchable-select-empty">No matches</li>}
+            {filtered.length === 0 && !customOffer && <li className="searchable-select-empty">No matches</li>}
+            {customOffer && (
+              <li
+                className="searchable-select-option searchable-select-custom"
+                onClick={() => handleSelect(customOffer)}
+              >
+                {customLabel(customOffer)}
+              </li>
+            )}
             {filtered.map((option) => (
               <li
                 key={option}

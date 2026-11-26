@@ -1,0 +1,15 @@
+fix(auth,profile): success mark, OTP paste, graduation year, free-text university
+
+- Email verified: the green disc was a 480px-wide ellipse because the auth
+  polish rule forces width:100% on every direct child of the form column.
+  The mark is now the shared SuccessCheck (blue disc, animated check and
+  ring) from the design, and that rule skips the round marks.
+- Verification code: pasting a code filled only the first box. A paste (or
+  an autofilled value) now spreads its digits across all six, ignoring
+  spaces and dashes, with one-time-code autocomplete on the first box.
+- Profile setup: the expected-graduation field is gone for a graduate (they
+  have nothing left to expect, and the field was blocking submission), and
+  the year list starts at the current year - a past year is not an
+  expectation.
+- Profile setup: the university list is not exhaustive, so the combobox now
+  accepts a typed name that is not in it (SearchableSelect allowCustom).

@@ -59,4 +59,26 @@ describe('OtpVerification', () => {
       expect(resendSpy).toHaveBeenCalledWith('student@example.com');
     });
   });
+
+  it('spreads a pasted code across all six boxes', async () => {
+    vi.spyOn(api, 'verifyOtp').mockResolvedValue({ data: {} });
+    render(<OtpVerification userEmail="student@example.com" />);
+
+    const boxes = screen.getAllByRole('textbox');
+    fireEvent.paste(boxes[0], { clipboardData: { getData: () => '123456' } });
+
+    boxes.forEach((box, i) => expect(box.value).toBe('123456'[i]));
+
+    fireEvent.click(screen.getByRole('button', { name: /verify code/i }));
+    await waitFor(() => expect(api.verifyOtp).toHaveBeenCalledWith('student@example.com', '123456'));
+  });
+
+  it('ignores the separators when a code is pasted with spaces', async () => {
+    render(<OtpVerification userEmail="student@example.com" />);
+
+    const boxes = screen.getAllByRole('textbox');
+    fireEvent.paste(boxes[2], { clipboardData: { getData: () => '123 456' } });
+
+    expect(boxes.map((b) => b.value).join('')).toBe('123456');
+  });
 });
