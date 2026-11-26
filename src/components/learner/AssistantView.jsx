@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthContext";
 import { clearAssistantChat, loadAssistantChat, saveAssistantChat } from "./assistantChatStorage";
 import { getTextDirection, getTextLanguage } from "../../utils/textDirection";
 import { SafeBoldText } from "../../utils/safeContent";
+import { useUiText } from "../../i18n/useUiText";
 // ═══════════════════════════════════════════════════════════════════════════════
 // Sample context is shown only when explicitly enabled for development.
 const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
@@ -211,6 +212,7 @@ const CONVOS = {
 // STRUCTURED RESPONSE CARDS
 // ═══════════════════════════════════════════════════════════════════════════════
 function ReadinessResponseCard({ p }) {
+  const { L } = useUiText();
   const comps = p.components;
   const score = p.score;
   const band = p.band;
@@ -267,7 +269,7 @@ function ReadinessResponseCard({ p }) {
             <div className="flex items-center gap-[5px]">
               <span className="w-[6px] h-[6px] rounded-full" style={{ background: c.color }} />
               <span className="text-[11px] font-['Inter:Medium',sans-serif] text-[rgba(255,255,255,0.8)]">
-                {c.label}
+                {L(c.label)}
               </span>
             </div>
             <div className="flex items-center gap-[8px]">
@@ -293,6 +295,7 @@ function ReadinessResponseCard({ p }) {
   );
 }
 function SkillGapResponseCard({ p }) {
+  const { L } = useUiText();
   const yours = p.yours,
     req = p.required,
     max = p.max;
@@ -308,7 +311,7 @@ function SkillGapResponseCard({ p }) {
           <span
             className={`text-[10px] font-['Inter:Semi_Bold',sans-serif] px-[8px] py-[2px] rounded-full ${met ? "text-[#34d399] bg-[rgba(52,211,153,0.12)]" : "text-[#f87171] bg-[rgba(248,113,113,0.12)]"}`}
           >
-            {met ? "Met" : `Gap: −${req - yours}`}
+            {met ? L("Met") : `Gap: −${req - yours}`}
           </span>
         </div>
         <div className="flex gap-[3px] mb-[5px]">
@@ -337,10 +340,10 @@ function SkillGapResponseCard({ p }) {
       </div>
       <div className="divide-y divide-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.07)] rounded-[10px] overflow-hidden">
         {[
-          ["Importance", p.importance],
-          ["Confidence", p.confidence],
+          [L("Importance"), p.importance],
+          [L("Confidence"), p.confidence],
           ["Evidence", p.evidence],
-          ["Roadmap action", p.roadmapAction],
+          [L("Roadmap action"), p.roadmapAction],
         ].map(([l, v]) => (
           <div key={l} className="flex gap-[8px] px-[11px] py-[7px]">
             <span className="text-[9px] font-['Inter:Medium',sans-serif] text-[rgba(255,255,255,0.3)] w-[90px] shrink-0 pt-[1px]">
@@ -420,6 +423,7 @@ function RoadmapResponseCard({ p }) {
   );
 }
 function ProjectRecResponseCard({ p }) {
+  const { L, lang } = useUiText();
   const matched = p.matched;
   const gaps = p.gaps;
   const learning = p.learning;
@@ -440,7 +444,7 @@ function ProjectRecResponseCard({ p }) {
         </div>
         <div className="text-right shrink-0">
           <p className="font-['Inter:Bold',sans-serif] text-[20px] text-[#34d399] leading-none">{p.matchScore}</p>
-          <p className="text-[8px] text-[rgba(255,255,255,0.35)]">% match</p>
+          <p className="text-[8px] text-[rgba(255,255,255,0.35)]">{L("% match")}</p>
         </div>
       </div>
       <div className="bg-[rgba(5,150,105,0.07)] border border-[rgba(5,150,105,0.18)] rounded-[10px] px-[11px] py-[9px]">
@@ -529,6 +533,7 @@ function BoundaryCard({ p }) {
 // PRIVACY DISCLOSURE
 // ═══════════════════════════════════════════════════════════════════════════════
 function PrivacySection() {
+  const { L, lang } = useUiText();
   const [open, setOpen] = useState(false);
   return (
     <div className="mx-[14px] my-[10px] bg-[rgba(59,139,255,0.06)] border border-[rgba(59,139,255,0.14)] rounded-[12px] overflow-hidden">
@@ -546,7 +551,7 @@ function PrivacySection() {
             />
           </svg>
           <span className="text-[11px] font-['Inter:Semi_Bold',sans-serif] text-[#7ca8ff]">
-            Privacy & scope information
+            {L("Privacy & scope information")}
           </span>
         </div>
         <svg
@@ -567,12 +572,12 @@ function PrivacySection() {
           </p>
           <div className="space-y-[5px]">
             {[
-              ["✕", "Will not complete or submit your assignments or project deliverables"],
-              ["✕", "Will not fabricate skills, evidence, or project outcomes"],
-              ["✕", "Will not guarantee employment or project acceptance"],
-              ["✕", "Will not override eligibility rules or readiness calculations"],
-              ["✕", "Will not expose other learners' data"],
-              ["✓", "Interactions are recorded per configured privacy and audit rules"],
+              ["✕", L("Will not complete or submit your assignments or project deliverables")],
+              ["✕", L("Will not fabricate skills, evidence, or project outcomes")],
+              ["✕", L("Will not guarantee employment or project acceptance")],
+              ["✕", L("Will not override eligibility rules or readiness calculations")],
+              ["✕", L("Will not expose other learners' data")],
+              ["✓", L("Interactions are recorded per configured privacy and audit rules")],
             ].map(([icon, text]) => (
               <div key={text} className="flex items-start gap-[5px]">
                 <span
@@ -593,17 +598,18 @@ function PrivacySection() {
 // REPORT POPOVER
 // ═══════════════════════════════════════════════════════════════════════════════
 function ReportMenu({ onReport, onClose }) {
+  const { L, lang } = useUiText();
   const reasons = [
-    ["unsafe", "Unsafe", "Harmful or inappropriate content"],
-    ["irrelevant", "Irrelevant", "Doesn't address my question"],
-    ["unfair", "Unfair", "Biased or discriminatory"],
-    ["incorrect", "Incorrect", "Factually wrong or misleading"],
+    ["unsafe", L("Unsafe"), L("Harmful or inappropriate content")],
+    ["irrelevant", L("Irrelevant"), L("Doesn't address my question")],
+    ["unfair", L("Unfair"), L("Biased or discriminatory")],
+    ["incorrect", L("Incorrect"), L("Factually wrong or misleading")],
   ];
   return (
     <div className="absolute right-0 bottom-[28px] w-[220px] bg-[#1a1d3a] border border-[rgba(255,255,255,0.12)] rounded-[12px] shadow-[0_8px_32px_rgba(0,0,0,0.4)] z-50 overflow-hidden">
       <div className="px-[13px] pt-[11px] pb-[8px] border-b border-[rgba(255,255,255,0.07)]">
-        <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] text-white">Report this response</p>
-        <p className="text-[9px] text-[rgba(255,255,255,0.35)] mt-[1px]">Reviewed by the SkillSpan team</p>
+        <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] text-white">{L("Report this response")}</p>
+        <p className="text-[9px] text-[rgba(255,255,255,0.35)] mt-[1px]">{L("Reviewed by the SkillSpan team")}</p>
       </div>
       {reasons.map(([k, l, d]) => (
         <button
@@ -619,7 +625,7 @@ function ReportMenu({ onReport, onClose }) {
         onClick={onClose}
         className="w-full text-[10px] text-[rgba(255,255,255,0.35)] py-[8px] border-t border-[rgba(255,255,255,0.06)] hover:text-[rgba(255,255,255,0.55)] transition-colors"
       >
-        Cancel
+        {L("Cancel")}
       </button>
     </div>
   );
@@ -628,6 +634,7 @@ function ReportMenu({ onReport, onClose }) {
 // MESSAGE BUBBLE
 // ═══════════════════════════════════════════════════════════════════════════════
 function MessageBubble({ msg, onReport, onHandoff, onOpenSupport }) {
+  const { L, lang } = useUiText();
   const [showReport, setShowReport] = useState(false);
   const isUser = msg.role === "user";
   const textDirection = getTextDirection(msg.text);
@@ -681,11 +688,11 @@ function MessageBubble({ msg, onReport, onHandoff, onOpenSupport }) {
             </p>
           )}
           {msg.role === "assistant" && msg.handoffAvailable && !msg.handoffCreated && (
-            <button type="button" onClick={() => onHandoff(msg.id)} className="mt-[10px] rounded-[8px] border border-[rgba(59,139,255,0.35)] bg-[rgba(59,139,255,0.12)] px-[10px] py-[7px] text-[11px] text-[#a9c8ff] hover:bg-[rgba(59,139,255,0.2)]">Contact human support</button>
+            <button type="button" onClick={() => onHandoff(msg.id)} className="mt-[10px] rounded-[8px] border border-[rgba(59,139,255,0.35)] bg-[rgba(59,139,255,0.12)] px-[10px] py-[7px] text-[11px] text-[#a9c8ff] hover:bg-[rgba(59,139,255,0.2)]">{L("Contact human support")}</button>
           )}
           {msg.handoffCreated && (
             <div className="mt-[8px] flex flex-wrap items-center gap-[8px]">
-              <p className="text-[10px] text-[#a9c8ff]">Support request #{msg.supportRequestId} created ({msg.supportStatus || "pending"}).</p>
+              <p className="text-[10px] text-[#a9c8ff]">Support request #{msg.supportRequestId} created ({msg.supportStatus || L("pending")}).</p>
               <button
                 type="button"
                 onClick={() => onOpenSupport?.()}
@@ -710,7 +717,7 @@ function MessageBubble({ msg, onReport, onHandoff, onOpenSupport }) {
           {!isUser && (
             <div className="relative">
               {msg.reported ? (
-                <span className="text-[9px] text-[rgba(245,158,11,0.55)]">Reported</span>
+                <span className="text-[9px] text-[rgba(245,158,11,0.55)]">{L("Reported")}</span>
               ) : (
                 <button
                   onClick={() => setShowReport(!showReport)}
@@ -724,7 +731,7 @@ function MessageBubble({ msg, onReport, onHandoff, onOpenSupport }) {
                       strokeLinejoin="round"
                     />
                   </svg>
-                  Report
+                  {L("Report")}
                 </button>
               )}
               {showReport && (
@@ -771,12 +778,13 @@ function Typing() {
 // CONTEXT PANEL (right sidebar)
 // ═══════════════════════════════════════════════════════════════════════════════
 function ContextPanel() {
+  const { L } = useUiText();
   return (
     <div className="w-[220px] shrink-0 border-l border-[rgba(255,255,255,0.07)] flex flex-col overflow-y-auto py-[18px] px-[14px] gap-[18px]">
       {/* Live context */}
       <div>
         <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] text-[rgba(255,255,255,0.3)] uppercase tracking-wide mb-[8px]">
-          Active context
+          {L("Active context")}
         </p>
         <div className="space-y-[5px]">
           {CONTEXT_PILLS.map((c) => (
@@ -786,21 +794,21 @@ function ContextPanel() {
             >
               <span className="text-[11px] shrink-0">{c.icon}</span>
               <span className="text-[10px] font-['Inter:Medium',sans-serif] text-[rgba(255,255,255,0.65)]">
-                {c.label}
+                {L(c.label)}
               </span>
             </div>
           ))}
         </div>
         <div className="flex items-center gap-[5px] mt-[8px]">
           <span className="w-[5px] h-[5px] rounded-full bg-[#34d399] pulse-glow shrink-0" />
-          <span className="text-[9px] text-[rgba(255,255,255,0.35)]">{DEMO_MODE ? "Context up to date · 9 Sep 2026" : "Context is based on available account data"}</span>
+          <span className="text-[9px] text-[rgba(255,255,255,0.35)]">{DEMO_MODE ? "Context up to date · 9 Sep 2026" : L("Context is based on available account data")}</span>
         </div>
       </div>
 
       {/* Quick questions */}
       <div>
         <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] text-[rgba(255,255,255,0.3)] uppercase tracking-wide mb-[8px]">
-          Quick questions
+          {L("Quick questions")}
         </p>
         <div className="space-y-[4px]">
           {SUGGESTED.map((s) => (
@@ -808,7 +816,7 @@ function ContextPanel() {
               key={s.label}
               className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-[8px] px-[9px] py-[6px]"
             >
-              <p className="text-[10px] text-[rgba(255,255,255,0.5)] leading-tight">{s.label}</p>
+              <p className="text-[10px] text-[rgba(255,255,255,0.5)] leading-tight">{L(s.label)}</p>
             </div>
           ))}
         </div>
@@ -817,21 +825,21 @@ function ContextPanel() {
       {/* Scope reminder */}
       <div className="bg-[rgba(148,163,184,0.05)] border border-[rgba(148,163,184,0.1)] rounded-[10px] p-[10px]">
         <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] text-[rgba(255,255,255,0.3)] uppercase tracking-wide mb-[5px]">
-          Scope
+          {L("Scope")}
         </p>
         {[
-          "Readiness explanations",
-          "Skill gap analysis",
-          "Roadmap guidance",
-          "Project match explanations",
-          "Bounded project help",
+          L("Readiness explanations"),
+          L("Skill gap analysis"),
+          L("Roadmap guidance"),
+          L("Project match explanations"),
+          L("Bounded project help"),
         ].map((s) => (
           <div key={s} className="flex items-center gap-[4px] py-[2px]">
             <span className="text-[8px] text-[rgba(52,211,153,0.5)]">✓</span>
             <span className="text-[9px] text-[rgba(255,255,255,0.35)]">{s}</span>
           </div>
         ))}
-        {["Completing assignments", "Guaranteeing employment", "Overriding eligibility"].map((s) => (
+        {[L("Completing assignments"), L("Guaranteeing employment"), L("Overriding eligibility")].map((s) => (
           <div key={s} className="flex items-center gap-[4px] py-[2px]">
             <span className="text-[8px] text-[rgba(248,113,113,0.5)]">✕</span>
             <span className="text-[9px] text-[rgba(255,255,255,0.35)]">{s}</span>
@@ -854,6 +862,7 @@ const DEMOS = [
   { key: "unavailable", label: "Unavailable" },
 ];
 export default function AssistantView({ onNavigate }) {
+  const { L } = useUiText();
   const { authUser } = useAuth();
   const userId = authUser?.id ?? null;
   // Restored from the browser so a reload (or a trip to another screen and
@@ -889,6 +898,7 @@ export default function AssistantView({ onNavigate }) {
     setTyping(false);
   }
   async function send(text, intent) {
+  const { L } = useUiText();
     const question = text.trim();
     if (!question || typing) return;
     const userMsg = {
@@ -909,7 +919,7 @@ export default function AssistantView({ onNavigate }) {
       const payload = unwrapApiData(response) || {};
       const replyText = typeof payload.reply === "string"
         ? payload.reply
-        : "The assistant returned an empty response. Please try again.";
+        : L("The assistant returned an empty response. Please try again.");
       setMessages((prev) => [...prev, {
         id: payload.interaction_id ?? payload.id ?? `a${Date.now()}`,
         interactionId: payload.interaction_id ?? payload.id,
@@ -918,7 +928,7 @@ export default function AssistantView({ onNavigate }) {
         role: "assistant",
         type: "text",
         ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
-        text: replyText || "The assistant returned an empty response. Please try again.",
+        text: replyText || L("The assistant returned an empty response. Please try again."),
       }]);
     } catch (error) {
       setMessages((prev) => [...prev, {
@@ -929,13 +939,13 @@ export default function AssistantView({ onNavigate }) {
         text: "",
         payload: {
           icon: "🔌",
-          title: "Assistant temporarily unavailable",
+          title: L("Assistant temporarily unavailable"),
           explanation: error?.status === 422
-            ? "The question could not be mapped to a supported assistant topic. Please use one of the suggested topics and try again."
-            : (error?.message || "The AI service could not be reached. No data was changed."),
+            ? L("The question could not be mapped to a supported assistant topic. Please use one of the suggested topics and try again.")
+            : (error?.message || L("The AI service could not be reached. No data was changed.")),
           canHelp: error?.status === 422
-            ? "Supported topics: readiness, skill gaps, roadmap, next best action, project recommendations, and bounded project help."
-            : "Please try the question again in a few seconds.",
+            ? L("Supported topics: readiness, skill gaps, roadmap, next best action, project recommendations, and bounded project help.")
+            : L("Please try the question again in a few seconds."),
           type: "service-error",
         },
       }]);
@@ -950,7 +960,7 @@ export default function AssistantView({ onNavigate }) {
       await reportAssistantInteraction(item.interactionId, { report_status: reason });
       setMessages((prev) => prev.map((m) => (String(m.id) === String(id) ? { ...m, reported: true, reportReason: reason } : m)));
     } catch (error) {
-      setMessages((prev) => [...prev, { id: `report-error-${Date.now()}`, role: "assistant", type: "text", ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), text: error?.message || "Could not submit the report. Please try again." }]);
+      setMessages((prev) => [...prev, { id: `report-error-${Date.now()}`, role: "assistant", type: "text", ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), text: error?.message || L("Could not submit the report. Please try again.") }]);
     }
   }
   async function handleHandoff(id) {
@@ -964,7 +974,7 @@ export default function AssistantView({ onNavigate }) {
       const request = unwrapApiData(response) || {};
       setMessages((prev) => prev.map((m) => String(m.id) === String(id) ? { ...m, handoffCreated: true, supportRequestId: request.id, supportStatus: request.status } : m));
     } catch (error) {
-      setMessages((prev) => [...prev, { id: `handoff-error-${Date.now()}`, role: "assistant", type: "text", ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), text: error?.message || "Could not contact support. Please try again." }]);
+      setMessages((prev) => [...prev, { id: `handoff-error-${Date.now()}`, role: "assistant", type: "text", ts: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }), text: error?.message || L("Could not contact support. Please try again.") }]);
     }
   }
   return (
@@ -981,16 +991,16 @@ export default function AssistantView({ onNavigate }) {
             </div>
             <div>
               <h1 className="font-['Inter:Bold',sans-serif] text-[16px] text-white leading-tight">
-                SkillSpan Assistant
+                {L("SkillSpan Assistant")}
               </h1>
-              <p className="text-[11px] text-[rgba(255,255,255,0.4)]">Personalized career guidance · Bounded scope</p>
+              <p className="text-[11px] text-[rgba(255,255,255,0.4)]">{L("Personalized career guidance · Bounded scope")}</p>
             </div>
           </div>
           <div className="flex items-center gap-[10px]">
             <div className="flex items-center gap-[5px] px-[10px] py-[5px] bg-[rgba(5,150,105,0.1)] border border-[rgba(5,150,105,0.2)] rounded-full">
               <span className="w-[5px] h-[5px] rounded-full bg-[#34d399] shrink-0 pulse-glow" />
               <span className="text-[9px] font-['Inter:Medium',sans-serif] text-[#34d399]">
-                Career context will appear when your profile data is available.
+                {L("Career context will appear when your profile data is available.")}
               </span>
             </div>
 
@@ -999,28 +1009,28 @@ export default function AssistantView({ onNavigate }) {
             {messages.length > 0 &&
               (confirmClear ? (
                 <div className="flex items-center gap-[6px] h-[28px] pl-[9px] pr-[4px] rounded-[8px] bg-[rgba(239,68,68,0.12)] border border-[rgba(239,68,68,0.35)]">
-                  <span className="text-[10px] text-[#fca5a5] whitespace-nowrap">Delete this chat?</span>
+                  <span className="text-[10px] text-[#fca5a5] whitespace-nowrap">{L("Delete this chat?")}</span>
                   <button
                     type="button"
                     onClick={clearConversation}
                     className="h-[20px] px-[8px] rounded-[6px] bg-[#ef4444] text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white"
                   >
-                    Delete
+                    {L("Delete")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmClear(false)}
                     className="h-[20px] px-[6px] rounded-[6px] text-[10px] text-[rgba(255,255,255,0.6)] hover:text-white"
                   >
-                    Cancel
+                    {L("Cancel")}
                   </button>
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setConfirmClear(true)}
-                  aria-label="Delete conversation"
-                  title="Delete conversation"
+                  aria-label={L("Delete conversation")}
+                  title={L("Delete conversation")}
                   className="flex items-center gap-[5px] h-[28px] px-[9px] rounded-[8px] border border-[rgba(255,255,255,0.12)] text-[10px] font-['Inter:Medium',sans-serif] text-[rgba(255,255,255,0.55)] hover:text-white hover:border-[rgba(239,68,68,0.45)] hover:bg-[rgba(239,68,68,0.12)] transition-colors"
                 >
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1029,7 +1039,7 @@ export default function AssistantView({ onNavigate }) {
                     <path d="M19 6l-1 14H6L5 6" />
                     <path d="M10 11v5M14 11v5" />
                   </svg>
-                  Delete chat
+                  {L("Delete chat")}
                 </button>
               ))}
           </div>
@@ -1059,11 +1069,10 @@ export default function AssistantView({ onNavigate }) {
                     ⚡
                   </div>
                   <h2 className="font-['Inter:Bold',sans-serif] text-[18px] text-white mb-[6px]">
-                    How can I help you today?
+                    {L("How can I help you today?")}
                   </h2>
                   <p className="text-[13px] text-[rgba(255,255,255,0.45)] max-w-[360px] leading-[1.65]">
-                    I have access to your verified SkillSpan profile. Ask me about your readiness score, skill gaps,
-                    roadmap, or why a project was recommended.
+                    {L("I have access to your verified SkillSpan profile. Ask me about your readiness score, skill gaps, roadmap, or why a project was recommended.")}
                   </p>
                 </div>
                 {/* Suggested question cards */}
@@ -1075,7 +1084,7 @@ export default function AssistantView({ onNavigate }) {
                       className="bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.09)] rounded-[12px] px-[14px] py-[12px] text-left hover:bg-[rgba(59,139,255,0.1)] hover:border-[rgba(59,139,255,0.25)] transition-all"
                     >
                       <p className="text-[12px] font-['Inter:Medium',sans-serif] text-[rgba(255,255,255,0.75)] leading-[1.45]">
-                        {s.label}
+                        {L(s.label)}
                       </p>
                     </button>
                   ))}
@@ -1104,7 +1113,7 @@ export default function AssistantView({ onNavigate }) {
                   }
                 }}
                 rows={1}
-                placeholder="Ask about your readiness, skill gaps, roadmap, or recommendations…"
+                placeholder={L("Ask about your readiness, skill gaps, roadmap, or recommendations…")}
                 className="flex-1 bg-transparent text-[12px] text-[rgba(255,255,255,0.8)] placeholder:text-[rgba(255,255,255,0.22)] focus:outline-none resize-none leading-[1.5] max-h-[80px] overflow-y-auto"
                 style={{ minHeight: "20px" }}
                 onInput={(e) => {
@@ -1127,12 +1136,12 @@ export default function AssistantView({ onNavigate }) {
               </button>
             </div>
             <p className="text-center text-[9px] text-[rgba(255,255,255,0.18)] mt-[6px]">
-              Guided by verified profile data · Will not guarantee employment or override eligibility ·{" "}
+              {L("Guided by verified profile data · Will not guarantee employment or override eligibility")} ·{" "}
               <button
                 onClick={() => document.querySelector("[data-privacy]")?.scrollIntoView()}
                 className="underline hover:text-[rgba(255,255,255,0.4)] transition-colors"
               >
-                Privacy info ↑
+                {L("Privacy info")} ↑
               </button>
             </p>
           </div>

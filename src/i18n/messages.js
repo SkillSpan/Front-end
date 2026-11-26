@@ -1,6 +1,8 @@
 // Two languages, one flat key space. Keys are grouped by the surface that uses
 // them (`nav.*`, `topbar.*`, `profile.*`, `settings.*`) so a missing entry is
 // easy to spot. English is the fallback for anything untranslated.
+import { PROJECTS_EN, PROJECTS_AR } from "./projectsMessages";
+
 export const MESSAGES = {
   en: {
     "nav.dashboard": "Dashboard",
@@ -88,6 +90,10 @@ export const MESSAGES = {
     "topbar.viewProfile": "View profile",
     "topbar.settings": "Settings",
     "topbar.supportWaiting": "A mentor is waiting for your reply",
+    "footer.readiness": "Readiness Score",
+    "footer.careerProfile": "Career profile",
+    "workspace.loading": "Loading your workspace…",
+    "workspace.partialError": "Some workspace data could not be loaded from the server. Demo data will not be shown as a fallback.",
 
     "profile.title": "Your profile",
     "profile.subtitle": "How SkillSpan sees you across the platform.",
@@ -156,6 +162,7 @@ export const MESSAGES = {
     "settings.resetHint": "Returns theme, accent and language to their defaults.",
     "settings.savedLocally": "Saved on this device",
     "settings.preview": "Preview",
+    ...PROJECTS_EN,
   },
 
   ar: {
@@ -244,6 +251,10 @@ export const MESSAGES = {
     "topbar.viewProfile": "عرض الملف الشخصي",
     "topbar.settings": "الإعدادات",
     "topbar.supportWaiting": "أحد المرشدين ينتظر ردك",
+    "footer.readiness": "درجة الجاهزية",
+    "footer.careerProfile": "الملف المهني",
+    "workspace.loading": "جارٍ تحميل مساحة عملك…",
+    "workspace.partialError": "تعذّر تحميل بعض بيانات مساحة العمل من الخادم. لن تُعرض بيانات تجريبية بديلة.",
 
     "profile.title": "ملفك الشخصي",
     "profile.subtitle": "كيف يرى SkillSpan ملفك عبر المنصة.",
@@ -312,6 +323,7 @@ export const MESSAGES = {
     "settings.resetHint": "يعيد الثيم واللون واللغة إلى الوضع الافتراضي.",
     "settings.savedLocally": "محفوظة على هذا الجهاز",
     "settings.preview": "معاينة",
+    ...PROJECTS_AR,
   },
 };
 

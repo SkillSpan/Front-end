@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import CareerGoalControl from './CareerGoalControl';
 import { getCareerRoleSkills, getCareerRoles, getSkillsMatrix, getSavedCareerRoles, setCareerRoleSaved, unwrapApiData } from "../../api";
+import { useUiText } from "../../i18n/useUiText";
 // ── Mock Data ────────────────────────────────────────────────────────────────
 // ── Utility helpers ──────────────────────────────────────────────────────────
 function demandColor(level) {
@@ -164,6 +165,7 @@ function ReadinessGauge({ score, size = 100 }) {
 }
 // ── DemandIndicator ───────────────────────────────────────────────────────────
 function DemandIndicator({ demand }) {
+  const { L } = useUiText();
   const d = demand ?? EMPTY_DEMAND;
   // No market data is the normal case today, not an error: render the panel
   // with an explicit "not available yet" line so the page still reads correctly.
@@ -175,7 +177,7 @@ function DemandIndicator({ demand }) {
       >
         <div className="flex items-center justify-between mb-[8px]">
           <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
-            Labor-Market Demand
+            {L("Labor-Market Demand")}
           </span>
         </div>
         <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b]">
@@ -190,11 +192,11 @@ function DemandIndicator({ demand }) {
     <div className="border border-[#e8eaf0] rounded-[12px] p-[16px] bg-white">
       <div className="flex items-center justify-between mb-[12px]">
         <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
-          Labor-Market Demand
+          {L("Labor-Market Demand")}
         </span>
         {d.isExpired && (
           <span className="bg-[rgba(239,68,68,0.08)] text-[#ef4444] text-[11px] font-['Inter:Medium',sans-serif] font-medium px-[8px] py-[3px] rounded-full">
-            Data Expired
+            {L("Data Expired")}
           </span>
         )}
       </div>
@@ -213,17 +215,17 @@ function DemandIndicator({ demand }) {
         <div className={`h-[6px] rounded-full ${c.dot}`} style={{ width: `${d.demandValue}%` }} />
       </div>
       <div className="flex items-start gap-[4px] flex-wrap">
-        <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Source:</span>
+        <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{L("Source:")}</span>
         <span className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b]">{d.source}</span>
         <span className="text-[11px] text-[#94a3b8]">·</span>
         <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-          Collected {d.collectionDate}
+          {L("Collected")} {d.collectionDate}
         </span>
         <span className="text-[11px] text-[#94a3b8]">·</span>
         <span
           className={`text-[11px] font-['Inter:Medium',sans-serif] font-medium ${d.isExpired ? "text-[#ef4444]" : "text-[#94a3b8]"}`}
         >
-          {d.isExpired ? "Expired" : `Valid until ${d.validUntil}`}
+          {d.isExpired ? L("Expired") : `Valid until ${d.validUntil}`}
         </span>
       </div>
     </div>
@@ -231,6 +233,7 @@ function DemandIndicator({ demand }) {
 }
 // ── SkillRequirementRow ────────────────────────────────────────────────────────
 function SkillRequirementRow({ skill, expanded, onToggle }) {
+  const { L } = useUiText();
   const gapPct = (skill.currentLevel / skill.maxLevel) * 100;
   const reqPct = (skill.requiredLevel / skill.maxLevel) * 100;
   const colors = skillGapColor(skill.currentLevel, skill.requiredLevel);
@@ -243,7 +246,7 @@ function SkillRequirementRow({ skill, expanded, onToggle }) {
       >
         <div className="flex items-center gap-[8px] w-[180px] shrink-0">
           {skill.isCritical && (
-            <span className="w-[6px] h-[6px] rounded-full bg-[#ef4444] shrink-0" title="Critical skill" />
+            <span className="w-[6px] h-[6px] rounded-full bg-[#ef4444] shrink-0" title={L("Critical skill")} />
           )}
           {!skill.isCritical && <span className="w-[6px] h-[6px] shrink-0" />}
           <span className="font-['Inter:Medium',sans-serif] font-medium text-[13px] text-[#0a0b14] truncate">
@@ -300,7 +303,7 @@ function SkillRequirementRow({ skill, expanded, onToggle }) {
         <div className="px-[20px] pb-[16px] pt-[4px] flex gap-[24px] flex-wrap">
           <div>
             <p className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#94a3b8] mb-[4px]">
-              Importance Weight
+              {L("Importance Weight")}
             </p>
             <p className="text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">
               {Math.round(skill.importanceWeight * 100)}% of role score
@@ -308,18 +311,18 @@ function SkillRequirementRow({ skill, expanded, onToggle }) {
           </div>
           <div>
             <p className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#94a3b8] mb-[4px]">
-              Critical Skill
+              {L("Critical Skill")}
             </p>
             <p
               className={`text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold ${skill.isCritical ? "text-[#ef4444]" : "text-[#64748b]"}`}
             >
-              {skill.isCritical ? "Yes — required for role approval" : "No"}
+              {skill.isCritical ? "Yes — required for role approval" : L("No")}
             </p>
           </div>
           {skill.prerequisites.length > 0 && (
             <div>
               <p className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#94a3b8] mb-[4px]">
-                Prerequisites
+                {L("Prerequisites")}
               </p>
               <div className="flex gap-[6px] flex-wrap">
                 {skill.prerequisites.map((p) => (
@@ -335,11 +338,11 @@ function SkillRequirementRow({ skill, expanded, onToggle }) {
           )}
           <div>
             <p className="text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#94a3b8] mb-[4px]">
-              Gap to Close
+              {L("Gap to Close")}
             </p>
             <p className={`text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold ${colors.text}`}>
               {met
-                ? "Met"
+                ? L("Met")
                 : `${skill.requiredLevel - skill.currentLevel} level${skill.requiredLevel - skill.currentLevel > 1 ? "s" : ""} to go`}
             </p>
           </div>
@@ -350,6 +353,7 @@ function SkillRequirementRow({ skill, expanded, onToggle }) {
 }
 // ── RoleDetailPanel ────────────────────────────────────────────────────────────
 function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSelect, onGoalCalculate, goalBusy }) {
+  const { L } = useUiText();
   const [expandedSkill, setExpandedSkill] = useState(null);
   // Requirements are NOT part of the list payload: they come from
   // `/career-roles/{id}/skills`, joined with the learner's own levels. Before
@@ -407,7 +411,7 @@ function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSele
               strokeLinejoin="round"
             />
           </svg>
-          Back to Roles
+          {L("Back to Roles")}
         </button>
       </div>
 
@@ -430,10 +434,10 @@ function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSele
                 {role.version}
               </span>
               <span className="bg-[rgba(5,150,105,0.08)] text-[#059669] text-[11px] font-['Inter:Medium',sans-serif] font-medium px-[8px] py-[3px] rounded-full">
-                ✓ Approved
+                {L("✓ Approved")}
               </span>
               <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-                Effective {role.effectiveDate}
+                {L("Effective")} {role.effectiveDate}
               </span>
             </div>
             <h2 className="font-['Inter:Bold',sans-serif] font-bold text-[22px] text-[#0a0b14] mb-[4px]">
@@ -459,7 +463,7 @@ function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSele
             >
               <path d="M2 2h10v11l-5-3-5 3V2z" strokeLinejoin="round" />
             </svg>
-            {role.isSaved ? "Saved" : "Save Role"}
+            {role.isSaved ? L("Saved") : L("Save Role")}
           </button>
         </div>
 
@@ -486,19 +490,19 @@ function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSele
               </div>
             </div>
             <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[12px] text-[#0a0b14] text-center">
-              Role Readiness
+              {L("Role Readiness")}
             </p>
             <p className="font-['Inter:Regular',sans-serif] text-[11px] text-[#94a3b8] text-center mt-[2px]">
               {loading
-                ? "Loading skill requirements…"
+                ? L("Loading skill requirements…")
                 : requirements.length === 0
-                  ? "No requirements published for this role yet"
-                  : "Your level against this role's required skills"}
+                  ? L("No requirements published for this role yet")
+                  : L("Your level against this role's required skills")}
             </p>
           </div>
           <div className="col-span-2 grid grid-cols-2 gap-[12px]">
             <div className="bg-[#f8f9ff] rounded-[12px] p-[16px] border border-[#eef0f8]">
-              <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[6px]">Skills Met</p>
+              <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[6px]">{L("Skills Met")}</p>
               <p className="font-['Inter:Bold',sans-serif] font-bold text-[20px] text-[#0a0b14]">
                 {skillsMet}
                 <span className="text-[14px] text-[#64748b] font-['Inter:Regular',sans-serif] font-normal">
@@ -508,7 +512,7 @@ function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSele
             </div>
             <div className="bg-[#f8f9ff] rounded-[12px] p-[16px] border border-[#eef0f8]">
               <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[6px]">
-                Critical Skills Met
+                {L("Critical Skills Met")}
               </p>
               <p
                 className={`font-['Inter:Bold',sans-serif] font-bold text-[20px] ${criticalMet === criticalTotal ? "text-[#059669]" : "text-[#ef4444]"}`}
@@ -524,7 +528,7 @@ function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSele
             <div className="col-span-2">
               <div className="flex items-center justify-between mb-[6px]">
                 <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-                  Overall progress toward role readiness
+                  {L("Overall progress toward role readiness")}
                 </p>
                 <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">
                   {readiness == null ? "—" : `${readiness}%`}
@@ -550,22 +554,22 @@ function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSele
       <div className="rounded-[16px] border border-[#e8eaf0] bg-white overflow-x-auto mb-[16px] role-requirements" role="region" aria-label="Skill requirements" tabIndex={0}>
         <div className="flex items-center justify-between px-[20px] py-[16px] border-b border-[#f1f3fa]">
           <div>
-            <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#0a0b14]">Skill Requirements</h3>
+            <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#0a0b14]">{L("Skill Requirements")}</h3>
             <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[2px]">
-              <span className="text-[#ef4444]">●</span> Critical skills must be met for role approval
+              <span className="text-[#ef4444]">●</span> {L("Critical skills must be met for role approval")}
             </p>
           </div>
           <div className="flex items-center gap-[8px] text-[11px] font-['Inter:Medium',sans-serif] text-[#94a3b8]">
-            <span className="w-[80px]">Category</span>
-            <span className="w-[120px] text-center">Gap / Required</span>
-            <span className="w-[28px] text-right">Wt.</span>
+            <span className="w-[80px]">{L("Category")}</span>
+            <span className="w-[120px] text-center">{L("Gap / Required")}</span>
+            <span className="w-[28px] text-right">{L("Wt.")}</span>
           </div>
         </div>
         {requirements.length === 0 ? (
           <p data-testid="requirements-unavailable" className="px-[20px] py-[20px] text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b]">
             {loading
-              ? "Loading skill requirements…"
-              : "Skill requirements have not been published for this role yet."}
+              ? L("Loading skill requirements…")
+              : L("Skill requirements have not been published for this role yet.")}
           </p>
         ) : (
           requirements
@@ -586,6 +590,7 @@ function RoleDetailPanel({ role, onBack, onSaveToggle, currentGoalId, onGoalSele
 }
 // ── RoleCard ──────────────────────────────────────────────────────────────────
 function RoleCard({ role, onSelect, onSaveToggle, requirements: loadedRequirements = null }) {
+  const { L } = useUiText();
   const demand = demandOf(role);
   const c = demandColor(demand.demandLevel);
   // The card used to read only `role.skillRequirements` (never sent by
@@ -662,7 +667,7 @@ function RoleCard({ role, onSelect, onSaveToggle, requirements: loadedRequiremen
       {/* Readiness bar */}
       <div>
         <div className="flex items-center justify-between mb-[6px]">
-          <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Your Readiness</span>
+          <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{L("Your Readiness")}</span>
           <span
             data-testid="card-readiness"
             className="font-['Inter:Bold',sans-serif] font-bold text-[13px]"
@@ -682,13 +687,13 @@ function RoleCard({ role, onSelect, onSaveToggle, requirements: loadedRequiremen
       {/* Stats row */}
       <div className="role-card-stats flex items-center gap-[12px] pt-[4px] border-t border-[#f1f3fa]">
         <div className="flex-1">
-          <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Skills required</p>
+          <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{L("Skills required")}</p>
           <p data-testid="card-skill-count" className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
             {skillCount ?? "—"}
           </p>
         </div>
         <div className="flex-1">
-          <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Critical skills</p>
+          <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{L("Critical skills")}</p>
           <p
             data-testid="card-critical-count"
             className={`font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] ${
@@ -701,7 +706,7 @@ function RoleCard({ role, onSelect, onSaveToggle, requirements: loadedRequiremen
         <div className={`flex items-center gap-[4px] px-[8px] py-[3px] rounded-full ${c.bg}`}>
           <span className={`w-[5px] h-[5px] rounded-full ${c.dot}`} />
           <span className={`text-[10px] font-['Inter:Medium',sans-serif] font-medium ${c.text}`}>
-            {hasDemand(demand) ? demand.demandLevel : "No demand data"}
+            {hasDemand(demand) ? demand.demandLevel : L("No demand data")}
           </span>
         </div>
       </div>
@@ -721,7 +726,8 @@ function BrowseRoles({
   searching = false, searchError = "", searchActive = false, total = null, page = 1, pageSize = 15, onPageChange,
   requirementsById = {},
 }) {
-  const categories = ["All", ...Array.from(new Set(roles.map((r) => r.category)))];
+  const { L } = useUiText();
+  const categories = [L("All"), ...Array.from(new Set(roles.map((r) => r.category)))];
   // The text term is NOT filtered here any more — the server already did it over
   // the whole catalog. Filtering again in memory was the original bug: it could
   // only ever see the rows that had been fetched.
@@ -744,7 +750,7 @@ function BrowseRoles({
           </svg>
           <input
             type="text"
-            placeholder="Search career roles..."
+            placeholder={L("Search career roles...")}
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-[36px] pr-[14px] py-[9px] bg-white border border-[#e8eaf0] rounded-[10px] text-[13px] font-['Inter:Regular',sans-serif] text-[#0a0b14] placeholder:text-[#94a3b8] outline-none focus:border-[#3b8bff] transition-colors"
@@ -773,7 +779,7 @@ function BrowseRoles({
           {searchError
             ? searchError
             : searching
-              ? "Searching all career roles…"
+              ? L("Searching all career roles…")
               : `${total ?? filtered.length} role${(total ?? filtered.length) === 1 ? "" : "s"} found`}
         </p>
       )}
@@ -785,12 +791,12 @@ function BrowseRoles({
         // means "no match anywhere in the catalog".
         <div data-testid="career-roles-no-results" className="flex flex-col items-center justify-center py-[56px] text-center">
           <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#0a0b14] mb-[6px]">
-            No career roles match your search
+            {L("No career roles match your search")}
           </h3>
           <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] max-w-[360px]">
             {search.trim()
               ? `Nothing matched “${search.trim()}”. Try a shorter term or check the spelling.`
-              : "Try a different filter."}
+              : L("Try a different filter.")}
           </p>
         </div>
       ) : (
@@ -810,7 +816,7 @@ function BrowseRoles({
             disabled={page <= 1 || searching}
             className="px-[12px] py-[7px] rounded-[8px] text-[12px] font-['Inter:Medium',sans-serif] font-medium bg-white border border-[#e8eaf0] text-[#64748b] disabled:opacity-40"
           >
-            Previous
+            {L("Previous")}
           </button>
           <span data-testid="page-indicator" className="text-[12px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b]">
             Page {page} of {pageCount}
@@ -821,7 +827,7 @@ function BrowseRoles({
             disabled={page >= pageCount || searching}
             className="px-[12px] py-[7px] rounded-[8px] text-[12px] font-['Inter:Medium',sans-serif] font-medium bg-white border border-[#e8eaf0] text-[#64748b] disabled:opacity-40"
           >
-            Next
+            {L("Next")}
           </button>
         </div>
       )}
@@ -833,6 +839,7 @@ function BrowseRoles({
 }
 // ── SuggestedRolesSection ─────────────────────────────────────────────────────
 function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
+  const { L } = useUiText();
   const suggested = roles.filter((r) => r.isSuggested);
   return (
     <div>
@@ -844,7 +851,7 @@ function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
             </svg>
           </div>
           <div>
-            <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#0a0b14]">Suggested for You</h3>
+            <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#0a0b14]">{L("Suggested for You")}</h3>
             <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
               Based on your skills, education & interests — you choose, we explain
             </p>
@@ -854,6 +861,7 @@ function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
 
       <div className="flex flex-col gap-[10px]">
         {suggested.map((role) => {
+  const { L } = useUiText();
           const demand = demandOf(role);
           const c = demandColor(demand.demandLevel);
           return (
@@ -874,7 +882,7 @@ function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
                   <span
                     className={`text-[10px] font-['Inter:Medium',sans-serif] font-medium px-[6px] py-[2px] rounded-full ${c.bg} ${c.text}`}
                   >
-                    {hasDemand(demand) ? `${demand.demandLevel} Demand` : "No demand data"}
+                    {hasDemand(demand) ? `${demand.demandLevel} Demand` : L("No demand data")}
                   </span>
                 </div>
                 <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] truncate">
@@ -889,7 +897,7 @@ function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
                   >
                     {role.readinessScore}%
                   </span>
-                  <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Readiness</p>
+                  <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{L("Readiness")}</p>
                 </div>
                 <button
                   onClick={() => onSelect(role.id)}
@@ -911,6 +919,7 @@ function SuggestedRolesSection({ roles, onSelect, onSaveToggle }) {
 }
 // ── SavedRolesView ────────────────────────────────────────────────────────────
 function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
+  const { L } = useUiText();
   const saved = roles.filter((r) => r.isSaved);
   if (saved.length === 0) {
     return (
@@ -921,10 +930,10 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
           </svg>
         </div>
         <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[16px] text-[#0a0b14] mb-[6px]">
-          No saved roles yet
+          {L("No saved roles yet")}
         </h3>
         <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] max-w-[320px]">
-          Browse career roles and save the ones that interest you. Saved roles can be compared side-by-side.
+          {L("Browse career roles and save the ones that interest you. Saved roles can be compared side-by-side.")}
         </p>
       </div>
     );
@@ -944,12 +953,13 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
               <rect x="1" y="3" width="5" height="8" rx="1" stroke="white" strokeWidth="1.3" />
               <rect x="8" y="3" width="5" height="8" rx="1" stroke="white" strokeWidth="1.3" />
             </svg>
-            Compare Readiness
+            {L("Compare Readiness")}
           </button>
         )}
       </div>
       <div className="flex flex-col gap-[12px]">
         {saved.map((role) => {
+  const { L } = useUiText();
           const demand = demandOf(role);
           const c = demandColor(demand.demandLevel);
           const skillsMet = skillRequirementsOf(role).filter((s) => s.currentLevel >= s.requiredLevel).length;
@@ -980,7 +990,7 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                   <div className="flex flex-wrap items-center gap-[16px]">
                     <div>
                       <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[4px]">
-                        Readiness Score
+                        {L("Readiness Score")}
                       </p>
                       <div className="flex items-center gap-[8px]">
                         <div className="w-[100px] bg-[#f1f3fa] rounded-full h-[6px]">
@@ -1000,7 +1010,7 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                     </div>
                     <div>
                       <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[4px]">
-                        Skills Met
+                        {L("Skills Met")}
                       </p>
                       <p data-testid="saved-role-skills-met" className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#0a0b14]">
                         {role.readinessScore == null ? "—" : `${skillsMet}/${skillRequirementsOf(role).length}`}
@@ -1008,12 +1018,12 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                     </div>
                     <div>
                       <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[4px]">
-                        Market Demand
+                        {L("Market Demand")}
                       </p>
                       <div className={`flex items-center gap-[4px] px-[8px] py-[2px] rounded-full ${c.bg}`}>
                         <span className={`w-[5px] h-[5px] rounded-full ${c.dot}`} />
                         <span className={`text-[11px] font-['Inter:Medium',sans-serif] font-medium ${c.text}`}>
-                          {hasDemand(demand) ? demand.demandLevel : "No data"}
+                          {hasDemand(demand) ? demand.demandLevel : L("No data")}
                         </span>
                       </div>
                     </div>
@@ -1024,14 +1034,14 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
                     onClick={() => onSelect(role.id)}
                     className="px-[14px] py-[8px] rounded-[10px] text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#3b8bff] bg-[rgba(59,139,255,0.06)] hover:bg-[rgba(59,139,255,0.12)] transition-colors border border-[rgba(59,139,255,0.15)]"
                   >
-                    View Details
+                    {L("View Details")}
                   </button>
                   <button
                     disabled={role.isSaving}
                     onClick={() => onSaveToggle(role.id)}
                     className="px-[14px] py-[8px] rounded-[10px] text-[13px] font-['Inter:Medium',sans-serif] font-medium text-[#94a3b8] bg-[#f8f9fd] hover:bg-[rgba(239,68,68,0.06)] hover:text-[#ef4444] transition-colors border border-[#e8eaf0]"
                   >
-                    Remove
+                    {L("Remove")}
                   </button>
                 </div>
               </div>
@@ -1044,6 +1054,7 @@ function SavedRolesView({ roles, onSelect, onSaveToggle, onCompare }) {
 }
 // ── CompareView ────────────────────────────────────────────────────────────────
 function CompareView({ roles, onSelect }) {
+  const { L } = useUiText();
   const saved = roles.filter((r) => r.isSaved);
   const [selected, setSelected] = useState(saved.slice(0, 2).map((r) => r.id));
   const compareRoles = roles.filter((r) => selected.includes(r.id));
@@ -1056,7 +1067,7 @@ function CompareView({ roles, onSelect }) {
       {/* Role selector */}
       <div className="mb-[20px]">
         <p className="text-[12px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b] mb-[10px]">
-          Select up to 3 saved roles to compare
+          {L("Select up to 3 saved roles to compare")}
         </p>
         <div className="flex gap-[8px] flex-wrap">
           {saved.map((role) => (
@@ -1083,7 +1094,7 @@ function CompareView({ roles, onSelect }) {
       {compareRoles.length < 2 ? (
         <div className="flex items-center justify-center py-[48px] text-center bg-white border border-[#e8eaf0] rounded-[16px]">
           <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-            Select at least 2 roles above to compare readiness scores.
+            {L("Select at least 2 roles above to compare readiness scores.")}
           </p>
         </div>
       ) : (
@@ -1093,7 +1104,7 @@ function CompareView({ roles, onSelect }) {
             <div className="flex items-center gap-[6px] mb-[20px]">
               <div className="w-[6px] h-[6px] rounded-full bg-[#94a3b8]" />
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#0a0b14]">
-                Readiness Comparison
+                {L("Readiness Comparison")}
               </h3>
               <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] ml-[4px]">
                 Same evidence snapshot —{" "}
@@ -1154,7 +1165,7 @@ function CompareView({ roles, onSelect }) {
           <div className="bg-white border border-[#e8eaf0] rounded-[16px] overflow-hidden">
             <div className="px-[20px] py-[16px] border-b border-[#f1f3fa]">
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[14px] text-[#0a0b14]">
-                Skill Gap Breakdown
+                {L("Skill Gap Breakdown")}
               </h3>
             </div>
             <div className="overflow-x-auto">
@@ -1162,7 +1173,7 @@ function CompareView({ roles, onSelect }) {
                 <thead>
                   <tr className="border-b border-[#f1f3fa]">
                     <th className="text-left px-[20px] py-[12px] text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#94a3b8]">
-                      Skill
+                      {L("Skill")}
                     </th>
                     {compareRoles.map((role) => (
                       <th
@@ -1181,6 +1192,7 @@ function CompareView({ roles, onSelect }) {
                         {skillName}
                       </td>
                       {compareRoles.map((role) => {
+  const { L } = useUiText();
                         const skill = skillRequirementsOf(role).find((s) => s.skillName === skillName);
                         if (!skill)
                           return (
@@ -1209,7 +1221,7 @@ function CompareView({ roles, onSelect }) {
                               </div>
                               {skill.isCritical && (
                                 <span className="text-[9px] font-['Inter:Medium',sans-serif] text-[#ef4444]">
-                                  Critical
+                                  {L("Critical")}
                                 </span>
                               )}
                             </div>
@@ -1228,14 +1240,15 @@ function CompareView({ roles, onSelect }) {
   );
 }
 export default function CareerRolesView({ initialRoles = null, onSearch, searchDebounceMs = 300, pageSize = 15, currentGoalId = null, onGoalSelect, onGoalCalculate, goalBusy = false }) {
+  const { L } = useUiText();
   // One mapping, used by the initial props and by every server result. It was
   // duplicated inline (two identical 700-character expressions) which is how the
   // two copies drifted apart.
   const normalizeRole = (role) => ({
     ...role,
     id: role.id ?? role.uuid,
-    title: role.title ?? role.name ?? role.role_title ?? "Untitled role",
-    category: role.category ?? role.industry ?? "Other",
+    title: role.title ?? role.name ?? role.role_title ?? L("Untitled role"),
+    category: role.category ?? role.industry ?? L("Other"),
     // NOT defaulted to 0 any more: /career-roles sends no readiness at all, and
     // turning "absent" into 0 here is what made every card claim 0%. Left
     // undefined so the card can tell "not scored yet" from "scored zero".
@@ -1250,7 +1263,7 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
   const roles = (initialRoles ?? []).map(normalizeRole);
   const [activeTab, setActiveTab] = useState("browse");
   const [selectedRoleId, setSelectedRoleId] = useState(null);
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState(L("All"));
   const [search, setSearch] = useState("");
   // Which page the list currently shows, and how many results the last query
   // matched across the WHOLE catalog (not just the page on screen).
@@ -1273,6 +1286,7 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
   useEffect(() => {
     let cancelled = false;
     (async () => {
+  const { L } = useUiText();
       try {
         const payload = unwrapApiData(await getSavedCareerRoles());
         if (!Array.isArray(payload)) throw new Error("Invalid saved roles response");
@@ -1281,7 +1295,7 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
           setSavedLoaded(true);
         }
       } catch {
-        if (!cancelled) setSaveError("Saved roles could not be loaded. Please retry.");
+        if (!cancelled) setSaveError(L("Saved roles could not be loaded. Please retry."));
       }
     })();
     return () => { cancelled = true; };
@@ -1295,6 +1309,7 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
   const visibleRoles = (searchResults ?? roles).map(withSavedState);
   const savedCount = savedRoles.length;
   async function toggleSave(id) {
+  const { L } = useUiText();
     const key = String(id);
     if (!savedLoaded || pendingSaves.current.has(key)) return;
     const role = visibleRoles.find((r) => String(r.id) === key)
@@ -1310,9 +1325,9 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
       setSavedRoles((prev) => saved
         ? [...prev.filter((r) => String(r.id) !== key), role]
         : prev.filter((r) => String(r.id) !== key));
-      setSaveMessage(saved ? "Role saved." : "Role removed from saved roles.");
+      setSaveMessage(saved ? L("Role saved.") : L("Role removed from saved roles."));
     } catch {
-      setSaveError("The role could not be updated. Please try again.");
+      setSaveError(L("The role could not be updated. Please try again."));
     } finally {
       pendingSaves.current.delete(key);
       setSavingIds(new Set(pendingSaves.current));
@@ -1326,9 +1341,9 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
     setSelectedRoleSnapshot(found);
   }
   const tabs = [
-    { key: "browse", label: "Browse Roles" },
-    { key: "saved", label: "Saved Roles", count: savedCount },
-    { key: "compare", label: "Compare Readiness" },
+    { key: "browse", label: L("Browse Roles") },
+    { key: "saved", label: L("Saved Roles"), count: savedCount },
+    { key: "compare", label: L("Compare Readiness") },
   ];
 
   /*
@@ -1361,6 +1376,7 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
     setSearchError("");
 
     const timer = setTimeout(async () => {
+  const { L } = useUiText();
       try {
         const payload = await fetchRoles(term, page);
         // A slower earlier response must not overwrite a newer one.
@@ -1372,7 +1388,7 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
       } catch {
         if (seq !== requestSeq.current) return;
         // Leave the previous results on screen; a failed search is not an empty result.
-        setSearchError("Search could not be completed. Please try again.");
+        setSearchError(L("Search could not be completed. Please try again."));
       } finally {
         if (seq === requestSeq.current) setSearching(false);
       }
@@ -1462,10 +1478,10 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
       {/* Page header */}
       <div className="px-[32px] pt-[28px] pb-[20px] shrink-0">
         <h1 className="font-['Inter:Bold',sans-serif] font-bold text-[28px] text-[#0a0b14] leading-[1.2]">
-          Career Roles
+          {L("Career Roles")}
         </h1>
         <p className="font-['Inter:Regular',sans-serif] text-[14px] text-[#64748b] mt-[4px]">
-          Explore roles, understand requirements, and track your readiness.
+          {L("Explore roles, understand requirements, and track your readiness.")}
         </p>
 
         {/* Tabs */}
@@ -1497,7 +1513,7 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-[32px] pb-[32px]">
-        {saveError && <div role="alert" className="mb-4 text-red-700">{saveError}{!savedLoaded && <button type="button" className="ml-2 underline" onClick={() => { setSaveError(""); setSavedLoadAttempt((n) => n + 1); }}>Retry saved roles</button>}</div>}
+        {saveError && <div role="alert" className="mb-4 text-red-700">{saveError}{!savedLoaded && <button type="button" className="ml-2 underline" onClick={() => { setSaveError(""); setSavedLoadAttempt((n) => n + 1); }}>{L("Retry saved roles")}</button>}</div>}
         {saveMessage && <div role="status" className="mb-4 text-green-700">{saveMessage}</div>}
         {roles.length === 0 && visibleRoles.length === 0 && savedRoles.length === 0 ? (
           // Previously this rendered nothing at all: the header and tabs stayed
@@ -1511,11 +1527,10 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
               </svg>
             </div>
             <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[16px] text-[#0a0b14] mb-[6px]">
-              No career roles to show yet
+              {L("No career roles to show yet")}
             </h3>
             <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] max-w-[360px]">
-              Career roles will appear here once they are published. Your readiness and skill
-              evidence are not affected.
+              {L("Career roles will appear here once they are published. Your readiness and skill evidence are not affected.")}
             </p>
           </div>
         ) : selectedRole ? (

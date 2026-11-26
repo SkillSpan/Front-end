@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useUiText } from "../../i18n/useUiText";
 import RoadmapLearningPanel from "./RoadmapLearningPanel";
 // ═══════════════════════════════════════════════════════════════════════════════
 // MOCK DATA
@@ -214,11 +215,12 @@ function Gauge({ score, band, size = 180 }) {
 // NBA BANNER
 // ═══════════════════════════════════════════════════════════════════════════════
 function NBABanner({ action, onStart }) {
+  const { L } = useUiText();
   // `phase_name` is what normaliseRoadmapActions() produces; `phaseName` was the
   // mock-model spelling this banner was originally written against. Accept both
   // so the banner cannot render "Phase 1 · undefined" against a real payload.
   const phaseName = action.phase_name ?? action.phaseName ?? `Phase ${action.phase}`;
-  const typeMeta = TM[action.type] ?? { label: action.type ?? "Action" };
+  const typeMeta = TM[action.type] ?? { label: action.type ?? L("Action") };
   return (
     <div
       className="relative overflow-hidden rounded-[20px] mb-[20px]"
@@ -238,15 +240,15 @@ function NBABanner({ action, onStart }) {
           <div className="flex items-center gap-[5px] bg-[rgba(59,139,255,0.2)] border border-[rgba(59,139,255,0.3)] px-[10px] py-[4px] rounded-full">
             <span className="text-[11px]">⚡</span>
             <span className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#7ca8ff]">
-              Next Best Action
+              {L("Next Best Action")}
             </span>
           </div>
           <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.35)]">
-            Phase {action.phase} · {phaseName} · {typeMeta.label}
+            Phase {action.phase} · {phaseName} · {L(typeMeta.label)}
           </span>
           {action.isCritical && (
             <span className="text-[10px] font-['Inter:Medium',sans-serif] font-medium text-[#ef4444] bg-[rgba(239,68,68,0.2)] px-[8px] py-[2px] rounded-full">
-              Critical Skill
+              {L("Critical Skill")}
             </span>
           )}
         </div>
@@ -261,7 +263,7 @@ function NBABanner({ action, onStart }) {
             <div className="flex gap-[10px] flex-wrap">
               <div className="flex-1 min-w-[180px] bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-[10px] px-[14px] py-[10px]">
                 <p className="text-[9px] font-['Inter:Semi_Bold',sans-serif] font-semibold uppercase tracking-widest text-[rgba(255,255,255,0.3)] mb-[5px]">
-                  Why this is next
+                  {L("Why this is next")}
                 </p>
                 <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.65)]">
                   {[
@@ -270,7 +272,7 @@ function NBABanner({ action, onStart }) {
                       : null,
                     (action.prerequisites ?? []).length > 0
                       ? `${action.prerequisites.length} prerequisite${action.prerequisites.length > 1 ? "s" : ""}`
-                      : "No prerequisites",
+                      : L("No prerequisites"),
                     action.status,
                   ]
                     .filter(Boolean)
@@ -297,7 +299,7 @@ function NBABanner({ action, onStart }) {
             </div>
             <div>
               <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.3)] mb-[2px]">
-                Effort
+                {L("Effort")}
               </p>
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[12px] text-white">
                 {action.estimatedEffort}
@@ -306,7 +308,7 @@ function NBABanner({ action, onStart }) {
             <div className="w-full h-px bg-[rgba(255,255,255,0.06)]" />
             <div>
               <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[rgba(255,255,255,0.3)] mb-[2px]">
-                Timeline
+                {L("Timeline")}
               </p>
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[12px] text-white">
                 {action.estimatedDuration}
@@ -329,9 +331,10 @@ function NBABanner({ action, onStart }) {
 // READINESS TAB
 // ═══════════════════════════════════════════════════════════════════════════════
 function ReadinessTab({ data }) {
+  const { L } = useUiText();
   const [showHow, setShowHow] = useState(false);
   const bt = BAND[data.band];
-  const BANDS = ["Not Started", "Developing", "Progressing", "Advanced", "Ready"];
+  const BANDS = [L("Not Started"), L("Developing"), L("Progressing"), L("Advanced"), L("Ready")];
   const bandIdx = BANDS.indexOf(data.band);
   return (
     <div className="flex flex-col gap-[16px]">
@@ -351,7 +354,7 @@ function ReadinessTab({ data }) {
                 Critical Skill Deficiency — {data.warning.skillName}
               </span>
               <span className="bg-[rgba(239,68,68,0.1)] text-[#ef4444] text-[10px] font-['Inter:Bold',sans-serif] font-bold px-[8px] py-[2px] rounded-full border border-[rgba(239,68,68,0.2)]">
-                Readiness cap: {data.warning.capApplied}
+                {L("Readiness cap:")} {data.warning.capApplied}
               </span>
             </div>
             <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.6]">
@@ -360,19 +363,19 @@ function ReadinessTab({ data }) {
             {data.warning.currentLevel != null && data.warning.requiredLevel != null ? (
               <div className="flex gap-[14px] mt-[8px] text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
                 <span>
-                  Current:{" "}
+                  {L("Current:")}{" "}
                   <strong className="text-[#ef4444] font-['Inter:Semi_Bold',sans-serif]">
                     L{data.warning.currentLevel}
                   </strong>
                 </span>
                 <span>
-                  Required:{" "}
+                  {L("Required:")}{" "}
                   <strong className="text-[#0a0b14] font-['Inter:Semi_Bold',sans-serif]">
                     L{data.warning.requiredLevel}
                   </strong>
                 </span>
                 <span>
-                  Gap:{" "}
+                  {L("Gap:")}{" "}
                   <strong className="text-[#ef4444] font-['Inter:Semi_Bold',sans-serif]">
                     −{Number(data.warning.requiredLevel) - Number(data.warning.currentLevel)}
                   </strong>
@@ -420,7 +423,7 @@ function ReadinessTab({ data }) {
             {/* Band scale */}
             <div>
               <p className="text-[10px] font-['Inter:Medium',sans-serif] font-medium text-[#94a3b8] uppercase tracking-wide mb-[8px]">
-                Your position in the readiness scale
+                {L("Your position in the readiness scale")}
               </p>
               <div className="flex items-center gap-[4px]">
                 {BANDS.map((b, i) => {
@@ -448,7 +451,7 @@ function ReadinessTab({ data }) {
             <div>
               <div className="flex items-center justify-between mb-[6px]">
                 <p className="text-[10px] font-['Inter:Medium',sans-serif] font-medium text-[#94a3b8] uppercase tracking-wide">
-                  Score composition
+                  {L("Score composition")}
                 </p>
                 <span className="text-[12px] font-['Inter:Bold',sans-serif] font-bold text-[#0a0b14]">
                   {data.score} pts total
@@ -458,7 +461,7 @@ function ReadinessTab({ data }) {
                 {data.components.map((c) => (
                   <div
                     key={c.key}
-                    title={`${c.label}: +${c.contribution.toFixed(1)} pts`}
+                    title={`${L(c.label)}: +${c.contribution.toFixed(1)} pts`}
                     className="h-full rounded-full"
                     style={{ width: `${(c.contribution / data.score) * 100}%`, background: c.color }}
                   />
@@ -491,10 +494,10 @@ function ReadinessTab({ data }) {
               <div className="flex items-center gap-[8px]">
                 <div>
                   <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14] leading-tight">
-                    {c.label}
+                    {L(c.label)}
                   </p>
                   <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-                    Weight: {Math.round(c.weight * 100)}% of score
+                    {L("Weight:")} {Math.round(c.weight * 100)}% of score
                   </p>
                 </div>
               </div>
@@ -513,13 +516,13 @@ function ReadinessTab({ data }) {
             {/* Contribution */}
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-                Contribution to final score
+                {L("Contribution to final score")}
               </span>
               <span
                 className="text-[12px] font-['Inter:Semi_Bold',sans-serif] font-semibold"
                 style={{ color: c.color }}
               >
-                +{c.contribution.toFixed(1)} pts
+                +{c.contribution.toFixed(1)} {L("pts")}
               </span>
             </div>
             {/* Divider + explanation */}
@@ -536,7 +539,7 @@ function ReadinessTab({ data }) {
       <div className="flex items-center gap-[10px] flex-wrap">
         <div className="flex items-center gap-[8px] flex-wrap text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
           <span>
-            Calculated{" "}
+            {L("Calculated")}{" "}
             {new Date(data.calculatedAt).toLocaleString("en-GB", {
               day: "2-digit",
               month: "short",
@@ -546,9 +549,9 @@ function ReadinessTab({ data }) {
             })}
           </span>
           <span className="opacity-40">·</span>
-          <span>Algo {data.algorithmVersion}</span>
+          <span>{L("Algo")} {data.algorithmVersion}</span>
           <span className="opacity-40">·</span>
-          <span>Config {data.configVersion}</span>
+          <span>{L("Config")} {data.configVersion}</span>
           <span className="opacity-40">·</span>
           <span>{data.decisionVersion}</span>
         </div>
@@ -577,7 +580,7 @@ function ReadinessTab({ data }) {
                 className="flex items-center gap-[8px] bg-white border border-[#e8eaf0] rounded-[8px] px-[10px] py-[8px]"
               >
                 <span className="w-[6px] h-[6px] rounded-full shrink-0" style={{ background: c.color }} />
-                <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#64748b] flex-1">{c.label}</span>
+                <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#64748b] flex-1">{L(c.label)}</span>
                 <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#64748b]">
                   {c.score}% × {Math.round(c.weight * 100)}% ={" "}
                   <strong className="font-['Inter:Semi_Bold',sans-serif]" style={{ color: c.color }}>
@@ -600,6 +603,7 @@ function ReadinessTab({ data }) {
 // SKILL GAP TAB
 // ═══════════════════════════════════════════════════════════════════════════════
 function SkillGapTab({ gaps }) {
+  const { L } = useUiText();
   const [expanded, setExpanded] = useState(null);
   // Weights can all be zero on a role whose skills carry no importance yet —
   // dividing by that total would render "NaN%".
@@ -610,7 +614,7 @@ function SkillGapTab({ gaps }) {
   const buckets = [
     {
       key: "priority-gap",
-      label: "Priority Gaps",
+      label: L("Priority Gaps"),
       dot: "bg-[#ef4444]",
       col: "text-[#ef4444]",
       bg: "bg-[rgba(239,68,68,0.04)]",
@@ -619,7 +623,7 @@ function SkillGapTab({ gaps }) {
     },
     {
       key: "developing",
-      label: "Developing",
+      label: L("Developing"),
       dot: "bg-[#f59e0b]",
       col: "text-[#f59e0b]",
       bg: "bg-[rgba(245,158,11,0.04)]",
@@ -628,7 +632,7 @@ function SkillGapTab({ gaps }) {
     },
     {
       key: "strength",
-      label: "Strengths",
+      label: L("Strengths"),
       dot: "bg-[#059669]",
       col: "text-[#059669]",
       bg: "bg-[rgba(5,150,105,0.04)]",
@@ -641,15 +645,15 @@ function SkillGapTab({ gaps }) {
       {/* Stat tiles */}
       <div className="grid grid-cols-4 gap-[12px]">
         {[
-          { l: "Weighted Match", v: `${Math.round(wtMatch)}%`, s: "across required skills", c: "text-[#3b8bff]" },
-          { l: "Priority Gaps", v: `${buckets[0].items.length}`, s: "need immediate action", c: "text-[#ef4444]" },
+          { l: L("Weighted Match"), v: `${Math.round(wtMatch)}%`, s: L("across required skills"), c: "text-[#3b8bff]" },
+          { l: L("Priority Gaps"), v: `${buckets[0].items.length}`, s: L("need immediate action"), c: "text-[#ef4444]" },
           {
-            l: "Critical Unmet",
+            l: L("Critical Unmet"),
             v: `${gaps.filter((g) => g.isCritical && g.gap > 0).length}`,
             s: `of ${gaps.filter((g) => g.isCritical).length} critical skills`,
             c: gaps.some((g) => g.isCritical && g.gap > 0) ? "text-[#ef4444]" : "text-[#059669]",
           },
-          { l: "Strengths", v: `${buckets[2].items.length}`, s: "requirements met", c: "text-[#059669]" },
+          { l: L("Strengths"), v: `${buckets[2].items.length}`, s: L("requirements met"), c: "text-[#059669]" },
         ].map((s) => (
           <div key={s.l} className="bg-white border border-[#e8eaf0] rounded-[14px] p-[16px]">
             <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[4px]">{s.l}</p>
@@ -680,7 +684,7 @@ function SkillGapTab({ gaps }) {
           <div
             className="roadmap-table-row grid items-center px-[20px] py-[10px] border-b border-[#f1f3fa] bg-[#fafbff]"
           >
-          {["", "Skill", "Current", "Required", "Gap", "Match %", "Importance", "Criticality", "Confidence", ""].map(
+          {["", L("Skill"), L("Current"), L("Required"), L("Gap"), L("Match %"), L("Importance"), L("Criticality"), L("Confidence"), ""].map(
             (h, i) => (
               <span
                 key={i}
@@ -700,7 +704,7 @@ function SkillGapTab({ gaps }) {
                 <div className={`flex items-center gap-[8px] px-[20px] py-[7px] border-b ${bk.border} ${bk.bg}`}>
                   <span className={`w-[6px] h-[6px] rounded-full shrink-0 ${bk.dot}`} />
                   <span className={`text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold ${bk.col}`}>
-                    {bk.label}
+                    {L(bk.label)}
                   </span>
                   <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
                     ({bk.items.length})
@@ -708,6 +712,7 @@ function SkillGapTab({ gaps }) {
                 </div>
 
                 {bk.items.map((gap) => {
+  const { L } = useUiText();
                   const isExp = expanded === gap.skillId;
                   const mc = gap.match >= 100 ? "#059669" : gap.match >= 70 ? "#f59e0b" : "#ef4444";
                   const ct = CT[gap.confidenceLabel] ?? CT["Not available"];
@@ -726,7 +731,7 @@ function SkillGapTab({ gaps }) {
                           {/* Critical dot */}
                           <div className="flex items-center justify-center">
                             {gap.isCritical ? (
-                              <span className="w-[6px] h-[6px] rounded-full bg-[#ef4444]" title="Critical skill" />
+                              <span className="w-[6px] h-[6px] rounded-full bg-[#ef4444]" title={L("Critical skill")} />
                             ) : (
                               <span />
                             )}
@@ -787,7 +792,7 @@ function SkillGapTab({ gaps }) {
                           <p
                             className={`text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold ${gap.isCritical ? "text-[#ef4444]" : "text-[#94a3b8]"}`}
                           >
-                            {gap.isCritical ? "⚑ Critical" : "Standard"}
+                            {gap.isCritical ? "⚑ Critical" : L("Standard")}
                           </p>
 
                           {/* Confidence */}
@@ -832,7 +837,7 @@ function SkillGapTab({ gaps }) {
                         >
                           <div>
                             <p className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#94a3b8] uppercase tracking-wide mb-[5px]">
-                              Why this matters
+                              {L("Why this matters")}
                             </p>
                             <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.65]">
                               {gap.explanation}
@@ -849,7 +854,7 @@ function SkillGapTab({ gaps }) {
                           </div>
                           <div className="bg-[#f8f9ff] border border-[#eef0f8] rounded-[10px] p-[12px]">
                             <p className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#94a3b8] uppercase tracking-wide mb-[6px]">
-                              Evidence & Confidence
+                              {L("Evidence & Confidence")}
                             </p>
                             <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#64748b] mb-[8px] leading-[1.5]">
                               {gap.evidenceSummary}
@@ -885,7 +890,8 @@ function SkillGapTab({ gaps }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ── Milestone card ────────────────────────────────────────────────────────────
 function MilestoneCard({ m }) {
-  const ms = MS[m.status] ?? MS["Not Started"];
+  const { L } = useUiText();
+  const ms = MS[m.status] ?? MS[L("Not Started")];
   return (
     <div
       className={`rounded-[14px] border-2 ${ms.border} p-[18px] flex gap-[14px]`}
@@ -907,11 +913,11 @@ function MilestoneCard({ m }) {
             className={`text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold px-[8px] py-[2px] rounded-full ${ms.text}`}
             style={{ background: `${ms.ring}12`, border: `1px solid ${ms.ring}30` }}
           >
-            {m.status}
+            {L(m.status)}
           </span>
           {m.achievedDate && (
             <span className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-              Achieved {m.achievedDate}
+              {L("Achieved")} {m.achievedDate}
             </span>
           )}
           {m.unlocksPhase && m.status !== "Achieved" && (
@@ -960,9 +966,10 @@ function MilestoneCard({ m }) {
 }
 // ── Action card ────────────────────────────────────────────────────────────────
 function ActionCard({ action, onStart }) {
+  const { L } = useUiText();
   const [open, setOpen] = useState(action.isNBA ?? false);
-  const st = ST[action.status] ?? ST["Not Started"];
-  const tm = TM[action.type] ?? { emoji: "📌", label: "Action" };
+  const st = ST[action.status] ?? ST[L("Not Started")];
+  const tm = TM[action.type] ?? { emoji: "📌", label: L("Action") };
   const isBlocked = action.status === "Blocked";
   const isDone = action.status === "Completed";
   return (
@@ -999,12 +1006,12 @@ function ActionCard({ action, onStart }) {
                 className={`text-[10px] font-['Inter:Medium',sans-serif] font-medium px-[7px] py-[2px] rounded-full flex items-center gap-[3px] ${st.bg} ${st.text}`}
               >
                 <span className={`w-[4px] h-[4px] rounded-full ${st.dot}`} />
-                {action.status}
+                {L(action.status)}
               </span>
-              <span className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{tm.label}</span>
+              <span className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{L(tm.label)}</span>
               {action.isCritical && (
                 <span className="text-[10px] text-[#ef4444] bg-[rgba(239,68,68,0.08)] px-[6px] py-[1px] rounded-full font-['Inter:Medium',sans-serif] font-medium">
-                  Critical
+                  {L("Critical")}
                 </span>
               )}
               {action.isNBA && (
@@ -1023,18 +1030,18 @@ function ActionCard({ action, onStart }) {
             </p>
             <div className="flex items-center gap-[12px] text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] flex-wrap">
               <span>
-                Skill:{" "}
+                {L("Skill:")}{" "}
                 <span className="text-[#64748b] font-['Inter:Medium',sans-serif] font-medium">
                   {action.targetSkill}
                 </span>
               </span>
               {action.gap > 0 && (
                 <span>
-                  Gap:{" "}
+                  {L("Gap:")}{" "}
                   <span className="text-[#ef4444] font-['Inter:Medium',sans-serif] font-medium">−{action.gap}</span>
                 </span>
               )}
-              {action.gap === 0 && <span className="text-[#059669]">Requirement met</span>}
+              {action.gap === 0 && <span className="text-[#059669]">{L("Requirement met")}</span>}
               <span className="ml-auto">{action.estimatedEffort}</span>
               <span className="text-[#0a0b14] font-['Inter:Medium',sans-serif] font-medium">
                 {action.estimatedDuration}
@@ -1058,7 +1065,7 @@ function ActionCard({ action, onStart }) {
           <div className="grid grid-cols-2 gap-[10px]">
             <div className="bg-[#f8f9fd] rounded-[10px] p-[12px]">
               <p className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#94a3b8] uppercase tracking-wide mb-[4px]">
-                Completion criteria
+                {L("Completion criteria")}
               </p>
               <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.55]">
                 {action.completionCriteria}
@@ -1066,7 +1073,7 @@ function ActionCard({ action, onStart }) {
             </div>
             <div className="bg-[#f8f9fd] rounded-[10px] p-[12px]">
               <p className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#94a3b8] uppercase tracking-wide mb-[4px]">
-                Effort / Duration
+                {L("Effort / Duration")}
               </p>
               <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b]">{action.estimatedEffort}</p>
               <p className="text-[12px] font-['Inter:Medium',sans-serif] font-medium text-[#0a0b14]">
@@ -1077,7 +1084,7 @@ function ActionCard({ action, onStart }) {
           {action.prerequisites.length > 0 && (
             <div>
               <p className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#94a3b8] uppercase tracking-wide mb-[5px]">
-                Prerequisites
+                {L("Prerequisites")}
               </p>
               <div className="flex flex-col gap-[4px]">
                 {action.prerequisites.map((p) => (
@@ -1093,7 +1100,7 @@ function ActionCard({ action, onStart }) {
           )}
           <div>
             <p className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#94a3b8] uppercase tracking-wide mb-[4px]">
-              Why this action
+              {L("Why this action")}
             </p>
             <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.6]">
               {action.explanation}
@@ -1141,6 +1148,7 @@ const GAP_STATUS_LABEL = {
 
 function normaliseSkillGaps(skillGaps) {
   return (Array.isArray(skillGaps) ? skillGaps : []).map((gap) => {
+  const { L } = useUiText();
     const currentLevel = Number(gap.current_level) || 0;
     const requiredLevel = Number(gap.required_level) || 0;
     const gapValue = gap.gap != null ? Number(gap.gap) : Math.max(0, requiredLevel - currentLevel);
@@ -1169,8 +1177,8 @@ function normaliseSkillGaps(skillGaps) {
         confidence == null
           ? "Not available"
           : gap.confidence_algorithm_version === "skill-confidence-v2-baseline"
-            ? confidence >= 80 ? "High" : confidence >= 60 ? "Good" : confidence >= 30 ? "Moderate" : "Low"
-            : confidence >= 80 ? "High" : confidence >= 50 ? "Medium" : "Low",
+            ? confidence >= 80 ? L("High") : confidence >= 60 ? "Good" : confidence >= 30 ? "Moderate" : L("Low")
+            : confidence >= 80 ? L("High") : confidence >= 50 ? L("Medium") : L("Low"),
       // met ⇒ strength; a critical shortfall ⇒ priority; anything else ⇒ developing.
       bucket: status === "met" || gapValue <= 0 ? "strength" : isCritical ? "priority-gap" : "developing",
       explanation: gap.explanation || "",
@@ -1212,6 +1220,7 @@ function normaliseBand(raw) {
 }
 
 function normaliseReadiness(readiness, roleTitle = "") {
+  const { L } = useUiText();
   if (!readiness) return null;
 
   const available = READINESS_COMPONENTS.map((component) => ({
@@ -1263,7 +1272,7 @@ function normaliseReadiness(readiness, roleTitle = "") {
           skillName: criticalNames.join(", ") || "A critical skill",
           capApplied: cap != null ? `${Math.round(Number(cap))} pts` : "applied",
           explanation:
-            "A critical skill is below the minimum match, so the overall score was capped.",
+            L("A critical skill is below the minimum match, so the overall score was capped."),
           currentLevel: worstCritical?.current_level ?? null,
           requiredLevel: worstCritical?.required_level ?? null,
         }
@@ -1309,6 +1318,7 @@ function normaliseRoadmapActions(roadmap, skillGaps) {
   );
 
   const rows = actions.map((action) => {
+  const { L } = useUiText();
     const gap = gapBySkillId.get(String(action.target_skill_id));
     const phaseOrder = PHASE_ORDER[action.phase] ?? 1;
     // The action card dereferences `prerequisites.length`, and the API only
@@ -1320,9 +1330,9 @@ function normaliseRoadmapActions(roadmap, skillGaps) {
       id: action.id,
       phase: phaseOrder,
       phase_name: PHASE_LABEL[action.phase] ?? `Phase ${phaseOrder}`,
-      type: ACTION_TYPE_LABEL[action.type] ?? "Learning Resource",
-      status: ACTION_STATUS_LABEL[action.status] ?? "Not Started",
-      objective: action.title || action.objective || action.description || "Roadmap action",
+      type: ACTION_TYPE_LABEL[action.type] ?? L("Learning Resource"),
+      status: ACTION_STATUS_LABEL[action.status] ?? L("Not Started"),
+      objective: action.title || action.objective || action.description || L("Roadmap action"),
       description: action.description || action.objective || "",
       // The roadmap only carries `target_skill_id`; the name and the gap come
       // from the skill-gap block of the same decision, when it is present.
@@ -1356,6 +1366,7 @@ function normaliseRoadmapActions(roadmap, skillGaps) {
 }
 
 function RoadmapTab({ actions, milestones = [], roadmap = null, onStart }) {
+  const { L } = useUiText();
   const [filterPhase, setFilterPhase] = useState("all");
   const [showMilestones, setShowMilestones] = useState(true);
   const phases = [...new Set([...actions.map((a) => a.phase), ...milestones.map((m) => m.phase)].filter((phase) => phase !== null && phase !== undefined))]
@@ -1374,7 +1385,7 @@ function RoadmapTab({ actions, milestones = [], roadmap = null, onStart }) {
         <div className="flex items-center justify-between mb-[14px]">
           <div>
             <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#0a0b14]">
-              Career Roadmap
+              {L("Career Roadmap")}
             </h3>
             <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[2px]">
               Phase {curPhase}: {phases.find((p) => String(p.id) === String(curPhase))?.name} · {done}/{actions.length} actions
@@ -1385,7 +1396,7 @@ function RoadmapTab({ actions, milestones = [], roadmap = null, onStart }) {
             <p className="font-['Inter:Bold',sans-serif] font-bold text-[24px] text-[#0a0b14] leading-none">
               {Math.round((done / Math.max(actions.length, 1)) * 100)}%
             </p>
-            <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">overall progress</p>
+            <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{L("overall progress")}</p>
           </div>
         </div>
         {/* Overall progress bar */}
@@ -1454,7 +1465,7 @@ function RoadmapTab({ actions, milestones = [], roadmap = null, onStart }) {
                       className="text-[9px] font-['Inter:Medium',sans-serif] font-medium"
                       style={{ color: ms2.ring }}
                     >
-                      {m.status}
+                      {L(m.status)}
                     </span>
                   </div>
                 )}
@@ -1468,6 +1479,7 @@ function RoadmapTab({ actions, milestones = [], roadmap = null, onStart }) {
       <div className="flex items-center gap-[8px] flex-wrap justify-between">
         <div className="flex items-center gap-[6px] flex-wrap">
           {["all", ...phases.map((p) => p.id)].map((f) => {
+  const { L } = useUiText();
             const active = filterPhase === f;
             const pt2 = f !== "all" ? PT[f] : null;
             return (
@@ -1491,7 +1503,7 @@ function RoadmapTab({ actions, milestones = [], roadmap = null, onStart }) {
                     : undefined
                 }
               >
-                {f === "all" ? "All actions" : `Phase ${f} — ${phases.find((p) => String(p.id) === String(f))?.name}`}
+                {f === "all" ? L("All actions") : `Phase ${f} — ${phases.find((p) => String(p.id) === String(f))?.name}`}
               </button>
             );
           })}
@@ -1524,7 +1536,7 @@ function RoadmapTab({ actions, milestones = [], roadmap = null, onStart }) {
       {/* Action list */}
       <div>
         <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#94a3b8] uppercase tracking-wide mb-[10px]">
-          Development actions
+          {L("Development actions")}
         </p>
         <div className="flex flex-col gap-[10px]">
           {displayActions.map((a) => (
@@ -1538,7 +1550,7 @@ function RoadmapTab({ actions, milestones = [], roadmap = null, onStart }) {
       <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8] italic px-[2px] leading-[1.6]">
         {roadmap?.roadmap_version ? (
           <>
-            Roadmap version{" "}
+            {L("Roadmap version")}{" "}
             <span className="font-['Inter:Medium',sans-serif] font-medium not-italic">
               {roadmap.roadmap_version}
             </span>
@@ -1547,7 +1559,7 @@ function RoadmapTab({ actions, milestones = [], roadmap = null, onStart }) {
         ) : null}
         {roadmap?.estimated_total_hours != null
           ? `${Number(roadmap.estimated_total_hours)} h of work`
-          : "Effort not estimated"}
+          : L("Effort not estimated")}
         {roadmap?.estimated_duration_weeks != null
           ? ` over ${Number(roadmap.estimated_duration_weeks)} weeks`
           : ""}
@@ -1783,6 +1795,7 @@ function ErrorState({ variant }) {
 }
 // 3. INCOMPLETE / EMPTY / NO-EVIDENCE ─────────────────────────────────────────
 function IncompleteState({ variant }) {
+  const { L } = useUiText();
   const STEPS = {
     empty: [
       {
@@ -1874,7 +1887,7 @@ function IncompleteState({ variant }) {
     ],
   };
   const TITLES = {
-    empty: "No career role selected",
+    empty: L("No career role selected"),
     incomplete: "Profile not complete",
     "no-evidence": "No verified evidence",
   };
@@ -1942,7 +1955,7 @@ function IncompleteState({ variant }) {
                     </p>
                     {s.done && (
                       <span className="text-[10px] font-['Inter:Medium',sans-serif] font-medium text-[#059669] bg-[rgba(5,150,105,0.08)] px-[7px] py-[2px] rounded-full">
-                        Done
+                        {L("Done")}
                       </span>
                     )}
                     {!s.done && s.cta && (
@@ -1950,7 +1963,7 @@ function IncompleteState({ variant }) {
                         className="text-[10px] font-['Inter:Medium',sans-serif] font-medium px-[7px] py-[2px] rounded-full border"
                         style={{ color: s.accent, background: `${s.accent}10`, borderColor: `${s.accent}30` }}
                       >
-                        Required
+                        {L("Required")}
                       </span>
                     )}
                   </div>
@@ -1976,7 +1989,7 @@ function IncompleteState({ variant }) {
             What you will see once ready
           </p>
           <div className="grid grid-cols-4 gap-[10px] opacity-30 pointer-events-none">
-            {["Readiness Score", "Skill Gaps", "Career Roadmap", "Next Best Action"].map((l) => (
+            {[L("Readiness Score"), L("Skill Gaps"), L("Career Roadmap"), L("Next Best Action")].map((l) => (
               <div key={l} className="bg-white border border-[#e8eaf0] rounded-[12px] p-[12px] flex flex-col gap-[6px]">
                 <Sk w="70%" h={10} r={4} />
                 <Sk w="100%" h={22} r={6} />
@@ -1991,10 +2004,11 @@ function IncompleteState({ variant }) {
 }
 // 4. HISTORICAL VERSION STATE ─────────────────────────────────────────────────
 function HistoricalState({ readiness = null, onViewLatest }) {
+  const { L } = useUiText();
   const HIST = [
-    { v: "v2.3", date: "9 Sep 2026", score: 67, band: "Progressing", algo: "v1.4.2", cfg: "v2.1", isViewing: true },
-    { v: "v2.2", date: "2 Aug 2026", score: 58, band: "Developing", algo: "v1.3.1", cfg: "v2.0", isViewing: false },
-    { v: "v2.1", date: "15 Jul 2026", score: 44, band: "Developing", algo: "v1.3.0", cfg: "v1.9", isViewing: false },
+    { v: "v2.3", date: "9 Sep 2026", score: 67, band: L("Progressing"), algo: "v1.4.2", cfg: "v2.1", isViewing: true },
+    { v: "v2.2", date: "2 Aug 2026", score: 58, band: L("Developing"), algo: "v1.3.1", cfg: "v2.0", isViewing: false },
+    { v: "v2.1", date: "15 Jul 2026", score: 44, band: L("Developing"), algo: "v1.3.0", cfg: "v1.9", isViewing: false },
   ];
   return (
     <div className="flex flex-col gap-[16px]">
@@ -2041,6 +2055,7 @@ function HistoricalState({ readiness = null, onViewLatest }) {
         </div>
         <div className="px-[24px] py-[20px] flex flex-col gap-0">
           {HIST.map((h, i) => {
+  const { L } = useUiText();
             const bt2 = BAND[h.band];
             const prev = HIST[i + 1];
             const delta = prev ? h.score - prev.score : null;
@@ -2127,7 +2142,7 @@ function HistoricalState({ readiness = null, onViewLatest }) {
                               <span
                                 className={`text-[11px] font-['Inter:Medium',sans-serif] font-medium ${delta > 0 ? "text-[#059669]" : "text-[#ef4444]"}`}
                               >
-                                {delta > 0 ? "▲" : "▼"} {Math.abs(delta)} pts
+                                {delta > 0 ? "▲" : "▼"} {Math.abs(delta)} {L("pts")}
                               </span>
                             )}
                           </div>
@@ -2187,13 +2202,14 @@ function HistoricalState({ readiness = null, onViewLatest }) {
 
       {/* Historical readiness content — read-only */}
       <div className="opacity-65 pointer-events-none select-none">
-        {readiness ? <ReadinessTab data={readiness} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No saved readiness result is available for this account yet. Complete the assessment and try again to load a real result from the server.</div>}
+        {readiness ? <ReadinessTab data={readiness} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">{L("No saved readiness result is available for this account yet. Complete the assessment and try again to load a real result from the server.")}</div>}
       </div>
     </div>
   );
 }
 
 export default function CareerJourneyView({ readiness = null, intelligence = null, roleTitle = null }) {
+  const { L } = useUiText();
   const roadmap = intelligence?.roadmap ?? intelligence?.data?.roadmap ?? null;
   const skillGaps = intelligence?.skill_gaps ?? intelligence?.skillGaps ?? intelligence?.data?.skill_gaps ?? null;
   // `/readiness` and `/intelligence` both carry a readiness block; prefer the
@@ -2222,9 +2238,9 @@ export default function CareerJourneyView({ readiness = null, intelligence = nul
   const [demoState, setDemoState] = useState("loaded");
   const isLoaded = demoState === "loaded";
   const TABS = [
-    { key: "readiness", label: "Readiness Score" },
-    { key: "skill-gap", label: "Skill Gaps" },
-    { key: "roadmap", label: "Career Roadmap" },
+    { key: "readiness", label: L("Readiness Score") },
+    { key: "skill-gap", label: L("Skill Gaps") },
+    { key: "roadmap", label: L("Career Roadmap") },
   ];
   const isError =
     demoState === "error" || demoState === "timeout" || demoState === "unavailable" || demoState === "invalid-config";
@@ -2236,12 +2252,12 @@ export default function CareerJourneyView({ readiness = null, intelligence = nul
         <div className="flex items-start justify-between">
           <div>
             <h1 className="font-['Inter:Bold',sans-serif] font-bold text-[26px] text-[#0a0b14] leading-tight">
-              Career Journey
+              {L("Career Journey")}
             </h1>
             <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#64748b] mt-[3px]">
-              Readiness · Skill Gaps · Roadmap for{" "}
+              {L("Readiness · Skill Gaps · Roadmap for")}{" "}
               <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">
-                {readinessData?.roleTitle || roleTitle || "No career role selected"}
+                {readinessData?.roleTitle || roleTitle || L("No career role selected")}
               </span>{" "}
               {roleVersion ? <span className="text-[#94a3b8]">v{roleVersion}</span> : null}
             </p>
@@ -2253,7 +2269,7 @@ export default function CareerJourneyView({ readiness = null, intelligence = nul
                 <path d="M6 3.5V6.5l1.5 1" stroke="#94a3b8" strokeWidth="1" strokeLinecap="round" />
               </svg>
               <span className="text-[12px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b]">
-                Historical · 9 Sep 2026
+                {L("Historical · 9 Sep 2026")}
               </span>
             </div>
           )}
@@ -2288,11 +2304,11 @@ export default function CareerJourneyView({ readiness = null, intelligence = nul
             {tab === "readiness" && (
               <>
                 {nextBestAction ? <NBABanner action={nextBestAction} onStart={startLearning} /> : null}
-                {readinessData ? <ReadinessTab data={readinessData} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No saved readiness result is available for this account yet. Complete the assessment and try again to load a real result from the server.</div>}
+                {readinessData ? <ReadinessTab data={readinessData} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">{L("No saved readiness result is available for this account yet. Complete the assessment and try again to load a real result from the server.")}</div>}
               </>
             )}
-            {tab === "skill-gap" && (skillGapRows.length > 0 ? <SkillGapTab gaps={skillGapRows} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">Skill gap data is not available from the server yet.</div>)}
-            {tab === "roadmap" && (roadmapActions.length > 0 ? <RoadmapTab actions={roadmapActions} milestones={roadmapMilestones} roadmap={roadmap} onStart={startLearning} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No saved roadmap is available from the server yet.</div>)}
+            {tab === "skill-gap" && (skillGapRows.length > 0 ? <SkillGapTab gaps={skillGapRows} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">{L("Skill gap data is not available from the server yet.")}</div>)}
+            {tab === "roadmap" && (roadmapActions.length > 0 ? <RoadmapTab actions={roadmapActions} milestones={roadmapMilestones} roadmap={roadmap} onStart={startLearning} /> : <div role="status" className="m-6 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">{L("No saved roadmap is available from the server yet.")}</div>)}
           </>
         )}
       </div>

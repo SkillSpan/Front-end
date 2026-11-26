@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { applyToProject, matchProject, unwrapApiData } from "../../api";
+import { useProjectsText } from "../../i18n/useProjectsText";
 // ═══════════════════════════════════════════════════════════════════════════════
 // MOCK DATA
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -156,6 +157,7 @@ function DifficultyDots({ d }) {
 // PROJECT DETAIL PANEL
 // ═══════════════════════════════════════════════════════════════════════════════
 function ProjectDetailPanel({ project, onClose }) {
+  const { L } = useProjectsText();
   const [activeTab, setActiveTab] = useState("match");
   const tm = TYPE_META[project.type] ?? { emoji: "📌", label: project.type || "Not specified", color: "#64748b", bg: "rgba(100,116,139,0.08)", border: "rgba(100,116,139,0.2)" };
   const em = ELIG_META[project.eligibility] ?? { text: "text-[#64748b]", bg: "bg-[rgba(100,116,139,0.08)]", border: "border-[rgba(100,116,139,0.2)]", dot: "bg-[#64748b]", icon: "?" };
@@ -198,7 +200,7 @@ function ProjectDetailPanel({ project, onClose }) {
                 className="text-[11px] font-['Inter:Medium',sans-serif] font-medium px-[8px] py-[2px] rounded-full border"
                 style={{ color: tm.color, background: tm.bg, borderColor: tm.border }}
               >
-                {tm.label}
+                {L(tm.label)}
               </span>
               <DifficultyDots d={project.difficulty} />
               <span className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
@@ -291,7 +293,7 @@ function ProjectDetailPanel({ project, onClose }) {
                 <span className="text-[14px]">⚡</span>
                 <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#3b8bff]">
                   This project aligns with your{" "}
-                  <strong className="font-['Inter:Semi_Bold',sans-serif]">Next Best Action</strong> in your active
+                  <strong className="font-['Inter:Semi_Bold',sans-serif]">{L("Next Best Action")}</strong> in your active
                   career roadmap
                 </p>
               </div>
@@ -382,7 +384,7 @@ function ProjectDetailPanel({ project, onClose }) {
                         <strong className="font-['Inter:Semi_Bold',sans-serif] text-[#0a0b14]">L{sm.yourLevel}</strong>
                       </span>
                       <span>
-                        Required:{" "}
+                        {L("Required:")}{" "}
                         <strong className="font-['Inter:Semi_Bold',sans-serif] text-[#64748b]">
                           L{sm.requiredLevel}
                         </strong>
@@ -473,9 +475,9 @@ function ProjectDetailPanel({ project, onClose }) {
               </p>
               <div className="flex flex-col gap-[6px]">
                 {[
-                  { l: "Practical Experience", pct: 20, col: "#7c3aed", note: "Adds verified project evidence" },
+                  { l: L("Practical Experience"), pct: 20, col: "#7c3aed", note: "Adds verified project evidence" },
                   {
-                    l: "Assessment Reliability",
+                    l: L("Assessment Reliability"),
                     pct: 10,
                     col: "#f59e0b",
                     note: "Verified source raises skill confidence",
@@ -528,6 +530,7 @@ function ProjectDetailPanel({ project, onClose }) {
 // PROJECT CARD
 // ═══════════════════════════════════════════════════════════════════════════════
 function ProjectCard({ project, isSelected, onClick }) {
+  const { L } = useProjectsText();
   const tm = TYPE_META[project.type] ?? { emoji: "📌", label: project.type || "Not specified", color: "#64748b", bg: "rgba(100,116,139,0.08)", border: "rgba(100,116,139,0.2)" };
   const em = ELIG_META[project.eligibility] ?? { text: "text-[#64748b]", bg: "bg-[rgba(100,116,139,0.08)]", border: "border-[rgba(100,116,139,0.2)]", dot: "bg-[#64748b]", icon: "?" };
   const matched = project.skillMatches.filter((s) => s.matched);
@@ -573,7 +576,7 @@ function ProjectCard({ project, isSelected, onClick }) {
                     </span>
                     {project.alignsWithNBA && (
                       <span className="text-[9px] font-['Inter:Medium',sans-serif] font-medium text-[#7c3aed] bg-[rgba(124,58,237,0.08)] px-[6px] py-[1px] rounded-full">
-                        Roadmap action
+                        {L("Roadmap action")}
                       </span>
                     )}
                   </div>
@@ -589,7 +592,7 @@ function ProjectCard({ project, isSelected, onClick }) {
                 className="text-[10px] font-['Inter:Medium',sans-serif] font-medium px-[6px] py-[1px] rounded-full"
                 style={{ color: tm.color, background: tm.bg }}
               >
-                {tm.label}
+                {L(tm.label)}
               </span>
               <DifficultyDots d={project.difficulty} />
             </div>
@@ -796,6 +799,7 @@ function ErrorState() {
   );
 }
 function NoProjectsState({ hasFilters, onClear }) {
+  const { L } = useProjectsText();
   return (
     <div className="bg-white border border-[#e8eaf0] rounded-[20px] p-[48px] flex flex-col items-center text-center gap-[18px]">
       <div className="w-[64px] h-[64px] rounded-[18px] bg-[rgba(148,163,184,0.08)] border border-[rgba(148,163,184,0.15)] flex items-center justify-center text-[26px]">
@@ -803,12 +807,12 @@ function NoProjectsState({ hasFilters, onClear }) {
       </div>
       <div>
         <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#0a0b14] mb-[6px]">
-          {hasFilters ? "No projects match your filters" : "No eligible projects found"}
+          {hasFilters ? L("No projects match your filters") : L("No eligible projects found")}
         </h3>
         <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] max-w-[420px] leading-[1.65]">
           {hasFilters
-            ? "Try removing some filters — eligible projects may be hidden by the current filter combination."
-            : "Your current skill levels do not yet meet the entry requirements for any available project. Complete the assessments on your career roadmap to unlock projects."}
+            ? L("Try removing some filters — eligible projects may be hidden by the current filter combination.")
+            : L("Your current skill levels do not yet meet the entry requirements for any available project. Complete the assessments on your career roadmap to unlock projects.")}
         </p>
       </div>
       {hasFilters ? (
@@ -816,7 +820,7 @@ function NoProjectsState({ hasFilters, onClear }) {
           onClick={onClear}
           className="px-[18px] py-[9px] rounded-[10px] text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#3b8bff] border border-[rgba(59,139,255,0.3)] bg-[rgba(59,139,255,0.05)]"
         >
-          Clear all filters
+          {L("Clear all filters")}
         </button>
       ) : (
         <div className="flex flex-col items-center gap-[6px]">
@@ -824,10 +828,10 @@ function NoProjectsState({ hasFilters, onClear }) {
             className="px-[18px] py-[9px] rounded-[10px] text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white"
             style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}
           >
-            View Career Roadmap →
+            {L("View Career Roadmap")} →
           </button>
           <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-            Projects unlock as you close skill gaps
+            {L("Projects unlock as you close skill gaps")}
           </p>
         </div>
       )}
@@ -875,21 +879,22 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
   // Match results keyed by project id. Without this the "Check match" button
   // fired the request and threw the answer away, so every card stayed on
   // "Not evaluated" and the header always read "0 eligible".
+  const { L } = useProjectsText();
   const [matches, setMatches] = useState({});
   const projectData = useMemo(() => (initialProjects ?? []).map((raw) => {
     const p = unwrapApiData(raw) || raw;
-    let mappedType = "Real Project";
-    if (p.type === "simulation") mappedType = "Simulation Project";
-    else if (p.type === "company_sponsored") mappedType = "Real Project";
+    let mappedType = L("Real Project");
+    if (p.type === "simulation") mappedType = L("Simulation Project");
+    else if (p.type === "company_sponsored") mappedType = L("Real Project");
     else if (p.type) mappedType = p.type;
 
-    let mappedDiff = "Intermediate";
+    let mappedDiff = L("Intermediate");
     if (typeof p.difficulty === "number" || (!isNaN(Number(p.difficulty)) && p.difficulty !== null && p.difficulty !== "")) {
       const dNum = Number(p.difficulty);
-      if (dNum <= 1) mappedDiff = "Beginner";
-      else if (dNum <= 3) mappedDiff = "Intermediate";
-      else if (dNum === 4) mappedDiff = "Advanced";
-      else mappedDiff = "Expert";
+      if (dNum <= 1) mappedDiff = L("Beginner");
+      else if (dNum <= 3) mappedDiff = L("Intermediate");
+      else if (dNum === 4) mappedDiff = L("Advanced");
+      else mappedDiff = L("Expert");
     } else if (p.difficulty) {
       mappedDiff = p.difficulty;
     }
@@ -917,7 +922,7 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
       alignsWithNBA: Boolean(p.aligns_with_nba ?? p.alignsWithNBA),
       ...(matches[String(p.id ?? p.project_id ?? p.uuid ?? "")] || {}),
     };
-  }), [initialProjects, matches]);
+  }), [initialProjects, matches, L]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [eligFilter, setEligFilter] = useState("all");
@@ -967,30 +972,30 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
   };
   return (
     <div className="flex flex-col h-full overflow-hidden bg-[#f1f3fa]">
-      {projectData.length === 0 && <div role="status" className="mx-8 mt-5 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">No projects are currently available from the server. Projects will appear here when data becomes available.</div>}
+      {projectData.length === 0 && <div role="status" className="mx-8 mt-5 rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-600">{L("No projects are currently available from the server. Projects will appear here when data becomes available.")}</div>}
       {actionError && <div role="alert" className="mx-8 mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div>}
       {/* Page header */}
       <div className="bg-[#f1f3fa] px-[32px] pt-[24px] pb-[14px] shrink-0 border-b border-[#e8eaf0]">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="font-['Inter:Bold',sans-serif] font-bold text-[26px] text-[#0a0b14] leading-tight">
-              Projects
+              {L("Projects")}
             </h1>
             <p className="font-['Inter:Regular',sans-serif] text-[13px] text-[#64748b] mt-[3px]">
-              Matched to{" "}
+              {L("Matched to")}{" "}
               <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">
-                {roleLabel || "your selected career role"}
+                {roleLabel || L("your selected career role")}
               </span>
               {isLoaded && (
                 <>
                   {" "}
                   ·{" "}
                   <span className="text-[#059669] font-['Inter:Medium',sans-serif] font-medium">
-                    {projectData.filter((p) => p.eligibility === "Eligible").length} eligible
+                    {projectData.filter((p) => p.eligibility === "Eligible").length} {L("eligible")}
                   </span>{" "}
                   ·{" "}
                   <span className="text-[#3b8bff] font-['Inter:Medium',sans-serif] font-medium">
-                    {recommended.length} recommended
+                    {recommended.length} {L("recommended")}
                   </span>
                 </>
               )}
@@ -1016,7 +1021,7 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search projects, skills, tags…"
+                placeholder={L("Search projects, skills, tags…")}
                 className="w-full h-[38px] pl-[34px] pr-[12px] bg-white border border-[#e8eaf0] rounded-[10px] text-[13px] font-['Inter:Regular',sans-serif] text-[#0a0b14] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#3b8bff] transition-colors"
               />
             </div>
@@ -1027,10 +1032,10 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
               onChange={(e) => setTypeFilter(e.target.value)}
               className="h-[38px] px-[10px] bg-white border border-[#e8eaf0] rounded-[10px] text-[12px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b] focus:outline-none focus:border-[#3b8bff] transition-colors cursor-pointer"
             >
-              <option value="all">All types</option>
+              <option value="all">{L("All types")}</option>
               {ALL_TYPES.map((t) => (
                 <option key={t} value={t}>
-                  {t}
+                  {L(t)}
                 </option>
               ))}
             </select>
@@ -1041,10 +1046,10 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
               onChange={(e) => setEligFilter(e.target.value)}
               className="h-[38px] px-[10px] bg-white border border-[#e8eaf0] rounded-[10px] text-[12px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b] focus:outline-none focus:border-[#3b8bff] transition-colors cursor-pointer"
             >
-              <option value="all">All eligibility</option>
+              <option value="all">{L("All eligibility")}</option>
               {ALL_ELIGIBILITY.map((e) => (
                 <option key={e} value={e}>
-                  {e}
+                  {L(e)}
                 </option>
               ))}
             </select>
@@ -1055,9 +1060,9 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
               onChange={(e) => setSortBy(e.target.value)}
               className="h-[38px] px-[10px] bg-white border border-[#e8eaf0] rounded-[10px] text-[12px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b] focus:outline-none focus:border-[#3b8bff] transition-colors cursor-pointer"
             >
-              <option value="match">Sort: Match score</option>
-              <option value="difficulty">Sort: Difficulty</option>
-              <option value="effort">Sort: Effort</option>
+              <option value="match">{L("Sort: Match score")}</option>
+              <option value="difficulty">{L("Sort: Difficulty")}</option>
+              <option value="effort">{L("Sort: Effort")}</option>
             </select>
 
             {/* Rec toggle */}
@@ -1066,7 +1071,7 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
               className={`h-[38px] px-[12px] rounded-[10px] text-[12px] font-['Inter:Medium',sans-serif] font-medium whitespace-nowrap border transition-all
                 ${showRec ? "bg-[rgba(59,139,255,0.08)] border-[rgba(59,139,255,0.25)] text-[#3b8bff]" : "bg-white border-[#e8eaf0] text-[#64748b]"}`}
             >
-              ⚡ Recommended
+              ⚡ {L("Recommended")}
             </button>
 
             {hasActiveFilter && (
@@ -1078,7 +1083,7 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
                 }}
                 className="h-[38px] px-[10px] rounded-[10px] text-[12px] font-['Inter:Medium',sans-serif] font-medium text-[#94a3b8] bg-white border border-[#e8eaf0] hover:border-[#ef4444] hover:text-[#ef4444] transition-all"
               >
-                ✕ Clear
+                ✕ {L("Clear")}
               </button>
             )}
           </div>
@@ -1141,7 +1146,7 @@ export default function ProjectsView({ onOpenDetails, initialProjects = null, on
               <div>
                 <div className="flex items-center justify-between mb-[10px]">
                   <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#94a3b8] uppercase tracking-wide">
-                    {showRec ? "All projects" : "Projects"}{" "}
+                    {showRec ? L("All projects") : L("Projects")}{" "}
                     <span className="normal-case font-normal">({filtered.length})</span>
                   </p>
                 </div>

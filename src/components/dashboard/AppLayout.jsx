@@ -306,9 +306,9 @@ export default function AppLayout({
         </nav>
 
         <div className="app-sidebar-footer" onClick={() => go('career-journey')} style={{ cursor: 'pointer' }}>
-          <div className="footer-label">Readiness Score</div>
+          <div className="footer-label">{t('footer.readiness')}</div>
           <div className="footer-score">{readinessScore}/100</div>
-          <div className="footer-role">{roleLabel || 'Career profile'}</div>
+          <div className="footer-role">{roleLabel || t('footer.careerProfile')}</div>
         </div>
       </aside>
 

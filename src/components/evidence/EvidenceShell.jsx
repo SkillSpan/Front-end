@@ -5,11 +5,13 @@ import { useAuth } from '../auth/AuthContext';
 import { signOutToLanding } from '../auth/signOut';
 import { NAV_ROUTES } from '../../navRoutes';
 import { useEvidence } from './EvidenceContext';
+import { useUiText } from "../../i18n/useUiText";
 import './evidence.css';
 
 // Wraps Rawan's evidence screens in the same authenticated shell (dark
 // sidebar + top bar) used by the Dashboard / Skill Matrix / Career Roles.
 export default function EvidenceShell({ children }) {
+  const { L } = useUiText();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const active = pathname.startsWith('/record') ? 'record' : 'evidence';
@@ -29,8 +31,8 @@ export default function EvidenceShell({ children }) {
         {source === 'preview' && (
           <div className="mx-auto mb-4 flex max-w-[1180px] items-center gap-2 rounded-lg border border-[#d9e5ff] bg-[#f5f8ff] px-3.5 py-2.5 text-[11px] text-[#344054]">
             <Info size={14} className="shrink-0 text-[#2f5bea]" />
-            <span className="flex-1">Couldn't load your evidence.</span>
-            <button type="button" onClick={reload} className="font-semibold text-[#2f5bea] hover:underline">Retry</button>
+            <span className="flex-1">{L("Couldn't load your evidence.")}</span>
+            <button type="button" onClick={reload} className="font-semibold text-[#2f5bea] hover:underline">{L("Retry")}</button>
           </div>
         )}
         {source === 'loading' ? (

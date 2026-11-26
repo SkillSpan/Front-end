@@ -1,12 +1,14 @@
 import { applyToProject, withdrawApplication, getProject, getRecommendations, submitRecommendationFeedback, unwrapApiData } from "../../api";
 import { useEffect, useMemo, useState } from "react";
 import { applicationStatusLabel } from "../../utils/projectMapping";
+import { useProjectsText } from "../../i18n/useProjectsText";
 
 function normalizeProject(raw) {
+  const { L } = useProjectsText();
   const p = unwrapApiData(raw) || raw || {};
   const rawRequirements = p.required_skills ?? p.requiredSkills ?? p.requirements ?? [];
   const requirements = (Array.isArray(rawRequirements) ? rawRequirements : []).map((item) => ({
-    skillName: item.skill_name ?? item.skill?.name ?? item.name ?? "Skill",
+    skillName: item.skill_name ?? item.skill?.name ?? item.name ?? L("Skill"),
     minLevel: Number(item.minimum_required_level ?? item.minimum_level ?? item.minLevel ?? 1),
     maxLevel: 5,
     yourLevel: Number(item.current_level ?? item.your_level ?? item.yourLevel ?? 0),
@@ -22,7 +24,7 @@ function normalizeProject(raw) {
     id: p.id ?? p.project_id ?? p.uuid ?? null,
     title: p.title ?? p.name ?? "Untitled project",
     description: p.description ?? "",
-    type: p.type ?? p.project_type ?? "Real Project",
+    type: p.type ?? p.project_type ?? L("Real Project"),
     difficulty: p.difficulty ?? "Not specified",
     matchScore: Number(p.match_score ?? p.matchScore ?? 0),
     estimatedHours: p.estimated_hours ?? p.estimatedHours ?? "Not specified",
@@ -36,7 +38,7 @@ function normalizeProject(raw) {
     deadline: dates(p.application_deadline ?? p.deadline),
     objectives: Array.isArray(p.objectives) ? p.objectives : (typeof p.objectives === "string" ? p.objectives.split(/\r?\n/).filter(Boolean) : []),
     requirements,
-    learningOutcomes: outcomes.map((o) => typeof o === "string" ? { skill: o, gain: "Not specified", impact: "Not specified" } : ({ skill: o.skill ?? o.name ?? o.title ?? "Learning outcome", gain: o.gain ?? o.outcome ?? "Not specified", impact: o.impact ?? "Not specified" })),
+    learningOutcomes: outcomes.map((o) => typeof o === "string" ? { skill: o, gain: "Not specified", impact: "Not specified" } : ({ skill: o.skill ?? o.name ?? o.title ?? L("Learning outcome"), gain: o.gain ?? o.outcome ?? "Not specified", impact: o.impact ?? "Not specified" })),
     // GET /projects/{id} sends eligibility: { eligible, reasons[], skill_failures[] }.
     isEligible: p.eligibility?.eligible ?? null,
     eligibilityNote: (Array.isArray(p.eligibility?.reasons) && p.eligibility.reasons.filter(Boolean).join(" "))
@@ -108,6 +110,7 @@ function SectionLabel({ children }) {
 // PROJECT DETAILS SCREEN
 // ═══════════════════════════════════════════════════════════════════════════════
 function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
+  const { L } = useProjectsText();
   const [expandObjectives, setExpandObjectives] = useState(true);
   const metFull = project.requirements.filter((r) => r.yourLevel >= r.minLevel).length;
   return (
@@ -143,7 +146,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
               <div>
                 <div className="flex items-center gap-[6px] mb-[4px]">
                   <span className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#3b8bff] bg-[rgba(59,139,255,0.1)] px-[7px] py-[1px] rounded-full">
-                    Project details
+                    {L("Project details")}
                   </span>
                   <span className="text-[10px] font-['Inter:Medium',sans-serif] font-medium text-[#7c3aed] bg-[rgba(124,58,237,0.08)] px-[7px] py-[1px] rounded-full">
                     Phase {project.phase} · {project.phaseName}
@@ -173,7 +176,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
                       <path d="M1 6s2-4 5-4 5 4 5 4-2 4-5 4-5-4-5-4z" stroke="currentColor" strokeWidth="1.2" />
                       <path d="M2 2l8 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                     </svg>
-                    Hide
+                    {L("Hide")}
                   </button>
                   <button
                     onClick={() => onRecAction("declined")}
@@ -182,7 +185,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                       <path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                     </svg>
-                    Not relevant
+                    {L("Not relevant")}
                   </button>
                 </div>
               )}
@@ -199,7 +202,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
                   </svg>
                   Saved ·{" "}
                   <button onClick={() => onRecAction("default")} className="underline opacity-60 hover:opacity-100">
-                    Undo
+                    {L("Undo")}
                   </button>
                 </div>
               )}
@@ -207,7 +210,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
                 <div className="flex items-center gap-[6px] text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#94a3b8] bg-[#f1f3fa] border border-[#e8eaf0] px-[10px] py-[6px] rounded-[8px] shrink-0">
                   Hidden ·{" "}
                   <button onClick={() => onRecAction("default")} className="underline hover:text-[#64748b]">
-                    Undo
+                    {L("Undo")}
                   </button>
                 </div>
               )}
@@ -215,7 +218,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
                 <div className="flex items-center gap-[6px] text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#ef4444] bg-[rgba(239,68,68,0.06)] border border-[rgba(239,68,68,0.15)] px-[10px] py-[6px] rounded-[8px] shrink-0">
                   Not relevant ·{" "}
                   <button onClick={() => onRecAction("default")} className="underline opacity-60 hover:opacity-100">
-                    Undo
+                    {L("Undo")}
                   </button>
                 </div>
               )}
@@ -255,7 +258,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
               <span className="text-[16px] mt-[1px] text-[#ef4444]">✕</span>
               <div>
                 <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#ef4444] mb-[2px]">
-                  You are not eligible for this project yet
+                  {L("You are not eligible for this project yet")}
                 </p>
                 <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.5]">
                   {project.eligibilityNote}
@@ -267,7 +270,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
               <span className="text-[16px] mt-[1px]">✓</span>
               <div>
                 <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#059669] mb-[2px]">
-                  You are eligible for this project
+                  {L("You are eligible for this project")}
                 </p>
                 <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.5]">
                   {project.eligibilityNote}
@@ -278,7 +281,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
 
           {/* About */}
           <div>
-            <SectionLabel>About this project</SectionLabel>
+            <SectionLabel>{L("About this project")}</SectionLabel>
             <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.7]">
               {project.description}
             </p>
@@ -300,7 +303,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
               onClick={() => setExpandObjectives(!expandObjectives)}
               className="flex items-center justify-between w-full mb-[10px]"
             >
-              <SectionLabel>Project objectives</SectionLabel>
+              <SectionLabel>{L("Project objectives")}</SectionLabel>
               <svg
                 width="12"
                 height="12"
@@ -340,6 +343,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
             </SectionLabel>
             <div className="flex flex-col gap-[8px]">
               {project.requirements.map((r) => {
+  const { L } = useProjectsText();
                 const met = r.yourLevel >= r.minLevel;
                 return (
                   <div
@@ -356,14 +360,14 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
                         </span>
                         {r.isCritical && (
                           <span className="text-[9px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#f59e0b] bg-[rgba(245,158,11,0.1)] border border-[rgba(245,158,11,0.2)] px-[5px] py-[1px] rounded-full">
-                            Critical
+                            {L("Critical")}
                           </span>
                         )}
                       </div>
                       <LevelDots current={r.yourLevel} required={r.minLevel} max={r.maxLevel} />
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Your level</p>
+                      <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{L("Your level")}</p>
                       <p
                         className={`text-[15px] font-['Inter:Bold',sans-serif] font-bold leading-tight ${met ? "text-[#059669]" : "text-[#ef4444]"}`}
                       >
@@ -379,7 +383,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
 
           {/* Learning outcomes */}
           <div>
-            <SectionLabel>Learning outcomes</SectionLabel>
+            <SectionLabel>{L("Learning outcomes")}</SectionLabel>
             <div className="grid grid-cols-2 gap-[8px]">
               {project.learningOutcomes.map((lo) => {
                 const col = lo.impact === "High" ? "#059669" : lo.impact === "Medium" ? "#f59e0b" : "#94a3b8";
@@ -404,15 +408,15 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
 
           {/* Schedule */}
           <div>
-            <SectionLabel>Schedule & logistics</SectionLabel>
+            <SectionLabel>{L("Schedule & logistics")}</SectionLabel>
             <div className="grid grid-cols-3 gap-[8px]">
               {[
-                { l: "Start", v: project.startDate },
-                { l: "End", v: project.endDate },
-                { l: "Application deadline", v: project.deadline },
-                { l: "Work mode", v: project.workMode },
-                { l: "Capacity", v: project.openSpots != null && project.totalSpots != null ? `${project.openSpots} of ${project.totalSpots} spots open` : "Not specified" },
-                { l: "Sponsor", v: project.sponsor },
+                { l: L("Start"), v: project.startDate },
+                { l: L("End"), v: project.endDate },
+                { l: L("Application deadline"), v: project.deadline },
+                { l: L("Work mode"), v: project.workMode },
+                { l: L("Capacity"), v: project.openSpots != null && project.totalSpots != null ? `${project.openSpots} of ${project.totalSpots} spots open` : "Not specified" },
+                { l: L("Sponsor"), v: project.sponsor },
               ].map((s) => (
                 <div key={s.l} className="bg-[#f8f9fd] border border-[#eef0f8] rounded-[10px] p-[10px]">
                   <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[2px]">{s.l}</p>
@@ -464,11 +468,11 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
                 <span className="font-['Inter:Bold',sans-serif] font-bold text-[22px] text-[#059669] leading-none">
                   {project.matchScore}
                 </span>
-                <span className="text-[9px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">% match</span>
+                <span className="text-[9px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{L("% match")}</span>
               </div>
             </div>
             <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.5]">
-              Your skills align strongly with this project's requirements
+              {L("Your skills align strongly with this project's requirements")}
             </p>
           </div>
 
@@ -495,17 +499,17 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
             Apply to Project →
           </button>
           <button className="w-full py-[10px] rounded-[12px] text-[13px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b] bg-white border border-[#e8eaf0] hover:bg-[#f8f9fd] transition-all">
-            Save for Later
+            {L("Save for Later")}
           </button>
 
           {/* Readiness impact */}
           <div className="bg-white border border-[#e8eaf0] rounded-[12px] p-[14px]">
             <p className="text-[10px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#94a3b8] uppercase tracking-wide mb-[8px]">
-              Readiness impact
+              {L("Readiness impact")}
             </p>
             {[
-              { l: "Practical Experience", gain: "+4 pts", col: "#7c3aed" },
-              { l: "Assessment Reliability", gain: "+2 pts", col: "#f59e0b" },
+              { l: L("Practical Experience"), gain: "+4 pts", col: "#7c3aed" },
+              { l: L("Assessment Reliability"), gain: "+2 pts", col: "#f59e0b" },
             ].map((ri) => (
               <div
                 key={ri.l}
@@ -530,6 +534,7 @@ function DetailsScreen({ project, onApply, onBack, recState, onRecAction }) {
 // APPLY FORM
 // ═══════════════════════════════════════════════════════════════════════════════
 function ApplyFormScreen({ project, onSubmit, onBack }) {
+  const { L } = useProjectsText();
   const [motivation, setMotivation] = useState("");
   const [hours, setHours] = useState("");
   const [agree, setAgree] = useState(false);
@@ -551,12 +556,12 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
                 strokeLinejoin="round"
               />
             </svg>
-            Back to Project
+            {L("Back to Project")}
           </button>
         </div>
         <div className="flex items-center gap-[8px]">
           <div>
-            <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Applying to</p>
+            <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{L("Applying to")}</p>
             <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[14px] text-[#0a0b14]">
               {project.title}
             </p>
@@ -564,7 +569,7 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
         </div>
         {/* Progress */}
         <div className="flex items-center gap-[6px] mt-[14px]">
-          {["Review details", "Application form", "Confirm & submit"].map((s, i) => (
+          {[L("Review details"), L("Application form"), L("Confirm & submit")].map((s, i) => (
             <div key={s} className="flex items-center gap-[6px] flex-1">
               <div
                 className={`w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-['Inter:Bold',sans-serif] font-bold shrink-0 ${i === 1 ? "text-white" : i < 1 ? "bg-[#059669] text-white" : "bg-[#f1f3fa] text-[#94a3b8]"}`}
@@ -587,7 +592,7 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
         <div className="max-w-[640px] flex flex-col gap-[20px]">
           <div>
             <label className="block text-[12px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14] mb-[6px]">
-              Why are you interested in this project? <span className="text-[#ef4444]">*</span>
+              {L("Why are you interested in this project?")} <span className="text-[#ef4444]">*</span>
             </label>
             <textarea
               value={motivation}
@@ -597,7 +602,7 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
               className="w-full px-[14px] py-[12px] bg-white border border-[#e8eaf0] rounded-[10px] text-[13px] font-['Inter:Regular',sans-serif] text-[#0a0b14] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#3b8bff] transition-colors resize-none leading-[1.6]"
             />
             <div className="flex justify-between mt-[4px]">
-              <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">Minimum 50 characters</p>
+              <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">{L("Minimum 50 characters")}</p>
               <p
                 className={`text-[10px] font-['Inter:Regular',sans-serif] ${motivation.length >= 50 ? "text-[#059669]" : "text-[#94a3b8]"}`}
               >
@@ -608,14 +613,14 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
 
           <div>
             <label className="block text-[12px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14] mb-[6px]">
-              Available hours per week <span className="text-[#ef4444]">*</span>
+              {L("Available hours per week")} <span className="text-[#ef4444]">*</span>
             </label>
             <select
               value={hours}
               onChange={(e) => setHours(e.target.value)}
               className="w-full h-[42px] px-[14px] bg-white border border-[#e8eaf0] rounded-[10px] text-[13px] font-['Inter:Regular',sans-serif] text-[#0a0b14] focus:outline-none focus:border-[#3b8bff] transition-colors cursor-pointer"
             >
-              <option value="">Select available hours…</option>
+              <option value="">{L("Select available hours…")}</option>
               <option value="4">4 h / week</option>
               <option value="8">8 h / week</option>
               <option value="12">12 h / week</option>
@@ -628,11 +633,11 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
 
           <div>
             <label className="block text-[12px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14] mb-[6px]">
-              Relevant experience or prior work <span className="text-[#94a3b8] font-normal">(optional)</span>
+              {L("Relevant experience or prior work")} <span className="text-[#94a3b8] font-normal">(optional)</span>
             </label>
             <textarea
               rows={3}
-              placeholder="Link to GitHub, portfolio, or briefly describe relevant experience…"
+              placeholder={L("Link to GitHub, portfolio, or briefly describe relevant experience…")}
               className="w-full px-[14px] py-[12px] bg-white border border-[#e8eaf0] rounded-[10px] text-[13px] font-['Inter:Regular',sans-serif] text-[#0a0b14] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#3b8bff] transition-colors resize-none"
             />
           </div>
@@ -659,7 +664,7 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
               onClick={onBack}
               className="px-[20px] py-[11px] rounded-[11px] text-[13px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b] bg-white border border-[#e8eaf0] hover:bg-[#f8f9fd] transition-all"
             >
-              Back
+              {L("Back")}
             </button>
             <button
               onClick={valid ? () => onSubmit({ motivation, availability: hours }) : undefined}
@@ -678,9 +683,11 @@ function ApplyFormScreen({ project, onSubmit, onBack }) {
 // APPLY CONFIRMATION
 // ═══════════════════════════════════════════════════════════════════════════════
 function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
+  const { L } = useProjectsText();
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   async function handleConfirm() {
+  const { L } = useProjectsText();
     if (!project?.id || submitting) return;
     setSubmitting(true);
     setSubmitError("");
@@ -688,7 +695,7 @@ function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
       const response = await applyToProject(project.id, { application_data: applicationData || {} });
       onConfirm(unwrapApiData(response));
     } catch (error) {
-      setSubmitError(error?.message || "Unable to submit the request to the server.");
+      setSubmitError(error?.message || L("Unable to submit the request to the server."));
     } finally {
       setSubmitting(false);
     }
@@ -710,11 +717,11 @@ function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
               strokeLinejoin="round"
             />
           </svg>
-          Back to form
+          {L("Back to form")}
         </button>
         {/* Progress */}
         <div className="flex items-center gap-[6px]">
-          {["Review details", "Application form", "Confirm & submit"].map((s, i) => (
+          {[L("Review details"), L("Application form"), L("Confirm & submit")].map((s, i) => (
             <div key={s} className="flex items-center gap-[6px] flex-1">
               <div
                 className={`w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-['Inter:Bold',sans-serif] font-bold shrink-0 bg-[#059669] text-white`}
@@ -736,7 +743,7 @@ function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
         <div className="max-w-[600px] flex flex-col gap-[20px]">
           <div>
             <h2 className="font-['Inter:Bold',sans-serif] font-bold text-[20px] text-[#0a0b14] mb-[4px]">
-              Review your application
+              {L("Review your application")}
             </h2>
             <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b]">
               Check the details below before submitting. Once submitted, you will receive a confirmation and the project
@@ -765,9 +772,9 @@ function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
 
           {/* Application summary */}
           <div className="bg-white border border-[#e8eaf0] rounded-[14px] p-[18px] flex flex-col gap-[12px]">
-            <SectionLabel>Your answers</SectionLabel>
+            <SectionLabel>{L("Your answers")}</SectionLabel>
             <div>
-              <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[3px]">Motivation</p>
+              <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[3px]">{L("Motivation")}</p>
               <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] italic leading-[1.6]">
                 "This project directly addresses my Python and REST API skill gaps. I've been working through API design
                 theory and want to apply it in a real codebase with proper auth and pagination…"
@@ -775,7 +782,7 @@ function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
             </div>
             <div className="h-px bg-[#f1f3fa]" />
             <div>
-              <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[3px]">Availability</p>
+              <p className="text-[10px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mb-[3px]">{L("Availability")}</p>
               <p className="text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">8 h / week</p>
             </div>
           </div>
@@ -783,14 +790,14 @@ function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
           {/* Validation summary */}
           <div className="bg-[rgba(5,150,105,0.04)] border border-[rgba(5,150,105,0.15)] rounded-[12px] p-[14px]">
             <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#059669] mb-[8px]">
-              Pre-submission checks passed
+              {L("Pre-submission checks passed")}
             </p>
             {[
-              "Eligible for this project",
-              "Project is currently open",
-              "No duplicate active application",
+              L("Eligible for this project"),
+              L("Project is currently open"),
+              L("No duplicate active application"),
               "Capacity available (4 of 6 spots open)",
-              "Application deadline not reached",
+              L("Application deadline not reached"),
             ].map((c) => (
               <div key={c} className="flex items-center gap-[7px] py-[3px]">
                 <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
@@ -813,7 +820,7 @@ function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
               onClick={onBack}
               className="px-[20px] py-[11px] rounded-[11px] text-[13px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b] bg-white border border-[#e8eaf0] hover:bg-[#f8f9fd] transition-all"
             >
-              Edit application
+              {L("Edit application")}
             </button>
             <button
               onClick={handleConfirm}
@@ -827,7 +834,7 @@ function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
                   <path d="M6.5 1.5C9.8 1.5 12.5 4.2 12.5 7" stroke="white" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               )}
-              {submitting ? "Submitting…" : "Submit Application"}
+              {submitting ? L("Submitting…") : L("Submit Application")}
             </button>
           </div>
         </div>
@@ -839,6 +846,7 @@ function ApplyConfirmScreen({ project, applicationData, onConfirm, onBack }) {
 // APPLICATION STATUS SCREEN
 // ═══════════════════════════════════════════════════════════════════════════════
 function AppStatusScreen({ project, status, application = null, onWithdraw, onBack }) {
+  const { L } = useProjectsText();
   // Dates come from the application record the server returned; a step the
   // server has not dated yet reads "Pending" instead of an invented date.
   const formatStepDate = (value) => {
@@ -850,20 +858,20 @@ function AppStatusScreen({ project, status, application = null, onWithdraw, onBa
   const reviewedAt = formatStepDate(application?.reviewed_at);
   const decidedAt = formatStepDate(application?.decided_at ?? application?.decision_at);
   const timeline = [
-    { label: "Application submitted", date: submittedAt ?? "Pending", done: true, active: false },
+    { label: L("Application submitted"), date: submittedAt ?? L("Pending"), done: true, active: false },
     {
-      label: "Under review",
-      date: status !== "Submitted" ? reviewedAt ?? "Pending" : "Pending",
+      label: L("Under review"),
+      date: status !== "Submitted" ? reviewedAt ?? L("Pending") : L("Pending"),
       done: status !== "Submitted",
       active: status === "Under Review",
     },
     {
-      label: "Decision",
-      date: ["Accepted", "Rejected"].includes(status) ? decidedAt ?? "Pending" : "Pending",
-      done: ["Accepted", "Rejected"].includes(status),
+      label: L("Decision"),
+      date: [L("Accepted"), L("Rejected")].includes(status) ? decidedAt ?? L("Pending") : L("Pending"),
+      done: [L("Accepted"), L("Rejected")].includes(status),
       active: false,
     },
-    { label: "Project start", date: project.startDate, done: false, active: false },
+    { label: L("Project start"), date: project.startDate, done: false, active: false },
   ];
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -884,7 +892,7 @@ function AppStatusScreen({ project, status, application = null, onWithdraw, onBa
           Projects
         </button>
         <div className="flex items-center justify-between">
-          <h2 className="font-['Inter:Bold',sans-serif] font-bold text-[18px] text-[#0a0b14]">Application Status</h2>
+          <h2 className="font-['Inter:Bold',sans-serif] font-bold text-[18px] text-[#0a0b14]">{L("Application Status")}</h2>
           <StatusPill status={status} />
         </div>
       </div>
@@ -896,7 +904,7 @@ function AppStatusScreen({ project, status, application = null, onWithdraw, onBa
             <div className="bg-[rgba(59,139,255,0.05)] border border-[rgba(59,139,255,0.15)] rounded-[16px] p-[22px] flex items-start gap-[14px]">
               <div>
                 <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#3b8bff] mb-[4px]">
-                  Application submitted successfully
+                  {L("Application submitted successfully")}
                 </h3>
                 <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.6]">
                   Your application has been received. The project owner at {project.sponsor} will review it and respond
@@ -931,7 +939,7 @@ function AppStatusScreen({ project, status, application = null, onWithdraw, onBa
             <div className="bg-[rgba(239,68,68,0.05)] border border-[rgba(239,68,68,0.15)] rounded-[16px] p-[22px] flex items-start gap-[14px]">
               <div>
                 <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#ef4444] mb-[4px]">
-                  Application not accepted this time
+                  {L("Application not accepted this time")}
                 </h3>
                 <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.6]">
                   The project team reviewed all applications and selected candidates with stronger relevant experience
@@ -944,7 +952,7 @@ function AppStatusScreen({ project, status, application = null, onWithdraw, onBa
             <div className="bg-[rgba(245,158,11,0.05)] border border-[rgba(245,158,11,0.15)] rounded-[16px] p-[22px] flex items-start gap-[14px]">
               <div>
                 <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[15px] text-[#f59e0b] mb-[4px]">
-                  Your application is under review
+                  {L("Your application is under review")}
                 </h3>
                 <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.6]">
                   The {project.sponsor} team is reviewing your application. You will be notified when a decision is
@@ -971,7 +979,7 @@ function AppStatusScreen({ project, status, application = null, onWithdraw, onBa
 
           {/* Timeline */}
           <div>
-            <SectionLabel>Application timeline</SectionLabel>
+            <SectionLabel>{L("Application timeline")}</SectionLabel>
             <div className="flex flex-col gap-[0]">
               {timeline.map((step, i) => (
                 <div key={step.label} className="flex items-start gap-[14px]">
@@ -1017,17 +1025,17 @@ function AppStatusScreen({ project, status, application = null, onWithdraw, onBa
             <div className="bg-[#f8f9fd] border border-[#eef0f8] rounded-[12px] p-[16px] flex items-center justify-between">
               <div>
                 <p className="text-[12px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14] mb-[2px]">
-                  Withdraw application
+                  {L("Withdraw application")}
                 </p>
                 <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-                  You can withdraw while the application is under review
+                  {L("You can withdraw while the application is under review")}
                 </p>
               </div>
               <button
                 onClick={onWithdraw}
                 className="px-[14px] py-[8px] rounded-[9px] text-[12px] font-['Inter:Medium',sans-serif] font-medium text-[#ef4444] border border-[rgba(239,68,68,0.25)] bg-[rgba(239,68,68,0.05)] hover:bg-[rgba(239,68,68,0.1)] transition-all"
               >
-                Withdraw
+                {L("Withdraw")}
               </button>
             </div>
           )}
@@ -1049,13 +1057,15 @@ function AppStatusScreen({ project, status, application = null, onWithdraw, onBa
 // WITHDRAWAL CONFIRM
 // ═══════════════════════════════════════════════════════════════════════════════
 function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
+  const { L } = useProjectsText();
   const [reason, setReason] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [withdrawError, setWithdrawError] = useState("");
   async function handleConfirm() {
+  const { L } = useProjectsText();
     const applicationId = project?.application_id ?? project?.applicationId;
     if (!applicationId || confirming) {
-      setWithdrawError("The server did not provide the current application ID. No application was withdrawn.");
+      setWithdrawError(L("The server did not provide the current application ID. No application was withdrawn."));
       return;
     }
     setConfirming(true);
@@ -1064,7 +1074,7 @@ function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
       await withdrawApplication(applicationId);
       onConfirm();
     } catch (error) {
-      setWithdrawError(error?.message || "Unable to withdraw the application from the server.");
+      setWithdrawError(error?.message || L("Unable to withdraw the application from the server."));
     } finally {
       setConfirming(false);
     }
@@ -1078,7 +1088,7 @@ function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
           <div className="flex items-start gap-[12px]">
             <div>
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#0a0b14] mb-[4px]">
-                Withdraw your application?
+                {L("Withdraw your application?")}
               </h3>
               <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.6]">
                 You are withdrawing your application to{" "}
@@ -1090,19 +1100,19 @@ function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
 
           <div>
             <label className="block text-[12px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14] mb-[6px]">
-              Reason for withdrawal <span className="text-[#94a3b8] font-normal">(optional)</span>
+              {L("Reason for withdrawal")} <span className="text-[#94a3b8] font-normal">(optional)</span>
             </label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="w-full h-[40px] px-[12px] bg-[#f8f9fd] border border-[#eef0f8] rounded-[9px] text-[13px] font-['Inter:Regular',sans-serif] text-[#0a0b14] focus:outline-none focus:border-[#3b8bff] transition-colors cursor-pointer"
             >
-              <option value="">Select a reason…</option>
-              <option value="schedule">Schedule conflict</option>
-              <option value="scope">Project scope changed</option>
-              <option value="found-other">Found a more suitable project</option>
-              <option value="not-ready">Not ready for this project yet</option>
-              <option value="other">Other</option>
+              <option value="">{L("Select a reason…")}</option>
+              <option value="schedule">{L("Schedule conflict")}</option>
+              <option value="scope">{L("Project scope changed")}</option>
+              <option value="found-other">{L("Found a more suitable project")}</option>
+              <option value="not-ready">{L("Not ready for this project yet")}</option>
+              <option value="other">{L("Other")}</option>
             </select>
           </div>
 
@@ -1111,7 +1121,7 @@ function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
               onClick={onCancel}
               className="flex-1 py-[10px] rounded-[10px] text-[13px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b] bg-[#f1f3fa] border border-[#e8eaf0] hover:bg-[#e8eaf0] transition-all"
             >
-              Keep application
+              {L("Keep application")}
             </button>
             <button
               onClick={handleConfirm}
@@ -1124,7 +1134,7 @@ function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
                   <path d="M5.5 1.5C8 1.5 10.5 3.8 10.5 6" stroke="white" strokeWidth="2" strokeLinecap="round" />
                 </svg>
               )}
-              {confirming ? "Withdrawing…" : "Confirm Withdrawal"}
+              {confirming ? L("Withdrawing…") : L("Confirm Withdrawal")}
             </button>
           </div>
         </div>
@@ -1136,6 +1146,7 @@ function WithdrawConfirmScreen({ project, onConfirm, onCancel }) {
 // WITHDRAWN STATE
 // ═══════════════════════════════════════════════════════════════════════════════
 function WithdrawnScreen({ project, onBack }) {
+  const { L } = useProjectsText();
   // The moment this screen opens is the moment the server confirmed the withdrawal.
   const [withdrawnAt] = useState(() =>
     new Date().toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
@@ -1145,7 +1156,7 @@ function WithdrawnScreen({ project, onBack }) {
       <div className="max-w-[520px] w-full flex flex-col items-center text-center gap-[20px]">
         <div>
           <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[20px] text-[#0a0b14] mb-[6px]">
-            Application withdrawn
+            {L("Application withdrawn")}
           </h3>
           <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.7]">
             Your application to{" "}
@@ -1161,13 +1172,13 @@ function WithdrawnScreen({ project, onBack }) {
             className="flex items-center justify-center gap-[6px] px-[20px] py-[10px] rounded-[11px] text-[13px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white"
             style={{ background: "linear-gradient(135deg,#3b8bff,#7c3aed)" }}
           >
-            Browse more projects
+            {L("Browse more projects")}
           </button>
           <button
             onClick={onBack}
             className="px-[16px] py-[10px] rounded-[11px] text-[13px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b] bg-white border border-[#e8eaf0] hover:bg-[#f8f9fd] transition-all"
           >
-            View project
+            {L("View project")}
           </button>
         </div>
       </div>
@@ -1179,6 +1190,7 @@ function WithdrawnScreen({ project, onBack }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function IneligibleScreen({ project, onBack }) {
+  const { L } = useProjectsText();
   return (
     <div className="flex flex-col h-full overflow-hidden items-center justify-center px-[32px] py-[32px]">
       <div className="max-w-[560px] w-full bg-white border border-[rgba(239,68,68,0.2)] rounded-[20px] overflow-hidden">
@@ -1187,7 +1199,7 @@ function IneligibleScreen({ project, onBack }) {
           <div className="flex items-start gap-[12px]">
             <div>
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#ef4444] mb-[4px]">
-                Not eligible for this project
+                {L("Not eligible for this project")}
               </h3>
               <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.65]">
                 Your current skill levels do not meet the minimum requirements for{" "}
@@ -1198,7 +1210,7 @@ function IneligibleScreen({ project, onBack }) {
           </div>
           <div className="bg-[rgba(239,68,68,0.03)] border border-[rgba(239,68,68,0.1)] rounded-[10px] p-[14px]">
             <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#94a3b8] uppercase tracking-wide mb-[8px]">
-              Unmet requirements
+              {L("Unmet requirements")}
             </p>
             {project.requirements
               .filter((r) => r.yourLevel < r.minLevel)
@@ -1231,7 +1243,7 @@ function IneligibleScreen({ project, onBack }) {
               onClick={onBack}
               className="px-[16px] py-[10px] rounded-[10px] text-[13px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b] bg-[#f1f3fa] hover:bg-[#e8eaf0] transition-all"
             >
-              Browse projects
+              {L("Browse projects")}
             </button>
           </div>
         </div>
@@ -1241,6 +1253,7 @@ function IneligibleScreen({ project, onBack }) {
 }
 // eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function DuplicateScreen({ project, onViewStatus, onBack }) {
+  const { L } = useProjectsText();
   return (
     <div className="flex flex-col h-full overflow-hidden items-center justify-center px-[32px] py-[32px]">
       <div className="max-w-[520px] w-full bg-white border border-[rgba(245,158,11,0.25)] rounded-[20px] overflow-hidden">
@@ -1249,7 +1262,7 @@ function DuplicateScreen({ project, onViewStatus, onBack }) {
           <div className="flex items-start gap-[12px]">
             <div>
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#f59e0b] mb-[4px]">
-                You already have an active application
+                {L("You already have an active application")}
               </h3>
               <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.65]">
                 A duplicate application cannot be created. Your existing active application to{" "}
@@ -1264,10 +1277,10 @@ function DuplicateScreen({ project, onViewStatus, onBack }) {
                 {project.application_id ? `Application #${project.application_id}` : "Active application"}
               </p>
               <p className="text-[11px] font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-                Under Review
+                {L("Under Review")}
               </p>
             </div>
-            <StatusPill status="Under Review" />
+            <StatusPill status={L("Under Review")} />
           </div>
           <div className="flex items-center gap-[8px]">
             <button
@@ -1281,7 +1294,7 @@ function DuplicateScreen({ project, onViewStatus, onBack }) {
               onClick={onBack}
               className="px-[16px] py-[10px] rounded-[10px] text-[13px] font-['Inter:Medium',sans-serif] font-medium text-[#64748b] bg-[#f1f3fa] hover:bg-[#e8eaf0] transition-all"
             >
-              Back
+              {L("Back")}
             </button>
           </div>
         </div>
@@ -1291,6 +1304,7 @@ function DuplicateScreen({ project, onViewStatus, onBack }) {
 }
 // eslint-disable-next-line no-unused-vars -- retained Vercel page variant
 function ExpiredFullScreen({ project, variant, onBack }) {
+  const { L } = useProjectsText();
   const isExpired = variant === "expired";
   return (
     <div className="flex flex-col h-full overflow-hidden items-center justify-center px-[32px] py-[32px]">
@@ -1300,7 +1314,7 @@ function ExpiredFullScreen({ project, variant, onBack }) {
           <div className="flex items-start gap-[12px]">
             <div>
               <h3 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#64748b] mb-[4px]">
-                {isExpired ? "Application period has closed" : "Project is fully booked"}
+                {isExpired ? L("Application period has closed") : L("Project is fully booked")}
               </h3>
               <p className="text-[13px] font-['Inter:Regular',sans-serif] text-[#64748b] leading-[1.65]">
                 {isExpired
@@ -1311,7 +1325,7 @@ function ExpiredFullScreen({ project, variant, onBack }) {
           </div>
           <div className="bg-[#f8f9fd] border border-[#eef0f8] rounded-[10px] px-[14px] py-[10px] flex items-center justify-between text-[12px]">
             <span className="font-['Inter:Regular',sans-serif] text-[#94a3b8]">
-              {isExpired ? "Deadline" : "Capacity"}
+              {isExpired ? L("Deadline") : L("Capacity")}
             </span>
             <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#64748b]">
               {isExpired ? project.deadline : `${project.totalSpots}/${project.totalSpots} spots taken`}
@@ -1339,15 +1353,17 @@ function ExpiredFullScreen({ project, variant, onBack }) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default function ProjectDetailsView({ projectId, onBack }) {
+  const { L } = useProjectsText();
   const [rawProject, setRawProject] = useState(null);
   const [loadingProject, setLoadingProject] = useState(true);
   const [loadError, setLoadError] = useState("");
   const project = useMemo(() => rawProject ? normalizeProject(rawProject) : null, [rawProject]);
   useEffect(() => {
+  const { L } = useProjectsText();
     let active = true;
     if (!projectId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- reset missing-id error
-      setLoadError("No project was selected for details.");
+      setLoadError(L("No project was selected for details."));
       setLoadingProject(false);
       return () => { active = false; };
     }
@@ -1356,12 +1372,13 @@ export default function ProjectDetailsView({ projectId, onBack }) {
     getProject(projectId).then((data) => {
       if (active) setRawProject(data);
     }).catch((error) => {
-      if (active) setLoadError(error?.message || "Unable to load project details from the server.");
+  const { L } = useProjectsText();
+      if (active) setLoadError(error?.message || L("Unable to load project details from the server."));
     }).finally(() => { if (active) setLoadingProject(false); });
     return () => { active = false; };
   }, [projectId]);
   const [screen, setScreen] = useState("details");
-  const [appStatus, setAppStatus] = useState("Submitted");
+  const [appStatus, setAppStatus] = useState(L("Submitted"));
   const [applicationData, setApplicationData] = useState({});
   const [activeApplicationId, setActiveApplicationId] = useState(null);
   const [submittedApplication, setSubmittedApplication] = useState(null);
@@ -1379,14 +1396,15 @@ export default function ProjectDetailsView({ projectId, onBack }) {
     return () => { active = false; };
   }, [projectId]);
   const handleRecommendationAction = async (action) => {
+  const { L } = useProjectsText();
     if (action === "default") { setRecState("default"); return; }
-    if (!recommendationId) { setFeedbackError("No recommendation record exists for this project on the server. The change was not saved."); return; }
+    if (!recommendationId) { setFeedbackError(L("No recommendation record exists for this project on the server. The change was not saved.")); return; }
     const eventType = action === "saved" ? "save" : action === "hidden" ? "hide" : "decline";
     setFeedbackError("");
     try {
       await submitRecommendationFeedback(recommendationId, { event_type: eventType });
       setRecState(action);
-    } catch (error) { setFeedbackError(error?.message || "Unable to save your recommendation feedback."); }
+    } catch (error) { setFeedbackError(error?.message || L("Unable to save your recommendation feedback.")); }
   };
   const renderContent = () => {
     switch (screen) {
@@ -1446,8 +1464,8 @@ export default function ProjectDetailsView({ projectId, onBack }) {
         return null;
     }
   };
-  if (loadingProject) return <div role="status" className="p-8 text-sm text-slate-600">Loading project details…</div>;
-  if (loadError || !project) return <div className="p-8" role="alert"><p className="mb-3 text-sm text-red-700">{loadError || "The service did not return project details."}</p><button className="rounded-lg border px-4 py-2" onClick={onBack}>Back to Projects</button></div>;
+  if (loadingProject) return <div role="status" className="p-8 text-sm text-slate-600">{L("Loading project details…")}</div>;
+  if (loadError || !project) return <div className="p-8" role="alert"><p className="mb-3 text-sm text-red-700">{loadError || L("The service did not return project details.")}</p><button className="rounded-lg border px-4 py-2" onClick={onBack}>{L("Back to Projects")}</button></div>;
   return (
     <div className="flex flex-col h-full overflow-hidden bg-[#f1f3fa]">
       {feedbackError && <p role="alert" className="px-4 py-2 text-sm text-red-700 bg-red-50">{feedbackError}</p>}

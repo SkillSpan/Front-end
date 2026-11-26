@@ -8,6 +8,7 @@ import {
 } from "../../api";
 import { useAuth } from "../auth/AuthContext";
 import { SUPPORT_CREATED_EVENT } from "./SupportWaitingToast";
+import { useUiText } from "../../i18n/useUiText";
 
 // The support thread is the only place a learner can read what the support
 // team wrote back. Replies arrive out of band (the assistant hands off, an
@@ -33,11 +34,12 @@ function collection(payload) {
 }
 
 function formatWhen(iso) {
+  const { L } = useUiText();
   if (!iso) return "";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
   const minutes = Math.round((Date.now() - date.getTime()) / 60000);
-  if (minutes < 1) return "just now";
+  if (minutes < 1) return L("just now");
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.round(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
@@ -54,6 +56,7 @@ function formatClock(iso) {
 }
 
 function StatusChip({ status }) {
+  const { L } = useUiText();
   const meta = STATUS_META[status] || STATUS_META.pending;
   return (
     <span
@@ -61,7 +64,7 @@ function StatusChip({ status }) {
       style={{ color: meta.color, background: meta.bg, border: `1px solid ${meta.border}` }}
     >
       <span className="w-[5px] h-[5px] rounded-full" style={{ background: meta.color }} />
-      {meta.label}
+      {L(meta.label)}
     </span>
   );
 }
@@ -73,6 +76,7 @@ function initials(name) {
 }
 
 function MessageRow({ message, mine }) {
+  const { L } = useUiText();
   if (message.message_type === "system") {
     return (
       <div className="flex justify-center my-[10px]">
@@ -83,7 +87,7 @@ function MessageRow({ message, mine }) {
     );
   }
 
-  const sender = message.sender_name || (mine ? "You" : "Support team");
+  const sender = message.sender_name || (mine ? L("You") : L("Support team"));
 
   return (
     <div className={`flex gap-[8px] mb-[10px] ${mine ? "flex-row-reverse" : "flex-row"}`}>
@@ -112,6 +116,7 @@ function MessageRow({ message, mine }) {
 }
 
 function TranscriptBlock({ transcript }) {
+  const { L } = useUiText();
   const turns = Array.isArray(transcript) ? transcript.filter((turn) => turn && turn.body) : [];
   if (!turns.length) return null;
 
@@ -124,7 +129,7 @@ function TranscriptBlock({ transcript }) {
         {turns.map((turn, index) => (
           <div key={index} className="text-[11px] leading-[1.55] text-[#475569]">
             <span className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#0a0b14]">
-              {turn.role === "assistant" ? "Assistant" : "You"}:
+              {turn.role === "assistant" ? L("Assistant") : L("You")}:
             </span>{" "}
             {turn.body}
           </div>
@@ -135,6 +140,7 @@ function TranscriptBlock({ transcript }) {
 }
 
 export default function SupportView({ initialRequestId = null }) {
+  const { L } = useUiText();
   const { authUser } = useAuth();
   const myId = authUser?.id != null ? String(authUser.id) : "";
 
@@ -183,6 +189,7 @@ export default function SupportView({ initialRequestId = null }) {
   }, []);
 
   const loadList = useCallback(async ({ silent = false } = {}) => {
+  const { L } = useUiText();
     try {
       const payload = await getSupportRequests({ page: 1, perPage: 50 });
       if (!aliveRef.current) return;
@@ -207,7 +214,7 @@ export default function SupportView({ initialRequestId = null }) {
       setSelectedId((prev) => (prev == null && rows.length ? rows[0].id : prev));
     } catch (err) {
       if (!aliveRef.current) return;
-      if (!silent) setListError(err?.message || "Your support requests could not be loaded.");
+      if (!silent) setListError(err?.message || L("Your support requests could not be loaded."));
     } finally {
       if (aliveRef.current) setListLoading(false);
     }
@@ -215,6 +222,7 @@ export default function SupportView({ initialRequestId = null }) {
 
   const loadThread = useCallback(
     async (id) => {
+  const { L } = useUiText();
       if (id == null) return;
       try {
         const payload = await getSupportRequest(id);
@@ -225,7 +233,7 @@ export default function SupportView({ initialRequestId = null }) {
         if (row) markSeen(row.id, row.last_message_at || row.created_at);
       } catch (err) {
         if (!aliveRef.current) return;
-        setThreadError(err?.message || "This support request could not be loaded.");
+        setThreadError(err?.message || L("This support request could not be loaded."));
       }
     },
     [markSeen],
@@ -263,7 +271,7 @@ export default function SupportView({ initialRequestId = null }) {
     [requests, selectedId],
   );
 
-  const activeStatus = activeThread?.status || selectedRequest?.status || "pending";
+  const activeStatus = activeThread?.status || selectedRequest?.status || L("pending");
   const threadOpen = OPEN_STATUSES.includes(activeStatus);
   const openRequestExists = requests.some((row) => OPEN_STATUSES.includes(row.status));
   const messages = Array.isArray(activeThread?.messages) ? activeThread.messages : [];
@@ -275,6 +283,7 @@ export default function SupportView({ initialRequestId = null }) {
   };
 
   const handleSend = async (event) => {
+  const { L } = useUiText();
     event?.preventDefault?.();
     const body = draft.trim();
     if (!body || selectedId == null || sending) return;
@@ -301,13 +310,14 @@ export default function SupportView({ initialRequestId = null }) {
       markSeen(selectedId, created?.created_at || new Date().toISOString());
       loadList({ silent: true });
     } catch (err) {
-      if (aliveRef.current) setSendError(err?.message || "The message could not be sent. Please try again.");
+      if (aliveRef.current) setSendError(err?.message || L("The message could not be sent. Please try again."));
     } finally {
       if (aliveRef.current) setSending(false);
     }
   };
 
   const handleCreate = async (event) => {
+  const { L } = useUiText();
     event?.preventDefault?.();
     const body = composerBody.trim();
     if (!body || composerBusy) return;
@@ -337,7 +347,7 @@ export default function SupportView({ initialRequestId = null }) {
       await loadList({ silent: true });
       await loadThread(Number(created.id));
     } catch (err) {
-      if (aliveRef.current) setComposerError(err?.message || "The request could not be created. Please try again.");
+      if (aliveRef.current) setComposerError(err?.message || L("The request could not be created. Please try again."));
     } finally {
       if (aliveRef.current) setComposerBusy(false);
     }
@@ -347,9 +357,9 @@ export default function SupportView({ initialRequestId = null }) {
     <div className="flex flex-col h-full min-h-0 min-w-0 overflow-hidden bg-[#f1f3fa]">
       <div className="bg-white border-b border-[#e8eaf0] px-[24px] py-[13px] flex items-center justify-between shrink-0 min-h-[70px]">
         <div>
-          <h1 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#0a0b14]">Support</h1>
+          <h1 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#0a0b14]">{L("Support")}</h1>
           <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[2px]">
-            Replies from the SkillSpan support team stay in this thread.
+            {L("Replies from the SkillSpan support team stay in this thread.")}
           </p>
         </div>
         <div className="flex items-center gap-[8px]">
@@ -361,7 +371,7 @@ export default function SupportView({ initialRequestId = null }) {
             }}
             className="h-[30px] px-[11px] rounded-[8px] border border-[#e8eaf0] bg-white text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#475569] hover:border-[rgba(59,139,255,0.35)] hover:text-[#3b8bff] transition-colors"
           >
-            Refresh
+            {L("Refresh")}
           </button>
           {!openRequestExists && (
             <button
@@ -373,7 +383,7 @@ export default function SupportView({ initialRequestId = null }) {
               className="h-[30px] px-[12px] rounded-[8px] text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white"
               style={{ background: "linear-gradient(135deg,#3b8bff,#5b6bf0)" }}
             >
-              {composerOpen ? "Cancel" : "New request"}
+              {composerOpen ? L("Cancel") : L("New request")}
             </button>
           )}
         </div>
@@ -382,13 +392,13 @@ export default function SupportView({ initialRequestId = null }) {
       {composerOpen && (
         <form onSubmit={handleCreate} className="shrink-0 bg-white border-b border-[#e8eaf0] px-[24px] py-[14px]">
           <p className="text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-[#94a3b8] uppercase tracking-wide mb-[8px]">
-            Ask the support team
+            {L("Ask the support team")}
           </p>
           <input
             value={composerSubject}
             onChange={(event) => setComposerSubject(event.target.value)}
             maxLength={180}
-            placeholder="Subject (optional)"
+            placeholder={L("Subject (optional)")}
             className="w-full h-[32px] rounded-[8px] border border-[#e8eaf0] bg-[#f8f9fd] px-[10px] text-[12px] text-[#0a0b14] placeholder-[#94a3b8] outline-none focus:border-[rgba(59,139,255,0.4)] mb-[8px]"
           />
           <textarea
@@ -396,7 +406,7 @@ export default function SupportView({ initialRequestId = null }) {
             onChange={(event) => setComposerBody(event.target.value)}
             maxLength={MAX_BODY}
             rows={3}
-            placeholder="Describe what you need help with…"
+            placeholder={L("Describe what you need help with…")}
             className="w-full rounded-[8px] border border-[#e8eaf0] bg-[#f8f9fd] px-[10px] py-[8px] text-[12px] leading-[1.55] text-[#0a0b14] placeholder-[#94a3b8] outline-none resize-none focus:border-[rgba(59,139,255,0.4)]"
           />
           {composerError && <p className="mt-[6px] text-[11px] text-red-600">{composerError}</p>}
@@ -407,7 +417,7 @@ export default function SupportView({ initialRequestId = null }) {
               className="h-[30px] px-[14px] rounded-[8px] text-[11px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white disabled:opacity-40"
               style={{ background: "linear-gradient(135deg,#3b8bff,#5b6bf0)" }}
             >
-              {composerBusy ? "Sending…" : "Send request"}
+              {composerBusy ? L("Sending…") : L("Send request")}
             </button>
           </div>
         </form>
@@ -424,11 +434,11 @@ export default function SupportView({ initialRequestId = null }) {
         <div className="w-[290px] shrink-0 bg-white border-r border-[#e8eaf0] flex flex-col min-h-0">
           <div className="px-[14px] py-[10px] border-b border-[#e8eaf0] shrink-0">
             <p className="text-[10.5px] font-['Inter:Semi_Bold',sans-serif] font-semibold uppercase tracking-wide text-[#94a3b8]">
-              My requests {requests.length ? `(${requests.length})` : ""}
+              {L("My requests")} {requests.length ? `(${requests.length})` : ""}
             </p>
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto">
-            {listLoading && <p className="px-[14px] py-[12px] text-[11.5px] text-[#94a3b8]">Loading…</p>}
+            {listLoading && <p className="px-[14px] py-[12px] text-[11.5px] text-[#94a3b8]">{L("Loading…")}</p>}
             {!listLoading && !requests.length && (
               <div className="px-[14px] py-[16px]">
                 <p className="text-[11.5px] leading-[1.6] text-[#64748b]">
@@ -438,6 +448,7 @@ export default function SupportView({ initialRequestId = null }) {
               </div>
             )}
             {requests.map((row) => {
+  const { L } = useUiText();
               const isActive = String(row.id) === String(selectedId);
               const hasUnread = Boolean(unread[row.id]);
               return (
@@ -462,7 +473,7 @@ export default function SupportView({ initialRequestId = null }) {
                     {row.status === "assigned" && (
                       <span className="ss-waiting-pill">
                         <span className="ss-waiting-dot" />
-                        Waiting for you
+                        {L("Waiting for you")}
                       </span>
                     )}
                     <span className="ml-auto text-[10px] text-[#b6bdcc] shrink-0">
@@ -477,7 +488,7 @@ export default function SupportView({ initialRequestId = null }) {
 
         {/* Thread */}
         <div className="flex-1 min-w-0 min-h-0 flex flex-col bg-[#f8f9fd]">
-          {threadLoading && <p className="px-[20px] py-[16px] text-[12px] text-[#94a3b8]">Loading the conversation…</p>}
+          {threadLoading && <p className="px-[20px] py-[16px] text-[12px] text-[#94a3b8]">{L("Loading the conversation…")}</p>}
 
           {threadError && (
             <div role="alert" className="m-[20px] rounded-[10px] border border-red-200 bg-red-50 px-[12px] py-[9px] text-[11.5px] text-red-700">
@@ -488,7 +499,7 @@ export default function SupportView({ initialRequestId = null }) {
           {!threadLoading && !threadError && !activeThread && (
             <div className="flex-1 flex items-center justify-center px-[24px]">
               <p className="max-w-[380px] text-center text-[12px] leading-[1.7] text-[#94a3b8]">
-                Select a request to read the conversation with the support team.
+                {L("Select a request to read the conversation with the support team.")}
               </p>
             </div>
           )}
@@ -501,7 +512,7 @@ export default function SupportView({ initialRequestId = null }) {
                     {activeThread.subject || `Support request #${activeThread.id}`}
                   </h2>
                   <p className="text-[10.5px] text-[#94a3b8] mt-[1px]">
-                    Opened {formatWhen(activeThread.created_at)}
+                    {L("Opened")} {formatWhen(activeThread.created_at)}
                     {activeThread.assignee_name ? ` · ${activeThread.assignee_name} is helping you` : ""}
                   </p>
                 </div>
@@ -511,7 +522,7 @@ export default function SupportView({ initialRequestId = null }) {
               <div className="flex-1 min-h-0 overflow-y-auto px-[20px] py-[14px]">
                 <TranscriptBlock transcript={activeThread.transcript} />
                 {messages.length === 0 && (
-                  <p className="text-[11.5px] text-[#94a3b8]">No messages in this thread yet.</p>
+                  <p className="text-[11.5px] text-[#94a3b8]">{L("No messages in this thread yet.")}</p>
                 )}
                 {messages.map((message) => (
                   <MessageRow key={message.id} message={message} mine={String(message.sender_id) === myId} />
@@ -532,7 +543,7 @@ export default function SupportView({ initialRequestId = null }) {
                       }}
                       rows={1}
                       maxLength={MAX_BODY}
-                      placeholder="Write a reply to the support team…"
+                      placeholder={L("Write a reply to the support team…")}
                       className="flex-1 min-h-[34px] max-h-[110px] rounded-[10px] border border-[#e8eaf0] bg-[#f8f9fd] px-[11px] py-[8px] text-[12px] leading-[1.5] text-[#0a0b14] placeholder-[#94a3b8] outline-none resize-none focus:border-[rgba(59,139,255,0.4)]"
                     />
                     <button
@@ -541,7 +552,7 @@ export default function SupportView({ initialRequestId = null }) {
                       className="h-[34px] px-[14px] rounded-[10px] text-[11.5px] font-['Inter:Semi_Bold',sans-serif] font-semibold text-white shrink-0 disabled:opacity-40"
                       style={{ background: "linear-gradient(135deg,#3b8bff,#5b6bf0)" }}
                     >
-                      {sending ? "Sending…" : "Send"}
+                      {sending ? L("Sending…") : L("Send")}
                     </button>
                   </form>
                 ) : (

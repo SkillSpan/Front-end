@@ -15,6 +15,8 @@ import SupportWaitingToast, { SUPPORT_CREATED_EVENT } from './SupportWaitingToas
 import TalentDiscoveryView from './TalentDiscoveryView';
 import { getApplications, getCareerRoles, getLatestReadiness, getLatestIntelligence, getNotifications, getProfile, getProjects, getRecommendations, getUnreadNotificationCount, getCareerRoleById, fetchProfileAvatarUrl, unwrapApiData, updateProfile, calculateIntelligence } from '../../api';
 import { useAuth } from '../auth/AuthContext';
+import { useI18n } from '../../i18n/useI18n';
+import { useUiText } from '../../i18n/useUiText';
 import AppLayout from '../dashboard/AppLayout';
 import { apiKey, getEntry, getQueryData } from '../../cache/queryCache';
 import './learner-workspace.css';
@@ -33,6 +35,8 @@ function cachedWorkspaceAnswer(path) {
 
 export default function LearnerWorkspace({ initialView='career-journey', onNavigate, onLogout }) {
   const { authUser } = useAuth();
+  const { t } = useI18n();
+  const { L } = useUiText();
   const [view, setView] = useState(initialView);
   const [loading, setLoading] = useState(() => !cachedWorkspaceAnswer('/api/v1/profile'));
   const [apiError, setApiError] = useState('');
@@ -112,7 +116,7 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
     // reply is delivered through exactly this list, so it has to be bound.
     if (notifs && notifs.status === 'fulfilled') setNotifications(collection(notifs.value));
     const rejected = [pr, ...results].filter(x => x.status === 'rejected');
-    setApiError(rejected.length ? 'Some workspace data could not be loaded from the server. Demo data will not be shown as a fallback.' : '');
+    setApiError(rejected.length ? 'workspace.partialError' : '');
     return { analysisReady: Boolean(currentReadiness || currentIntelligence), partial: rejected.length > 0 };
   };
 
@@ -245,8 +249,8 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
   // comes from the role payload the workspace already resolved.
   const journey = <div className="flex h-full flex-col">
     <div className="mx-8 mt-5 rounded-xl border border-slate-200 bg-white p-4 text-sm">
-      <p>{profile?.primary_career_role_id == null ? 'Choose a career goal to start your career journey.' : `Current career goal: ${roleLabel || 'Selected role'}`}</p>
-      <button type="button" onClick={() => go('roles')} className="mt-2 font-semibold text-blue-700">{profile?.primary_career_role_id == null ? 'Choose Career Goal' : 'Change Career Goal'}</button>
+      <p>{profile?.primary_career_role_id == null ? L('Choose a career goal to start your career journey.') : L('Current career goal: {role}', { role: roleLabel || L('Selected role') })}</p>
+      <button type="button" onClick={() => go('roles')} className="mt-2 font-semibold text-blue-700">{profile?.primary_career_role_id == null ? L('Choose Career Goal') : L('Change Career Goal')}</button>
       {profile?.primary_career_role_id != null && rolePayload?.id != null && <CareerGoalControl key={profile.primary_career_role_id} role={rolePayload} currentGoalId={profile.primary_career_role_id} onCalculate={calculateGoalAnalysis} busy={goalBusy} />}
     </div>
     <div className="min-h-0 flex-1"><CareerJourneyView readiness={readiness} intelligence={intelligence} roleTitle={roleLabel} /></div>
@@ -283,8 +287,8 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
       flushContent
       contentClassName={view === 'assistant' ? 'workspace-assistant-content' : 'workspace-content'}
     >
-      {loading && <div className="learner-loading">Loading your workspace…</div>}
-      {apiError && <div className="learner-api-note">{apiError}</div>}
+      {loading && <div className="learner-loading">{t('workspace.loading')}</div>}
+      {apiError && <div className="learner-api-note">{apiError === 'workspace.partialError' ? t('workspace.partialError') : apiError}</div>}
       <div className="learner-content">{content()}</div>
     </AppLayout>
     {/* Straight to a human, from any screen — asking the assistant a question

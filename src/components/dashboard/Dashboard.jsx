@@ -96,6 +96,7 @@ const StatIcon = {
 };
 
 export default function Dashboard({ user, onLogout, onNavigate }) {
+  const { L } = useProjectsText();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [d, setD] = useState({
@@ -106,13 +107,13 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
     skillsAssessed: 0,
     skillsAssessedTotal: 24,
     roadmapPhase: '0%',
-    roadmapPhaseNote: 'No roadmap yet',
+    roadmapPhaseNote: L("No roadmap yet"),
     recordItems: 0,
     recordItemsNote: '0 verified',
     nextAction: {
-      title: 'Complete Baseline Assessment',
-      description: 'Take the assessment to evaluate your skills, generate your roadmap, and calculate readiness.',
-      tags: ['Skill Evaluation', 'Roadmap'],
+      title: L("Complete Baseline Assessment"),
+      description: L("Take the assessment to evaluate your skills, generate your roadmap, and calculate readiness."),
+      tags: [L("Skill Evaluation"), L("Roadmap")],
       target: 'skill-assessment',
       buttonLabel: 'Start Assessment →',
     },
@@ -123,6 +124,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
   });
 
   const loadDashboardData = async () => {
+  const { L } = useProjectsText();
     setLoading(true);
     setLoadError('');
 
@@ -229,9 +231,9 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       }
 
       let nextAction = {
-        title: 'Complete Baseline Assessment',
-        description: 'Take the assessment to evaluate your skills, generate your personalized roadmap, and calculate readiness.',
-        tags: ['Skill Evaluation', 'Roadmap'],
+        title: L("Complete Baseline Assessment"),
+        description: L("Take the assessment to evaluate your skills, generate your personalized roadmap, and calculate readiness."),
+        tags: [L("Skill Evaluation"), L("Roadmap")],
         target: 'skill-assessment',
         buttonLabel: 'Start Assessment →',
       };
@@ -260,9 +262,9 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
         }
 
         nextAction = {
-          title: nextActionItem.title || 'Next Milestone Action',
-          description: nextActionItem.description || nextActionItem.objective || 'Complete this task to advance your roadmap progress.',
-          tags: tags.length > 0 ? tags : ['Skill Growth', 'Roadmap Milestone'],
+          title: nextActionItem.title || L("Next Milestone Action"),
+          description: nextActionItem.description || nextActionItem.objective || L("Complete this task to advance your roadmap progress."),
+          tags: tags.length > 0 ? tags : [L("Skill Growth"), L("Roadmap Milestone")],
           target,
           buttonLabel,
         };
@@ -270,7 +272,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
 
       // Roadmap phase & progress
       let roadmapPhaseDisplay = '0%';
-      let roadmapPhaseNote = 'No roadmap yet';
+      let roadmapPhaseNote = L("No roadmap yet");
       if (actions.length > 0) {
         const completedActions = actions.filter((a) => a.status === 'completed').length;
         const pct = Math.round((completedActions / actions.length) * 100);
@@ -285,13 +287,14 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       let mappedGaps = [];
       if (rawGaps.length > 0) {
         mappedGaps = rawGaps.slice(0, 4).map((gap) => {
+  const { L } = useProjectsText();
           const cur = Number(gap.current_level ?? 0);
           const req = Number(gap.required_level ?? 0);
           const pct = gap.match_score !== null && gap.match_score !== undefined
             ? Math.min(100, Math.max(0, Math.round(Number(gap.match_score))))
             : req > 0 ? Math.min(100, Math.max(0, Math.round((cur / req) * 100))) : 0;
           return {
-            name: gap.skill_name || gap.skill?.name || gap.name || 'Skill',
+            name: gap.skill_name || gap.skill?.name || gap.name || L("Skill"),
             level: `${cur}/${req}`,
             pct,
             isCritical: Boolean(gap.is_critical),
@@ -306,6 +309,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
           .filter((r) => r.project && !r.access_revoked)
           .slice(0, 3)
           .map((r, i) => {
+  const { L } = useProjectsText();
             const p = r.project;
             const code = (p.title || 'PR').replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase() || 'PR';
             const colors = [
@@ -316,7 +320,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
             return {
               id: p.id,
               code,
-              title: p.title || 'Project',
+              title: p.title || L("Project"),
               company: p.organization?.title || p.organization?.name || 'SkillSpan Partner',
               duration: p.duration_days ? `${Math.round(p.duration_days / 7)} weeks` : (p.schedule || ''),
               match: r.score != null ? Math.round(Number(r.score)) : null,
@@ -327,6 +331,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
 
       if (mappedProjects.length === 0 && projects.length > 0) {
         mappedProjects = projects.slice(0, 3).map((p, i) => {
+  const { L } = useProjectsText();
           const code = (p.title || 'PR').replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase() || 'PR';
           const colors = [
             'linear-gradient(135deg, rgb(59, 139, 255) 0%, rgb(124, 58, 237) 100%)',
@@ -336,7 +341,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
           return {
             id: p.id,
             code,
-            title: p.title || 'Project',
+            title: p.title || L("Project"),
             company: p.organization?.title || p.organization?.name || (p.type === 'simulation' ? 'SkillSpan Simulation' : 'Partner Project'),
             duration: p.duration_days ? `${Math.round(p.duration_days / 7)} weeks` : (p.schedule || ''),
             match: p.match_score != null ? Math.round(Number(p.match_score)) : null,
@@ -366,7 +371,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
         notifications,
       });
     } catch (err) {
-      setLoadError(err?.message || 'Could not load dashboard data from server.');
+      setLoadError(err?.message || L("Could not load dashboard data from server."));
     } finally {
       setLoading(false);
     }
@@ -382,7 +387,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
 
   const { t } = useI18n();
 
-  const firstName = user?.name ? user.name.split(' ')[0] : (user?.full_name ? user.full_name.split(' ')[0] : 'there');
+  const firstName = user?.name ? user.name.split(' ')[0] : (user?.full_name ? user.full_name.split(' ')[0] : L("there"));
 
   // A support reply that is still unread is the "someone is waiting for you"
   // signal. Computed here so the mark lives only on the dashboard, not the nav.
@@ -408,21 +413,21 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
     >
       <div className="dash-header">
         <h1 className="dash-title motion-enter">Welcome back, {firstName} 👋</h1>
-        <p className="dash-subtitle">Here's your career readiness overview for today.</p>
+        <p className="dash-subtitle">{L("Here's your career readiness overview for today.")}</p>
       </div>
 
       {loadError && (
         <div role="alert" className="m-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 flex items-center justify-between">
           <span>{loadError}</span>
           <button type="button" onClick={loadDashboardData} className="font-semibold underline ml-3">
-            Retry
+            {L("Retry")}
           </button>
         </div>
       )}
 
       {loading && (
         <div className="dash-loading">
-          <span>Loading your career dashboard…</span>
+          <span>{L("Loading your career dashboard…")}</span>
         </div>
       )}
 
@@ -446,7 +451,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
           title="Click to view detailed career roadmap"
         >
           <ReadinessRing value={d.readinessScore} />
-          <div className="r-label">Readiness Score</div>
+          <div className="r-label">{L("Readiness Score")}</div>
           <div className="r-sub">{d.roleLabel}</div>
           <button
             type="button"
@@ -494,7 +499,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
             <span className="dash-stat-pill pill-blue">{d.activeProjectsNote}</span>
           </div>
           <div className="dash-stat-num">{d.activeProjects}</div>
-          <div className="dash-stat-label">Active Projects</div>
+          <div className="dash-stat-label">{L("Active Projects")}</div>
         </div>
 
         <div
@@ -507,7 +512,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
             <span className="dash-stat-pill pill-blue">{d.skillsAssessedNote}</span>
           </div>
           <div className="dash-stat-num">{d.skillsAssessed}</div>
-          <div className="dash-stat-label">Skills Assessed</div>
+          <div className="dash-stat-label">{L("Skills Assessed")}</div>
         </div>
 
         <div
@@ -520,7 +525,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
             <span className="dash-stat-pill pill-green">{d.roadmapPhaseNote}</span>
           </div>
           <div className="dash-stat-num">{d.roadmapPhase}</div>
-          <div className="dash-stat-label">Roadmap Progress</div>
+          <div className="dash-stat-label">{L("Roadmap Progress")}</div>
         </div>
 
         <div
@@ -533,7 +538,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
             <span className="dash-stat-pill pill-orange">{d.recordItemsNote}</span>
           </div>
           <div className="dash-stat-num">{d.recordItems}</div>
-          <div className="dash-stat-label">Record Items</div>
+          <div className="dash-stat-label">{L("Record Items")}</div>
         </div>
       </div>
 
@@ -541,7 +546,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
       <div className="dash-bottom-row motion-stagger">
         <div className="dash-panel">
           <div className="dash-panel-head">
-            <h3>Top Skill Gaps</h3>
+            <h3>{L("Top Skill Gaps")}</h3>
             <a role="button" tabIndex={0} onClick={() => handleNavigate('skill-matrix')}>
               View All →
             </a>
@@ -564,7 +569,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
                       </span>
                     )}
                   </span>
-                  <span className="lv">Lv {g.level}</span>
+                  <span className="lv">{L("Lv")} {g.level}</span>
                 </div>
                 <div className="gap-bar-track">
                   <div
@@ -579,7 +584,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
             ))
           ) : (
             <div className="dash-empty-state">
-              <p>No skill gaps recorded yet.</p>
+              <p>{L("No skill gaps recorded yet.")}</p>
               <button
                 type="button"
                 className="dash-empty-btn"
@@ -593,7 +598,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
 
         <div className="dash-panel">
           <div className="dash-panel-head">
-            <h3>Recommended Projects</h3>
+            <h3>{L("Recommended Projects")}</h3>
             <a role="button" tabIndex={0} onClick={() => handleNavigate('projects')}>
               Browse All →
             </a>
@@ -619,7 +624,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
             ))
           ) : (
             <div className="dash-empty-state">
-              <p>No project recommendations yet.</p>
+              <p>{L("No project recommendations yet.")}</p>
               <button
                 type="button"
                 className="dash-empty-btn"

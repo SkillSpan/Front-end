@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getLearnerMessages, unwrapApiData } from "../../api";
 import { apiKey, getEntry, getQueryData } from "../../cache/queryCache";
+import { useUiText } from "../../i18n/useUiText";
 
 // The learner's inbox: messages companies sent, newest first.
 //
@@ -23,11 +24,12 @@ function meta(payload) {
 }
 
 function formatWhen(iso) {
+  const { L } = useUiText();
   if (!iso) return "";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
   const minutes = Math.round((Date.now() - date.getTime()) / 60000);
-  if (minutes < 1) return "just now";
+  if (minutes < 1) return L("just now");
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.round(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
@@ -43,8 +45,9 @@ function initials(name) {
 }
 
 function MessageCard({ row }) {
+  const { L } = useUiText();
   const from = row?.from || {};
-  const company = from.organization_name || "A company";
+  const company = from.organization_name || L("A company");
   const sender = from.sender_name || "";
 
   return (
@@ -83,6 +86,7 @@ function MessageCard({ row }) {
 }
 
 export default function MessagesView() {
+  const { L } = useUiText();
   const cachedKey = apiKey('/api/v1/learner/messages', { page: 1, per_page: PAGE_SIZE });
   const cached = getEntry(cachedKey).invalidated ? undefined : getQueryData(cachedKey);
   const [items, setItems] = useState(() => cached ? rows(cached) : []);
@@ -129,9 +133,9 @@ export default function MessagesView() {
     <div className="flex flex-col h-full min-h-0 min-w-0 overflow-hidden bg-[#f1f3fa]">
       <div className="bg-white border-b border-[#e8eaf0] px-[24px] py-[13px] shrink-0 min-h-[70px] flex items-center">
         <div>
-          <h1 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#0a0b14]">Messages</h1>
+          <h1 className="font-['Inter:Bold',sans-serif] font-bold text-[17px] text-[#0a0b14]">{L("Messages")}</h1>
           <p className="text-[12px] font-['Inter:Regular',sans-serif] text-[#94a3b8] mt-[2px]">
-            Messages companies sent you. This inbox is read-only.
+            {L("Messages companies sent you. This inbox is read-only.")}
           </p>
         </div>
       </div>
@@ -140,7 +144,7 @@ export default function MessagesView() {
         <div className="max-w-[760px] flex flex-col gap-[10px]">
           {loading && (
             <p data-testid="learner-messages-loading" className="text-[12px] text-[#94a3b8]">
-              Loading your messages…
+              {L("Loading your messages…")}
             </p>
           )}
 
@@ -149,13 +153,13 @@ export default function MessagesView() {
               data-testid="learner-messages-error"
               className="rounded-[10px] border border-[#fecaca] bg-[#fef2f2] px-[14px] py-[12px] text-[12px] text-[#991b1b]"
             >
-              <p>We could not load your messages.</p>
+              <p>{L("We could not load your messages.")}</p>
               <button
                 type="button"
                 onClick={() => load(1)}
                 className="mt-[8px] rounded-[7px] border border-[#fecaca] bg-white px-[10px] py-[4px] text-[11px] font-['Inter:Medium',sans-serif] font-medium text-[#991b1b]"
               >
-                Try again
+                {L("Try again")}
               </button>
             </div>
           )}
@@ -166,10 +170,10 @@ export default function MessagesView() {
               className="rounded-[12px] border border-dashed border-[#d8dce6] bg-white px-[18px] py-[26px] text-center"
             >
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold text-[13px] text-[#0a0b14]">
-                No messages yet
+                {L("No messages yet")}
               </p>
               <p className="mt-[4px] text-[12px] text-[#94a3b8]">
-                When a company writes to you, their message will appear here.
+                {L("When a company writes to you, their message will appear here.")}
               </p>
             </div>
           )}
@@ -184,7 +188,7 @@ export default function MessagesView() {
               onClick={() => load(page + 1, { append: true })}
               className="self-center rounded-[8px] border border-[#e8eaf0] bg-white px-[14px] py-[6px] text-[11.5px] font-['Inter:Medium',sans-serif] font-medium text-[#475569] disabled:opacity-60"
             >
-              {loadingMore ? "Loading…" : "Load older messages"}
+              {loadingMore ? L("Loading…") : L("Load older messages")}
             </button>
           )}
 

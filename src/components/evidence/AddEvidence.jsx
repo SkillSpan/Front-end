@@ -17,6 +17,7 @@ import {
 } from "./lib/evidenceMeta";
 
 import { TypeIcon } from "./Shared";
+import { useUiText } from "../../i18n/useUiText";
 
 export default function AddEvidence({
   skill = null,
@@ -24,6 +25,7 @@ export default function AddEvidence({
   onCancel = () => {},
   onSubmit = () => {},
 }) {
+  const { L } = useUiText();
   const isResubmit = Boolean(resubmitRecord);
   const activeSkill = resubmitRecord || skill || { skill: "", category: "", level: "" };
 
@@ -221,6 +223,7 @@ export default function AddEvidence({
    * Submit Evidence.
    */
   async function handleSubmit(event) {
+  const { L } = useUiText();
     event.preventDefault();
 
     if (isSubmitting) return;
@@ -260,7 +263,7 @@ export default function AddEvidence({
      */
     if (description.trim().length < 50) {
       nextErrors.description =
-        "Describe what this evidence demonstrates (at least 50 characters).";
+        L("Describe what this evidence demonstrates (at least 50 characters).");
     }
 
     setErrors(nextErrors);
@@ -321,12 +324,12 @@ export default function AddEvidence({
         level:
           activeSkill.level,
 
-        status: "pending",
+        status: L("pending"),
       });
     } catch (error) {
       setSubmitError(
         error?.message ||
-          "Something went wrong while submitting. Please try again."
+          L("Something went wrong while submitting. Please try again.")
       );
 
       if (error?.fieldErrors) {
@@ -349,8 +352,8 @@ export default function AddEvidence({
     description.trim().length >= 50;
 
   const modeTabs = [
-    ["url", "Reference URL", Link2],
-    ["file", "File Upload", Paperclip],
+    ["url", L("Reference URL"), Link2],
+    ["file", L("File Upload"), Paperclip],
   ];
 
   return (
@@ -364,13 +367,13 @@ export default function AddEvidence({
               <div>
                 <h1 className="figma-title text-[18px]">
                   {isResubmit
-                    ? "Resubmit Evidence"
-                    : "Add Evidence"}
+                    ? L("Resubmit Evidence")
+                    : L("Add Evidence")}
                 </h1>
 
                 <p className="figma-subtitle">
                   {isResubmit
-                    ? "Update your evidence based on the reviewer’s notes, then resubmit for review."
+                    ? L("Update your evidence based on the reviewer’s notes, then resubmit for review.")
                     : `Submit proof of your ${activeSkill.skill} proficiency — a reviewer will verify and update your confidence score.`}
                 </p>
               </div>
@@ -385,16 +388,16 @@ export default function AddEvidence({
               <div className="mb-7 flex items-center justify-between border-b border-[#f0f2f5] pb-5">
                 <div>
                   <h2 className="m-0 text-sm font-semibold text-[#101828]">
-                    Evidence details
+                    {L("Evidence details")}
                   </h2>
 
                   <p className="m-0 mt-1 text-xs text-[#667085]">
-                    Choose one way to share your work.
+                    {L("Choose one way to share your work.")}
                   </p>
                 </div>
 
                 <span className="text-[11px] text-[#98a2b3]">
-                  Required fields *
+                  {L("Required fields *")}
                 </span>
               </div>
 
@@ -402,7 +405,7 @@ export default function AddEvidence({
               <div
                 className="mb-7 inline-flex rounded-lg border border-[#e4e7ec] bg-white p-0"
                 role="tablist"
-                aria-label="Evidence submission method"
+                aria-label={L("Evidence submission method")}
               >
                 {modeTabs.map(
                   ([key, label, Icon]) => (
@@ -432,7 +435,7 @@ export default function AddEvidence({
               {/* EVIDENCE TYPES */}
               <div className="mb-7">
                 <p className="mb-3 text-xs font-semibold text-[#344054]">
-                  Evidence type
+                  {L("Evidence type")}
                 </p>
 
                 <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
@@ -550,7 +553,7 @@ export default function AddEvidence({
                     className="mb-2 block text-xs font-semibold text-[#344054]"
                   >
                     {meta.fileLabel ||
-                      "Upload file"}
+                      L("Upload file")}
 
                     <span className="text-[#d92d20]">
                       {" "}*
@@ -612,7 +615,7 @@ export default function AddEvidence({
                     <p className="m-0 text-sm font-medium text-[#344054]">
                       {file
                         ? file.name
-                        : "Drag & drop or click to upload"}
+                        : L("Drag & drop or click to upload")}
                     </p>
 
                     <p className="m-0 mt-1 text-xs text-[#98a2b3]">
@@ -662,7 +665,7 @@ export default function AddEvidence({
                     htmlFor="evidence-description"
                     className="mb-2 block text-xs font-semibold text-[#344054]"
                   >
-                    Evidence description{" "}
+                    {L("Evidence description")}{" "}
                     <span className="text-[#d92d20]">
                       *
                     </span>
@@ -765,7 +768,7 @@ export default function AddEvidence({
                   disabled={isSubmitting}
                   className="figma-btn-secondary"
                 >
-                  Cancel
+                  {L("Cancel")}
                 </button>
 
                 <button
@@ -787,13 +790,13 @@ export default function AddEvidence({
                         size={14}
                         className="animate-spin"
                       />
-                      Submitting…
+                      {L("Submitting…")}
                     </>
                   ) : (
                     <>
                       {isResubmit
-                        ? "Resubmit for review"
-                        : "Submit for review"}
+                        ? L("Resubmit for review")
+                        : L("Submit for review")}
 
                       <ChevronLeft
                         className="rotate-180"
