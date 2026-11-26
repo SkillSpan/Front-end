@@ -345,18 +345,6 @@ function CompanyPreviewPage({ view, empty, mode }) {
   return <CompanyPage key={`demo-${view}-${mode || ''}-${state || 'full'}`} view={view} demo={demo} previewState={state} mode={mode} />
 }
 
-// Key for the page-transition wrapper. It must stay the same while moving
-// between the steps of one wizard (/company/register/account -> company-info
-// -> ...), otherwise React remounts the whole wizard on every step, its
-// in-memory form data is wiped, and the step guards bounce the user back to
-// the first page. So we only key on the section ("/company/register",
-// "/register", "/dashboard", ...), not the full path.
-function transitionKey(pathname) {
-  const parts = pathname.split('/').filter(Boolean)
-  if (parts[0] === 'company') return `company/${parts[1] || ''}`
-  return parts[0] || 'home'
-}
-
 // Shown while a lazily-loaded screen is fetched. Inline styles on purpose: it
 // must render before any of the split CSS has arrived.
 function RouteFallback() {
@@ -407,7 +395,6 @@ function AppRoutes() {
   return (
     <div
       className={`route-transition${location.pathname === '/' ? ' route-transition--landing' : ''}`}
-      key={transitionKey(location.pathname)}
     >
       <Suspense fallback={<RouteFallback />}>
       <RouteScrollReset />

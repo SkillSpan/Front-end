@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { fetchEvidence, sendEvidence, sendReview, toUiError } from "./lib/evidenceApi";
+import { apiKey, getEntry, getQueryData } from "../../cache/queryCache";
+import { fetchEvidence, isLearnerEvidence, mapEvidenceList, sendEvidence, sendReview, toUiError } from "./lib/evidenceApi";
 
 const EvidenceContext = createContext(null);
 
@@ -39,9 +40,11 @@ function buildLocalItem(data) {
 }
 
 export function EvidenceProvider({ children }) {
-  const [evidence, setEvidence] = useState([]);
+  const cachedKey = apiKey('/api/v1/evidence');
+  const cached = getEntry(cachedKey).invalidated ? undefined : getQueryData(cachedKey);
+  const [evidence, setEvidence] = useState(() => cached === undefined ? [] : mapEvidenceList(cached).filter(isLearnerEvidence));
   // 'loading' | 'preview' | 'api'
-  const [source, setSource] = useState("loading");
+  const [source, setSource] = useState(cached === undefined ? "loading" : "api");
   const [loadError, setLoadError] = useState("");
   const alive = useRef(true);
 
@@ -59,7 +62,6 @@ export function EvidenceProvider({ children }) {
       }
     } catch (err) {
       if (!alive.current) return;
-      setEvidence([]);
       setLoadError((err && err.message) || "Network error");
       setSource("preview");
     }
