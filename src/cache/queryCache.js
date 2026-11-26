@@ -165,6 +165,19 @@ export function isExpired(entry, maxAge) {
   return !entry.updatedAt || now() - entry.updatedAt > maxAge;
 }
 
+/**
+ * The answer for a path if one is still usable, else undefined.
+ *
+ * Screens call this while building their initial state so a revisit paints
+ * with the data they already had instead of a skeleton; the normal request
+ * still runs afterwards and replaces it (stale-while-revalidate).
+ */
+export function peekCached(path) {
+  const entry = getEntry(apiKey(path));
+  if (!entry || entry.invalidated || entry.data === undefined) return undefined;
+  return now() - entry.updatedAt <= settingsFor(apiKey(path)).maxAge ? entry.data : undefined;
+}
+
 export function isFresh(entry, staleTime) {
   return entry.data !== undefined && !entry.invalidated && now() - entry.updatedAt < staleTime;
 }

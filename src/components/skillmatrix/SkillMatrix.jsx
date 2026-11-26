@@ -7,6 +7,7 @@ import AppLayout from '../dashboard/AppLayout';
 import { useAuth } from '../auth/AuthContext';
 import { signOutToLanding } from '../auth/signOut';
 import { L, useUiText } from "../../i18n/useUiText";
+import { peekCached } from '../../cache';
 
 // The taxonomy (categories/skill list on the left) now loads from the real
 // backend (GET /skills/taxonomy) instead of the local mock in taxonomy.js -
@@ -243,20 +244,56 @@ function roleSkillRefs(res) {
   return { rowCount: rows.length, ids, names };
 }
 
+// The matrix rows -> the { skills, rowIds } shape the screen renders. Shared by
+// the loading effect and the cache seed below, so a revisit shows exactly the
+// same data without waiting for the request.
+function mapMatrixRows(rows, learnerId) {
+  const nextSkills = {};
+  const nextRowIds = {};
+  (Array.isArray(rows) ? rows : rows?.data || [])
+    .filter((row) => !learnerId || String(row.learner_id) === String(learnerId))
+    .forEach((row) => {
+      nextSkills[row.skill_id] = {
+        source: row.source_type === 'assessment' ? 'assessment' : row.source_type === 'evidence_aggregate' ? 'evidence' : 'self',
+        // The API sends `level` as a decimal STRING ("3.50"). It is used in
+        // arithmetic below (`card.level / 5`, `i < card.level`), and a string
+        // either concatenates or yields NaN there.
+        level: Number(row.level) || 0,
+        confidence: confidenceToLabel(row.confidence_score ?? 0, row.algorithm_version),
+      };
+      nextRowIds[row.skill_id] = row.id;
+    });
+  return { skills: nextSkills, rowIds: nextRowIds };
+}
+
 export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   const { L } = useUiText();
   const { authUser, logout } = useAuth();
   const navigate = useNavigate();
   const currentUser = authUser || getStoredUser();
   const learnerId = resolveLearnerId(currentUser);
-  const [taxonomy, setTaxonomy] = useState(FALLBACK_TAXONOMY);
-  const [taxonomySource, setTaxonomySource] = useState('loading'); // loading | live | fallback
+  const [taxonomy, setTaxonomy] = useState(() => {
+    const cached = peekCached('/api/v1/skills/taxonomy');
+    const result = cached ? normalizeTaxonomy(cached) : null;
+    return result && !result.empty ? result.categories : FALLBACK_TAXONOMY;
+  });
+  const [taxonomySource, setTaxonomySource] = useState(() => {
+    const cached = peekCached('/api/v1/skills/taxonomy');
+    const result = cached ? normalizeTaxonomy(cached) : null;
+    return result && !result.empty ? 'live' : 'loading'; // loading | live | fallback
+  });
   const [taxonomyError, setTaxonomyError] = useState(null);
-  const [skills, setSkills] = useState({});
+  // Seeded from the cache so coming back to this screen does not re-run the
+  // request and flash a skeleton — the effect below still refreshes it.
+  const cachedMatrix = useMemo(() => {
+    const cached = peekCached('/api/v1/skills/matrix');
+    return cached ? mapMatrixRows(cached, resolveLearnerId(getStoredUser())) : null;
+  }, []);
+  const [skills, setSkills] = useState(() => cachedMatrix?.skills || {});
   // Maps skill id -> backend matrix row id, so edits PUT /skills/matrix/{id}
   // instead of re-POSTing (which would try to upsert a duplicate pair).
-  const [rowIds, setRowIds] = useState({});
-  const [loadingMatrix, setLoadingMatrix] = useState(true);
+  const [rowIds, setRowIds] = useState(() => cachedMatrix?.rowIds || {});
+  const [loadingMatrix, setLoadingMatrix] = useState(() => !cachedMatrix);
   const [loadError, setLoadError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -270,7 +307,7 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
   const [readinessScore, setReadinessScore] = useState(null);
   const [roleLabel, setRoleLabel] = useState('');
   const [specialization, setSpecialization] = useState('');
-  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(() => Boolean(peekCached('/api/v1/profile')));
   const [showAllSpecs, setShowAllSpecs] = useState(false);
   // Skill ids that belong to the learner's specialization, resolved through the
   // backend links: specialization -> career roles -> required skills. null =
@@ -457,7 +494,8 @@ export default function SkillMatrix({ onNavigate, initialTab = 'all' }) {
       setLoadError(L("We couldn't find your learner id in your session. Try logging out and back in."));
       return undefined;
     }
-    setLoadingMatrix(true);
+    // Only show the skeleton when there is nothing cached to paint with.
+    setLoadingMatrix(Object.keys(skills).length === 0);
     setLoadError(null);
     getSkillsMatrix()
       .then((data) => {

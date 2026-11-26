@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AppLayout from './AppLayout';
 import { useI18n } from '../../i18n/useI18n';
 import { L, useProjectsText } from "../../i18n/useProjectsText";
+import { peekCached } from '../../cache';
 import {
   getLatestReadiness,
   getLatestIntelligence,
@@ -29,6 +30,16 @@ function phaseNumber(phase) {
   const key = String(phase).trim().toLowerCase().replace(/[\s-]+/g, '_');
   const i = PHASE_ORDER.findIndex((name) => key === name || key.startsWith(name));
   return i >= 0 ? i + 1 : null;
+}
+
+// True when the dashboard's own answers are still in the cache, so a revisit
+// can paint immediately instead of showing the loading banner again.
+function hasCachedDashboard() {
+  return Boolean(
+    peekCached('/api/v1/readiness/latest') ||
+      peekCached('/api/v1/intelligence/latest') ||
+      peekCached('/api/v1/projects')
+  );
 }
 
 function ReadinessRing({ value = 0 }) {
@@ -98,7 +109,9 @@ const StatIcon = {
 
 export default function Dashboard({ user, onLogout, onNavigate }) {
   const { L } = useProjectsText();
-  const [loading, setLoading] = useState(true);
+  // A revisit should not show the loading banner: every call below now reads
+  // from the cache first and only refreshes in the background.
+  const [loading, setLoading] = useState(() => !hasCachedDashboard());
   const [loadError, setLoadError] = useState('');
   const [d, setD] = useState({
     readinessScore: 0,
@@ -125,7 +138,7 @@ export default function Dashboard({ user, onLogout, onNavigate }) {
   });
 
   const loadDashboardData = async () => {
-    setLoading(true);
+    setLoading(!hasCachedDashboard());
     setLoadError('');
 
     const extractList = (payload) => {

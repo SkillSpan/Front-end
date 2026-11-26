@@ -33,6 +33,16 @@ function cachedWorkspaceAnswer(path) {
   return getEntry(key).invalidated ? undefined : getQueryData(key);
 }
 
+// Readiness and intelligence are keyed by the learner's current goal, so the
+// cached copy is only usable when the cached profile still points at the same
+// role — otherwise the screen would show the previous goal's score.
+function cachedDecision(path) {
+  const goalId = unwrapApiData(cachedWorkspaceAnswer('/api/v1/profile'))?.primary_career_role_id;
+  if (goalId == null) return null;
+  const cached = cachedWorkspaceAnswer(`${path}?career_role_id=${encodeURIComponent(goalId)}`);
+  return cached ? unwrapApiData(cached) : null;
+}
+
 export default function LearnerWorkspace({ initialView='career-journey', onNavigate, onLogout }) {
   const { authUser } = useAuth();
   const { t } = useI18n();
@@ -43,9 +53,9 @@ export default function LearnerWorkspace({ initialView='career-journey', onNavig
   const [roles, setRoles] = useState(() => collection(cachedWorkspaceAnswer('/api/v1/career-roles?page=1&per_page=15')));
   const [projects, setProjects] = useState(() => collection(cachedWorkspaceAnswer('/api/v1/projects')));
   const [recommendations, setRecommendations] = useState(() => collection(cachedWorkspaceAnswer('/api/v1/recommendations?page=1&per_page=15')));
-  const [readiness, setReadiness] = useState(null);
+  const [readiness, setReadiness] = useState(() => cachedDecision('/api/v1/readiness/latest'));
   const [activeCareerRole, setActiveCareerRole] = useState(null);
-  const [intelligence, setIntelligence] = useState(null);
+  const [intelligence, setIntelligence] = useState(() => cachedDecision('/api/v1/intelligence/latest'));
   const [profile, setProfile] = useState(() => {
     const cached = cachedWorkspaceAnswer('/api/v1/profile');
     return cached ? unwrapApiData(cached) : null;

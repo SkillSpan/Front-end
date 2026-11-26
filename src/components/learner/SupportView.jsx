@@ -9,6 +9,7 @@ import {
 import { useAuth } from "../auth/AuthContext";
 import { SUPPORT_CREATED_EVENT } from "./SupportWaitingToast";
 import { L, useUiText } from "../../i18n/useUiText";
+import { peekCached } from "../../cache";
 
 // The support thread is the only place a learner can read what the support
 // team wrote back. Replies arrive out of band (the assistant hands off, an
@@ -143,8 +144,14 @@ export default function SupportView({ initialRequestId = null }) {
   const { authUser } = useAuth();
   const myId = authUser?.id != null ? String(authUser.id) : "";
 
-  const [requests, setRequests] = useState([]);
-  const [listLoading, setListLoading] = useState(true);
+  const [requests, setRequests] = useState(() => {
+    // Paint the list from the cache on a revisit; loadList still refreshes it.
+    const cached = peekCached('/api/v1/support/requests?page=1&per_page=50');
+    return cached ? collection(cached) : [];
+  });
+  const [listLoading, setListLoading] = useState(
+    () => !peekCached('/api/v1/support/requests?page=1&per_page=50')
+  );
   const [listError, setListError] = useState("");
 
   const [selectedId, setSelectedId] = useState(initialRequestId ? Number(initialRequestId) : null);

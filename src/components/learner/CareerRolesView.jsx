@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import CareerGoalControl from './CareerGoalControl';
 import { getCareerRoleSkills, getCareerRoles, getSkillsMatrix, getSavedCareerRoles, setCareerRoleSaved, unwrapApiData } from "../../api";
 import { L, useUiText } from "../../i18n/useUiText";
+import { peekCached } from "../../cache";
 // ── Mock Data ────────────────────────────────────────────────────────────────
 // ── Utility helpers ──────────────────────────────────────────────────────────
 function demandColor(level) {
@@ -1273,8 +1274,17 @@ export default function CareerRolesView({ initialRoles = null, onSearch, searchD
   // What the tabs render: server results once a search has run, otherwise the
   // list the workspace loaded on mount. Defined up here because selectRole
   // needs it to resolve the row that was clicked.
-  const [savedRoles, setSavedRoles] = useState([]);
-  const [savedLoaded, setSavedLoaded] = useState(false);
+  const [savedRoles, setSavedRoles] = useState(() => {
+    // Seed from the cache so switching back to this screen does not blank the
+    // saved tab while the request runs again.
+    const cached = peekCached('/api/v1/saved-career-roles');
+    const payload = cached ? unwrapApiData(cached) : null;
+    return Array.isArray(payload) ? payload.map(normalizeRole) : [];
+  });
+  const [savedLoaded, setSavedLoaded] = useState(() => {
+    const cached = peekCached('/api/v1/saved-career-roles');
+    return Array.isArray(unwrapApiData(cached));
+  });
   const [saveError, setSaveError] = useState("");
   const [saveMessage, setSaveMessage] = useState("");
   const [savingIds, setSavingIds] = useState(new Set());

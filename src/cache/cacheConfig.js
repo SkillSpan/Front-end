@@ -83,6 +83,19 @@ export const CACHE_RULES = [
   { match: /^\/api\/v1\/evidence(\/[^/]+)?$/, tags: ['evidence'], staleTime: 60 * SECOND, maxAge: 5 * MINUTE, transport: true },
   { match: /^\/api\/v1\/saved-career-roles$/, tags: ['saved-roles'], staleTime: 60 * SECOND, maxAge: 5 * MINUTE, transport: true },
   { match: /^\/api\/v1\/learner\/messages$/, tags: ['messages'], staleTime: 15 * SECOND, maxAge: 2 * MINUTE, transport: true },
+
+  // Readiness, intelligence and support used to be "never cache" because they
+  // are computed rather than stored. They still only change when the learner
+  // acts (a new evidence row, a skill level, a new goal), and every such
+  // mutation clears these tags, so a short window is safe — and it is what
+  // stops the career-journey screen from re-running both calculations on every
+  // visit.
+  { match: /^\/api\/v1\/readiness\/latest$/, tags: ['readiness'], staleTime: 60 * SECOND, maxAge: 15 * MINUTE, transport: true },
+  { match: /^\/api\/v1\/intelligence\/latest$/, tags: ['intelligence'], staleTime: 60 * SECOND, maxAge: 15 * MINUTE, transport: true },
+  { match: /^\/api\/v1\/baseline-assessments(\/|$)/, tags: ['baseline', 'skills'], staleTime: 60 * SECOND, maxAge: 15 * MINUTE, transport: true },
+  { match: /^\/api\/v1\/support\/requests$/, tags: ['support'], staleTime: 20 * SECOND, maxAge: 5 * MINUTE, transport: true },
+  { match: /^\/api\/v1\/support\/requests\/[^/]+$/, tags: ['support'], staleTime: 20 * SECOND, maxAge: 5 * MINUTE, transport: true },
+  { match: /^\/api\/v1\/mentor(\/|$)/, tags: ['mentor'], staleTime: 30 * SECOND, maxAge: 10 * MINUTE, transport: true },
   { match: /^\/api\/v1\/talent\/filters$/, tags: ['talent'], staleTime: 5 * MINUTE, maxAge: 30 * MINUTE, transport: true },
 
   // Public reference lists (dropdowns). Same for everyone, change rarely.
@@ -99,7 +112,9 @@ export const CACHE_RULES = [
 export const NEVER_CACHE = [
   /^\/api\/v1\/auth(\/|$)/,
   /otp|password|token|verify|logout/i,
-  /^\/api\/v1\/(intelligence|readiness|baseline-assessments|assistant|conversations|support|mentor)(\/|$)/,
+  // A conversation must never be replayed from cache: the assistant answers
+  // turn by turn, and a stale turn would read as a lost reply.
+  /^\/api\/v1\/(assistant|conversations)(\/|$)/,
 ];
 
 /**
@@ -139,10 +154,10 @@ export const INVALIDATION_MAP = [
   { match: /^\/api\/v1\/projects(\/|$)/, invalidate: ['projects', 'dashboard'] },
   { match: /^\/api\/v1\/recommendations\//, invalidate: ['recommendations'] },
   { match: /^\/api\/v1\/saved-career-roles\//, invalidate: ['saved-roles'] },
-  { match: /^\/api\/v1\/skills(\/|$)/, invalidate: ['skills', 'evidence', 'recommendations', 'projects'] },
-  { match: /^\/api\/v1\/evidence(\/|$)/, invalidate: ['evidence', 'skills', 'recommendations', 'projects'] },
-  { match: /^\/api\/v1\/(evidence|skills|intelligence|readiness|baseline-assessments)(\/|$)/, invalidate: ['recommendations', 'projects'] },
-  { match: /^\/api\/v1\/profile(\/|$)/, invalidate: ['profile', 'recommendations', 'projects'] },
+  { match: /^\/api\/v1\/skills(\/|$)/, invalidate: ['skills', 'evidence', 'recommendations', 'projects', 'readiness', 'intelligence'] },
+  { match: /^\/api\/v1\/evidence(\/|$)/, invalidate: ['evidence', 'skills', 'recommendations', 'projects', 'readiness', 'intelligence'] },
+  { match: /^\/api\/v1\/(evidence|skills|intelligence|readiness|baseline-assessments)(\/|$)/, invalidate: ['recommendations', 'projects', 'readiness', 'intelligence'] },
+  { match: /^\/api\/v1\/profile(\/|$)/, invalidate: ['profile', 'recommendations', 'projects', 'readiness', 'intelligence'] },
 ];
 
 const stripQuery = (path = '') => String(path).split('?')[0].split('#')[0];

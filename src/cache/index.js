@@ -5,6 +5,7 @@ export {
   clearQueryCache,
   fetchQuery,
   getQueryData,
+  peekCached,
   invalidateAfterMutation,
   invalidateQueries,
   setCacheScope,
